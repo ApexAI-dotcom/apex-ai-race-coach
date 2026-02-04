@@ -68,8 +68,8 @@ export const PricingCard = ({
     try {
       setLoading(true);
       console.log("🛒 Checkout", variant); // DEBUG
-      
-      const response = await fetch("http://localhost:8000/api/create-checkout-session", {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const response = await fetch(`${API_URL}/api/create-checkout-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: `${variant}_monthly` }), // pro_monthly, team_monthly

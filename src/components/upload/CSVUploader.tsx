@@ -24,6 +24,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   uploadAndAnalyzeCSV,
   checkBackendConnection,
+  API_BASE_URL,
   type AnalysisResult,
   type ApiError,
 } from "@/lib/api";
@@ -87,8 +88,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         throw {
           success: false,
           error: "backend_unavailable",
-          message:
-            "Le serveur backend n'est pas accessible. Vérifiez qu'il est démarré sur http://localhost:8000",
+          message: `Le serveur backend n'est pas accessible. Vérifiez qu'il est démarré (${API_BASE_URL})`,
         } as ApiError;
       }
 

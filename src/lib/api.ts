@@ -170,8 +170,7 @@ function handleFetchError(error: unknown, context: string): ApiError {
       return {
         success: false,
         error: "network",
-        message:
-          "Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur http://localhost:8000",
+        message: `Impossible de se connecter au serveur. Vérifiez que le backend est accessible (${API_BASE_URL})`,
       };
     }
 
