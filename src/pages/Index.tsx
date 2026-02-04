@@ -4,7 +4,6 @@ import { ArrowRight, Zap, Target, Timer, TrendingUp, Users, Star, CheckCircle2, 
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
-import heroImage from "@/assets/hero-racing.jpg";
 
 const stats = [
   { value: "12,847", label: "Tours analysés", icon: Target },
@@ -104,15 +103,9 @@ export default function Index() {
 
       {/* Hero Section */}
       <section className={`relative min-h-screen flex items-center overflow-hidden ${success === 'true' || canceled === 'true' ? 'pt-20' : ''}`}>
-        {/* Background image */}
-        <div className="absolute inset-0">
-          <img
-            src={heroImage}
-            alt="Racing track"
-            className="w-full h-full object-cover opacity-40"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background" />
-        </div>
+        {/* Background gradient (évite import image cassé sur mobile) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background" />
 
         <div className="container mx-auto px-4 relative z-10 py-20">
           <motion.div
