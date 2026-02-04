@@ -3,8 +3,8 @@
  * Client TypeScript pour communiquer avec le backend FastAPI
  */
 
-// Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// Configuration - unique source for API URL (VITE_API_URL en prod)
+export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const API_TIMEOUT_MS = 30000; // 30 secondes
 const MAX_FILE_SIZE_MB = 50;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { stripePromise } from "@/lib/stripe";
+import { API_BASE_URL } from "@/lib/api";
 
 interface PricingCardProps {
   name: string;
@@ -68,8 +69,7 @@ export const PricingCard = ({
     try {
       setLoading(true);
       console.log("🛒 Checkout", variant); // DEBUG
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(`${API_URL}/api/create-checkout-session`, {
+      const response = await fetch(`${API_BASE_URL}/api/create-checkout-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: `${variant}_monthly` }), // pro_monthly, team_monthly

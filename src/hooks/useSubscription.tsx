@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useUser } from './useAuth'
 import { supabase } from '@/lib/supabase'
+import { API_BASE_URL } from '@/lib/api'
 
 export type SubscriptionPlan = 'free' | 'pro' | 'team'
 export type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'trialing'
@@ -105,10 +106,9 @@ export function useSubscription() {
         }
 
         // Essayer l'API (avec cache de 30s)
-        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000"
         try {
           const response = await fetch(
-            `${API_URL}/api/subscription-status?user_id=${user.id}`,
+            `${API_BASE_URL}/api/subscription-status?user_id=${user.id}`,
             { cache: 'no-cache' }
           )
           

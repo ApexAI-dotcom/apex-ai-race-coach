@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
+import { API_BASE_URL } from "@/lib/api";
 
 const achievements = [
   { icon: "🏆", title: "Pro Apex", description: "10 analyses complétées" },
@@ -111,9 +112,8 @@ export default function Profile() {
       setLoadingPortal(true);
       setError(null);
 
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
       const response = await fetch(
-        `${API_URL}/api/customer-portal?user_id=${user?.id}&customer_id=${subscription.customerId}`
+        `${API_BASE_URL}/api/customer-portal?user_id=${user?.id}&customer_id=${subscription.customerId}`
       );
 
       if (!response.ok) {
