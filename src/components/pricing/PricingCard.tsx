@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { stripePromise } from "@/lib/stripe";
 
 interface PricingCardProps {
   name: string;
@@ -11,6 +14,7 @@ interface PricingCardProps {
   variant: "free" | "pro" | "team";
   popular?: boolean;
   delay?: number;
+  priceId?: string; // Stripe Price ID
 }
 
 const variantStyles = {
@@ -43,8 +47,50 @@ export const PricingCard = ({
   variant,
   popular,
   delay = 0,
+  priceId,
 }: PricingCardProps) => {
   const styles = variantStyles[variant];
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const handleCheckout = async () => {
+    if (variant === "free") {
+      // Rediriger vers l'inscription ou le dashboard
+      window.location.href = "/login";
+      return;
+    }
+
+    if (!user) {
+      window.location.href = "/login?redirect=/pricing";
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log("🛒 Checkout", variant); // DEBUG
+      
+      const response = await fetch("http://localhost:8000/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: `${variant}_monthly` }), // pro_monthly, team_monthly
+      });
+      
+      const data = await response.json();
+      console.log("📦 Response:", data); // DEBUG
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error("❌", data.error);
+        alert("Erreur: " + data.error);
+      }
+    } catch (error) {
+      console.error("💥 Erreur checkout:", error);
+      alert("Erreur réseau");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -63,19 +109,13 @@ export const PricingCard = ({
 
       <div className="text-center mb-6">
         <span className="text-3xl mb-2 block">{styles.icon}</span>
-        <h3 className="text-xl font-display font-bold text-foreground mb-2">
-          {name}
-        </h3>
+        <h3 className="text-xl font-display font-bold text-foreground mb-2">{name}</h3>
         <p className="text-muted-foreground text-sm">{description}</p>
       </div>
 
       <div className="text-center mb-6">
-        <span className="text-4xl font-display font-bold text-foreground">
-          {price}
-        </span>
-        {period && (
-          <span className="text-muted-foreground text-sm">{period}</span>
-        )}
+        <span className="text-4xl font-display font-bold text-foreground">{price}</span>
+        {period && <span className="text-muted-foreground text-sm">{period}</span>}
       </div>
 
       <ul className="space-y-3 mb-8">
@@ -89,8 +129,23 @@ export const PricingCard = ({
         ))}
       </ul>
 
-      <Button variant={styles.button} className="w-full" size="lg">
-        {variant === "free" ? "Commencer" : "Essai gratuit 14 jours"}
+      <Button
+        variant={styles.button}
+        className="w-full"
+        size="lg"
+        onClick={handleCheckout}
+        disabled={loading}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Chargement...
+          </>
+        ) : variant === "free" ? (
+          "Commencer"
+        ) : (
+          "Essai gratuit 14 jours"
+        )}
       </Button>
     </motion.div>
   );

@@ -28,12 +28,7 @@ const getBadge = (score: number) => {
   return { text: "ROOKIE", className: "bg-muted" };
 };
 
-export const ScoreCard = ({
-  score,
-  maxScore = 100,
-  label,
-  size = "md",
-}: ScoreCardProps) => {
+export const ScoreCard = ({ score, maxScore = 100, label, size = "md" }: ScoreCardProps) => {
   const badge = getBadge(score);
   const percentage = (score / maxScore) * 100;
 
@@ -55,9 +50,7 @@ export const ScoreCard = ({
       animate={{ opacity: 1, scale: 1 }}
       className="glass-card p-6 flex flex-col items-center"
     >
-      <div
-        className={`${sizeClasses[size]} relative flex items-center justify-center`}
-      >
+      <div className={`${sizeClasses[size]} relative flex items-center justify-center`}>
         {/* Background circle */}
         <svg className="absolute inset-0 w-full h-full -rotate-90">
           <circle

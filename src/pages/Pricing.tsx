@@ -1,7 +1,10 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PricingCard } from "@/components/pricing/PricingCard";
-import { Check, Zap } from "lucide-react";
+import { Check, Zap, XCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const plans = [
   {
@@ -9,13 +12,9 @@ const plans = [
     price: "0€",
     period: "",
     description: "Parfait pour essayer",
-    features: [
-      "3 analyses par mois",
-      "Score global /100",
-      "Visualisation basic",
-      "Support email",
-    ],
+    features: ["3 analyses par mois", "Score global /100", "Visualisation basic", "Support email"],
     variant: "free" as const,
+    priceId: "free",
   },
   {
     name: "Pro",
@@ -32,6 +31,7 @@ const plans = [
     ],
     variant: "pro" as const,
     popular: true,
+    priceId: "price_pro_monthly", // À remplacer par le vrai Price ID Stripe
   },
   {
     name: "Team",
@@ -47,6 +47,7 @@ const plans = [
       "Manager dédié",
     ],
     variant: "team" as const,
+    priceId: "price_team_monthly", // À remplacer par le vrai Price ID Stripe
   },
 ];
 
@@ -74,9 +75,42 @@ const faqs = [
 ];
 
 export default function Pricing() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const canceled = searchParams.get("canceled");
+
+  // Nettoyer le paramètre après 5 secondes
+  useEffect(() => {
+    if (canceled === "true") {
+      const timer = setTimeout(() => {
+        setSearchParams({});
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [canceled, setSearchParams]);
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-16">
+        {/* Alert pour paiement annulé */}
+        <AnimatePresence>
+          {canceled === "true" && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="max-w-2xl mx-auto mb-8"
+            >
+              <Alert className="border-orange-500/50 bg-orange-500/10">
+                <XCircle className="h-4 w-4 text-orange-500" />
+                <AlertTitle className="text-orange-500">Paiement annulé</AlertTitle>
+                <AlertDescription className="text-orange-500/80">
+                  Le paiement a été annulé. Vous pouvez réessayer quand vous le souhaitez.
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -90,17 +124,14 @@ export default function Pricing() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
           >
             <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">
-              14 jours d'essai gratuit
-            </span>
+            <span className="text-sm font-medium text-primary">14 jours d'essai gratuit</span>
           </motion.div>
 
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
             Tarifs <span className="text-gradient-primary">transparents</span>
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Choisissez le plan adapté à vos besoins. Upgradez ou annulez à tout
-            moment.
+            Choisissez le plan adapté à vos besoins. Upgradez ou annulez à tout moment.
           </p>
         </motion.div>
 
@@ -122,8 +153,8 @@ export default function Pricing() {
             Besoin d'une solution sur-mesure ?
           </h3>
           <p className="text-muted-foreground mb-6">
-            Pour les écuries et organisateurs d'événements, contactez-nous pour un
-            devis personnalisé.
+            Pour les écuries et organisateurs d'événements, contactez-nous pour un devis
+            personnalisé.
           </p>
           <a
             href="mailto:contact@apexai.racing"
@@ -153,9 +184,7 @@ export default function Pricing() {
                 transition={{ delay: 0.6 + index * 0.1 }}
                 className="glass-card p-6"
               >
-                <h4 className="font-semibold text-foreground mb-2">
-                  {faq.question}
-                </h4>
+                <h4 className="font-semibold text-foreground mb-2">{faq.question}</h4>
                 <p className="text-muted-foreground text-sm">{faq.answer}</p>
               </motion.div>
             ))}
@@ -169,9 +198,7 @@ export default function Pricing() {
           transition={{ delay: 0.8 }}
           className="mt-16 text-center"
         >
-          <p className="text-sm text-muted-foreground mb-4">
-            Paiement sécurisé par Stripe
-          </p>
+          <p className="text-sm text-muted-foreground mb-4">Paiement sécurisé par Stripe</p>
           <div className="flex justify-center items-center gap-8 opacity-50">
             <span className="text-2xl">💳</span>
             <span className="text-2xl">🔒</span>

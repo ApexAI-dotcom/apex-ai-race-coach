@@ -21,16 +21,16 @@ const mockApexPoints: ApexPoint[] = [
 // Generate smooth path through apex points
 const generatePath = (points: ApexPoint[]) => {
   if (points.length < 2) return "";
-  
+
   let path = `M ${points[0].x} ${points[0].y}`;
-  
+
   for (let i = 1; i < points.length; i++) {
     const prev = points[i - 1];
     const curr = points[i];
     const cpX = (prev.x + curr.x) / 2;
     path += ` Q ${cpX} ${prev.y} ${curr.x} ${curr.y}`;
   }
-  
+
   return path;
 };
 
@@ -38,15 +38,9 @@ export const ApexGraph = () => {
   const pathD = generatePath(mockApexPoints);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="glass-card p-6 h-full"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-6 h-full">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display font-semibold text-lg text-foreground">
-          Analyse des Virages
-        </h3>
+        <h3 className="font-display font-semibold text-lg text-foreground">Analyse des Virages</h3>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-primary" />
@@ -93,7 +87,7 @@ export const ApexGraph = () => {
             animate={{ pathLength: 1 }}
             transition={{ duration: 2, ease: "easeInOut" }}
           />
-          
+
           {/* Main path */}
           <motion.path
             d={pathD}
@@ -105,7 +99,7 @@ export const ApexGraph = () => {
             animate={{ pathLength: 1 }}
             transition={{ duration: 2, ease: "easeInOut" }}
           />
-          
+
           <defs>
             <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="hsl(var(--primary))" />
@@ -141,9 +135,7 @@ export const ApexGraph = () => {
             {/* Tooltip */}
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               <div className="glass-card px-3 py-2 text-xs whitespace-nowrap">
-                <div className="font-semibold text-foreground">
-                  Virage {point.id}
-                </div>
+                <div className="font-semibold text-foreground">Virage {point.id}</div>
                 <div className="text-muted-foreground">
                   {point.speed} km/h · R{point.radius}m
                 </div>
@@ -165,9 +157,7 @@ export const ApexGraph = () => {
           { label: "Temps perdu", value: "-2.3s" },
         ].map((stat) => (
           <div key={stat.label} className="text-center">
-            <div className="text-lg font-display font-bold text-foreground">
-              {stat.value}
-            </div>
+            <div className="text-lg font-display font-bold text-foreground">{stat.value}</div>
             <div className="text-xs text-muted-foreground">{stat.label}</div>
           </div>
         ))}

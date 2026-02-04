@@ -1,16 +1,9 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  Zap,
-  Target,
-  Timer,
-  TrendingUp,
-  Users,
-  Star,
-} from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { ArrowRight, Zap, Target, Timer, TrendingUp, Users, Star, CheckCircle2, XCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 import heroImage from "@/assets/hero-racing.jpg";
 
 const stats = [
@@ -22,20 +15,17 @@ const stats = [
 const features = [
   {
     title: "Analyse IA des virages",
-    description:
-      "Notre algorithme identifie chaque apex et calcule votre trajectoire optimale.",
+    description: "Notre algorithme identifie chaque apex et calcule votre trajectoire optimale.",
     icon: Target,
   },
   {
     title: "Score de performance",
-    description:
-      "Obtenez un score /100 détaillé avec des conseils personnalisés.",
+    description: "Obtenez un score /100 détaillé avec des conseils personnalisés.",
     icon: Star,
   },
   {
     title: "Compatible MyChron",
-    description:
-      "Import direct des données MyChron5, AiM, RaceBox et autres.",
+    description: "Import direct des données MyChron5, AiM, RaceBox et autres.",
     icon: Zap,
   },
 ];
@@ -44,8 +34,7 @@ const testimonials = [
   {
     name: "Lucas M.",
     role: "Pilote Rotax DD2",
-    quote:
-      "J'ai gagné 3 secondes en une session grâce aux conseils d'APEX AI.",
+    quote: "J'ai gagné 3 secondes en une session grâce aux conseils d'APEX AI.",
     avatar: "LM",
   },
   {
@@ -57,10 +46,64 @@ const testimonials = [
 ];
 
 export default function Index() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const success = searchParams.get('success');
+  const canceled = searchParams.get('canceled');
+  const sessionId = searchParams.get('session_id');
+
+  // Nettoyer les paramètres après 5 secondes
+  useEffect(() => {
+    if (success || canceled) {
+      const timer = setTimeout(() => {
+        setSearchParams({});
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, canceled, setSearchParams]);
+
   return (
     <Layout>
+      {/* Success/Cancel Banner */}
+      {success === 'true' && (
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-0 left-0 right-0 z-50 bg-green-500/90 backdrop-blur-sm border-b border-green-400"
+        >
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-white" />
+              <div className="text-center">
+                <h3 className="text-white font-bold">🎉 Abonnement activé avec succès !</h3>
+                <p className="text-white/80 text-sm">Session: {sessionId}</p>
+              </div>
+              <Link to="/dashboard">
+                <Button variant="outline" size="sm" className="bg-white/10 text-white border-white/30 hover:bg-white/20">
+                  Accéder au Dashboard
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {canceled === 'true' && (
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-0 left-0 right-0 z-50 bg-orange-500/90 backdrop-blur-sm border-b border-orange-400"
+        >
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-center gap-3">
+              <XCircle className="w-5 h-5 text-white" />
+              <p className="text-white font-medium">Paiement annulé. Vous pouvez réessayer quand vous voulez.</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
+      <section className={`relative min-h-screen flex items-center overflow-hidden ${success === 'true' || canceled === 'true' ? 'pt-20' : ''}`}>
         {/* Background image */}
         <div className="absolute inset-0">
           <img
@@ -86,9 +129,7 @@ export default function Index() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
             >
               <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">
-                Propulsé par l'IA
-              </span>
+              <span className="text-sm font-medium text-primary">Propulsé par l'IA</span>
             </motion.div>
 
             {/* Title */}
@@ -96,17 +137,14 @@ export default function Index() {
               <span className="text-foreground">APEX</span>
               <span className="text-gradient-primary">AI</span>
               <br />
-              <span className="text-foreground text-3xl md:text-5xl">
-                Ton Coach Virages IA
-              </span>
+              <span className="text-foreground text-3xl md:text-5xl">Ton Coach Virages IA</span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Analyse ton fichier CSV MyChron et obtiens un{" "}
               <span className="text-primary font-semibold">Score /100</span> +{" "}
-              <span className="text-success font-semibold">7s gagnés</span> par
-              session en moyenne.
+              <span className="text-success font-semibold">7s gagnés</span> par session en moyenne.
             </p>
 
             {/* CTA */}
@@ -191,8 +229,7 @@ export default function Index() {
               Analyse <span className="text-gradient-primary">intelligente</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Notre IA analyse chaque virage pour vous donner des conseils précis
-              et personnalisés.
+              Notre IA analyse chaque virage pour vous donner des conseils précis et personnalisés.
             </p>
           </motion.div>
 
@@ -248,23 +285,14 @@ export default function Index() {
                     {testimonial.avatar}
                   </div>
                   <div>
-                    <div className="font-semibold text-foreground">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {testimonial.role}
-                    </div>
+                    <div className="font-semibold text-foreground">{testimonial.name}</div>
+                    <div className="text-sm text-muted-foreground">{testimonial.role}</div>
                   </div>
                 </div>
-                <p className="text-muted-foreground italic">
-                  "{testimonial.quote}"
-                </p>
+                <p className="text-muted-foreground italic">"{testimonial.quote}"</p>
                 <div className="flex gap-1 mt-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4 text-gold fill-gold"
-                    />
+                    <Star key={i} className="w-4 h-4 text-gold fill-gold" />
                   ))}
                 </div>
               </motion.div>
@@ -288,8 +316,7 @@ export default function Index() {
                 Prêt à améliorer tes temps ?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-                Rejoins les 127 pilotes qui utilisent déjà APEX AI pour dominer
-                les circuits.
+                Rejoins les 127 pilotes qui utilisent déjà APEX AI pour dominer les circuits.
               </p>
               <Link to="/upload">
                 <Button variant="hero" size="xl">

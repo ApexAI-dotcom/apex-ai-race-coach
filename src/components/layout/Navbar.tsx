@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Zap } from "lucide-react";
+import { Menu, X, Zap, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -14,6 +15,15 @@ const navItems = [
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, user, signOut, loading } = useAuth();
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (!error) {
+      navigate("/");
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-white/5">
@@ -48,23 +58,44 @@ export const Navbar = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/profile">
-              <Button variant="ghost" size="sm">
-                Mon Profil
-              </Button>
-            </Link>
-            <Link to="/upload">
-              <Button variant="hero" size="sm">
-                Analyser CSV
-              </Button>
-            </Link>
+            {loading ? (
+              <div className="w-8 h-8 animate-pulse bg-secondary rounded" />
+            ) : isAuthenticated ? (
+              <>
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <User className="w-4 h-4" />
+                    {user?.email?.split("@")[0] || "Profil"}
+                  </Button>
+                </Link>
+                <Link to="/upload">
+                  <Button variant="hero" size="sm">
+                    Analyser CSV
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
+                  <LogOut className="w-4 h-4" />
+                  Déconnexion
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">
+                    Connexion
+                  </Button>
+                </Link>
+                <Link to="/login">
+                  <Button variant="hero" size="sm">
+                    Inscription
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 text-foreground"
-          >
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-foreground">
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
@@ -86,25 +117,54 @@ export const Navbar = () => {
                   to={item.path}
                   onClick={() => setIsOpen(false)}
                   className={`text-sm font-medium py-2 ${
-                    location.pathname === item.path
-                      ? "text-primary"
-                      : "text-muted-foreground"
+                    location.pathname === item.path ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
                   {item.name}
                 </Link>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-white/5">
-                <Link to="/profile" onClick={() => setIsOpen(false)}>
-                  <Button variant="ghost" className="w-full">
-                    Mon Profil
-                  </Button>
-                </Link>
-                <Link to="/upload" onClick={() => setIsOpen(false)}>
-                  <Button variant="hero" className="w-full">
-                    Analyser CSV
-                  </Button>
-                </Link>
+                {loading ? (
+                  <div className="w-full h-10 animate-pulse bg-secondary rounded" />
+                ) : isAuthenticated ? (
+                  <>
+                    <Link to="/profile" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" className="w-full gap-2">
+                        <User className="w-4 h-4" />
+                        {user?.email?.split("@")[0] || "Mon Profil"}
+                      </Button>
+                    </Link>
+                    <Link to="/upload" onClick={() => setIsOpen(false)}>
+                      <Button variant="hero" className="w-full">
+                        Analyser CSV
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      className="w-full gap-2"
+                      onClick={() => {
+                        setIsOpen(false);
+                        handleSignOut();
+                      }}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Déconnexion
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" className="w-full">
+                        Connexion
+                      </Button>
+                    </Link>
+                    <Link to="/login" onClick={() => setIsOpen(false)}>
+                      <Button variant="hero" className="w-full">
+                        Inscription
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

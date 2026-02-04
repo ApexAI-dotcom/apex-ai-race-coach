@@ -39,9 +39,7 @@ export const MobileNav = () => {
               />
               <span
                 className={`text-xs relative z-10 ${
-                  isActive
-                    ? "text-primary font-medium"
-                    : "text-muted-foreground"
+                  isActive ? "text-primary font-medium" : "text-muted-foreground"
                 }`}
               >
                 {item.label}

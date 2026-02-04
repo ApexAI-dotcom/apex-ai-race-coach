@@ -49,9 +49,7 @@ export const StatCard = ({
         )}
       </div>
       <div className="mt-4">
-        <div className="text-3xl font-display font-bold text-foreground">
-          {value}
-        </div>
+        <div className="text-3xl font-display font-bold text-foreground">{value}</div>
         <div className="text-sm text-muted-foreground mt-1">{label}</div>
       </div>
     </motion.div>

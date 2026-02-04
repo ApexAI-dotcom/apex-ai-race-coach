@@ -42,8 +42,8 @@ export default function Upload() {
             Analysez votre <span className="text-gradient-primary">session</span>
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Importez votre fichier CSV depuis votre data logger et obtenez une
-            analyse complète en quelques secondes.
+            Importez votre fichier CSV depuis votre data logger et obtenez une analyse complète en
+            quelques secondes.
           </p>
         </motion.div>
 
@@ -83,19 +83,12 @@ export default function Upload() {
           className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
         >
           {features.map((feature, index) => (
-            <div
-              key={feature.title}
-              className="glass-card p-6 text-center"
-            >
+            <div key={feature.title} className="glass-card p-6 text-center">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <feature.icon className="w-6 h-6 text-primary" />
               </div>
-              <h4 className="font-semibold text-foreground mb-2">
-                {feature.title}
-              </h4>
-              <p className="text-sm text-muted-foreground">
-                {feature.description}
-              </p>
+              <h4 className="font-semibold text-foreground mb-2">{feature.title}</h4>
+              <p className="text-sm text-muted-foreground">{feature.description}</p>
             </div>
           ))}
         </motion.div>
@@ -145,10 +138,7 @@ export default function Upload() {
                       className="border-b border-white/5 last:border-0 hover:bg-white/2"
                     >
                       {row.map((cell, cellIndex) => (
-                        <td
-                          key={cellIndex}
-                          className="px-4 py-3 text-foreground"
-                        >
+                        <td key={cellIndex} className="px-4 py-3 text-foreground">
                           {cell}
                         </td>
                       ))}
