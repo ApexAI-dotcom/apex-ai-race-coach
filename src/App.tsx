@@ -12,6 +12,7 @@ import Pricing from "./pages/Pricing";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Success from "./pages/Success";
+import Legal from "./pages/Legal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/success" element={<Success />} />
+            <Route path="/legal" element={<Legal />} />
             <Route
               path="/dashboard"
               element={
