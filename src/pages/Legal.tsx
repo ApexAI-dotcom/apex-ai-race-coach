@@ -19,9 +19,9 @@ export default function Legal() {
               Éditeur
             </h2>
             <p className="text-muted-foreground">
-              <strong className="text-foreground">Apex AI SAS</strong>
+              <strong className="text-foreground">Apex AI SARL</strong>
               <br />
-              Genova IT
+              France
               <br />
               Contact :{" "}
               <a
@@ -105,6 +105,15 @@ export default function Legal() {
               Ce site utilise <strong className="text-foreground">Vercel Analytics</strong> pour mesurer l'audience.
               <br />
               Vous pouvez vous opposer (opt-out) via les paramètres de votre navigateur ou en nous contactant.
+            </p>
+          </section>
+
+          <section className="mb-8" id="droit">
+            <h2 className="text-xl font-semibold text-foreground mb-4">
+              Droit applicable
+            </h2>
+            <p className="text-muted-foreground">
+              Droit français. Tribunaux compétents : Paris.
             </p>
           </section>
 

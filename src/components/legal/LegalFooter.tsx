@@ -6,7 +6,7 @@ export const LegalFooter = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div>
-            <strong className="text-foreground">Apex AI SAS</strong> • Genova IT
+            <strong className="text-foreground">Apex AI SARL</strong> • France
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             <Link to="/legal" className="hover:text-foreground transition-colors">
