@@ -1,50 +1,57 @@
-import { Link, useNavigate } from "react-router-dom";
+const linkClass =
+  "hover:text-foreground cursor-pointer text-sm text-muted-foreground transition-all relative z-10 select-none";
 
 export const LegalFooter = () => {
-  const navigate = useNavigate();
-
-  const navigateToLegal = (e: React.MouseEvent, hash?: string) => {
+  const goTo = (path: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    navigate(hash ? `/legal${hash}` : "/legal");
+    window.location.href = path;
   };
 
   return (
-    <footer className="border-t border-white/5 bg-card/30 py-6 pb-24 md:pb-6 mt-auto">
+    <footer className="border-t border-white/5 bg-card/30 py-6 pb-24 md:pb-6 mt-auto relative z-10">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div>
             <strong className="text-foreground">Apex AI SARL</strong> • France
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            <Link
-              to="/legal"
-              onClick={(e) => navigateToLegal(e)}
-              className="hover:text-foreground transition-colors"
+            <a
+              href="/legal"
+              onClick={goTo("/legal")}
+              className={linkClass}
+              role="link"
+              tabIndex={0}
             >
               Mentions légales
-            </Link>
-            <Link
-              to="/legal#cgv"
-              onClick={(e) => navigateToLegal(e, "#cgv")}
-              className="hover:text-foreground transition-colors"
+            </a>
+            <a
+              href="/legal#cgv"
+              onClick={goTo("/legal#cgv")}
+              className={linkClass}
+              role="link"
+              tabIndex={0}
             >
               CGV
-            </Link>
-            <Link
-              to="/legal#cgu"
-              onClick={(e) => navigateToLegal(e, "#cgu")}
-              className="hover:text-foreground transition-colors"
+            </a>
+            <a
+              href="/legal#cgu"
+              onClick={goTo("/legal#cgu")}
+              className={linkClass}
+              role="link"
+              tabIndex={0}
             >
               CGU
-            </Link>
-            <Link
-              to="/legal#privacy"
-              onClick={(e) => navigateToLegal(e, "#privacy")}
-              className="hover:text-foreground transition-colors"
+            </a>
+            <a
+              href="/legal#privacy"
+              onClick={goTo("/legal#privacy")}
+              className={linkClass}
+              role="link"
+              tabIndex={0}
             >
               Confidentialité
-            </Link>
-            <a href="mailto:contact@apexai.run" className="hover:text-foreground transition-colors">
+            </a>
+            <a href="mailto:contact@apexai.run" className={linkClass}>
               Contact
             </a>
           </nav>
