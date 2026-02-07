@@ -2,11 +2,27 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
+const GUEST_KEY = 'apex_guest_mode'
+const GUEST_USED_KEY = 'apex_guest_used'
+const TOKEN_KEY = 'apex-jwt'
+
+function getStoredGuest(): boolean {
+  try { return localStorage.getItem(GUEST_KEY) === '1' } catch { return false }
+}
+function getStoredGuestUsed(): boolean {
+  try { return localStorage.getItem(GUEST_USED_KEY) === '1' } catch { return false }
+}
+
 interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
   isAuthenticated: boolean
+  isGuest: boolean
+  guestUsed: boolean
+  canUploadFree: boolean
+  guestUpload: () => void
+  consumeGuestSlot: () => void
   signInEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signUpEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signInMagicLink: (email: string) => Promise<{ error: AuthError | null }>
@@ -19,6 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isGuest, setIsGuest] = useState(getStoredGuest)
+  const [guestUsed, setIsGuestUsed] = useState(getStoredGuestUsed)
 
   useEffect(() => {
     // Récupérer la session initiale
@@ -39,6 +57,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  const guestUpload = () => {
+    setIsGuest(true)
+    try { localStorage.setItem(GUEST_KEY, '1') } catch {}
+  }
+  const consumeGuestSlot = () => {
+    setIsGuestUsed(true)
+    try { localStorage.setItem(GUEST_USED_KEY, '1') } catch {}
+  }
+  const canUploadFree = isGuest && !guestUsed
+
+  useEffect(() => {
+    if (session?.access_token) {
+      try { localStorage.setItem(TOKEN_KEY, session.access_token) } catch {}
+    }
+  }, [session?.access_token])
 
   // Auto-refresh de la session
   useEffect(() => {
@@ -91,6 +125,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     loading,
     isAuthenticated: !!user,
+    isGuest,
+    guestUsed,
+    canUploadFree,
+    guestUpload,
+    consumeGuestSlot,
     signInEmail,
     signUpEmail,
     signInMagicLink,

@@ -29,6 +29,10 @@ import {
   type ApiError,
 } from "@/lib/api";
 import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { useNavigate } from "react-router-dom";
 
 interface CSVUploaderProps {
   onUploadComplete?: (data: AnalysisResult) => void;
@@ -36,6 +40,8 @@ interface CSVUploaderProps {
 
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const navigate = useNavigate();
+  const { isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
+  const canUpload = isAuthenticated || canUploadFree;
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -76,6 +82,30 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
   const handleAnalyze = async () => {
     if (!file) return;
+    if (!canUpload) {
+      if (guestUsed) {
+        toast({
+          title: "Connexion requise",
+          description: "Connectez-vous pour plus d'analyses.",
+          action: (
+            <ToastAction altText="Se connecter" onClick={() => navigate("/login")}>
+              Se connecter
+            </ToastAction>
+          ),
+        });
+      } else {
+        toast({
+          title: "1 analyse gratuite",
+          description: "Cliquez Essayer pour analyser sans compte.",
+          action: (
+            <ToastAction altText="Essayer" onClick={guestUpload}>
+              Essayer
+            </ToastAction>
+          ),
+        });
+      }
+      return;
+    }
 
     setIsAnalyzing(true);
     setError(null);
@@ -121,6 +151,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         // Ne pas bloquer l'affichage des résultats si la sauvegarde échoue
       }
 
+      if (!isAuthenticated && canUploadFree) consumeGuestSlot();
       onUploadComplete?.(analysisResult);
     } catch (err) {
       const apiError = err as ApiError;
@@ -681,8 +712,31 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-6 flex justify-center"
+                className="mt-6 flex flex-col items-center gap-4"
               >
+                {!canUpload && !isAuthenticated && (
+                  <Alert className="bg-primary/10 border-primary/30 w-full max-w-md">
+                    <AlertCircle className="h-4 w-4 text-primary" />
+                    <AlertTitle>{guestUsed ? "Connexion requise" : "1 analyse gratuite"}</AlertTitle>
+                    <AlertDescription className="flex items-center gap-2 flex-wrap">
+                      {guestUsed ? (
+                        <>
+                          Connectez-vous pour continuer.
+                          <Button variant="outline" size="sm" onClick={() => navigate("/login")}>
+                            Se connecter
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          Testez sans compte. Cliquez Essayer puis Analyser.
+                          <Button variant="outline" size="sm" onClick={guestUpload}>
+                            Essayer
+                          </Button>
+                        </>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <Button variant="hero" size="lg" onClick={handleAnalyze} disabled={isAnalyzing}>
                   {isAnalyzing ? (
                     <>
