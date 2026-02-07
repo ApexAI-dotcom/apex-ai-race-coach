@@ -103,7 +103,14 @@ export default function Index() {
 
       {/* Hero Section */}
       <section className={`relative min-h-screen flex items-center overflow-hidden ${success === 'true' || canceled === 'true' ? 'pt-20' : ''}`}>
-        {/* Background gradient (évite import image cassé sur mobile) */}
+        {/* Fixed hero background image + gradient overlay */}
+        <div
+          className="fixed inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `linear-gradient(135deg, hsl(var(--background) / 0.8) 0%, hsl(var(--background) / 0.4) 50%, hsl(var(--background) / 0.8) 100%), url('/hero-bg.jpg')`,
+            zIndex: -1,
+          }}
+        />
         <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-background" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background" />
 
