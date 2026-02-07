@@ -107,7 +107,7 @@ export default function Index() {
         <div
           className="fixed inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `linear-gradient(135deg, hsl(var(--background) / 0.8) 0%, hsl(var(--background) / 0.4) 50%, hsl(var(--background) / 0.8) 100%), url('/hero-bg.jpg')`,
+            backgroundImage: `linear-gradient(135deg, hsl(var(--background) / 0.8) 0%, hsl(var(--background) / 0.4) 50%, hsl(var(--background) / 0.8) 100%), url('/placeholder.svg')`,
             zIndex: -1,
           }}
         />
