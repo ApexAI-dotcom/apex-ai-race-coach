@@ -72,9 +72,10 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply text-foreground font-sans antialiased;
     font-family: "Inter", sans-serif;
     overflow-x: hidden;
+    background: url('/placeholder.svg') center/cover fixed !important;
   }
 
   h1,
