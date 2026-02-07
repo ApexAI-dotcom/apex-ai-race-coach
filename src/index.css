@@ -72,11 +72,9 @@
   }
 
   body {
-    @apply text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
     font-family: "Inter", sans-serif;
     overflow-x: hidden;
-    background: linear-gradient(135deg, #000, #00ff96),
-      url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+') center/cover fixed !important;
   }
 
   h1,
