@@ -32,7 +32,6 @@ import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { useNavigate } from "react-router-dom";
 
 interface CSVUploaderProps {
   onUploadComplete?: (data: AnalysisResult) => void;
