@@ -98,7 +98,7 @@ export const PricingCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className={`relative glass-card p-8 ${styles.card} ${popular ? "scale-105 z-10" : ""}`}
+      className={`relative glass-card p-8 border-2 border-transparent transition-all duration-400 hover:border-orange-500 hover:bg-slate-900/50 ${styles.card} ${popular ? "scale-105 z-10" : ""}`}
     >
       {popular && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2">

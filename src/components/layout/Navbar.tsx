@@ -31,7 +31,7 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer">
-            <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:shadow-xl group-hover:shadow-primary/40 transition-all duration-200 cursor-pointer">
+            <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 group-hover:shadow-orange-500/50 transition-transform duration-200 cursor-pointer">
               <Zap className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-display font-bold text-xl text-foreground group-hover:text-primary/90 transition-colors">
@@ -45,10 +45,10 @@ export const Navbar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`text-sm font-medium transition-colors ${
+                className={`text-sm font-medium transition-all ${
                   location.pathname === item.path
                     ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-orange-400 hover:underline underline-offset-4"
                 }`}
               >
                 {item.name}
@@ -116,7 +116,7 @@ export const Navbar = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsOpen(false)}
-                  className={`text-sm font-medium py-2 ${
+                  className={`text-sm font-medium py-2 rounded-lg transition-all hover:bg-slate-800 hover:scale-[1.02] ${
                     location.pathname === item.path ? "text-primary" : "text-muted-foreground"
                   }`}
                 >

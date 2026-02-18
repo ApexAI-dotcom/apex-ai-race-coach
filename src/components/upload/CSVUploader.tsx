@@ -660,7 +660,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   ? "border-primary bg-primary/5"
                   : file
                     ? "border-success bg-success/5"
-                    : "border-border hover:border-primary/50 hover:bg-primary/5"
+                    : "border-border hover:bg-slate-800/50 hover:border-orange-400"
               }`}
             >
               <input

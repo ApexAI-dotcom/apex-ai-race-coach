@@ -154,14 +154,14 @@ export default function Index() {
               transition={{ delay: 0.4 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <Link to="/upload">
-                <Button variant="hero" size="xl">
+              <Link to="/upload" className="group">
+                <Button variant="hero" size="xl" className="group hover:bg-orange-500 hover:scale-105 hover:shadow-lg shadow-md transition-all duration-300">
                   Essai Gratuit - 3 Analyses
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
-              <Link to="/dashboard">
-                <Button variant="heroOutline" size="lg">
+              <Link to="/dashboard" className="group">
+                <Button variant="heroOutline" size="lg" className="group hover:scale-105 hover:shadow-lg transition-all duration-300">
                   Voir une démo
                 </Button>
               </Link>
@@ -203,10 +203,10 @@ export default function Index() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="glass-card-hover p-8 text-center"
+                className="glass-card-hover p-8 text-center group hover:-translate-y-2 hover:shadow-2xl transition-all duration-300"
               >
                 <stat.icon className="w-8 h-8 text-primary mx-auto mb-4" />
-                <div className="text-4xl font-display font-bold text-foreground mb-2">
+                <div className="text-4xl font-display font-bold text-foreground mb-2 group-hover:scale-105 transition-transform duration-300">
                   {stat.value}
                 </div>
                 <div className="text-muted-foreground">{stat.label}</div>
@@ -241,7 +241,7 @@ export default function Index() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="glass-card-hover p-8"
+                className="glass-card-hover p-8 group hover:-translate-y-2 hover:shadow-2xl transition-all duration-300"
               >
                 <div className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center mb-6">
                   <feature.icon className="w-7 h-7 text-primary-foreground" />
@@ -278,7 +278,7 @@ export default function Index() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="glass-card p-8"
+                className="glass-card p-8 group hover:-translate-y-2 hover:shadow-2xl transition-all duration-300"
               >
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center font-bold text-primary-foreground">
@@ -308,7 +308,7 @@ export default function Index() {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="glass-card p-4 sm:p-8 md:p-12 text-center relative overflow-hidden"
+            className="glass-card p-4 sm:p-8 md:p-12 text-center relative overflow-hidden group hover:-translate-y-2 hover:shadow-2xl hover:border-orange-500/30 transition-all duration-300"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
             <div className="relative z-10 flex flex-col items-center">
@@ -318,8 +318,8 @@ export default function Index() {
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
                 Rejoins les 127 pilotes qui utilisent déjà APEX AI pour dominer les circuits.
               </p>
-              <Link to="/upload" className="w-full max-w-sm mx-auto block">
-                <Button variant="hero" size="xl" className="w-full">
+              <Link to="/upload" className="w-full max-w-sm mx-auto block group">
+                <Button variant="hero" size="xl" className="w-full group-hover:bg-orange-500 group-hover:scale-105 group-hover:shadow-lg transition-all duration-300">
                   Commencer maintenant
                   <ArrowRight className="w-5 h-5" />
                 </Button>
@@ -334,7 +334,7 @@ export default function Index() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <Link to="/" className="flex items-center gap-2 group transition-opacity hover:opacity-90">
-              <div className="w-8 h-8 rounded gradient-primary flex items-center justify-center">
+              <div className="w-8 h-8 rounded gradient-primary flex items-center justify-center group-hover:scale-110 group-hover:shadow-orange-500/50 transition-transform duration-200">
                 <Zap className="w-4 h-4 text-primary-foreground" />
               </div>
               <span className="font-display font-bold text-foreground group-hover:text-primary/90 transition-colors">
@@ -342,13 +342,13 @@ export default function Index() {
               </span>
             </Link>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link to="/pricing" className="hover:text-foreground transition-colors">
+              <Link to="/pricing" className="hover:text-orange-300 transition-colors duration-200">
                 Tarifs
               </Link>
-              <a href="#" className="hover:text-foreground transition-colors">
+              <a href="#" className="hover:text-orange-300 transition-colors duration-200">
                 Contact
               </a>
-              <a href="#" className="hover:text-foreground transition-colors">
+              <a href="#" className="hover:text-orange-300 transition-colors duration-200">
                 Mentions légales
               </a>
             </div>
