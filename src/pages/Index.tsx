@@ -302,24 +302,24 @@ export default function Index() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
+      <section className="py-20 flex flex-col items-center">
+        <div className="w-full px-4 sm:px-6 md:px-8 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="glass-card p-12 text-center relative overflow-hidden"
+            className="glass-card p-4 sm:p-8 md:p-12 text-center relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
-            <div className="relative z-10">
+            <div className="relative z-10 flex flex-col items-center">
               <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
                 Prêt à améliorer tes temps ?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
                 Rejoins les 127 pilotes qui utilisent déjà APEX AI pour dominer les circuits.
               </p>
-              <Link to="/upload">
-                <Button variant="hero" size="xl">
+              <Link to="/upload" className="w-full max-w-sm mx-auto block">
+                <Button variant="hero" size="xl" className="w-full">
                   Commencer maintenant
                   <ArrowRight className="w-5 h-5" />
                 </Button>
@@ -333,14 +333,14 @@ export default function Index() {
       <footer className="py-8 border-t border-white/5">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
+            <Link to="/" className="flex items-center gap-2 group transition-opacity hover:opacity-90">
+              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/30 transition-shadow">
                 <Zap className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-display font-bold text-foreground">
+              <span className="font-display font-bold text-foreground group-hover:text-primary/90 transition-colors">
                 APEX<span className="text-primary">AI</span>
               </span>
-            </div>
+            </Link>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link to="/pricing" className="hover:text-foreground transition-colors">
                 Tarifs
