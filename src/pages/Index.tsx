@@ -126,9 +126,11 @@ export default function Index() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="mb-6"
+              className="flex justify-center mb-6"
             >
-              <Zap className="h-12 w-12 text-red-500 drop-shadow-lg mx-auto" />
+              <div className="w-16 h-16 rounded-xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/40">
+                <Zap className="w-7 h-7 text-primary-foreground" />
+              </div>
             </motion.div>
             {/* Badge */}
             <motion.div
@@ -137,7 +139,7 @@ export default function Index() {
               transition={{ delay: 0.2 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
             >
-              <Zap className="w-4 h-4 text-red-500" />
+              <Zap className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-primary">Propulsé par l'IA</span>
             </motion.div>
 
@@ -343,7 +345,9 @@ export default function Index() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <Link to="/" className="flex items-center gap-2 group transition-opacity hover:opacity-90">
-              <Zap className="h-6 w-6 text-red-400" />
+              <div className="w-8 h-8 rounded gradient-primary flex items-center justify-center">
+                <Zap className="w-4 h-4 text-primary-foreground" />
+              </div>
               <span className="font-display font-bold text-foreground group-hover:text-primary/90 transition-colors">
                 APEX<span className="text-primary">AI</span>
               </span>
