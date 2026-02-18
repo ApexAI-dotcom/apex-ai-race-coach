@@ -121,7 +121,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         } as ApiError;
       }
 
-      setStatusMessage("Upload du fichier CSV...");
+      setStatusMessage("Téléchargement du fichier CSV...");
 
       // 2. Upload et analyse
       const analysisResult = await uploadAndAnalyzeCSV(file);
@@ -343,7 +343,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 {(savedAnalysisId || result?.analysis_id) && (
                   <Button variant="heroOutline" onClick={handleViewInDashboard}>
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    Voir dans le Dashboard
+                    Voir dans le tableau de bord
                   </Button>
                 )}
                 {!savedAnalysisId && result && (
@@ -374,7 +374,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     {Math.round(result.performance_score.overall_score)}/100
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Percentile: {result.performance_score.percentile || "N/A"}%
+                    Centile : {result.performance_score.percentile ?? "—"}%
                   </p>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

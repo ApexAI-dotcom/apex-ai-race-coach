@@ -27,7 +27,7 @@ import { API_BASE_URL } from "@/lib/api";
 
 const achievements = [
   { icon: "🏆", title: "Pro Apex", description: "10 analyses complétées" },
-  { icon: "⚡", title: "Speed Demon", description: "Score > 80 atteint" },
+  { icon: "⚡", title: "Démon de la vitesse", description: "Score > 80 atteint" },
   { icon: "🎯", title: "Précision", description: "5 apex parfaits consécutifs" },
 ];
 
@@ -321,7 +321,7 @@ export default function Profile() {
                     ) : stats.totalSessions > 0 ? (
                       `${stats.averageScore}/100`
                     ) : (
-                      "N/A"
+                      "—"
                     ),
                     icon: TrendingUp,
                   },
@@ -431,7 +431,7 @@ export default function Profile() {
                 </h3>
                 <Button variant="outline" size="sm">
                   <Download className="w-4 h-4" />
-                  Export PDF
+                  Exporter PDF
                 </Button>
               </div>
 
@@ -487,7 +487,7 @@ export default function Profile() {
                             {format(new Date(session.date), "d MMM yyyy", { locale: fr })}
                           </td>
                           <td className="px-4 py-4 text-sm font-medium text-foreground">
-                            {session.filename || "Session"}
+                            {session.filename || "Session de course"}
                           </td>
                           <td className="px-4 py-4 text-sm text-center text-muted-foreground">
                             {session.corner_count}

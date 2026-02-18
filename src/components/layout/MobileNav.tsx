@@ -3,9 +3,9 @@ import { Home, BarChart3, Upload, User } from "lucide-react";
 import { motion } from "framer-motion";
 
 const navItems = [
-  { icon: Home, label: "Home", path: "/" },
-  { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
-  { icon: Upload, label: "Upload", path: "/upload" },
+  { icon: Home, label: "Accueil", path: "/" },
+  { icon: BarChart3, label: "Tableau de bord", path: "/dashboard" },
+  { icon: Upload, label: "Télécharger", path: "/upload" },
   { icon: User, label: "Profil", path: "/profile" },
 ];
 

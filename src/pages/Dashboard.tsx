@@ -281,7 +281,7 @@ export default function Dashboard() {
               commencer.
             </p>
             <Button variant="hero" size="lg" onClick={() => navigate("/upload")}>
-              Aller à l'Upload
+              Aller au téléchargement
             </Button>
           </motion.div>
         </div>
@@ -297,7 +297,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-2">
-                Dashboard
+                Tableau de bord
               </h1>
               <p className="text-muted-foreground">Gérez et comparez vos analyses de performance</p>
             </div>
@@ -339,7 +339,7 @@ export default function Dashboard() {
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2 mb-2">
                   <BarChart3 className="w-4 h-4 text-primary" />
-                  <div className="text-xs text-muted-foreground">Total analyses</div>
+                  <div className="text-xs text-muted-foreground">Analyses totales</div>
                 </div>
                 <div className="text-2xl font-bold text-foreground">{statistics.total}</div>
                 {!isPro && (

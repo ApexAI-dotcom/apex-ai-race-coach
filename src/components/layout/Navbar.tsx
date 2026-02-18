@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
-  { name: "Home", path: "/" },
-  { name: "Dashboard", path: "/dashboard" },
-  { name: "Upload", path: "/upload" },
-  { name: "Pricing", path: "/pricing" },
+  { name: "Accueil", path: "/" },
+  { name: "Tableau de bord", path: "/dashboard" },
+  { name: "Télécharger", path: "/upload" },
+  { name: "Tarifs", path: "/pricing" },
 ];
 
 export const Navbar = () => {

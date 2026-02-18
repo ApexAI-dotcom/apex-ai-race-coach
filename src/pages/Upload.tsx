@@ -7,7 +7,7 @@ const supportedFormats = [
   { name: "MyChron5", icon: "📊" },
   { name: "AiM", icon: "📈" },
   { name: "RaceBox", icon: "🏎️" },
-  { name: "CSV Standard", icon: "📁" },
+  { name: "CSV standard", icon: "📁" },
 ];
 
 const features = [
@@ -109,19 +109,19 @@ export default function Upload() {
                 <thead>
                   <tr className="border-b border-white/5">
                     <th className="px-4 py-3 text-left text-muted-foreground font-medium">
-                      Timestamp
+                      Horodatage
                     </th>
                     <th className="px-4 py-3 text-left text-muted-foreground font-medium">
-                      GPS Lat
+                      Lat. GPS
                     </th>
                     <th className="px-4 py-3 text-left text-muted-foreground font-medium">
-                      GPS Long
+                      Long. GPS
                     </th>
                     <th className="px-4 py-3 text-left text-muted-foreground font-medium">
                       Vitesse
                     </th>
                     <th className="px-4 py-3 text-left text-muted-foreground font-medium">
-                      G-Force
+                      Accélération G
                     </th>
                   </tr>
                 </thead>

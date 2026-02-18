@@ -8,11 +8,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const plans = [
   {
-    name: "Free",
+    name: "Gratuit",
     price: "0€",
     period: "",
-    description: "Parfait pour essayer",
-    features: ["3 analyses par mois", "Score global /100", "Visualisation basic", "Support email"],
+    description: "Parfait pour débuter",
+    features: ["3 analyses par mois", "Score global /100", "Visualisation basique", "Support par email"],
     variant: "free" as const,
     priceId: "free",
   },
@@ -41,9 +41,9 @@ const plans = [
     features: [
       "Tout de Pro",
       "5 pilotes inclus",
-      "Dashboard équipe",
+      "Tableau de bord équipe",
       "Comparatif pilotes",
-      "API access",
+      "Accès API",
       "Manager dédié",
     ],
     variant: "team" as const,
@@ -65,7 +65,7 @@ const faqs = [
   {
     question: "Puis-je changer de forfait ?",
     answer:
-      "Oui, vous pouvez upgrader ou downgrader à tout moment. La facturation est ajustée au prorata.",
+      "Oui, vous pouvez passer à une offre supérieure ou inférieure à tout moment. La facturation est ajustée au prorata.",
   },
   {
     question: "Mes données sont-elles sécurisées ?",
@@ -131,7 +131,7 @@ export default function Pricing() {
             Tarifs <span className="text-gradient-primary">transparents</span>
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Choisissez le plan adapté à vos besoins. Upgradez ou annulez à tout moment.
+            Choisissez le plan adapté à vos besoins. Passez à une offre supérieure ou annulez à tout moment.
           </p>
         </motion.div>
 

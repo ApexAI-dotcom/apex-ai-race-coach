@@ -36,7 +36,7 @@ export default function Success() {
 
           {sessionId && (
             <p className="text-sm text-muted-foreground mb-8">
-              Session ID: <code className="bg-muted px-2 py-1 rounded text-xs">{sessionId}</code>
+              ID de session : <code className="bg-muted px-2 py-1 rounded text-xs">{sessionId}</code>
             </p>
           )}
 
@@ -48,7 +48,7 @@ export default function Success() {
           >
             <Link to="/dashboard">
               <Button variant="hero" size="xl">
-                Accéder au Dashboard Pro
+                Accéder au tableau de bord Pro
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>

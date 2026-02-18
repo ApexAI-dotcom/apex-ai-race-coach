@@ -40,7 +40,7 @@ const testimonials = [
   {
     name: "Marie D.",
     role: "Championne régionale",
-    quote: "L'analyse des apex est incroyablement précise. Un game-changer.",
+    quote: "L'analyse des apex est incroyablement précise. Ça change tout.",
     avatar: "MD",
   },
 ];
@@ -79,7 +79,7 @@ export default function Index() {
               </div>
               <Link to="/dashboard">
                 <Button variant="outline" size="sm" className="bg-white/10 text-white border-white/30 hover:bg-white/20">
-                  Accéder au Dashboard
+                  Accéder au tableau de bord
                 </Button>
               </Link>
             </div>
@@ -108,7 +108,7 @@ export default function Index() {
         <div className="absolute inset-0">
           <img
             src={heroImage}
-            alt="Racing track"
+            alt="Piste de course"
             className="w-full h-full object-cover opacity-40"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background" />
