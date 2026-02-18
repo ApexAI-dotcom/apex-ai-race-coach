@@ -121,17 +121,6 @@ export default function Index() {
             transition={{ duration: 0.8 }}
             className="max-w-4xl mx-auto text-center"
           >
-            {/* Hero Logo */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="flex justify-center mb-6"
-            >
-              <div className="w-16 h-16 rounded-xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/40">
-                <Zap className="w-7 h-7 text-primary-foreground" />
-              </div>
-            </motion.div>
             {/* Badge */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
