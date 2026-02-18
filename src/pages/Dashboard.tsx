@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   TrendingUp,
+  TrendingDown,
   Target,
   Clock,
   Download,
@@ -376,12 +377,16 @@ export default function Dashboard() {
                   <Clock className="w-4 h-4 text-primary" />
                   <div className="text-xs text-muted-foreground">Tendance</div>
                 </div>
-                <div className="text-2xl font-bold text-foreground">
-                  {analyses.length >= 2
-                    ? analyses[0].score >= analyses[1].score
-                      ? "↗️"
-                      : "↘️"
-                    : "—"}
+                <div className="text-2xl font-bold text-foreground flex justify-center">
+                  {analyses.length >= 2 ? (
+                    analyses[0].score >= analyses[1].score ? (
+                      <TrendingUp className="w-6 h-6 text-green-500" />
+                    ) : (
+                      <TrendingDown className="w-6 h-6 text-destructive" />
+                    )
+                  ) : (
+                    "—"
+                  )}
                 </div>
               </CardContent>
             </Card>
