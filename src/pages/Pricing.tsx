@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PricingCard } from "@/components/pricing/PricingCard";
-import { Check, Zap, XCircle } from "lucide-react";
+import { Check, Zap, XCircle, CreditCard, Lock } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const plans = [
@@ -199,10 +199,10 @@ export default function Pricing() {
           className="mt-16 text-center"
         >
           <p className="text-sm text-muted-foreground mb-4">Paiement sécurisé par Stripe</p>
-          <div className="flex justify-center items-center gap-8 opacity-50">
-            <span className="text-2xl">💳</span>
-            <span className="text-2xl">🔒</span>
-            <span className="text-2xl">✅</span>
+          <div className="flex justify-center items-center gap-8 opacity-50 text-slate-300">
+            <CreditCard className="w-8 h-8" />
+            <Lock className="w-8 h-8" />
+            <Check className="w-8 h-8" />
           </div>
         </motion.div>
       </div>

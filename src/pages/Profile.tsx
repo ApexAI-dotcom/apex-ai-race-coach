@@ -20,15 +20,17 @@ import {
   Loader2,
   LogOut,
   ExternalLink,
+  Zap,
+  Target,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
 import { API_BASE_URL } from "@/lib/api";
 
 const achievements = [
-  { icon: "🏆", title: "Pro Apex", description: "10 analyses complétées" },
-  { icon: "⚡", title: "Démon de la vitesse", description: "Score > 80 atteint" },
-  { icon: "🎯", title: "Précision", description: "5 apex parfaits consécutifs" },
+  { icon: Trophy, title: "Pro Apex", description: "10 analyses complétées" },
+  { icon: Zap, title: "Démon de la vitesse", description: "Score > 80 atteint" },
+  { icon: Target, title: "Précision", description: "5 apex parfaits consécutifs" },
 ];
 
 export default function Profile() {
@@ -365,7 +367,7 @@ export default function Profile() {
                     transition={{ delay: 0.2 + index * 0.1 }}
                     className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30"
                   >
-                    <span className="text-2xl">{achievement.icon}</span>
+                    <achievement.icon className="w-6 h-6 text-primary" />
                     <div>
                       <div className="font-medium text-foreground text-sm">{achievement.title}</div>
                       <div className="text-xs text-muted-foreground">{achievement.description}</div>

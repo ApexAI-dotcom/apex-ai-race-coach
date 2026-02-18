@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Medal, Award, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,19 +22,19 @@ const variantStyles = {
   free: {
     card: "border-white/10",
     badge: "bg-muted text-muted-foreground",
-    icon: "🥉",
+    Icon: Medal,
     button: "outline" as const,
   },
   pro: {
     card: "border-primary/30 glow-primary",
     badge: "gradient-pro text-primary-foreground",
-    icon: "🥈",
+    Icon: Award,
     button: "hero" as const,
   },
   team: {
     card: "border-gold/30",
     badge: "gradient-gold text-gold-foreground",
-    icon: "🥇",
+    Icon: Trophy,
     button: "gold" as const,
   },
 };
@@ -51,6 +51,7 @@ export const PricingCard = ({
   priceId,
 }: PricingCardProps) => {
   const styles = variantStyles[variant];
+  const TierIcon = styles.Icon;
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -68,7 +69,7 @@ export const PricingCard = ({
 
     try {
       setLoading(true);
-      console.log("🛒 Checkout", variant); // DEBUG
+      console.log("Checkout", variant);
       const response = await fetch(`${API_BASE_URL}/api/create-checkout-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -76,16 +77,16 @@ export const PricingCard = ({
       });
       
       const data = await response.json();
-      console.log("📦 Response:", data); // DEBUG
+      console.log("Response:", data);
       
       if (data.url) {
         window.location.href = data.url;
       } else {
-        console.error("❌", data.error);
+        console.error("Checkout error:", data.error);
         alert("Erreur: " + data.error);
       }
     } catch (error) {
-      console.error("💥 Erreur checkout:", error);
+      console.error("Erreur checkout:", error);
       alert("Erreur réseau");
     } finally {
       setLoading(false);
@@ -108,7 +109,9 @@ export const PricingCard = ({
       )}
 
       <div className="text-center mb-6">
-        <span className="text-3xl mb-2 block">{styles.icon}</span>
+        <div className="mb-2 flex justify-center">
+          <TierIcon className="w-8 h-8 text-primary" />
+        </div>
         <h3 className="text-xl font-display font-bold text-foreground mb-2">{name}</h3>
         <p className="text-muted-foreground text-sm">{description}</p>
       </div>

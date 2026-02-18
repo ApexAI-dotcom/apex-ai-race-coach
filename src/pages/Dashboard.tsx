@@ -14,6 +14,7 @@ import {
   AlertCircle,
   X,
   ArrowLeft,
+  ArrowRight,
   FileDown,
   CheckCircle2,
   ExternalLink,
@@ -649,14 +650,16 @@ export default function Dashboard() {
                           </div>
                           <div className="text-center p-4 rounded-lg bg-secondary/50">
                             <div className="text-xs text-muted-foreground mb-1">Amélioration</div>
-                            <div className="text-2xl font-bold text-foreground">
+                            <div className="text-2xl font-bold text-foreground flex justify-center">
                               {compareResult2.performance_score.overall_score >
-                              compareResult1.performance_score.overall_score
-                                ? "✅"
-                                : compareResult2.performance_score.overall_score <
-                                    compareResult1.performance_score.overall_score
-                                  ? "❌"
-                                  : "➡️"}
+                              compareResult1.performance_score.overall_score ? (
+                                <CheckCircle2 className="w-6 h-6 text-green-500" />
+                              ) : compareResult2.performance_score.overall_score <
+                                  compareResult1.performance_score.overall_score ? (
+                                <X className="w-6 h-6 text-destructive" />
+                              ) : (
+                                <ArrowRight className="w-6 h-6 text-muted-foreground" />
+                              )}
                             </div>
                           </div>
                         </div>

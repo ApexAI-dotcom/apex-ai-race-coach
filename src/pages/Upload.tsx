@@ -1,13 +1,13 @@
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { CSVUploader } from "@/components/upload/CSVUploader";
-import { FileSpreadsheet, CheckCircle, Shield, Zap } from "lucide-react";
+import { FileSpreadsheet, CheckCircle, Shield, Zap, BarChart3, TrendingUp, Car, FolderOpen } from "lucide-react";
 
 const supportedFormats = [
-  { name: "MyChron5", icon: "📊" },
-  { name: "AiM", icon: "📈" },
-  { name: "RaceBox", icon: "🏎️" },
-  { name: "CSV standard", icon: "📁" },
+  { name: "MyChron5", icon: BarChart3 },
+  { name: "AiM", icon: TrendingUp },
+  { name: "RaceBox", icon: Car },
+  { name: "CSV standard", icon: FolderOpen },
 ];
 
 const features = [
@@ -63,15 +63,18 @@ export default function Upload() {
             Formats supportés
           </h3>
           <div className="flex flex-wrap justify-center gap-4">
-            {supportedFormats.map((format) => (
-              <div
-                key={format.name}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-white/5"
-              >
-                <span>{format.icon}</span>
-                <span className="text-sm text-foreground">{format.name}</span>
-              </div>
-            ))}
+            {supportedFormats.map((format) => {
+              const Icon = format.icon;
+              return (
+                <div
+                  key={format.name}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-white/5"
+                >
+                  <Icon className="w-5 h-5 text-primary" />
+                  <span className="text-sm text-foreground">{format.name}</span>
+                </div>
+              );
+            })}
           </div>
         </motion.div>
 

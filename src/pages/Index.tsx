@@ -74,7 +74,7 @@ export default function Index() {
             <div className="flex items-center justify-center gap-3">
               <CheckCircle2 className="w-5 h-5 text-white" />
               <div className="text-center">
-                <h3 className="text-white font-bold">🎉 Abonnement activé avec succès !</h3>
+                <h3 className="text-white font-bold">Abonnement activé avec succès !</h3>
                 <p className="text-white/80 text-sm">Session: {sessionId}</p>
               </div>
               <Link to="/dashboard">
