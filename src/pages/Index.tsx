@@ -121,39 +121,73 @@ export default function Index() {
             transition={{ duration: 0.8 }}
             className="max-w-4xl mx-auto text-center"
           >
-            {/* Logo carré rouge */}
+            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
             >
-              <div className="w-8 h-8 rounded gradient-primary flex items-center justify-center">
-                <Zap className="w-4 h-4 text-primary-foreground" />
-              </div>
+              <Zap className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-primary">Propulsé par l'IA</span>
             </motion.div>
 
-            <div className="text-center py-8 md:py-12">
-              <h1 className="text-4xl sm:text-5xl md:text-7xl font-black bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent mb-6 md:mb-8">
-                Ton Ingénieur de Course IA
-              </h1>
-              <p className="text-lg md:text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed px-2">
-                L'ingénieur que tout pilote mérite. Analyse tes tours, optimise tes trajectoires,
-                bats tes records. Sans équipe technique.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/upload">
-                  <Button
-                    className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-orange-500 text-white px-8 sm:px-12 py-4 rounded-xl font-bold text-base sm:text-lg hover:shadow-xl transition-all border-0"
-                    size="lg"
+            {/* Title */}
+            <h1 className="font-display text-5xl md:text-7xl font-bold mb-6">
+              <span className="text-foreground">APEX</span>
+              <span className="text-gradient-primary">AI</span>
+              <br />
+              <span className="text-foreground text-3xl md:text-5xl">Ton Ingénieur de Course IA</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Analyse ton fichier CSV MyChron et obtiens un{" "}
+              <span className="text-primary font-semibold">Score /100</span> +{" "}
+              <span className="text-success font-semibold">7s gagnés</span> par session en moyenne.
+            </p>
+
+            {/* CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
+              <Link to="/upload">
+                <Button variant="hero" size="xl">
+                  Essai Gratuit - 3 Analyses
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Link to="/dashboard">
+                <Button variant="heroOutline" size="lg">
+                  Voir une démo
+                </Button>
+              </Link>
+            </motion.div>
+
+            {/* Social proof */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="mt-12 flex items-center justify-center gap-2"
+            >
+              <div className="flex -space-x-2">
+                {["LM", "MD", "JP", "AK"].map((initials, i) => (
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-full bg-secondary border-2 border-background flex items-center justify-center text-xs font-medium text-muted-foreground"
                   >
-                    Analyse ton CSV → Gratuit
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
+                    {initials}
+                  </div>
+                ))}
               </div>
-            </div>
+              <span className="text-sm text-muted-foreground">
+                Utilisé par <span className="text-foreground font-medium">127+ pilotes PRO</span>
+              </span>
+            </motion.div>
           </motion.div>
         </div>
       </section>
