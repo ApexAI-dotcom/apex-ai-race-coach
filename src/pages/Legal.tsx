@@ -81,24 +81,21 @@ export default function Legal() {
           </section>
 
           <section className="mb-8" id="cgv">
+            <span id="cgu" className="block -mt-20 pt-20" aria-hidden />
             <h2 className="text-xl font-semibold text-foreground mb-4">
               CGV / CGU
             </h2>
             <p className="text-muted-foreground">
-              Conditions générales de vente et d'utilisation disponibles sur demande à{" "}
+              Conditions générales de vente (CGV) et conditions générales d'utilisation (CGU) disponibles sur demande à{" "}
               <a href="mailto:contact@apexai.run" className="text-primary hover:underline">
                 contact@apexai.run
               </a>
               .
             </p>
             <p className="text-muted-foreground text-sm mt-2">
-              PDF :{" "}
-              <a href="/docs/cgv.pdf" className="text-primary hover:underline">
-                CGV
-              </a>
-              {" · "}
-              <a href="/docs/cgu.pdf" className="text-primary hover:underline">
-                CGU
+              Pour toute demande :{" "}
+              <a href="mailto:contact@apexai.run?subject=Demande%20CGV-CGU" className="text-primary hover:underline">
+                Demander les CGV/CGU par email
               </a>
             </p>
           </section>

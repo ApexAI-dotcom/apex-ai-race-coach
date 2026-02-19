@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 const navItems = [
   { icon: Home, label: "Accueil", path: "/" },
-  { icon: BarChart3, label: "Tableau de bord", path: "/dashboard" },
+  { icon: BarChart3, label: "Tableau de bord", labelShort: "Tableau", path: "/dashboard" },
   { icon: Upload, label: "Télécharger", path: "/upload" },
   { icon: User, label: "Profil", path: "/profile" },
 ];
@@ -38,11 +38,15 @@ export const MobileNav = () => {
                 }`}
               />
               <span
-                className={`text-xs relative z-10 ${
+                className={`text-[10px] sm:text-xs relative z-10 truncate max-w-[4.5rem] sm:max-w-none text-center ${
                   isActive ? "text-primary font-medium" : "text-muted-foreground"
                 }`}
+                title={item.label}
               >
-                {item.label}
+                <span className="sm:hidden">
+                  {"labelShort" in item && item.labelShort ? item.labelShort : item.label}
+                </span>
+                <span className="hidden sm:inline">{item.label}</span>
               </span>
             </Link>
           );
