@@ -59,6 +59,8 @@ import {
 } from "@/lib/storage";
 import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -248,19 +250,39 @@ export default function Dashboard() {
   };
 
   const exportPDF = () => {
-    console.log("🚀 PDF START", analyses.length);
-    alert("PDF clicked ! " + analyses.length + " analyses");
+    console.log("📊 ANALYSES FULL:", analyses);
+    console.table(analyses);
 
-    const content = analyses
-      .map((a) => `Tour: ${a.date} Score: ${a.score}`)
-      .join("\n");
-    const blob = new Blob([content], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "apex-simple.pdf";
-    a.click();
-    URL.revokeObjectURL(url);
+    if (!analyses?.length) {
+      alert("❌ Aucune analyse trouvée");
+      return;
+    }
+
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("APEX AI - Mes Analyses", 20, 20);
+    doc.setFontSize(12);
+    doc.text(`Export: ${new Date().toLocaleDateString("fr-FR")}`, 20, 30);
+
+    const tableData = analyses.map((analysis, i) => [
+      (i + 1).toString(),
+      analysis.date || "N/A",
+      analysis.score != null ? analysis.score.toFixed(1) : "0",
+      analysis.grade || "-",
+      String(analysis.corner_count ?? 0),
+      `${(analysis.lap_time ?? 0).toFixed(2)}s`,
+    ]);
+
+    (doc as jsPDF & { autoTable: (opts: Record<string, unknown>) => void }).autoTable({
+      head: [["#", "Date", "Score", "Grade", "Virages", "Temps"]],
+      body: tableData,
+      startY: 40,
+      theme: "grid",
+      headStyles: { fillColor: [220, 53, 69] },
+    });
+
+    doc.save(`apex-${Date.now()}.pdf`);
+    console.log("✅ PDF saved");
   };
 
   if (loading) {
