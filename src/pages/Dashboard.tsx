@@ -55,7 +55,6 @@ import {
   getAllAnalyses,
   getAnalysisById,
   deleteAnalysis,
-  downloadAnalysis,
   type AnalysisSummary,
 } from "@/lib/storage";
 import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
@@ -261,33 +260,27 @@ export default function Dashboard() {
     });
   };
 
-  const exportPDF = (list: AnalysisSummary[]) => {
+  const exportPDF = async () => {
+    console.log("PDF clicked", analyses);
+    if (!analyses.length) {
+      alert("Aucune analyse");
+      return;
+    }
     const doc = new jsPDF();
     doc.setFontSize(20);
-    doc.text("APEX AI - Analyse Tours", 20, 20);
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`${list.length} analyse(s) exportée(s)`, 20, 28);
-    doc.setTextColor(0, 0, 0);
-
-    const tableColumn = ["Date", "Score", "Grade", "Virages", "Temps (s)"];
-    const tableRows = list.map((a) => [
+    doc.text("APEX AI Analyse", 20, 20);
+    const body = analyses.map((a) => [
       formatDatePDF(a.date),
       String(a.score),
       a.grade,
       String(a.corner_count),
       a.lap_time.toFixed(2),
     ]);
-
-    (doc as jsPDF & { autoTable: (opts: { head: string[]; body: string[][]; startY: number }) => void }).autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 35,
-      theme: "grid",
-      headStyles: { fillColor: [220, 53, 69], textColor: 255 },
-      margin: { left: 20 },
+    (doc as jsPDF & { autoTable: (opts: { head: string[][]; body: string[][]; startY: number }) => void }).autoTable({
+      head: [["Date", "Score", "Grade", "Virages", "Temps"]],
+      body,
+      startY: 28,
     });
-
     doc.save("apex-analyse.pdf");
   };
 
@@ -466,14 +459,9 @@ export default function Dashboard() {
                     </CardDescription>
                   </div>
                   {analyses.length > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => exportPDF(analyses)}
-                      className="shrink-0"
-                    >
+                    <Button onClick={exportPDF} className="w-full sm:w-auto shrink-0">
                       <Download className="w-4 h-4 mr-2" />
-                      Télécharger PDF
+                      PDF Analyse
                     </Button>
                   )}
                 </div>
@@ -520,16 +508,6 @@ export default function Dashboard() {
                                 }}
                               >
                                 <Eye className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  downloadAnalysis(analysis.id);
-                                }}
-                              >
-                                <Download className="w-4 h-4" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -749,13 +727,6 @@ export default function Dashboard() {
                   Retour à la liste
                 </Button>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => downloadAnalysis(selectedAnalysis.analysis_id)}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Télécharger JSON
-                  </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleDeleteClick(selectedAnalysis.analysis_id)}
