@@ -224,6 +224,21 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     }
   };
 
+  const handleDownloadResults = () => {
+    if (!result) return;
+
+    const jsonString = JSON.stringify(result, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `apex-ai-analysis-${result.analysis_id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const getGradeColor = (grade: string) => {
     switch (grade.toUpperCase()) {
       case "A+":
@@ -320,6 +335,10 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Button variant="heroOutline" onClick={handleReset}>
                   Nouvelle analyse
+                </Button>
+                <Button variant="hero" onClick={handleDownloadResults}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Télécharger JSON
                 </Button>
                 {(savedAnalysisId || result?.analysis_id) && (
                   <Button variant="heroOutline" onClick={handleViewInDashboard}>

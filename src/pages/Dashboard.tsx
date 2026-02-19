@@ -250,39 +250,54 @@ export default function Dashboard() {
   };
 
   const exportPDF = () => {
-    console.log("📊 ANALYSES FULL:", analyses);
+    console.log("🔥 PDF START");
+    console.log("📊 analyses:", analyses);
     console.table(analyses);
 
-    if (!analyses?.length) {
-      alert("❌ Aucune analyse trouvée");
+    if (!analyses || !Array.isArray(analyses) || analyses.length === 0) {
+      alert("❌ Aucune analyse à exporter");
+      console.error("No analyses data");
       return;
     }
 
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("APEX AI - Mes Analyses", 20, 20);
-    doc.setFontSize(12);
-    doc.text(`Export: ${new Date().toLocaleDateString("fr-FR")}`, 20, 30);
+    try {
+      const doc = new jsPDF("p", "mm", "a4");
 
-    const tableData = analyses.map((analysis, i) => [
-      (i + 1).toString(),
-      analysis.date || "N/A",
-      analysis.score != null ? analysis.score.toFixed(1) : "0",
-      analysis.grade || "-",
-      String(analysis.corner_count ?? 0),
-      `${(analysis.lap_time ?? 0).toFixed(2)}s`,
-    ]);
+      doc.setFillColor(239, 68, 68);
+      doc.rect(0, 0, 210, 30, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.setFont("helvetica", "bold");
+      doc.text("APEX AI", 20, 20);
+      doc.setFontSize(12);
+      doc.text("Analyse de performance", 20, 27);
 
-    (doc as jsPDF & { autoTable: (opts: Record<string, unknown>) => void }).autoTable({
-      head: [["#", "Date", "Score", "Grade", "Virages", "Temps"]],
-      body: tableData,
-      startY: 40,
-      theme: "grid",
-      headStyles: { fillColor: [220, 53, 69] },
-    });
+      const headers = [["#", "Date", "Score", "Grade", "Virages", "Temps"]];
+      const rows = analyses.map((analysis, index) => [
+        String(index + 1),
+        analysis.date || "N/A",
+        String(analysis.score ?? 0),
+        analysis.grade || "-",
+        String(analysis.corner_count ?? 0),
+        String((analysis.lap_time ?? 0).toFixed(2)) + "s",
+      ]);
 
-    doc.save(`apex-${Date.now()}.pdf`);
-    console.log("✅ PDF saved");
+      (doc as jsPDF & { autoTable: (opts: Record<string, unknown>) => void }).autoTable({
+        head: headers,
+        body: rows,
+        startY: 40,
+        theme: "grid",
+        headStyles: { fillColor: [239, 68, 68], textColor: 255 },
+        styles: { fontSize: 10 },
+        margin: { left: 15, right: 15 },
+      });
+
+      doc.save(`apex-analyse-${Date.now()}.pdf`);
+      console.log("✅ PDF SUCCESS");
+    } catch (error) {
+      console.error("PDF ERROR:", error);
+      alert("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));
+    }
   };
 
   if (loading) {
@@ -460,9 +475,9 @@ export default function Dashboard() {
                     </CardDescription>
                   </div>
                   {analyses.length > 0 && (
-                    <Button onClick={exportPDF} className="w-full sm:w-auto shrink-0">
+                    <Button onClick={exportPDF} className="w-full sm:w-auto bg-red-600 hover:bg-red-700">
                       <Download className="w-4 h-4 mr-2" />
-                      PDF Analyse
+                      📄 PDF (F12 check)
                     </Button>
                   )}
                 </div>
