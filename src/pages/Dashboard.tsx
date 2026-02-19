@@ -60,7 +60,7 @@ import {
 import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -266,30 +266,22 @@ export default function Dashboard() {
       doc.setFillColor(239, 68, 68);
       doc.rect(0, 0, 210, 30, "F");
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(24);
-      doc.setFont("helvetica", "bold");
-      doc.text("APEX AI", 20, 20);
-      doc.setFontSize(12);
-      doc.text("Analyse de performance", 20, 27);
+      doc.setFontSize(18);
+      doc.text("APEX AI ANALYSE", 20, 20);
 
-      const headers = [["#", "Date", "Score", "Grade", "Virages", "Temps"]];
-      const rows = analyses.map((analysis, index) => [
-        String(index + 1),
-        analysis.date || "N/A",
-        String(analysis.score ?? 0),
-        analysis.grade || "-",
-        String(analysis.corner_count ?? 0),
-        String((analysis.lap_time ?? 0).toFixed(2)) + "s",
-      ]);
-
-      (doc as jsPDF & { autoTable: (opts: Record<string, unknown>) => void }).autoTable({
-        head: headers,
-        body: rows,
+      autoTable(doc, {
+        head: [["#", "Date", "Score", "Grade", "Virages", "Temps"]],
+        body: analyses.map((a, i) => [
+          i + 1,
+          a.date || "N/A",
+          a.score ?? 0,
+          a.grade || "-",
+          a.corner_count ?? 0,
+          (a.lap_time ?? 0).toFixed(2) + "s",
+        ]),
         startY: 40,
         theme: "grid",
         headStyles: { fillColor: [239, 68, 68], textColor: 255 },
-        styles: { fontSize: 10 },
-        margin: { left: 15, right: 15 },
       });
 
       doc.save(`apex-analyse-${Date.now()}.pdf`);
