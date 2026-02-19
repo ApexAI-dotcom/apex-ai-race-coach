@@ -26,6 +26,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
 import { API_BASE_URL } from "@/lib/api";
+import { ADMIN_EMAIL } from "@/constants";
 
 const achievements = [
   { icon: Trophy, title: "Pro Apex", description: "10 analyses complétées" },
@@ -248,6 +249,11 @@ export default function Profile() {
                 {user.user_metadata?.full_name || user.email?.split("@")[0] || "Utilisateur"}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                {user.email === ADMIN_EMAIL && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-200 dark:bg-purple-900/30 dark:text-purple-200 border border-purple-500/30">
+                    Admin
+                  </span>
+                )}
                 <span className="flex items-center gap-1">
                   <Mail className="w-4 h-4" />
                   {user.email || "Email non disponible"}

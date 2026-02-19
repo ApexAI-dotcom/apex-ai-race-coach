@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Zap, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { ADMIN_EMAIL } from "@/constants";
 
 const navItems = [
   { name: "Accueil", path: "/" },
@@ -62,6 +63,11 @@ export const Navbar = () => {
               <div className="w-8 h-8 animate-pulse bg-secondary rounded" />
             ) : isAuthenticated ? (
               <>
+                {user?.email === ADMIN_EMAIL && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-200 border border-purple-500/30">
+                    Admin
+                  </span>
+                )}
                 <Link to="/profile">
                   <Button variant="ghost" size="sm" className="gap-2">
                     <User className="w-4 h-4" />
@@ -128,6 +134,11 @@ export const Navbar = () => {
                   <div className="w-full h-10 animate-pulse bg-secondary rounded" />
                 ) : isAuthenticated ? (
                   <>
+                    {user?.email === ADMIN_EMAIL && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-200 border border-purple-500/30 w-fit">
+                        Admin
+                      </span>
+                    )}
                     <Link to="/profile" onClick={() => setIsOpen(false)}>
                       <Button variant="ghost" className="w-full gap-2">
                         <User className="w-4 h-4" />

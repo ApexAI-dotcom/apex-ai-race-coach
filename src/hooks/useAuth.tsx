@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { ADMIN_EMAIL } from '@/constants'
 
 const GUEST_KEY = 'apex_guest_mode'
 const GUEST_USED_KEY = 'apex_guest_used'
@@ -74,6 +75,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [session?.access_token])
 
+  // Admin: moreauy58@gmail.com uniquement
+  useEffect(() => {
+    if (user?.email === ADMIN_EMAIL) {
+      try {
+        localStorage.setItem('userRole', 'admin')
+        localStorage.setItem('isAdmin', 'true')
+      } catch {}
+    } else {
+      try {
+        localStorage.removeItem('userRole')
+        localStorage.removeItem('isAdmin')
+      } catch {}
+    }
+  }, [user?.email])
+
   // Auto-refresh de la session
   useEffect(() => {
     if (session) {
@@ -116,6 +132,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
+    try {
+      localStorage.removeItem('userRole')
+      localStorage.removeItem('isAdmin')
+    } catch {}
     const { error } = await supabase.auth.signOut()
     return { error }
   }

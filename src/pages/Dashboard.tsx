@@ -58,15 +58,20 @@ import {
 } from "@/lib/storage";
 import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/hooks/useAuth";
 import { PageMeta } from "@/components/seo/PageMeta";
+import { ADMIN_EMAIL } from "@/constants";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { RefreshCw, Trash2, BarChart3 } from "lucide-react";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const analysisIdParam = searchParams.get("analysisId");
   const { subscription, limits, isPro } = useSubscription();
+  const { user } = useAuth();
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   // States
   const [analyses, setAnalyses] = useState<AnalysisSummary[]>([]);
@@ -1082,6 +1087,56 @@ export default function Dashboard() {
             </TabsContent>
           )}
         </Tabs>
+
+        {/* Panel Admin - moreauy58@gmail.com uniquement */}
+        {isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 p-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl border border-white/10"
+          >
+            <h2 className="text-2xl font-bold text-white mb-6">Panel Admin</h2>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="glass-card p-6 text-center bg-white/10 rounded-xl">
+                <div className="text-3xl font-bold text-blue-200">124</div>
+                <div className="text-white/80 text-sm">Analyses totales</div>
+              </div>
+              <div className="glass-card p-6 text-center bg-white/10 rounded-xl">
+                <div className="text-3xl font-bold text-green-200">12</div>
+                <div className="text-white/80 text-sm">Utilisateurs actifs</div>
+              </div>
+              <div className="glass-card p-6 text-center bg-white/10 rounded-xl">
+                <div className="text-3xl font-bold text-purple-200">1 248 €</div>
+                <div className="text-white/80 text-sm">CA généré</div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <Button
+                variant="secondary"
+                className="glass-card p-4 h-auto flex items-center justify-center gap-3 hover:shadow-xl bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                <RefreshCw className="w-5 h-5" />
+                Vider cache IA
+              </Button>
+              <Button
+                variant="secondary"
+                className="glass-card p-4 h-auto flex items-center justify-center gap-3 hover:shadow-xl bg-red-500/20 border-red-500/30 text-red-100 hover:bg-red-500/30"
+              >
+                <Trash2 className="w-5 h-5" />
+                Reset users test
+              </Button>
+              <Button
+                variant="secondary"
+                className="glass-card p-4 h-auto flex items-center justify-center gap-3 hover:shadow-xl bg-green-500/20 border-green-500/30 text-green-100 hover:bg-green-500/30"
+              >
+                <BarChart3 className="w-5 h-5" />
+                Exporter stats
+              </Button>
+            </div>
+          </motion.div>
+        )}
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
