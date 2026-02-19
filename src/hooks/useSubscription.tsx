@@ -55,7 +55,7 @@ function getCachedSubscription(userId: string): SubscriptionData | null {
     const now = Date.now()
     
     if (now - timestamp < CACHE_DURATION) {
-      console.log("📦 Using cached subscription")
+      console.log("[Subscription] Using cached subscription")
       return data
     }
     
@@ -101,7 +101,7 @@ export function useSubscription() {
         if (cached) {
           setSubscription(cached)
           setLoading(false)
-          console.log("✅ Subscription loaded from cache")
+          console.log("[Subscription] Loaded from cache")
           // Charger en arrière-plan pour mettre à jour si nécessaire
         }
 
@@ -114,7 +114,7 @@ export function useSubscription() {
           
           if (response.ok) {
             const data = await response.json()
-            console.log("📦 Subscription from API:", data)
+            console.log("[Subscription] From API:", data)
             
             if (data.plan && data.plan !== 'free') {
               // Mettre en cache
@@ -225,7 +225,7 @@ export async function forceProSubscription() {
       }
     })
     
-    console.log("✅ Subscription forced to PRO")
+    console.log("[Subscription] Forced to PRO")
     // Recharger la page pour mettre à jour l'état
     window.location.reload()
   } catch (error) {

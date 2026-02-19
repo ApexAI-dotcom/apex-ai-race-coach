@@ -22,6 +22,7 @@ import {
   Zap,
   Target,
 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
@@ -161,10 +162,12 @@ export default function Profile() {
     );
   }
 
-  // Générer les initiales depuis l'email ou le nom
+  const displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Utilisateur";
+  const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
+
   const getInitials = () => {
     if (user.user_metadata?.full_name) {
-      return user.user_metadata.full_name
+      return (user.user_metadata.full_name as string)
         .split(" ")
         .map((n: string) => n[0])
         .join("")
@@ -222,9 +225,14 @@ export default function Profile() {
         >
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             {/* Avatar */}
-            <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center text-3xl font-bold text-primary-foreground">
-              {getInitials()}
-            </div>
+            <Avatar className="w-20 h-20 rounded-2xl border-2 border-primary/20">
+              {avatarUrl ? (
+                <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" />
+              ) : null}
+              <AvatarFallback className="rounded-2xl gradient-primary text-3xl font-bold text-primary-foreground">
+                {getInitials()}
+              </AvatarFallback>
+            </Avatar>
 
             {/* Info */}
             <div className="flex-1">
@@ -233,10 +241,11 @@ export default function Profile() {
                   const userSettings = JSON.parse(
                     localStorage.getItem("apexai_settings") || "{}"
                   ) as { nomPilote?: string };
-                  if (userSettings.nomPilote?.trim()) {
+                  const bonjourName = userSettings.nomPilote?.trim() || (user.user_metadata?.full_name as string) || user.email?.split("@")[0];
+                  if (bonjourName) {
                     return (
                       <p className="text-lg font-medium text-primary mb-1">
-                        Bonjour {userSettings.nomPilote} !
+                        Bonjour {bonjourName} !
                       </p>
                     );
                   }
@@ -246,7 +255,7 @@ export default function Profile() {
                 return null;
               })()}
               <h1 className="font-display text-2xl font-bold text-foreground mb-2">
-                {user.user_metadata?.full_name || user.email?.split("@")[0] || "Utilisateur"}
+                {displayName}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 {user.email === ADMIN_EMAIL && (

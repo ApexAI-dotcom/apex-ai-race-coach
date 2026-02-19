@@ -1,6 +1,6 @@
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 
@@ -26,8 +26,9 @@ export default function Success() {
             <CheckCircle2 className="w-12 h-12 text-green-500" />
           </motion.div>
 
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-            🎉 Paiement Réussi !
+          <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 flex items-center justify-center gap-3 flex-wrap">
+            <Sparkles className="w-10 h-10 text-primary shrink-0" aria-hidden />
+            Paiement Réussi !
           </h1>
 
           <p className="text-xl text-muted-foreground mb-2">

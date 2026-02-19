@@ -1,12 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Settings, Save, Sun, Moon } from "lucide-react";
+import { Settings, Save, Sun, Moon, User, ImagePlus, Loader2 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 const STORAGE_KEY = "apexai_settings";
 
@@ -34,7 +37,25 @@ function applyTheme(theme: "dark" | "light") {
 }
 
 export default function Parametres() {
+  const { user } = useAuth();
   const [settings, setSettings] = useState<ApexSettings>(defaultSettings);
+  const [displayName, setDisplayName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Init display name & avatar from Supabase user
+  useEffect(() => {
+    if (!user) return;
+    const name =
+      (user.user_metadata?.full_name as string) ||
+      user.email?.split("@")[0] ||
+      "";
+    const avatar = (user.user_metadata?.avatar_url as string) || "";
+    setDisplayName(name);
+    setAvatarUrl(avatar);
+  }, [user]);
 
   useEffect(() => {
     try {
@@ -60,6 +81,63 @@ export default function Parametres() {
     toast.success("Paramètres appliqués !");
   };
 
+  const saveProfile = async () => {
+    if (!user) return;
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          full_name: displayName.trim() || null,
+          avatar_url: avatarUrl.trim() || null,
+        },
+      });
+      if (error) throw error;
+      const nomPilote = displayName.trim() || settings.nomPilote;
+      if (nomPilote) {
+        const next = { ...settings, nomPilote };
+        setSettings(next);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      }
+      toast.success("Profil mis à jour.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erreur lors de la mise à jour.";
+      toast.error(msg);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choisissez une image (JPG, PNG, WebP).");
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (uploadError) {
+        const baseUrl = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
+        toast.info("Stockage non configuré : utilisez une URL d'avatar ci-dessous.");
+        setUploadingAvatar(false);
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      setAvatarUrl(urlData.publicUrl);
+      toast.success("Photo téléversée.");
+    } catch {
+      toast.error("Échec du téléversement.");
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = "";
+    }
+  };
+
   return (
     <Layout>
       <PageMeta
@@ -80,7 +158,81 @@ export default function Parametres() {
             </h1>
           </div>
 
-          {/* Nom Pilote */}
+          {/* Profil : photo + pseudo (Supabase) */}
+          {user && (
+            <div className="glass-card p-6 rounded-xl space-y-6">
+              <div className="flex items-center gap-3">
+                <User className="w-6 h-6 text-primary" />
+                <Label className="text-lg font-semibold">Profil (compte connecté)</Label>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-6">
+                <div className="flex flex-col items-center gap-3">
+                  <Avatar className="w-24 h-24 rounded-2xl border-2 border-primary/20">
+                    {avatarUrl ? (
+                      <AvatarImage src={avatarUrl} alt="Avatar" className="object-cover" />
+                    ) : null}
+                    <AvatarFallback className="rounded-2xl gradient-primary text-2xl text-primary-foreground">
+                      {(displayName || user.email || "U").slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarFile}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    className="gap-2"
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <ImagePlus className="w-4 h-4" />
+                    )}
+                    {uploadingAvatar ? "Téléversement…" : "Changer la photo"}
+                  </Button>
+                </div>
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Pseudo / Nom d'affichage</Label>
+                    <Input
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder={user.email?.split("@")[0] || "moreauy58"}
+                      className="mt-2 w-full p-4 border-2 rounded-xl focus-visible:ring-4 focus-visible:ring-primary/20"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Ou URL de la photo de profil</Label>
+                    <Input
+                      type="url"
+                      value={avatarUrl}
+                      onChange={(e) => setAvatarUrl(e.target.value)}
+                      placeholder="https://..."
+                      className="mt-2 w-full p-4 border-2 rounded-xl focus-visible:ring-4 focus-visible:ring-primary/20"
+                    />
+                  </div>
+                  <Button
+                    onClick={saveProfile}
+                    disabled={savingProfile}
+                    className="gap-2"
+                  >
+                    {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Enregistrer le profil
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Nom Pilote (local, pour "Bonjour X" sur Dashboard/Profil) */}
           <div className="glass-card p-6 rounded-xl">
             <Label className="text-lg font-semibold mb-4 block">
               Nom du pilote

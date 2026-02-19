@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Zap, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { ADMIN_EMAIL } from "@/constants";
 
@@ -70,8 +71,17 @@ export const Navbar = () => {
                 )}
                 <Link to="/profile">
                   <Button variant="ghost" size="sm" className="gap-2">
-                    <User className="w-4 h-4" />
-                    {user?.email?.split("@")[0] || "Profil"}
+                    {(user?.user_metadata?.avatar_url as string) ? (
+                      <Avatar className="w-6 h-6 rounded-lg">
+                        <AvatarImage src={user.user_metadata.avatar_url as string} alt="" className="object-cover" />
+                        <AvatarFallback className="rounded-lg text-xs">
+                          {(user?.user_metadata?.full_name || user?.email || "U").toString().slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <User className="w-4 h-4" />
+                    )}
+                    {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
                   </Button>
                 </Link>
                 <Link to="/upload">
@@ -142,7 +152,7 @@ export const Navbar = () => {
                     <Link to="/profile" onClick={() => setIsOpen(false)}>
                       <Button variant="ghost" className="w-full gap-2">
                         <User className="w-4 h-4" />
-                        {user?.email?.split("@")[0] || "Mon Profil"}
+                        {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Mon Profil"}
                       </Button>
                     </Link>
                     <Link to="/upload" onClick={() => setIsOpen(false)}>

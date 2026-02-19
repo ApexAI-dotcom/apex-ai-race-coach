@@ -314,7 +314,7 @@ export default function Dashboard() {
   };
 
   const exportDashboardPDFUltra = async (analyses: AnalysisSummary[]) => {
-    console.log("🔥 PDF DASHBOARD ULTRA START", analyses);
+    console.log("[PDF] Dashboard export start", analyses);
     try {
       const doc = new jsPDF("p", "mm", "a4");
 
@@ -437,7 +437,7 @@ export default function Dashboard() {
       }
 
       doc.save(`Apex-Dashboard-${new Date().toISOString().split("T")[0]}.pdf`);
-      console.log("✅ PDF DASHBOARD ULTRA SUCCESS");
+      console.log("[PDF] Dashboard export success");
     } catch (error) {
       console.error("PDF DASHBOARD ULTRA ERROR:", error);
       alert("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));
@@ -511,7 +511,7 @@ export default function Dashboard() {
                   onClick={() => exportDashboardPDFUltra(analyses)}
                 >
                   <FileDown className="w-4 h-4 mr-2" />
-                  📄 Rapport Complet PDF
+                  Rapport Complet PDF
                 </Button>
               )}
               <Button
