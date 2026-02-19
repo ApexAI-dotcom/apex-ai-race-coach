@@ -345,12 +345,12 @@ export default function Index() {
               <Link to="/pricing" className="hover:text-orange-300 transition-colors duration-200">
                 Tarifs
               </Link>
-              <a href="#" className="hover:text-orange-300 transition-colors duration-200">
+              <Link to="/#contact" className="hover:text-orange-300 transition-colors duration-200">
                 Contact
-              </a>
-              <a href="#" className="hover:text-orange-300 transition-colors duration-200">
+              </Link>
+              <Link to="/legal" className="hover:text-orange-300 transition-colors duration-200">
                 Mentions légales
-              </a>
+              </Link>
             </div>
             <div className="text-sm text-muted-foreground">
               © 2024 APEX AI. Tous droits réservés.
