@@ -264,10 +264,13 @@ export default function Dashboard() {
       const doc = new jsPDF("p", "mm", "a4");
 
       doc.setFillColor(239, 68, 68);
-      doc.rect(0, 0, 210, 30, "F");
+      doc.rect(0, 0, 210, 40, "F");
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(18);
-      doc.text("APEX AI ANALYSE", 20, 20);
+      doc.setFontSize(28);
+      doc.setFont("helvetica", "bold");
+      doc.text("APEX AI", 20, 25);
+      doc.setFontSize(14);
+      doc.text("TABLEAU DE BORD - ANALYSES", 20, 35);
 
       autoTable(doc, {
         head: [["#", "Date", "Score", "Grade", "Virages", "Temps"]],
@@ -279,15 +282,186 @@ export default function Dashboard() {
           a.corner_count ?? 0,
           (a.lap_time ?? 0).toFixed(2) + "s",
         ]),
-        startY: 40,
+        startY: 50,
         theme: "grid",
         headStyles: { fillColor: [239, 68, 68], textColor: 255 },
+        styles: { fontSize: 10 },
+        margin: { left: 15, right: 15 },
       });
 
-      doc.save(`apex-analyse-${Date.now()}.pdf`);
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFillColor(30, 58, 138);
+        doc.rect(0, 270, 210, 30, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Apex AI SARL - contact@apexai.run", 20, 285);
+        doc.text("www.apexai.run", 170, 285, { align: "right" });
+      }
+
+      doc.save(`apex-dashboard-${Date.now()}.pdf`);
       console.log("✅ PDF SUCCESS");
     } catch (error) {
       console.error("PDF ERROR:", error);
+      alert("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  const exportAnalysePDF = (analysis: AnalysisResult) => {
+    console.log("🔥 PDF ANALYSE START", analysis);
+    try {
+      const doc = new jsPDF("p", "mm", "a4");
+      let yPos = 20;
+
+      doc.setFillColor(239, 68, 68);
+      doc.rect(0, 0, 210, 40, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(28);
+      doc.setFont("helvetica", "bold");
+      doc.text("APEX AI", 20, 25);
+      doc.setFontSize(14);
+      doc.text("RAPPORT D'ANALYSE COMPLET", 20, 35);
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      yPos = 55;
+      doc.text(`Date: ${new Date(analysis.timestamp).toLocaleDateString("fr-FR")}`, 20, yPos);
+      yPos += 10;
+      doc.text(`Score: ${Math.round(analysis.performance_score.overall_score)}/100`, 20, yPos);
+      yPos += 10;
+      doc.text(`Grade: ${analysis.performance_score.grade}`, 20, yPos);
+      yPos += 10;
+      doc.text(`Temps: ${analysis.lap_time.toFixed(2)}s`, 20, yPos);
+      yPos += 10;
+      doc.text(`Virages: ${analysis.corners_detected}`, 20, yPos);
+      yPos += 10;
+      doc.text(`Percentile: ${analysis.performance_score.percentile || "N/A"}%`, 20, yPos);
+
+      yPos += 15;
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("CONSEILS D'OPTIMISATION", 20, yPos);
+      yPos += 10;
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      if (analysis.coaching_advice && analysis.coaching_advice.length > 0) {
+        analysis.coaching_advice.forEach((advice, i) => {
+          if (yPos > 250) {
+            doc.addPage();
+            yPos = 20;
+          }
+          doc.text(`• ${advice.message}`, 20, yPos);
+          yPos += 6;
+          doc.setFontSize(9);
+          doc.setTextColor(100, 100, 100);
+          doc.text(`  ${advice.explanation}`, 20, yPos);
+          yPos += 6;
+          doc.setTextColor(0, 0, 0);
+          doc.setFontSize(11);
+          if (advice.impact_seconds > 0) {
+            doc.text(`  Gain potentiel: ${advice.impact_seconds.toFixed(2)}s`, 20, yPos);
+            yPos += 6;
+          }
+          yPos += 3;
+        });
+      } else {
+        doc.text("Aucun conseil disponible", 20, yPos);
+        yPos += 10;
+      }
+
+      yPos += 10;
+      if (yPos > 200) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("RESULTATS DETAILLES", 20, yPos);
+      yPos += 10;
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.text(
+        `Précision Apex: ${Math.round(analysis.performance_score.breakdown.apex_precision)}/30`,
+        20,
+        yPos
+      );
+      yPos += 8;
+      doc.text(
+        `Régularité trajectoire: ${Math.round(analysis.performance_score.breakdown.trajectory_consistency)}/25`,
+        20,
+        yPos
+      );
+      yPos += 8;
+      doc.text(
+        `Vitesse apex: ${Math.round(analysis.performance_score.breakdown.apex_speed)}/25`,
+        20,
+        yPos
+      );
+      yPos += 8;
+      doc.text(
+        `Temps secteurs: ${Math.round(analysis.performance_score.breakdown.sector_times)}/25`,
+        20,
+        yPos
+      );
+      yPos += 10;
+
+      if (analysis.corner_analysis && analysis.corner_analysis.length > 0) {
+        yPos += 5;
+        if (yPos > 200) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("ANALYSE DES VIRAGES", 20, yPos);
+        yPos += 10;
+
+        const cornerHeaders = [
+          ["Virage", "Type", "Vitesse Réelle", "Vitesse Optimale", "G Latéral", "Temps Perdu", "Score"],
+        ];
+        const cornerRows = analysis.corner_analysis.slice(0, 20).map((corner) => [
+          `#${corner.corner_number}`,
+          corner.corner_type,
+          `${corner.apex_speed_real.toFixed(1)} km/h`,
+          `${corner.apex_speed_optimal.toFixed(1)} km/h`,
+          `${corner.lateral_g_max.toFixed(2)}G`,
+          `${corner.time_lost.toFixed(3)}s`,
+          `${Math.round(corner.score)}/100`,
+        ]);
+
+        autoTable(doc, {
+          head: cornerHeaders,
+          body: cornerRows,
+          startY: yPos,
+          theme: "grid",
+          headStyles: { fillColor: [239, 68, 68], textColor: 255 },
+          styles: { fontSize: 8 },
+          margin: { left: 15, right: 15 },
+        });
+      }
+
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFillColor(30, 58, 138);
+        doc.rect(0, 270, 210, 30, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Apex AI SARL - contact@apexai.run", 20, 285);
+        doc.text("www.apexai.run", 170, 285, { align: "right" });
+      }
+
+      doc.save(`apex-analyse-${analysis.analysis_id}.pdf`);
+      console.log("✅ PDF ANALYSE SUCCESS");
+    } catch (error) {
+      console.error("PDF ANALYSE ERROR:", error);
       alert("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));
     }
   };
@@ -469,7 +643,7 @@ export default function Dashboard() {
                   {analyses.length > 0 && (
                     <Button onClick={exportPDF} className="w-full sm:w-auto bg-red-600 hover:bg-red-700">
                       <Download className="w-4 h-4 mr-2" />
-                      📄 PDF (F12 check)
+                      Exporter PDF
                     </Button>
                   )}
                 </div>
@@ -735,6 +909,14 @@ export default function Dashboard() {
                   Retour à la liste
                 </Button>
                 <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => exportAnalysePDF(selectedAnalysis)}
+                    className="bg-red-600 hover:bg-red-700 text-white border-red-600"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    📄 Rapport PDF
+                  </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleDeleteClick(selectedAnalysis.analysis_id)}
