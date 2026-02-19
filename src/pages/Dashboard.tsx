@@ -60,6 +60,8 @@ import {
 } from "@/lib/storage";
 import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -248,6 +250,47 @@ export default function Dashboard() {
     });
   };
 
+  const formatDatePDF = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const exportPDF = (list: AnalysisSummary[]) => {
+    const doc = new jsPDF();
+    doc.setFontSize(20);
+    doc.text("APEX AI - Analyse Tours", 20, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`${list.length} analyse(s) exportée(s)`, 20, 28);
+    doc.setTextColor(0, 0, 0);
+
+    const tableColumn = ["Date", "Score", "Grade", "Virages", "Temps (s)"];
+    const tableRows = list.map((a) => [
+      formatDatePDF(a.date),
+      String(a.score),
+      a.grade,
+      String(a.corner_count),
+      a.lap_time.toFixed(2),
+    ]);
+
+    (doc as jsPDF & { autoTable: (opts: { head: string[]; body: string[][]; startY: number }) => void }).autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 35,
+      theme: "grid",
+      headStyles: { fillColor: [220, 53, 69], textColor: 255 },
+      margin: { left: 20 },
+    });
+
+    doc.save("apex-analyse.pdf");
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -414,11 +457,26 @@ export default function Dashboard() {
           <TabsContent value="list" className="space-y-4">
             <Card className="glass-card">
               <CardHeader>
-                <CardTitle>Toutes les analyses</CardTitle>
-                <CardDescription>
-                  {analyses.length} analyse{analyses.length > 1 ? "s" : ""} sauvegardée
-                  {analyses.length > 1 ? "s" : ""}
-                </CardDescription>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <CardTitle>Toutes les analyses</CardTitle>
+                    <CardDescription>
+                      {analyses.length} analyse{analyses.length > 1 ? "s" : ""} sauvegardée
+                      {analyses.length > 1 ? "s" : ""}
+                    </CardDescription>
+                  </div>
+                  {analyses.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportPDF(analyses)}
+                      className="shrink-0"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Télécharger PDF
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
