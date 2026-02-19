@@ -227,6 +227,23 @@ export default function Profile() {
 
             {/* Info */}
             <div className="flex-1">
+              {(() => {
+                try {
+                  const userSettings = JSON.parse(
+                    localStorage.getItem("apexai_settings") || "{}"
+                  ) as { nomPilote?: string };
+                  if (userSettings.nomPilote?.trim()) {
+                    return (
+                      <p className="text-lg font-medium text-primary mb-1">
+                        Bonjour {userSettings.nomPilote} !
+                      </p>
+                    );
+                  }
+                } catch {
+                  // ignore
+                }
+                return null;
+              })()}
               <h1 className="font-display text-2xl font-bold text-foreground mb-2">
                 {user.user_metadata?.full_name || user.email?.split("@")[0] || "Utilisateur"}
               </h1>

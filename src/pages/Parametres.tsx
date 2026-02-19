@@ -12,7 +12,6 @@ const STORAGE_KEY = "apexai_settings";
 
 interface ApexSettings {
   nomPilote: string;
-  circuitFavori: string;
   unites: "kmh" | "mph";
   theme: "dark" | "light";
   notifications: boolean;
@@ -20,7 +19,6 @@ interface ApexSettings {
 
 const defaultSettings: ApexSettings = {
   nomPilote: "",
-  circuitFavori: "Magny-Cours",
   unites: "kmh",
   theme: "dark",
   notifications: true,
@@ -42,8 +40,9 @@ export default function Parametres() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved) as Partial<ApexSettings>;
-        const next = { ...defaultSettings, ...parsed };
+        const parsed = JSON.parse(saved) as Partial<ApexSettings & { circuitFavori?: string }>;
+        const { circuitFavori: _removed, ...rest } = parsed;
+        const next = { ...defaultSettings, ...rest };
         setSettings(next);
         applyTheme(next.theme);
       } else {
@@ -95,26 +94,6 @@ export default function Parametres() {
               placeholder="Yann Moreau"
               className="w-full p-4 border-2 rounded-xl focus-visible:ring-4 focus-visible:ring-primary/20"
             />
-          </div>
-
-          {/* Circuit Favori */}
-          <div className="glass-card p-6 rounded-xl">
-            <Label className="text-lg font-semibold mb-4 block">
-              Circuit favori
-            </Label>
-            <select
-              value={settings.circuitFavori}
-              onChange={(e) =>
-                setSettings({ ...settings, circuitFavori: e.target.value })
-              }
-              className="w-full h-11 px-4 rounded-xl border-2 border-input bg-background text-foreground text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option value="Magny-Cours">Magny-Cours</option>
-              <option value="Monza">Monza</option>
-              <option value="Spa-Francorchamps">Spa-Francorchamps</option>
-              <option value="Le Mans">Le Mans</option>
-              <option value="Paul Ricard">Paul Ricard</option>
-            </select>
           </div>
 
           {/* Unités + Thème */}
