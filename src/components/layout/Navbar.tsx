@@ -9,6 +9,7 @@ const navItems = [
   { name: "Accueil", path: "/" },
   { name: "Tableau de bord", path: "/dashboard" },
   { name: "Télécharger", path: "/upload" },
+  { name: "Paramètres", path: "/parametres" },
   { name: "Tarifs", path: "/pricing" },
 ];
 
