@@ -58,6 +58,8 @@ import {
 } from "@/lib/storage";
 import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -246,6 +248,137 @@ export default function Dashboard() {
     });
   };
 
+  const exportDashboardPDFUltra = async (analyses: AnalysisSummary[]) => {
+    console.log("🔥 PDF DASHBOARD ULTRA START", analyses);
+    try {
+      const doc = new jsPDF("p", "mm", "a4");
+
+      // HEADER ROUGE APEX
+      doc.setFillColor(239, 68, 68);
+      doc.rect(0, 0, 210, 45, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(28);
+      doc.text("APEX AI", 20, 25);
+      doc.setFontSize(18);
+      doc.text("TABLEAU DE BORD COMPLET", 20, 35);
+
+      let yPos = 55;
+
+      // STATS GLOBALES
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("STATISTIQUES GLOBALES", 20, yPos);
+      yPos += 10;
+
+      const totalAnalyses = analyses.length;
+      const avgScore = (analyses.reduce((a, b) => a + b.score, 0) / totalAnalyses).toFixed(1);
+      const bestScore = Math.max(...analyses.map((a) => a.score));
+      const bestAnalysis = analyses.find((a) => a.score === bestScore);
+      const bestDate = bestAnalysis?.date ? new Date(bestAnalysis.date).toISOString().split("T")[0] : "N/A";
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Total analyses: ${totalAnalyses}`, 20, yPos);
+      yPos += 7;
+      doc.text(`Score moyen: ${avgScore}/100`, 20, yPos);
+      yPos += 7;
+      doc.text(`Meilleur score: ${bestScore}/100 (${bestDate})`, 20, yPos);
+      yPos += 15;
+
+      // TABLEAU HISTORIQUE COMPLET
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("HISTORIQUE DETAILLE", 20, yPos);
+      yPos += 10;
+
+      const tableData = analyses.map((a) => [
+        new Date(a.date).toLocaleDateString("fr-FR"),
+        `${a.score}/100`,
+        a.grade,
+        String(a.corner_count),
+        `${a.lap_time.toFixed(1)}s`,
+        "N/A", // percentile pas disponible dans AnalysisSummary
+        "N/A", // precision_score pas disponible
+        "N/A", // data_points pas disponible
+      ]);
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Date", "Score", "Grade", "Virages", "Temps", "Centile", "Precision", "Donnees"]],
+        body: tableData,
+        theme: "grid",
+        styles: { fontSize: 10, cellPadding: 3 },
+        headStyles: { fillColor: [239, 68, 68], textColor: 255, fontStyle: "bold" },
+        columnStyles: {
+          0: { halign: "left" },
+          1: { halign: "center" },
+          5: { halign: "right" },
+          7: { halign: "right" },
+        },
+        margin: { left: 15, right: 15 },
+        rowPageBreak: "avoid",
+      });
+
+      yPos = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 20 : yPos + 50;
+
+      // TOP 3 MEILLEURES ANALYSES
+      if (yPos > 250) {
+        doc.addPage();
+        doc.setFillColor(239, 68, 68);
+        doc.rect(0, 0, 210, 45, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(28);
+        doc.text("APEX AI", 20, 25);
+        doc.setFontSize(18);
+        doc.text("TABLEAU DE BORD COMPLET", 20, 35);
+        yPos = 50;
+      }
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("TOP 3 MEILLEURES SESSIONS", 20, yPos);
+      yPos += 10;
+
+      const top3 = [...analyses]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .map(
+          (a, i) =>
+            `${i + 1}. ${new Date(a.date).toISOString().split("T")[0]} - Score ${a.score}/100 (Grade ${a.grade}) - ${a.corner_count} virages`
+        );
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      top3.forEach((line) => {
+        doc.text(line, 20, yPos);
+        yPos += 8;
+      });
+
+      // FOOTER TOUTES PAGES
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFillColor(30, 58, 138);
+        doc.rect(0, doc.internal.pageSize.height - 30, 210, 30, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Apex AI SARL - contact@apexai.run - www.apexai.run", 20, doc.internal.pageSize.height - 15);
+        doc.text(`Page ${i}/${pageCount}`, 180, doc.internal.pageSize.height - 15, { align: "right" });
+      }
+
+      doc.save(`Apex-Dashboard-${new Date().toISOString().split("T")[0]}.pdf`);
+      console.log("✅ PDF DASHBOARD ULTRA SUCCESS");
+    } catch (error) {
+      console.error("PDF DASHBOARD ULTRA ERROR:", error);
+      alert("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -301,13 +434,24 @@ export default function Dashboard() {
               </h1>
               <p className="text-muted-foreground">Gérez et comparez vos analyses de performance</p>
             </div>
-            <Button
-              variant="heroOutline"
-              onClick={() => navigate("/upload")}
-              disabled={hasReachedLimit}
-            >
-              Nouvelle analyse
-            </Button>
+            <div className="flex gap-3">
+              {analyses.length > 0 && (
+                <Button
+                  className="gradient-primary text-primary-foreground font-semibold shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-105 active:scale-100"
+                  onClick={() => exportDashboardPDFUltra(analyses)}
+                >
+                  <FileDown className="w-4 h-4 mr-2" />
+                  📄 Rapport Complet PDF
+                </Button>
+              )}
+              <Button
+                variant="heroOutline"
+                onClick={() => navigate("/upload")}
+                disabled={hasReachedLimit}
+              >
+                Nouvelle analyse
+              </Button>
+            </div>
           </div>
 
           {/* Limit Warning for Free Plan */}
@@ -410,10 +554,6 @@ export default function Dashboard() {
 
           {/* List Tab */}
           <TabsContent value="list" className="space-y-4">
-            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-lg mb-6">
-              <h2 className="text-2xl font-bold">📊 Vos Analyses</h2>
-              <p className="opacity-90">Historique complet de vos sessions</p>
-            </div>
             <Card className="glass-card">
               <CardHeader>
                 <CardTitle>Toutes les analyses</CardTitle>
