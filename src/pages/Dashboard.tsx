@@ -6,7 +6,6 @@ import {
   TrendingDown,
   Target,
   Clock,
-  Download,
   Trash2,
   Eye,
   Compare,
@@ -59,9 +58,6 @@ import {
 } from "@/lib/storage";
 import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import { addApexHeader, addFooter, loadImageFromUrl } from "@/lib/utils/pdfUtils";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -250,261 +246,6 @@ export default function Dashboard() {
     });
   };
 
-  const exportPDF = () => {
-    console.log("🔥 PDF DASHBOARD START");
-    console.log("📊 analyses:", analyses);
-    console.table(analyses);
-
-    if (!analyses || !Array.isArray(analyses) || analyses.length === 0) {
-      alert("❌ Aucune analyse à exporter");
-      console.error("No analyses data");
-      return;
-    }
-
-    try {
-      const doc = new jsPDF("p", "mm", "a4");
-      addApexHeader(doc);
-
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(0, 0, 0);
-      doc.text("TABLEAU DE BORD - HISTORIQUE ANALYSES", 20, 55);
-
-      const tableData = analyses.map((a, i) => [
-        i + 1,
-        a.date ? new Date(a.date).toLocaleDateString("fr-FR") : "N/A",
-        `${a.score ?? 0}/100`,
-        a.grade || "-",
-        String(a.corner_count ?? 0),
-        `${(a.lap_time ?? 0).toFixed(2)}s`,
-        a.percentile ? `${a.percentile}%` : "N/A",
-      ]);
-
-      autoTable(doc, {
-        startY: 65,
-        head: [["#", "Date", "Score", "Grade", "Virages", "Temps", "Centile"]],
-        body: tableData,
-        theme: "grid",
-        styles: { fontSize: 11 },
-        headStyles: { fillColor: [239, 68, 68], textColor: 255 },
-        columnStyles: { 1: { halign: "center" }, 5: { halign: "right" } },
-        margin: { left: 20, right: 20 },
-      });
-
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        addFooter(doc, pageCount);
-      }
-
-      doc.save(`Apex-Dashboard-${new Date().toISOString().split("T")[0]}.pdf`);
-      console.log("✅ PDF DASHBOARD SUCCESS");
-    } catch (error) {
-      console.error("PDF ERROR:", error);
-      alert("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));
-    }
-  };
-
-  const exportAnalysePDF = async (analysis: AnalysisResult) => {
-    console.log("🔥 PDF ANALYSE COMPLET START", analysis);
-    try {
-      const doc = new jsPDF("p", "mm", "a4");
-      let yPos = 50;
-
-      // HEADER
-      addApexHeader(doc);
-
-      // RÉCAPITULATIF GÉNÉRAL
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(0, 0, 0);
-      doc.text("RECAPITULATIF GENERAL", 20, yPos);
-      yPos += 10;
-
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-      doc.text(
-        `Score: ${Math.round(analysis.performance_score.overall_score)}/100 (Grade: ${analysis.performance_score.grade})`,
-        20,
-        yPos
-      );
-      yPos += 7;
-      doc.text(`Centile: ${analysis.performance_score.percentile || "N/A"}%`, 20, yPos);
-      yPos += 7;
-      doc.text(
-        `Temps tour: ${analysis.lap_time.toFixed(2)}s | Virages: ${analysis.corners_detected}`,
-        20,
-        yPos
-      );
-      yPos += 7;
-      doc.text(
-        `Points donnees: ${analysis.statistics.data_points} | Temps traitement: ${analysis.statistics.processing_time_seconds.toFixed(1)}s`,
-        20,
-        yPos
-      );
-      yPos += 15;
-
-      // SCORES DÉTAILLÉS (Tableau AutoTable)
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("SCORES DETAILLES", 20, yPos);
-      yPos += 10;
-
-      const scores = [
-        ["Precision Apex", Math.round(analysis.performance_score.breakdown.apex_precision), "/30"],
-        ["Regularite", Math.round(analysis.performance_score.breakdown.trajectory_consistency), "/25"],
-        ["Vitesse Apex", Math.round(analysis.performance_score.breakdown.apex_speed), "/25"],
-        ["Temps Secteurs", Math.round(analysis.performance_score.breakdown.sector_times), "/25"],
-      ];
-
-      autoTable(doc, {
-        startY: yPos,
-        head: [["Critere", "Score", "/Max"]],
-        body: scores,
-        theme: "grid",
-        styles: { fontSize: 10, cellPadding: 3 },
-        headStyles: { fillColor: [239, 68, 68], textColor: 255 },
-        columnStyles: { 0: { halign: "left" } },
-        margin: { left: 20, right: 20 },
-      });
-      yPos = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 15 : yPos + 30;
-
-      // CONSEILS PRIORITAIRES
-      if (analysis.coaching_advice && analysis.coaching_advice.length > 0) {
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text("CONSEILS PRIORITAIRES", 20, yPos);
-        yPos += 10;
-
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "normal");
-        analysis.coaching_advice.slice(0, 8).forEach((advice) => {
-          if (yPos > 250) {
-            doc.addPage();
-            addApexHeader(doc);
-            yPos = 50;
-          }
-          doc.text(`• ${advice.message}`, 20, yPos);
-          yPos += 6;
-          doc.setFontSize(9);
-          doc.setTextColor(100, 100, 100);
-          doc.text(`  ${advice.explanation}`, 20, yPos);
-          yPos += 6;
-          doc.setTextColor(0, 0, 0);
-          doc.setFontSize(11);
-          if (advice.impact_seconds > 0) {
-            doc.text(`  Gain potentiel: ${advice.impact_seconds.toFixed(2)}s`, 20, yPos);
-            yPos += 6;
-          }
-          yPos += 3;
-        });
-        yPos += 10;
-      }
-
-      // NOUVELLE PAGE POUR VIRAGES
-      doc.addPage();
-      addApexHeader(doc);
-      yPos = 50;
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(0, 0, 0);
-      doc.text("ANALYSE VIRAGES DETAILLEE (Top 20)", 20, yPos);
-      yPos += 10;
-
-      // TABLEAU VIRAGES (AutoTable PRO)
-      if (analysis.corner_analysis && analysis.corner_analysis.length > 0) {
-        const cornersData = analysis.corner_analysis.slice(0, 20).map((c) => [
-          `#${c.corner_number}`,
-          c.corner_type,
-          `${c.apex_speed_real.toFixed(1)} km/h`,
-          `${c.apex_speed_optimal.toFixed(1)} km/h`,
-          `${c.lateral_g_max.toFixed(2)}G`,
-          `${c.time_lost.toFixed(3)}s`,
-          `${Math.round(c.score)}/100`,
-          c.grade,
-        ]);
-
-        autoTable(doc, {
-          startY: yPos,
-          head: [
-            ["Virage", "Type", "Vitesse Reelle", "Optimale", "G Lateral", "Temps Perdu", "Score", "Grade"],
-          ],
-          body: cornersData,
-          theme: "striped",
-          styles: { fontSize: 9, cellPadding: 2 },
-          headStyles: { fillColor: [239, 68, 68], textColor: 255, fontStyle: "bold" },
-          columnStyles: {
-            0: { halign: "center", fontStyle: "bold" },
-            2: { halign: "right" },
-            3: { halign: "right" },
-            4: { halign: "right" },
-            5: { halign: "right" },
-            6: { halign: "center" },
-          },
-          margin: { left: 15, right: 15 },
-          rowPageBreak: "avoid",
-        });
-        yPos = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 20 : yPos + 50;
-      }
-
-      // GRAPHIQUES (Miniatures si disponibles)
-      if (analysis.plots && Object.keys(analysis.plots).length > 0) {
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text("VISUALISATIONS PERFORMANCE", 20, yPos);
-        yPos += 15;
-
-        const graphKeys = [
-          "trajectory_2d",
-          "speed_heatmap",
-          "lateral_g_chart",
-          "speed_trace",
-          "throttle_brake",
-          "sector_times",
-          "apex_precision",
-        ];
-
-        let graphIndex = 0;
-        for (const graphKey of graphKeys) {
-          const plotUrl = analysis.plots[graphKey];
-          if (plotUrl) {
-            try {
-              const imgData = await loadImageFromUrl(plotUrl);
-              const x = 20 + (graphIndex % 3) * 65;
-              const y = yPos + Math.floor(graphIndex / 3) * 45;
-              if (y + 40 > 250) {
-                doc.addPage();
-                addApexHeader(doc);
-                yPos = 50;
-                graphIndex = 0;
-                continue;
-              }
-              doc.addImage(imgData, "PNG", x, y, 60, 40);
-              doc.setFontSize(8);
-              doc.text(graphKey.replace("_", " "), x, y + 42);
-              graphIndex++;
-            } catch (e) {
-              console.log(`Graph ${graphKey} skip:`, e);
-            }
-          }
-        }
-      }
-
-      // FOOTER TOUTES PAGES
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        addFooter(doc, pageCount);
-      }
-
-      doc.save(`Apex-Analyse-${analysis.analysis_id}-${new Date(analysis.timestamp).toISOString().split("T")[0]}.pdf`);
-      console.log("✅ PDF ANALYSE COMPLET SUCCESS");
-    } catch (error) {
-      console.error("PDF ANALYSE ERROR:", error);
-      alert("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));
-    }
-  };
-
   if (loading) {
     return (
       <Layout>
@@ -669,23 +410,17 @@ export default function Dashboard() {
 
           {/* List Tab */}
           <TabsContent value="list" className="space-y-4">
+            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-lg mb-6">
+              <h2 className="text-2xl font-bold">📊 Vos Analyses</h2>
+              <p className="opacity-90">Historique complet de vos sessions</p>
+            </div>
             <Card className="glass-card">
               <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <CardTitle>Toutes les analyses</CardTitle>
-                    <CardDescription>
-                      {analyses.length} analyse{analyses.length > 1 ? "s" : ""} sauvegardée
-                      {analyses.length > 1 ? "s" : ""}
-                    </CardDescription>
-                  </div>
-                  {analyses.length > 0 && (
-                    <Button onClick={exportPDF} className="w-full sm:w-auto bg-red-600 hover:bg-red-700">
-                      <Download className="w-4 h-4 mr-2" />
-                      Exporter PDF
-                    </Button>
-                  )}
-                </div>
+                <CardTitle>Toutes les analyses</CardTitle>
+                <CardDescription>
+                  {analyses.length} analyse{analyses.length > 1 ? "s" : ""} sauvegardée
+                  {analyses.length > 1 ? "s" : ""}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -948,14 +683,6 @@ export default function Dashboard() {
                   Retour à la liste
                 </Button>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => exportAnalysePDF(selectedAnalysis)}
-                    className="bg-red-600 hover:bg-red-700 text-white border-red-600"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    📄 Rapport PDF Complet (5+ pages)
-                  </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleDeleteClick(selectedAnalysis.analysis_id)}

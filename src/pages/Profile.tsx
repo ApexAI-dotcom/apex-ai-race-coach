@@ -13,7 +13,6 @@ import {
   Calendar,
   Trophy,
   TrendingUp,
-  Download,
   Settings,
   ChevronRight,
   CreditCard,
@@ -431,10 +430,6 @@ export default function Profile() {
                 <h3 className="font-display font-semibold text-lg text-foreground">
                   Historique des sessions
                 </h3>
-                <Button variant="outline" size="sm">
-                  <Download className="w-4 h-4" />
-                  Exporter PDF
-                </Button>
               </div>
 
               {/* Table */}
