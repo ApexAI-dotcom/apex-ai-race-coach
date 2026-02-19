@@ -1,9 +1,15 @@
 import { Layout } from "@/components/layout/Layout";
+import { PageMeta } from "@/components/seo/PageMeta";
 import { motion } from "framer-motion";
 
 export default function Legal() {
   return (
     <Layout>
+      <PageMeta
+        title="Mentions légales | ApexAI"
+        description="Mentions légales et conditions d'utilisation ApexAI."
+        path="/legal"
+      />
       <div className="container mx-auto px-4 py-12 max-w-3xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

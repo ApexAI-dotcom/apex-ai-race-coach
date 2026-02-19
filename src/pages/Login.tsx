@@ -6,6 +6,7 @@ import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { Layout } from '@/components/layout/Layout'
+import { PageMeta } from '@/components/seo/PageMeta'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle } from 'lucide-react'
@@ -60,6 +61,11 @@ export default function Login() {
 
   return (
     <Layout>
+      <PageMeta
+        title="Connexion | ApexAI"
+        description="Connectez-vous pour accéder à votre tableau de bord et vos analyses."
+        path="/login"
+      />
       <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

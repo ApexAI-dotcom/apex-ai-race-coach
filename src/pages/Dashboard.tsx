@@ -58,6 +58,7 @@ import {
 } from "@/lib/storage";
 import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
+import { PageMeta } from "@/components/seo/PageMeta";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -424,6 +425,11 @@ export default function Dashboard() {
 
   return (
     <Layout>
+      <PageMeta
+        title="Tableau de bord | ApexAI"
+        description="Historique de vos analyses, comparaison de sessions et export PDF."
+        path="/dashboard"
+      />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">

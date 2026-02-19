@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PricingCard } from "@/components/pricing/PricingCard";
+import { PageMeta } from "@/components/seo/PageMeta";
 import { Check, Zap, XCircle, CreditCard, Lock } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -90,6 +91,11 @@ export default function Pricing() {
 
   return (
     <Layout>
+      <PageMeta
+        title="Pricing ApexAI - Analyse IA Circuit dès 9€ | Essai gratuit"
+        description="Analyse IA 1 tour = 9€ | 10 tours = 49€ | Abonnement 99€/mois. Upload CSV MyChron5/AiM → Score D/A/S instantané."
+        path="/pricing"
+      />
       <div className="container mx-auto px-4 py-16">
         {/* Alert pour paiement annulé */}
         <AnimatePresence>

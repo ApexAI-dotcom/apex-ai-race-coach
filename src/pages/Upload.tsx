@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { CSVUploader } from "@/components/upload/CSVUploader";
+import { PageMeta } from "@/components/seo/PageMeta";
 import { FileSpreadsheet, CheckCircle, Shield, Zap, BarChart3, TrendingUp, Car, FolderOpen } from "lucide-react";
 
 const supportedFormats = [
@@ -31,6 +32,12 @@ const features = [
 export default function Upload() {
   return (
     <Layout>
+      <PageMeta
+        title="Upload CSV MyChron5 → Analyse IA Immédiate | ApexAI"
+        description="Upload MyChron5, AiM RaceBox → IA analyse apices, freinage. Score + coaching 30s."
+        ogTitle="Analyse CSV MyChron5 → IA ApexAI"
+        path="/upload"
+      />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div

@@ -23,6 +23,7 @@ import {
   Target,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PageMeta } from "@/components/seo/PageMeta";
 import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
 import { API_BASE_URL } from "@/lib/api";
 
@@ -206,6 +207,11 @@ export default function Profile() {
 
   return (
     <Layout>
+      <PageMeta
+        title="Mon profil | ApexAI"
+        description="Statistiques, historique des sessions et gestion de l'abonnement."
+        path="/profile"
+      />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
