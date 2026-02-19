@@ -27,12 +27,32 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function ThemeInit() {
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("apexai_settings");
+      if (saved) {
+        const parsed = JSON.parse(saved) as { theme?: "dark" | "light" };
+        if (parsed.theme === "light") {
+          document.documentElement.classList.add("light");
+        } else {
+          document.documentElement.classList.remove("light");
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ThemeInit />
         <ScrollToTop />
         <AuthProvider>
           <Routes>

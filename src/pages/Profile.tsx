@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useUser, useAuth } from "@/hooks/useAuth";
@@ -250,9 +250,11 @@ export default function Profile() {
 
             {/* Actions */}
             <div className="flex flex-wrap gap-3">
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                Paramètres
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/parametres" className="inline-flex items-center justify-center gap-2">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Paramètres
+                </Link>
               </Button>
               {isPro && isActive && subscription?.customerId && (
                 <Button

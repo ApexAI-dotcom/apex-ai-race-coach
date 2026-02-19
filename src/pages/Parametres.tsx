@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { Settings, Save, Sun, Moon } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Settings } from "lucide-react";
 
 const STORAGE_KEY = "apexai_settings";
 
@@ -26,6 +26,15 @@ const defaultSettings: ApexSettings = {
   notifications: true,
 };
 
+function applyTheme(theme: "dark" | "light") {
+  const html = document.documentElement;
+  if (theme === "light") {
+    html.classList.add("light");
+  } else {
+    html.classList.remove("light");
+  }
+}
+
 export default function Parametres() {
   const [settings, setSettings] = useState<ApexSettings>(defaultSettings);
 
@@ -34,16 +43,22 @@ export default function Parametres() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as Partial<ApexSettings>;
-        setSettings((prev) => ({ ...prev, ...parsed }));
+        const next = { ...defaultSettings, ...parsed };
+        setSettings(next);
+        applyTheme(next.theme);
+      } else {
+        applyTheme("dark");
       }
     } catch {
-      // ignore invalid JSON
+      applyTheme("dark");
     }
   }, []);
 
   const saveSettings = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    toast.success("Paramètres sauvegardés !");
+    applyTheme(settings.theme);
+    (window as unknown as { apexaiUnits?: string }).apexaiUnits = settings.unites;
+    toast.success("Paramètres appliqués !");
   };
 
   return (
@@ -57,56 +72,60 @@ export default function Parametres() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto"
+          className="max-w-2xl mx-auto space-y-8"
         >
-          <h1 className="font-display text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <Settings className="w-8 h-8 text-primary" />
-            Paramètres
-          </h1>
-          <p className="text-muted-foreground mb-8">
-            Personnalise ton expérience ApexAI
-          </p>
+            <h1 className="font-display text-3xl font-bold text-foreground">
+              Paramètres
+            </h1>
+          </div>
 
-          <div className="space-y-6 glass-card p-6 rounded-xl">
-            {/* Nom Pilote */}
-            <div className="space-y-2">
-              <Label htmlFor="nomPilote">Nom du pilote</Label>
-              <Input
-                id="nomPilote"
-                type="text"
-                value={settings.nomPilote}
-                onChange={(e) =>
-                  setSettings({ ...settings, nomPilote: e.target.value })
-                }
-                placeholder="Ex: Yann Moreau"
-                className="w-full"
-              />
-            </div>
+          {/* Nom Pilote */}
+          <div className="glass-card p-6 rounded-xl">
+            <Label className="text-lg font-semibold mb-4 block">
+              Nom du pilote
+            </Label>
+            <Input
+              type="text"
+              value={settings.nomPilote}
+              onChange={(e) =>
+                setSettings({ ...settings, nomPilote: e.target.value })
+              }
+              placeholder="Yann Moreau"
+              className="w-full p-4 border-2 rounded-xl focus-visible:ring-4 focus-visible:ring-primary/20"
+            />
+          </div>
 
-            {/* Circuit Favori */}
-            <div className="space-y-2">
-              <Label htmlFor="circuitFavori">Circuit favori</Label>
-              <select
-                id="circuitFavori"
-                value={settings.circuitFavori}
-                onChange={(e) =>
-                  setSettings({ ...settings, circuitFavori: e.target.value })
-                }
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-foreground text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option value="Magny-Cours">Magny-Cours</option>
-                <option value="Monza">Monza</option>
-                <option value="Spa-Francorchamps">Spa-Francorchamps</option>
-                <option value="Le Mans">Le Mans</option>
-                <option value="Paul Ricard">Paul Ricard</option>
-              </select>
-            </div>
+          {/* Circuit Favori */}
+          <div className="glass-card p-6 rounded-xl">
+            <Label className="text-lg font-semibold mb-4 block">
+              Circuit favori
+            </Label>
+            <select
+              value={settings.circuitFavori}
+              onChange={(e) =>
+                setSettings({ ...settings, circuitFavori: e.target.value })
+              }
+              className="w-full h-11 px-4 rounded-xl border-2 border-input bg-background text-foreground text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="Magny-Cours">Magny-Cours</option>
+              <option value="Monza">Monza</option>
+              <option value="Spa-Francorchamps">Spa-Francorchamps</option>
+              <option value="Le Mans">Le Mans</option>
+              <option value="Paul Ricard">Paul Ricard</option>
+            </select>
+          </div>
 
+          {/* Unités + Thème */}
+          <div className="grid md:grid-cols-2 gap-6">
             {/* Unités */}
-            <div className="space-y-2">
-              <Label>Unités</Label>
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2 cursor-pointer">
+            <div className="glass-card p-6 rounded-xl">
+              <Label className="text-lg font-semibold mb-6 block">
+                Unités vitesse
+              </Label>
+              <div className="space-y-3">
+                <label className="flex items-center p-3 rounded-lg hover:bg-secondary/50 cursor-pointer">
                   <input
                     type="radio"
                     name="unites"
@@ -115,11 +134,11 @@ export default function Parametres() {
                     onChange={(e) =>
                       setSettings({ ...settings, unites: e.target.value as "kmh" })
                     }
-                    className="h-4 w-4 text-primary border-input"
+                    className="mr-3 w-5 h-5 text-primary"
                   />
                   <span className="text-sm">km/h</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center p-3 rounded-lg hover:bg-secondary/50 cursor-pointer">
                   <input
                     type="radio"
                     name="unites"
@@ -128,70 +147,69 @@ export default function Parametres() {
                     onChange={(e) =>
                       setSettings({ ...settings, unites: e.target.value as "mph" })
                     }
-                    className="h-4 w-4 text-primary border-input"
+                    className="mr-3 w-5 h-5 text-primary"
                   />
                   <span className="text-sm">mph</span>
                 </label>
               </div>
             </div>
 
-            {/* Thème */}
-            <div className="space-y-2">
-              <Label>Thème</Label>
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="theme"
-                    value="dark"
-                    checked={settings.theme === "dark"}
-                    onChange={(e) =>
-                      setSettings({ ...settings, theme: e.target.value as "dark" })
-                    }
-                    className="h-4 w-4 text-primary border-input"
-                  />
-                  <span className="text-sm">Dark</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="theme"
-                    value="light"
-                    checked={settings.theme === "light"}
-                    onChange={(e) =>
-                      setSettings({ ...settings, theme: e.target.value as "light" })
-                    }
-                    className="h-4 w-4 text-primary border-input"
-                  />
-                  <span className="text-sm">Light</span>
-                </label>
+            {/* Thème - Fonctionnel */}
+            <div className="glass-card p-6 rounded-xl">
+              <Label className="text-lg font-semibold mb-6 block">Thème</Label>
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, theme: "light" })}
+                  className={`flex items-center p-3 w-full rounded-lg hover:bg-secondary/50 transition-all border-2 ${
+                    settings.theme === "light"
+                      ? "border-primary ring-2 ring-primary/20 bg-primary/5"
+                      : "border-transparent"
+                  }`}
+                >
+                  <Sun className="w-5 h-5 mr-3 text-yellow-500" />
+                  <span className="text-sm font-medium">Clair</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, theme: "dark" })}
+                  className={`flex items-center p-3 w-full rounded-lg hover:bg-secondary/50 transition-all border-2 ${
+                    settings.theme === "dark"
+                      ? "border-primary ring-2 ring-primary/20 bg-primary/5"
+                      : "border-transparent"
+                  }`}
+                >
+                  <Moon className="w-5 h-5 mr-3 text-muted-foreground" />
+                  <span className="text-sm font-medium">Sombre</span>
+                </button>
               </div>
             </div>
+          </div>
 
-            {/* Notifications */}
-            <div className="flex items-center gap-2">
+          {/* Notifications */}
+          <div className="glass-card p-6 rounded-xl">
+            <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                id="notifications"
                 checked={settings.notifications}
                 onChange={(e) =>
                   setSettings({ ...settings, notifications: e.target.checked })
                 }
                 className="h-4 w-4 rounded border-input text-primary"
               />
-              <Label htmlFor="notifications" className="cursor-pointer">
+              <span className="text-sm font-medium">
                 Notifications analyses terminées
-              </Label>
-            </div>
-
-            <Button
-              onClick={saveSettings}
-              className="w-full mt-4 gradient-primary text-primary-foreground font-medium"
-              size="lg"
-            >
-              Sauvegarder
-            </Button>
+              </span>
+            </label>
           </div>
+
+          <Button
+            onClick={saveSettings}
+            className="w-full gradient-primary text-primary-foreground py-6 text-lg font-bold shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-3"
+          >
+            <Save className="w-5 h-5" />
+            Sauvegarder & Appliquer
+          </Button>
         </motion.div>
       </div>
     </Layout>

@@ -435,23 +435,6 @@ export default function Dashboard() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              {(() => {
-                try {
-                  const userSettings = JSON.parse(
-                    localStorage.getItem("apexai_settings") || "{}"
-                  ) as { nomPilote?: string };
-                  if (userSettings.nomPilote?.trim()) {
-                    return (
-                      <h2 className="text-lg font-medium text-primary mb-1">
-                        Bonjour {userSettings.nomPilote} !
-                      </h2>
-                    );
-                  }
-                } catch {
-                  // ignore
-                }
-                return null;
-              })()}
               <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-2">
                 Tableau de bord
               </h1>
