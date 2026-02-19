@@ -59,8 +59,6 @@ import {
 } from "@/lib/storage";
 import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -249,39 +247,20 @@ export default function Dashboard() {
     });
   };
 
-  const formatDatePDF = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const exportPDF = () => {
+    console.log("🚀 PDF START", analyses.length);
+    alert("PDF clicked ! " + analyses.length + " analyses");
 
-  const exportPDF = async () => {
-    console.log("PDF clicked", analyses);
-    if (!analyses.length) {
-      alert("Aucune analyse");
-      return;
-    }
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text("APEX AI Analyse", 20, 20);
-    const body = analyses.map((a) => [
-      formatDatePDF(a.date),
-      String(a.score),
-      a.grade,
-      String(a.corner_count),
-      a.lap_time.toFixed(2),
-    ]);
-    (doc as jsPDF & { autoTable: (opts: { head: string[][]; body: string[][]; startY: number }) => void }).autoTable({
-      head: [["Date", "Score", "Grade", "Virages", "Temps"]],
-      body,
-      startY: 28,
-    });
-    doc.save("apex-analyse.pdf");
+    const content = analyses
+      .map((a) => `Tour: ${a.date} Score: ${a.score}`)
+      .join("\n");
+    const blob = new Blob([content], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "apex-simple.pdf";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
