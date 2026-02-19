@@ -250,7 +250,7 @@ export default function Profile() {
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 {user.email === ADMIN_EMAIL && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-200 dark:bg-purple-900/30 dark:text-purple-200 border border-purple-500/30">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-600 text-white border border-red-500 shadow-sm">
                     Admin
                   </span>
                 )}

@@ -54,6 +54,7 @@ import {
   getAllAnalyses,
   getAnalysisById,
   deleteAnalysis,
+  clearAllAnalyses,
   type AnalysisSummary,
 } from "@/lib/storage";
 import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
@@ -63,7 +64,8 @@ import { PageMeta } from "@/components/seo/PageMeta";
 import { ADMIN_EMAIL } from "@/constants";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { RefreshCw, Trash2, BarChart3 } from "lucide-react";
+import { RefreshCw, Trash2, BarChart3, Download } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -252,6 +254,63 @@ export default function Dashboard() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  // Actions admin (fonctionnelles)
+  const handleAdminClearCache = async () => {
+    try {
+      const count = await clearAllAnalyses();
+      await loadAnalyses();
+      setSelectedAnalysis(null);
+      setCompareResult1(null);
+      setCompareResult2(null);
+      setCompareAnalysis1("");
+      setCompareAnalysis2("");
+      toast.success(`Cache vidé : ${count} analyse(s) supprimée(s).`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Erreur lors du vidage du cache.");
+    }
+  };
+
+  const handleAdminResetTestUsers = () => {
+    try {
+      localStorage.removeItem("apex_guest_mode");
+      localStorage.removeItem("apex_guest_used");
+      toast.success("Flags guest / test réinitialisés.");
+    } catch {
+      toast.error("Erreur réinitialisation.");
+    }
+  };
+
+  const handleAdminExportStats = () => {
+    try {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        totalAnalyses: analyses.length,
+        analyses: analyses.map((a) => ({
+          id: a.id,
+          date: a.date,
+          score: a.score,
+          grade: a.grade,
+          corner_count: a.corner_count,
+          lap_time: a.lap_time,
+        })),
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `apex-admin-stats-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Stats exportées en JSON.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Erreur export.");
+    }
   };
 
   const exportDashboardPDFUltra = async (analyses: AnalysisSummary[]) => {
@@ -1093,45 +1152,48 @@ export default function Dashboard() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-8 p-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl border border-white/10"
+            className="mt-8 p-6 bg-gradient-to-r from-red-600 to-red-700 rounded-2xl border border-red-500/30 shadow-xl"
           >
             <h2 className="text-2xl font-bold text-white mb-6">Panel Admin</h2>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              <div className="glass-card p-6 text-center bg-white/10 rounded-xl">
-                <div className="text-3xl font-bold text-blue-200">124</div>
-                <div className="text-white/80 text-sm">Analyses totales</div>
+              <div className="bg-white/10 rounded-xl p-6 text-center border border-white/20">
+                <div className="text-3xl font-bold text-white">{analyses.length}</div>
+                <div className="text-white/90 text-sm">Analyses totales</div>
               </div>
-              <div className="glass-card p-6 text-center bg-white/10 rounded-xl">
-                <div className="text-3xl font-bold text-green-200">12</div>
-                <div className="text-white/80 text-sm">Utilisateurs actifs</div>
+              <div className="bg-white/10 rounded-xl p-6 text-center border border-white/20" title="Backend requis">
+                <div className="text-3xl font-bold text-white">—</div>
+                <div className="text-white/90 text-sm">Utilisateurs actifs</div>
               </div>
-              <div className="glass-card p-6 text-center bg-white/10 rounded-xl">
-                <div className="text-3xl font-bold text-purple-200">1 248 €</div>
-                <div className="text-white/80 text-sm">CA généré</div>
+              <div className="bg-white/10 rounded-xl p-6 text-center border border-white/20" title="Backend requis">
+                <div className="text-3xl font-bold text-white">—</div>
+                <div className="text-white/90 text-sm">CA généré</div>
               </div>
             </div>
 
             <div className="grid md:grid-cols-3 gap-4">
               <Button
-                variant="secondary"
-                className="glass-card p-4 h-auto flex items-center justify-center gap-3 hover:shadow-xl bg-white/10 border-white/20 text-white hover:bg-white/20"
+                type="button"
+                onClick={handleAdminClearCache}
+                className="p-4 h-auto flex items-center justify-center gap-3 bg-white/15 border border-white/30 text-white hover:bg-white/25"
               >
                 <RefreshCw className="w-5 h-5" />
                 Vider cache IA
               </Button>
               <Button
-                variant="secondary"
-                className="glass-card p-4 h-auto flex items-center justify-center gap-3 hover:shadow-xl bg-red-500/20 border-red-500/30 text-red-100 hover:bg-red-500/30"
+                type="button"
+                onClick={handleAdminResetTestUsers}
+                className="p-4 h-auto flex items-center justify-center gap-3 bg-white/15 border border-white/30 text-white hover:bg-white/25"
               >
                 <Trash2 className="w-5 h-5" />
                 Reset users test
               </Button>
               <Button
-                variant="secondary"
-                className="glass-card p-4 h-auto flex items-center justify-center gap-3 hover:shadow-xl bg-green-500/20 border-green-500/30 text-green-100 hover:bg-green-500/30"
+                type="button"
+                onClick={handleAdminExportStats}
+                className="p-4 h-auto flex items-center justify-center gap-3 bg-white/15 border border-white/30 text-white hover:bg-white/25"
               >
-                <BarChart3 className="w-5 h-5" />
+                <Download className="w-5 h-5" />
                 Exporter stats
               </Button>
             </div>
