@@ -61,6 +61,7 @@ import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { addApexHeader, addFooter, loadImageFromUrl } from "@/lib/utils/pdfUtils";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -250,7 +251,7 @@ export default function Dashboard() {
   };
 
   const exportPDF = () => {
-    console.log("🔥 PDF START");
+    console.log("🔥 PDF DASHBOARD START");
     console.log("📊 analyses:", analyses);
     console.table(analyses);
 
@@ -262,97 +263,126 @@ export default function Dashboard() {
 
     try {
       const doc = new jsPDF("p", "mm", "a4");
+      addApexHeader(doc);
 
-      doc.setFillColor(239, 68, 68);
-      doc.rect(0, 0, 210, 40, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(28);
-      doc.setFont("helvetica", "bold");
-      doc.text("APEX AI", 20, 25);
       doc.setFontSize(14);
-      doc.text("TABLEAU DE BORD - ANALYSES", 20, 35);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("TABLEAU DE BORD - HISTORIQUE ANALYSES", 20, 55);
+
+      const tableData = analyses.map((a, i) => [
+        i + 1,
+        a.date ? new Date(a.date).toLocaleDateString("fr-FR") : "N/A",
+        `${a.score ?? 0}/100`,
+        a.grade || "-",
+        String(a.corner_count ?? 0),
+        `${(a.lap_time ?? 0).toFixed(2)}s`,
+        a.percentile ? `${a.percentile}%` : "N/A",
+      ]);
 
       autoTable(doc, {
-        head: [["#", "Date", "Score", "Grade", "Virages", "Temps"]],
-        body: analyses.map((a, i) => [
-          i + 1,
-          a.date || "N/A",
-          a.score ?? 0,
-          a.grade || "-",
-          a.corner_count ?? 0,
-          (a.lap_time ?? 0).toFixed(2) + "s",
-        ]),
-        startY: 50,
+        startY: 65,
+        head: [["#", "Date", "Score", "Grade", "Virages", "Temps", "Centile"]],
+        body: tableData,
         theme: "grid",
+        styles: { fontSize: 11 },
         headStyles: { fillColor: [239, 68, 68], textColor: 255 },
-        styles: { fontSize: 10 },
-        margin: { left: 15, right: 15 },
+        columnStyles: { 1: { halign: "center" }, 5: { halign: "right" } },
+        margin: { left: 20, right: 20 },
       });
 
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
-        doc.setFillColor(30, 58, 138);
-        doc.rect(0, 270, 210, 30, "F");
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text("Apex AI SARL - contact@apexai.run", 20, 285);
-        doc.text("www.apexai.run", 170, 285, { align: "right" });
+        addFooter(doc, pageCount);
       }
 
-      doc.save(`apex-dashboard-${Date.now()}.pdf`);
-      console.log("✅ PDF SUCCESS");
+      doc.save(`Apex-Dashboard-${new Date().toISOString().split("T")[0]}.pdf`);
+      console.log("✅ PDF DASHBOARD SUCCESS");
     } catch (error) {
       console.error("PDF ERROR:", error);
       alert("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));
     }
   };
 
-  const exportAnalysePDF = (analysis: AnalysisResult) => {
-    console.log("🔥 PDF ANALYSE START", analysis);
+  const exportAnalysePDF = async (analysis: AnalysisResult) => {
+    console.log("🔥 PDF ANALYSE COMPLET START", analysis);
     try {
       const doc = new jsPDF("p", "mm", "a4");
-      let yPos = 20;
+      let yPos = 50;
 
-      doc.setFillColor(239, 68, 68);
-      doc.rect(0, 0, 210, 40, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(28);
-      doc.setFont("helvetica", "bold");
-      doc.text("APEX AI", 20, 25);
+      // HEADER
+      addApexHeader(doc);
+
+      // RÉCAPITULATIF GÉNÉRAL
       doc.setFontSize(14);
-      doc.text("RAPPORT D'ANALYSE COMPLET", 20, 35);
-
+      doc.setFont("helvetica", "bold");
       doc.setTextColor(0, 0, 0);
+      doc.text("RECAPITULATIF GENERAL", 20, yPos);
+      yPos += 10;
+
       doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
-      yPos = 55;
-      doc.text(`Date: ${new Date(analysis.timestamp).toLocaleDateString("fr-FR")}`, 20, yPos);
-      yPos += 10;
-      doc.text(`Score: ${Math.round(analysis.performance_score.overall_score)}/100`, 20, yPos);
-      yPos += 10;
-      doc.text(`Grade: ${analysis.performance_score.grade}`, 20, yPos);
-      yPos += 10;
-      doc.text(`Temps: ${analysis.lap_time.toFixed(2)}s`, 20, yPos);
-      yPos += 10;
-      doc.text(`Virages: ${analysis.corners_detected}`, 20, yPos);
-      yPos += 10;
-      doc.text(`Percentile: ${analysis.performance_score.percentile || "N/A"}%`, 20, yPos);
-
+      doc.text(
+        `Score: ${Math.round(analysis.performance_score.overall_score)}/100 (Grade: ${analysis.performance_score.grade})`,
+        20,
+        yPos
+      );
+      yPos += 7;
+      doc.text(`Centile: ${analysis.performance_score.percentile || "N/A"}%`, 20, yPos);
+      yPos += 7;
+      doc.text(
+        `Temps tour: ${analysis.lap_time.toFixed(2)}s | Virages: ${analysis.corners_detected}`,
+        20,
+        yPos
+      );
+      yPos += 7;
+      doc.text(
+        `Points donnees: ${analysis.statistics.data_points} | Temps traitement: ${analysis.statistics.processing_time_seconds.toFixed(1)}s`,
+        20,
+        yPos
+      );
       yPos += 15;
-      doc.setFontSize(16);
+
+      // SCORES DÉTAILLÉS (Tableau AutoTable)
+      doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      doc.text("CONSEILS D'OPTIMISATION", 20, yPos);
+      doc.text("SCORES DETAILLES", 20, yPos);
       yPos += 10;
 
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
+      const scores = [
+        ["Precision Apex", Math.round(analysis.performance_score.breakdown.apex_precision), "/30"],
+        ["Regularite", Math.round(analysis.performance_score.breakdown.trajectory_consistency), "/25"],
+        ["Vitesse Apex", Math.round(analysis.performance_score.breakdown.apex_speed), "/25"],
+        ["Temps Secteurs", Math.round(analysis.performance_score.breakdown.sector_times), "/25"],
+      ];
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Critere", "Score", "/Max"]],
+        body: scores,
+        theme: "grid",
+        styles: { fontSize: 10, cellPadding: 3 },
+        headStyles: { fillColor: [239, 68, 68], textColor: 255 },
+        columnStyles: { 0: { halign: "left" } },
+        margin: { left: 20, right: 20 },
+      });
+      yPos = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 15 : yPos + 30;
+
+      // CONSEILS PRIORITAIRES
       if (analysis.coaching_advice && analysis.coaching_advice.length > 0) {
-        analysis.coaching_advice.forEach((advice, i) => {
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("CONSEILS PRIORITAIRES", 20, yPos);
+        yPos += 10;
+
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        analysis.coaching_advice.slice(0, 8).forEach((advice) => {
           if (yPos > 250) {
             doc.addPage();
-            yPos = 20;
+            addApexHeader(doc);
+            yPos = 50;
           }
           doc.text(`• ${advice.message}`, 20, yPos);
           yPos += 6;
@@ -368,98 +398,107 @@ export default function Dashboard() {
           }
           yPos += 3;
         });
-      } else {
-        doc.text("Aucun conseil disponible", 20, yPos);
         yPos += 10;
       }
 
-      yPos += 10;
-      if (yPos > 200) {
-        doc.addPage();
-        yPos = 20;
-      }
-      doc.setFontSize(16);
+      // NOUVELLE PAGE POUR VIRAGES
+      doc.addPage();
+      addApexHeader(doc);
+      yPos = 50;
+      doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(0, 0, 0);
-      doc.text("RESULTATS DETAILLES", 20, yPos);
+      doc.text("ANALYSE VIRAGES DETAILLEE (Top 20)", 20, yPos);
       yPos += 10;
 
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      doc.text(
-        `Précision Apex: ${Math.round(analysis.performance_score.breakdown.apex_precision)}/30`,
-        20,
-        yPos
-      );
-      yPos += 8;
-      doc.text(
-        `Régularité trajectoire: ${Math.round(analysis.performance_score.breakdown.trajectory_consistency)}/25`,
-        20,
-        yPos
-      );
-      yPos += 8;
-      doc.text(
-        `Vitesse apex: ${Math.round(analysis.performance_score.breakdown.apex_speed)}/25`,
-        20,
-        yPos
-      );
-      yPos += 8;
-      doc.text(
-        `Temps secteurs: ${Math.round(analysis.performance_score.breakdown.sector_times)}/25`,
-        20,
-        yPos
-      );
-      yPos += 10;
-
+      // TABLEAU VIRAGES (AutoTable PRO)
       if (analysis.corner_analysis && analysis.corner_analysis.length > 0) {
-        yPos += 5;
-        if (yPos > 200) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text("ANALYSE DES VIRAGES", 20, yPos);
-        yPos += 10;
-
-        const cornerHeaders = [
-          ["Virage", "Type", "Vitesse Réelle", "Vitesse Optimale", "G Latéral", "Temps Perdu", "Score"],
-        ];
-        const cornerRows = analysis.corner_analysis.slice(0, 20).map((corner) => [
-          `#${corner.corner_number}`,
-          corner.corner_type,
-          `${corner.apex_speed_real.toFixed(1)} km/h`,
-          `${corner.apex_speed_optimal.toFixed(1)} km/h`,
-          `${corner.lateral_g_max.toFixed(2)}G`,
-          `${corner.time_lost.toFixed(3)}s`,
-          `${Math.round(corner.score)}/100`,
+        const cornersData = analysis.corner_analysis.slice(0, 20).map((c) => [
+          `#${c.corner_number}`,
+          c.corner_type,
+          `${c.apex_speed_real.toFixed(1)} km/h`,
+          `${c.apex_speed_optimal.toFixed(1)} km/h`,
+          `${c.lateral_g_max.toFixed(2)}G`,
+          `${c.time_lost.toFixed(3)}s`,
+          `${Math.round(c.score)}/100`,
+          c.grade,
         ]);
 
         autoTable(doc, {
-          head: cornerHeaders,
-          body: cornerRows,
           startY: yPos,
-          theme: "grid",
-          headStyles: { fillColor: [239, 68, 68], textColor: 255 },
-          styles: { fontSize: 8 },
+          head: [
+            ["Virage", "Type", "Vitesse Reelle", "Optimale", "G Lateral", "Temps Perdu", "Score", "Grade"],
+          ],
+          body: cornersData,
+          theme: "striped",
+          styles: { fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [239, 68, 68], textColor: 255, fontStyle: "bold" },
+          columnStyles: {
+            0: { halign: "center", fontStyle: "bold" },
+            2: { halign: "right" },
+            3: { halign: "right" },
+            4: { halign: "right" },
+            5: { halign: "right" },
+            6: { halign: "center" },
+          },
           margin: { left: 15, right: 15 },
+          rowPageBreak: "avoid",
         });
+        yPos = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 20 : yPos + 50;
       }
 
+      // GRAPHIQUES (Miniatures si disponibles)
+      if (analysis.plots && Object.keys(analysis.plots).length > 0) {
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("VISUALISATIONS PERFORMANCE", 20, yPos);
+        yPos += 15;
+
+        const graphKeys = [
+          "trajectory_2d",
+          "speed_heatmap",
+          "lateral_g_chart",
+          "speed_trace",
+          "throttle_brake",
+          "sector_times",
+          "apex_precision",
+        ];
+
+        let graphIndex = 0;
+        for (const graphKey of graphKeys) {
+          const plotUrl = analysis.plots[graphKey];
+          if (plotUrl) {
+            try {
+              const imgData = await loadImageFromUrl(plotUrl);
+              const x = 20 + (graphIndex % 3) * 65;
+              const y = yPos + Math.floor(graphIndex / 3) * 45;
+              if (y + 40 > 250) {
+                doc.addPage();
+                addApexHeader(doc);
+                yPos = 50;
+                graphIndex = 0;
+                continue;
+              }
+              doc.addImage(imgData, "PNG", x, y, 60, 40);
+              doc.setFontSize(8);
+              doc.text(graphKey.replace("_", " "), x, y + 42);
+              graphIndex++;
+            } catch (e) {
+              console.log(`Graph ${graphKey} skip:`, e);
+            }
+          }
+        }
+      }
+
+      // FOOTER TOUTES PAGES
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
-        doc.setFillColor(30, 58, 138);
-        doc.rect(0, 270, 210, 30, "F");
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text("Apex AI SARL - contact@apexai.run", 20, 285);
-        doc.text("www.apexai.run", 170, 285, { align: "right" });
+        addFooter(doc, pageCount);
       }
 
-      doc.save(`apex-analyse-${analysis.analysis_id}.pdf`);
-      console.log("✅ PDF ANALYSE SUCCESS");
+      doc.save(`Apex-Analyse-${analysis.analysis_id}-${new Date(analysis.timestamp).toISOString().split("T")[0]}.pdf`);
+      console.log("✅ PDF ANALYSE COMPLET SUCCESS");
     } catch (error) {
       console.error("PDF ANALYSE ERROR:", error);
       alert("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));
@@ -915,7 +954,7 @@ export default function Dashboard() {
                     className="bg-red-600 hover:bg-red-700 text-white border-red-600"
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    📄 Rapport PDF
+                    📄 Rapport PDF Complet (5+ pages)
                   </Button>
                   <Button
                     variant="destructive"
