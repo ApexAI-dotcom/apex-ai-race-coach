@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -89,6 +90,21 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [modalTitle, setModalTitle] = useState<string>("");
+
+  // Fermeture modal par ESC
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setModalImage(null);
+    };
+    if (modalImage) {
+      document.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [modalImage]);
 
   // Calculer les analyses du mois actuel
   const getCurrentMonthAnalyses = () => {
@@ -1225,27 +1241,93 @@ export default function Dashboard() {
         </Dialog>
 
         {/* Modal lightbox pour graphiques */}
-        {modalImage && (
+        {modalImage && createPortal(
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 99999,
+              backgroundColor: 'rgba(0, 0, 0, 0.88)',
+              backdropFilter: 'blur(6px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
             onClick={() => setModalImage(null)}
           >
-            <div className="relative max-w-[95vw] max-h-[95vh] p-4">
-              <button
-                className="absolute top-2 right-2 text-white bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 z-10"
-                onClick={() => setModalImage(null)}
-              >
-                ✕
-              </button>
-              <p className="text-white text-center mb-2 font-medium">{modalTitle}</p>
+            <div
+              style={{
+                position: 'relative',
+                maxWidth: '95vw',
+                maxHeight: '92vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '16px',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Barre titre + bouton fermer */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+                minWidth: '300px',
+              }}>
+                <p style={{
+                  color: '#e2e8f0',
+                  fontWeight: 600,
+                  fontSize: '15px',
+                  margin: 0,
+                  flex: 1,
+                }}>
+                  {modalTitle}
+                </p>
+                <button
+                  style={{
+                    background: '#374151',
+                    border: 'none',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginLeft: '12px',
+                    flexShrink: 0,
+                  }}
+                  onClick={() => setModalImage(null)}
+                >
+                  ✕
+                </button>
+              </div>
+              {/* Image */}
               <img
                 src={modalImage}
                 alt={modalTitle}
-                className="max-w-full max-h-[85vh] object-contain rounded-lg"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '80vh',
+                  objectFit: 'contain',
+                  borderRadius: '8px',
+                  boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+                }}
                 onClick={(e) => e.stopPropagation()}
               />
+              <p style={{ color: '#64748b', fontSize: '11px', margin: 0 }}>
+                Cliquer en dehors pour fermer · ESC pour fermer
+              </p>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </Layout>
