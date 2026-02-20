@@ -16,6 +16,10 @@ import {
   Clock,
   Save,
   Database,
+  Wifi,
+  WifiOff,
+  Brain,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,24 +37,72 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 
+// ─── Types ───────────────────────────────────────────────────────────────────
+
 interface CSVUploaderProps {
   onUploadComplete?: (data: AnalysisResult) => void;
 }
+
+// Étapes de progression affichées pendant l'analyse
+const ANALYSIS_STEPS = [
+  { icon: Wifi,      message: "Connexion au serveur…",              duration: 1200 },
+  { icon: Upload,    message: "Téléchargement du fichier CSV…",     duration: 1500 },
+  { icon: Brain,     message: "L'IA analyse vos apices…",           duration: 3000 },
+  { icon: BarChart3, message: "Calcul du score de performance…",    duration: 2000 },
+  { icon: Target,    message: "Génération des graphiques…",         duration: 1500 },
+];
+
+// ─── Composant ────────────────────────────────────────────────────────────────
 
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const navigate = useNavigate();
   const { isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
   const canUpload = isAuthenticated || canUploadFree;
+
+  // États upload
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+
+  // États analyse
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [analysisStepIndex, setAnalysisStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  // Résultats
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>("");
   const [savedAnalysisId, setSavedAnalysisId] = useState<string | null>(null);
   const [analysesCount, setAnalysesCount] = useState<number>(0);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  // ─── Chargement initial du compteur ──────────────────────────────────────
+
+  useEffect(() => {
+    getAnalysesCount().then(setAnalysesCount).catch(() => {});
+  }, []);
+
+  // ─── Progression simulée pendant l'analyse ───────────────────────────────
+
+  useEffect(() => {
+    if (!isAnalyzing) {
+      setAnalysisStepIndex(0);
+      return;
+    }
+
+    let stepIdx = 0;
+    const advance = () => {
+      if (stepIdx < ANALYSIS_STEPS.length - 1) {
+        stepIdx++;
+        setAnalysisStepIndex(stepIdx);
+        setTimeout(advance, ANALYSIS_STEPS[stepIdx].duration);
+      }
+    };
+
+    const firstTimer = setTimeout(advance, ANALYSIS_STEPS[0].duration);
+    return () => clearTimeout(firstTimer);
+  }, [isAnalyzing]);
+
+  // ─── Drag & drop ──────────────────────────────────────────────────────────
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -65,10 +117,12 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile?.name.endsWith(".csv")) {
       setFile(droppedFile);
+      setError(null);
+    } else if (droppedFile) {
+      setError("Format invalide — seuls les fichiers .csv sont acceptés.");
     }
   }, []);
 
@@ -76,16 +130,80 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile?.name.endsWith(".csv")) {
       setFile(selectedFile);
+      setError(null);
+    } else if (selectedFile) {
+      setError("Format invalide — seuls les fichiers .csv sont acceptés.");
     }
+    // Reset l'input pour permettre de re-sélectionner le même fichier
+    e.target.value = "";
   }, []);
+
+  // ─── Reset complet ────────────────────────────────────────────────────────
+
+  const handleReset = () => {
+    setFile(null);
+    setIsComplete(false);
+    setIsAnalyzing(false);
+    setError(null);
+    setResult(null);
+    setSavedAnalysisId(null);
+    setSaveSuccess(null);
+    setAnalysisStepIndex(0);
+    getAnalysesCount().then(setAnalysesCount).catch(() => {});
+  };
+
+  // ─── Sauvegarde manuelle (si l'auto-save a échoué) ───────────────────────
+
+  const handleSaveAnalysis = async () => {
+    if (!result || savedAnalysisId) return; // déjà sauvegardé
+
+    try {
+      const analysisId = await saveAnalysis(result);
+      setSavedAnalysisId(analysisId);
+      setSaveSuccess(`Analyse sauvegardée (ID : ${analysisId})`);
+      const count = await getAnalysesCount();
+      setAnalysesCount(count);
+      setTimeout(() => setSaveSuccess(null), 5000);
+    } catch (err) {
+      setError(
+        `Erreur lors de la sauvegarde : ${err instanceof Error ? err.message : "Erreur inconnue"}`
+      );
+    }
+  };
+
+  // ─── Navigation Dashboard ────────────────────────────────────────────────
+
+  const handleViewInDashboard = () => {
+    const id = savedAnalysisId ?? result?.analysis_id;
+    if (id) navigate(`/dashboard?analysisId=${id}`);
+  };
+
+  // ─── Download JSON ────────────────────────────────────────────────────────
+
+  const handleDownloadResults = () => {
+    if (!result) return;
+    const blob = new Blob([JSON.stringify(result, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `apex-ai-analysis-${result.analysis_id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // ─── Analyse principale ───────────────────────────────────────────────────
 
   const handleAnalyze = async () => {
     if (!file) return;
+
+    // Gestion accès
     if (!canUpload) {
       if (guestUsed) {
         toast({
           title: "Connexion requise",
-          description: "Connectez-vous pour plus d'analyses.",
+          description: "Connectez-vous pour effectuer d'autres analyses.",
           action: (
             <ToastAction altText="Se connecter" onClick={() => navigate("/login")}>
               Se connecter
@@ -94,8 +212,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         });
       } else {
         toast({
-          title: "1 analyse gratuite",
-          description: "Cliquez Essayer pour analyser sans compte.",
+          title: "1 analyse gratuite disponible",
+          description: "Cliquez sur Essayer pour analyser sans compte.",
           action: (
             <ToastAction altText="Essayer" onClick={guestUpload}>
               Essayer
@@ -108,136 +226,53 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
     setIsAnalyzing(true);
     setError(null);
-    setStatusMessage("Vérification de la connexion au serveur...");
+    setSaveSuccess(null);
 
     try {
-      // 1. Vérifier la connexion au backend
+      // Vérification connexion backend
       const isConnected = await checkBackendConnection();
       if (!isConnected) {
         throw {
           success: false,
           error: "backend_unavailable",
-          message: `Le serveur backend n'est pas accessible. Vérifiez qu'il est démarré (${API_BASE_URL})`,
+          message: `Serveur inaccessible (${API_BASE_URL}). Vérifiez votre connexion ou réessayez dans quelques instants.`,
         } as ApiError;
       }
 
-      setStatusMessage("Téléchargement du fichier CSV...");
-
-      // 2. Upload et analyse
+      // Upload + analyse
       const analysisResult = await uploadAndAnalyzeCSV(file);
+
+      // Auto-save
+      let analysisId: string | null = null;
+      try {
+        analysisId = await saveAnalysis(analysisResult);
+        setSavedAnalysisId(analysisId);
+        setSaveSuccess(`Analyse sauvegardée automatiquement.`);
+        setTimeout(() => setSaveSuccess(null), 5000);
+        const count = await getAnalysesCount();
+        setAnalysesCount(count);
+      } catch (saveErr) {
+        console.warn("Auto-save failed:", saveErr);
+        // Non bloquant — le bouton "Sauvegarder" restera disponible
+      }
+
+      if (!isAuthenticated && canUploadFree) consumeGuestSlot();
 
       setResult(analysisResult);
       setIsAnalyzing(false);
       setIsComplete(true);
-      setStatusMessage("");
 
-      // Sauvegarder automatiquement l'analyse
-      try {
-        const analysisId = await saveAnalysis(analysisResult);
-        setSavedAnalysisId(analysisId);
-        setSaveSuccess(`Analyse sauvegardée avec ID: ${analysisId}`);
-
-        // Mettre à jour le compteur
-        const count = await getAnalysesCount();
-        setAnalysesCount(count);
-
-        // Effacer le message après 5 secondes
-        setTimeout(() => {
-          setSaveSuccess(null);
-        }, 5000);
-      } catch (saveError) {
-        console.warn("Failed to auto-save analysis:", saveError);
-        // Ne pas bloquer l'affichage des résultats si la sauvegarde échoue
-      }
-
-      if (!isAuthenticated && canUploadFree) consumeGuestSlot();
       onUploadComplete?.(analysisResult);
     } catch (err) {
-      const apiError = err as ApiError;
       setIsAnalyzing(false);
-      setIsComplete(false);
-      setStatusMessage("");
-
-      // Afficher message d'erreur user-friendly
-      if (apiError.message) {
-        setError(apiError.message);
-      } else {
-        setError("Une erreur inattendue s'est produite lors de l'analyse.");
-      }
-    }
-  };
-
-  // Charger le nombre d'analyses sauvegardées au montage
-  useEffect(() => {
-    const loadAnalysesCount = async () => {
-      const count = await getAnalysesCount();
-      setAnalysesCount(count);
-    };
-    loadAnalysesCount();
-  }, []);
-
-  const handleReset = () => {
-    setFile(null);
-    setIsComplete(false);
-    setIsAnalyzing(false);
-    setError(null);
-    setResult(null);
-    setStatusMessage("");
-    setSavedAnalysisId(null);
-    setSaveSuccess(null);
-    // Recharger le compteur
-    getAnalysesCount().then((count) => setAnalysesCount(count));
-  };
-
-  const handleSaveAnalysis = async () => {
-    if (!result) return;
-
-    try {
-      setStatusMessage("Sauvegarde de l'analyse...");
-      const analysisId = await saveAnalysis(result);
-      setSavedAnalysisId(analysisId);
-      setSaveSuccess(`Analyse sauvegardée avec ID: ${analysisId}`);
-
-      // Mettre à jour le compteur
-      const count = await getAnalysesCount();
-      setAnalysesCount(count);
-
-      // Effacer le message après 5 secondes
-      setTimeout(() => {
-        setSaveSuccess(null);
-      }, 5000);
-    } catch (error) {
-      console.error("Error saving analysis:", error);
+      const apiError = err as ApiError;
       setError(
-        `Erreur lors de la sauvegarde: ${error instanceof Error ? error.message : "Erreur inconnue"}`
+        apiError?.message ?? "Une erreur inattendue s'est produite. Réessayez dans quelques instants."
       );
-    } finally {
-      setStatusMessage("");
     }
   };
 
-  const handleViewInDashboard = () => {
-    if (savedAnalysisId) {
-      navigate(`/dashboard?analysisId=${savedAnalysisId}`);
-    } else if (result?.analysis_id) {
-      navigate(`/dashboard?analysisId=${result.analysis_id}`);
-    }
-  };
-
-  const handleDownloadResults = () => {
-    if (!result) return;
-
-    const jsonString = JSON.stringify(result, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `apex-ai-analysis-${result.analysis_id}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  // ─── Helpers UI ──────────────────────────────────────────────────────────
 
   const getGradeColor = (grade: string) => {
     switch (grade.toUpperCase()) {
@@ -255,13 +290,18 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     }
   };
 
+  const currentStep = ANALYSIS_STEPS[analysisStepIndex];
+  const StepIcon = currentStep?.icon ?? Loader2;
+
+  // ─── Render ──────────────────────────────────────────────────────────────
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="glass-card p-8"
     >
-      {/* Storage Info */}
+      {/* Compteur analyses sauvegardées */}
       {analysesCount > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -276,7 +316,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         </motion.div>
       )}
 
-      {/* Success Save Alert */}
+      {/* Alerte sauvegarde réussie */}
       <AnimatePresence>
         {saveSuccess && (
           <motion.div
@@ -294,7 +334,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         )}
       </AnimatePresence>
 
-      {/* Error Alert */}
+      {/* Alerte erreur */}
       <AnimatePresence>
         {error && (
           <motion.div
@@ -306,22 +346,35 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Erreur</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription className="flex flex-col gap-2">
+                <span>{error}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-fit border-destructive/50 text-destructive hover:bg-destructive/10"
+                  onClick={() => setError(null)}
+                >
+                  Fermer
+                </Button>
+              </AlertDescription>
             </Alert>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* ── Contenu principal ── */}
       <AnimatePresence mode="wait">
+
+        {/* État : Résultats affichés */}
         {isComplete && result ? (
           <motion.div
             key="complete"
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.97 }}
             className="space-y-6"
           >
-            {/* Success Header */}
+            {/* Header succès */}
             <div className="text-center py-6">
               <div className="w-20 h-20 rounded-full gradient-success flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-10 h-10 text-success-foreground" />
@@ -332,7 +385,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               <p className="text-muted-foreground mb-6">
                 Votre session a été analysée avec succès.
               </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <div className="flex flex-col sm:flex-row justify-center gap-3 flex-wrap">
                 <Button variant="heroOutline" onClick={handleReset}>
                   Nouvelle analyse
                 </Button>
@@ -343,10 +396,11 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 {(savedAnalysisId || result?.analysis_id) && (
                   <Button variant="heroOutline" onClick={handleViewInDashboard}>
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    Voir dans le tableau de bord
+                    Voir dans le Dashboard
                   </Button>
                 )}
-                {!savedAnalysisId && result && (
+                {/* Bouton sauvegarde manuelle si auto-save a échoué */}
+                {!savedAnalysisId && (
                   <Button variant="outline" onClick={handleSaveAnalysis}>
                     <Save className="w-4 h-4 mr-2" />
                     Sauvegarder
@@ -355,7 +409,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               </div>
             </div>
 
-            {/* Performance Score */}
+            {/* Score de performance */}
             <Card className="glass-card border-primary/20">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -378,84 +432,45 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   </p>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-3 rounded-lg bg-secondary/50">
-                    <div className="text-xs text-muted-foreground mb-1">Précision Apex</div>
-                    <div className="text-lg font-bold text-foreground">
-                      {Math.round(result.performance_score.breakdown.apex_precision)}/30
+                  {[
+                    { label: "Précision Apex", value: result.performance_score.breakdown.apex_precision, max: 30 },
+                    { label: "Régularité",     value: result.performance_score.breakdown.trajectory_consistency, max: 20 },
+                    { label: "Vitesse Apex",   value: result.performance_score.breakdown.apex_speed, max: 25 },
+                    { label: "Temps Secteurs", value: result.performance_score.breakdown.sector_times, max: 25 },
+                  ].map(({ label, value, max }) => (
+                    <div key={label} className="text-center p-3 rounded-lg bg-secondary/50">
+                      <div className="text-xs text-muted-foreground mb-1">{label}</div>
+                      <div className="text-lg font-bold text-foreground">
+                        {Math.round(value)}/{max}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-center p-3 rounded-lg bg-secondary/50">
-                    <div className="text-xs text-muted-foreground mb-1">Régularité</div>
-                    <div className="text-lg font-bold text-foreground">
-                      {Math.round(result.performance_score.breakdown.trajectory_consistency)}/20
-                    </div>
-                  </div>
-                  <div className="text-center p-3 rounded-lg bg-secondary/50">
-                    <div className="text-xs text-muted-foreground mb-1">Vitesse Apex</div>
-                    <div className="text-lg font-bold text-foreground">
-                      {Math.round(result.performance_score.breakdown.apex_speed)}/25
-                    </div>
-                  </div>
-                  <div className="text-center p-3 rounded-lg bg-secondary/50">
-                    <div className="text-xs text-muted-foreground mb-1">Temps Secteurs</div>
-                    <div className="text-lg font-bold text-foreground">
-                      {Math.round(result.performance_score.breakdown.sector_times)}/25
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Statistics */}
+            {/* Stats rapides */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="glass-card">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Target className="w-4 h-4 text-primary" />
-                    <div className="text-xs text-muted-foreground">Virages détectés</div>
-                  </div>
-                  <div className="text-2xl font-bold text-foreground">
-                    {result.corners_detected}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="glass-card">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <div className="text-xs text-muted-foreground">Temps du tour</div>
-                  </div>
-                  <div className="text-2xl font-bold text-foreground">
-                    {result.lap_time.toFixed(2)}s
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="glass-card">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap className="w-4 h-4 text-primary" />
-                    <div className="text-xs text-muted-foreground">Points de données</div>
-                  </div>
-                  <div className="text-2xl font-bold text-foreground">
-                    {result.statistics.data_points}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="glass-card">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <div className="text-xs text-muted-foreground">Temps traitement</div>
-                  </div>
-                  <div className="text-2xl font-bold text-foreground">
-                    {result.statistics.processing_time_seconds.toFixed(1)}s
-                  </div>
-                </CardContent>
-              </Card>
+              {[
+                { icon: Target,      label: "Virages détectés",  value: String(result.corners_detected) },
+                { icon: Clock,       label: "Temps du tour",     value: `${result.lap_time.toFixed(2)}s` },
+                { icon: Zap,         label: "Points de données", value: String(result.statistics.data_points) },
+                { icon: Clock,       label: "Temps traitement",  value: `${result.statistics.processing_time_seconds.toFixed(1)}s` },
+              ].map(({ icon: Icon, label, value }) => (
+                <Card key={label} className="glass-card">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon className="w-4 h-4 text-primary" />
+                      <div className="text-xs text-muted-foreground">{label}</div>
+                    </div>
+                    <div className="text-2xl font-bold text-foreground">{value}</div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
-            {/* Coaching Advice */}
-            {result.coaching_advice && result.coaching_advice.length > 0 && (
+            {/* Conseils de coaching */}
+            {result.coaching_advice?.length > 0 && (
               <Card className="glass-card border-primary/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -469,27 +484,18 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 <CardContent>
                   <div className="space-y-4">
                     {result.coaching_advice.map((advice, index) => (
-                      <div
-                        key={index}
-                        className="p-4 rounded-lg bg-secondary/50 border border-white/5"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              Priorité {advice.priority}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs capitalize">
-                              {advice.category}
-                            </Badge>
+                      <div key={index} className="p-4 rounded-lg bg-secondary/50 border border-white/5">
+                        <div className="flex items-start justify-between mb-2 flex-wrap gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant="outline" className="text-xs">Priorité {advice.priority}</Badge>
+                            <Badge variant="outline" className="text-xs capitalize">{advice.category}</Badge>
                             {advice.corner && (
-                              <Badge variant="outline" className="text-xs">
-                                Virage {advice.corner}
-                              </Badge>
+                              <Badge variant="outline" className="text-xs">Virage {advice.corner}</Badge>
                             )}
                           </div>
                           {advice.impact_seconds > 0 && (
                             <span className="text-xs text-muted-foreground">
-                              Gain potentiel: {advice.impact_seconds.toFixed(2)}s
+                              Gain potentiel : {advice.impact_seconds.toFixed(2)}s
                             </span>
                           )}
                         </div>
@@ -497,7 +503,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                         <p className="text-sm text-muted-foreground">{advice.explanation}</p>
                         <div className="mt-2">
                           <Badge variant="secondary" className="text-xs">
-                            Difficulté: {advice.difficulty}
+                            Difficulté : {advice.difficulty}
                           </Badge>
                         </div>
                       </div>
@@ -507,8 +513,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               </Card>
             )}
 
-            {/* Corner Analysis */}
-            {result.corner_analysis && result.corner_analysis.length > 0 && (
+            {/* Analyse des virages */}
+            {result.corner_analysis?.length > 0 && (
               <Card className="glass-card border-primary/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -524,44 +530,21 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-white/5">
-                          <th className="px-4 py-2 text-left text-muted-foreground">Virage</th>
-                          <th className="px-4 py-2 text-left text-muted-foreground">Type</th>
-                          <th className="px-4 py-2 text-left text-muted-foreground">
-                            Vitesse Réelle
-                          </th>
-                          <th className="px-4 py-2 text-left text-muted-foreground">
-                            Vitesse Optimale
-                          </th>
-                          <th className="px-4 py-2 text-left text-muted-foreground">G Latéral</th>
-                          <th className="px-4 py-2 text-left text-muted-foreground">Temps Perdu</th>
-                          <th className="px-4 py-2 text-left text-muted-foreground">Score</th>
-                          <th className="px-4 py-2 text-left text-muted-foreground">Grade</th>
+                          {["Virage","Type","Vit. Réelle","Vit. Optimale","G Latéral","Tps Perdu","Score","Grade"].map((h) => (
+                            <th key={h} className="px-4 py-2 text-left text-muted-foreground">{h}</th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
                         {result.corner_analysis.slice(0, 10).map((corner, index) => (
-                          <tr key={index} className="border-b border-white/5 hover:bg-white/2">
-                            <td className="px-4 py-2 text-foreground font-medium">
-                              #{corner.corner_number}
-                            </td>
-                            <td className="px-4 py-2 text-foreground capitalize">
-                              {corner.corner_type}
-                            </td>
-                            <td className="px-4 py-2 text-foreground">
-                              {corner.apex_speed_real.toFixed(1)} km/h
-                            </td>
-                            <td className="px-4 py-2 text-foreground">
-                              {corner.apex_speed_optimal.toFixed(1)} km/h
-                            </td>
-                            <td className="px-4 py-2 text-foreground">
-                              {corner.lateral_g_max.toFixed(2)}G
-                            </td>
-                            <td className="px-4 py-2 text-foreground">
-                              {corner.time_lost.toFixed(3)}s
-                            </td>
-                            <td className="px-4 py-2 text-foreground">
-                              {Math.round(corner.score)}/100
-                            </td>
+                          <tr key={index} className="border-b border-white/5 hover:bg-white/5">
+                            <td className="px-4 py-2 font-medium">#{corner.corner_number}</td>
+                            <td className="px-4 py-2 capitalize">{corner.corner_type}</td>
+                            <td className="px-4 py-2">{corner.apex_speed_real.toFixed(1)} km/h</td>
+                            <td className="px-4 py-2">{corner.apex_speed_optimal.toFixed(1)} km/h</td>
+                            <td className="px-4 py-2">{corner.lateral_g_max.toFixed(2)}G</td>
+                            <td className="px-4 py-2">{corner.time_lost.toFixed(3)}s</td>
+                            <td className="px-4 py-2">{Math.round(corner.score)}/100</td>
                             <td className="px-4 py-2">
                               <Badge className={getGradeColor(corner.grade)}>{corner.grade}</Badge>
                             </td>
@@ -574,12 +557,12 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               </Card>
             )}
 
-            {/* Plots */}
+            {/* Graphiques */}
             {result.plots && Object.keys(result.plots).length > 0 && (
               <Card className="glass-card border-primary/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <ExternalLink className="w-5 h-5 text-primary" />
+                    <BarChart3 className="w-5 h-5 text-primary" />
                     Graphiques Générés
                   </CardTitle>
                   <CardDescription>Visualisations de votre performance</CardDescription>
@@ -600,9 +583,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                           className="p-4 rounded-lg bg-secondary/50 border border-white/5 hover:border-primary/50 transition-colors group"
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-foreground">
-                              {displayName}
-                            </span>
+                            <span className="text-sm font-medium text-foreground">{displayName}</span>
                             <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                           </div>
                           <img
@@ -621,7 +602,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               </Card>
             )}
           </motion.div>
+
         ) : isAnalyzing ? (
+          /* ── État : Analyse en cours ── */
           <motion.div
             key="analyzing"
             initial={{ opacity: 0 }}
@@ -629,22 +612,56 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
             exit={{ opacity: 0 }}
             className="text-center py-12"
           >
-            <div className="relative w-24 h-24 mx-auto mb-6">
+            {/* Spinner double ring */}
+            <div className="relative w-24 h-24 mx-auto mb-8">
               <div className="absolute inset-0 rounded-full border-4 border-muted" />
               <motion.div
                 className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent"
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               />
-              <Loader2 className="absolute inset-0 m-auto w-8 h-8 text-primary animate-pulse" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <StepIcon className="w-8 h-8 text-primary" />
+              </div>
             </div>
+
             <h3 className="text-xl font-display font-bold text-foreground mb-2">
-              Analyse en cours...
+              Analyse en cours…
             </h3>
-            <p className="text-muted-foreground mb-2">Notre IA analyse vos données de course</p>
-            {statusMessage && <p className="text-sm text-primary font-medium">{statusMessage}</p>}
+            <p className="text-muted-foreground mb-4">Notre IA analyse vos données de course</p>
+
+            {/* Message d'étape animé */}
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={analysisStepIndex}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.3 }}
+                className="text-sm text-primary font-medium"
+              >
+                {currentStep?.message}
+              </motion.p>
+            </AnimatePresence>
+
+            {/* Barre de progression */}
+            <div className="mt-6 max-w-xs mx-auto">
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-primary rounded-full"
+                  initial={{ width: "5%" }}
+                  animate={{ width: `${((analysisStepIndex + 1) / ANALYSIS_STEPS.length) * 100}%` }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 text-right">
+                {Math.round(((analysisStepIndex + 1) / ANALYSIS_STEPS.length) * 100)}%
+              </p>
+            </div>
           </motion.div>
+
         ) : (
+          /* ── État : Upload ── */
           <motion.div
             key="upload"
             initial={{ opacity: 0 }}
@@ -657,9 +674,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               onDrop={handleDrop}
               className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
                 isDragging
-                  ? "border-primary bg-primary/5"
+                  ? "border-primary bg-primary/5 scale-[1.01]"
                   : file
-                    ? "border-success bg-success/5"
+                    ? "border-green-500/60 bg-green-500/5"
                     : "border-border hover:bg-slate-800/50 hover:border-orange-400"
               }`}
             >
@@ -685,6 +702,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                       handleReset();
                     }}
                     className="absolute top-4 right-4 p-2 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                    aria-label="Supprimer le fichier"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -699,14 +717,15 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">ou cliquez pour sélectionner</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="px-2 py-1 rounded bg-secondary">MyChron5</span>
-                    <span className="px-2 py-1 rounded bg-secondary">AiM</span>
-                    <span className="px-2 py-1 rounded bg-secondary">RaceBox</span>
+                    {["MyChron5", "AiM", "RaceBox"].map((label) => (
+                      <span key={label} className="px-2 py-1 rounded bg-secondary">{label}</span>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
 
+            {/* Bouton analyser + avertissement accès */}
             {file && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -716,7 +735,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 {!canUpload && !isAuthenticated && (
                   <Alert className="bg-primary/10 border-primary/30 w-full max-w-md">
                     <AlertCircle className="h-4 w-4 text-primary" />
-                    <AlertTitle>{guestUsed ? "Connexion requise" : "1 analyse gratuite"}</AlertTitle>
+                    <AlertTitle>
+                      {guestUsed ? "Connexion requise" : "1 analyse gratuite"}
+                    </AlertTitle>
                     <AlertDescription className="flex items-center gap-2 flex-wrap">
                       {guestUsed ? (
                         <>
@@ -727,7 +748,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                         </>
                       ) : (
                         <>
-                          Testez sans compte. Cliquez Essayer puis Analyser.
+                          Testez sans compte — cliquez Essayer puis Analyser.
                           <Button variant="outline" size="sm" onClick={guestUpload}>
                             Essayer
                           </Button>
@@ -736,11 +757,18 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     </AlertDescription>
                   </Alert>
                 )}
-                <Button variant="hero" size="lg" onClick={handleAnalyze} disabled={isAnalyzing}>
+
+                <Button
+                  variant="hero"
+                  size="lg"
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing}
+                  className="min-w-[200px]"
+                >
                   {isAnalyzing ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Analyse en cours...
+                      Analyse en cours…
                     </>
                   ) : (
                     "Analyser le fichier"

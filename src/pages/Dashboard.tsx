@@ -20,6 +20,8 @@ import {
   ExternalLink,
   Save,
   Database,
+  RefreshCw,
+  Download,
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -64,7 +66,6 @@ import { PageMeta } from "@/components/seo/PageMeta";
 import { ADMIN_EMAIL } from "@/constants";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { RefreshCw, Trash2, BarChart3, Download } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Dashboard() {
