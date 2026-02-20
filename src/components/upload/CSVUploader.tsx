@@ -20,6 +20,7 @@ import {
   WifiOff,
   Brain,
   BarChart3,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,6 +75,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const [savedAnalysisId, setSavedAnalysisId] = useState<string | null>(null);
   const [analysesCount, setAnalysesCount] = useState<number>(0);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [modalImage, setModalImage] = useState<string | null>(null);
+  const [modalTitle, setModalTitle] = useState<string>("");
 
   // ─── Chargement initial du compteur ──────────────────────────────────────
 
@@ -575,16 +578,17 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                         .replace(/_/g, " ")
                         .replace(/\b\w/g, (l) => l.toUpperCase());
                       return (
-                        <a
+                        <div
                           key={plotName}
-                          href={plotUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-4 rounded-lg bg-secondary/50 border border-white/5 hover:border-primary/50 transition-colors group"
+                          onClick={() => {
+                            setModalImage(plotUrl);
+                            setModalTitle(displayName);
+                          }}
+                          className="p-4 rounded-lg bg-secondary/50 border border-white/5 hover:border-primary/50 transition-colors group cursor-pointer hover:opacity-80"
                         >
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-foreground">{displayName}</span>
-                            <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                            <Eye className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                           </div>
                           <img
                             src={plotUrl}
@@ -594,7 +598,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                               (e.target as HTMLImageElement).style.display = "none";
                             }}
                           />
-                        </a>
+                        </div>
                       );
                     })}
                   </div>
@@ -779,6 +783,30 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modal lightbox pour graphiques */}
+      {modalImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setModalImage(null)}
+        >
+          <div className="relative max-w-[95vw] max-h-[95vh] p-4">
+            <button
+              className="absolute top-2 right-2 text-white bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 z-10"
+              onClick={() => setModalImage(null)}
+            >
+              ✕
+            </button>
+            <p className="text-white text-center mb-2 font-medium">{modalTitle}</p>
+            <img
+              src={modalImage}
+              alt={modalTitle}
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };
