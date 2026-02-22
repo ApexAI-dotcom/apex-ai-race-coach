@@ -21,34 +21,38 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
 
-  // Lire le token dans l'URL hash et établir la session (PASSWORD_RECOVERY ne se déclenche pas toujours)
   useEffect(() => {
-    const hash = window.location.hash
-    const params = new URLSearchParams(hash.replace('#', ''))
-    const accessToken = params.get('access_token')
-    const type = params.get('type')
-
-    if (accessToken && type === 'recovery') {
-      supabase.auth
-        .setSession({
-          access_token: accessToken,
-          refresh_token: params.get('refresh_token') || '',
-        })
-        .then(({ error }) => {
-          if (!error) {
-            setSessionReady(true)
-          } else {
-            setError('Lien invalide ou expiré. Demande un nouveau lien de réinitialisation.')
-          }
-        })
-      return
+    // Supabase traite le hash automatiquement et émet PASSWORD_RECOVERY
+    // On écoute cet événement + on vérifie si une session existe déjà
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        setSessionReady(true)
+        return
+      }
     }
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    checkSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
         setSessionReady(true)
       }
     })
-    return () => subscription.unsubscribe()
+
+    // Timeout de sécurité : si après 5s rien ne se passe, afficher erreur
+    const timeout = setTimeout(() => {
+      setSessionReady((prev) => {
+        if (!prev) {
+          setError('Lien invalide ou expiré. Demande un nouveau lien depuis la page de connexion.')
+        }
+        return prev
+      })
+    }, 5000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,7 +73,7 @@ export default function ResetPassword() {
     setLoading(false)
 
     if (error) {
-      setError('Une erreur est survenue. Le lien a peut-être expiré, demandes-en un nouveau.')
+      setError('Erreur lors de la modification. Réessaie ou demande un nouveau lien.')
     } else {
       setSuccess(true)
       setTimeout(() => navigate('/dashboard'), 3000)
@@ -110,7 +114,14 @@ export default function ResetPassword() {
                   {error && (
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
+                      <AlertDescription>
+                        {error}{' '}
+                        {error.includes('expiré') && (
+                          <a href="/login" className="underline text-primary">
+                            Retour à la connexion
+                          </a>
+                        )}
+                      </AlertDescription>
                     </Alert>
                   )}
 
@@ -127,6 +138,7 @@ export default function ResetPassword() {
                         placeholder="Minimum 8 caractères"
                         className="bg-secondary/50 border-white/10 text-foreground placeholder:text-muted-foreground pr-10"
                         required
+                        disabled={!sessionReady || !!error}
                       />
                       <button
                         type="button"
@@ -150,6 +162,7 @@ export default function ResetPassword() {
                       placeholder="Répète ton mot de passe"
                       className="bg-secondary/50 border-white/10 text-foreground placeholder:text-muted-foreground"
                       required
+                      disabled={!sessionReady || !!error}
                     />
                   </div>
 
@@ -157,23 +170,22 @@ export default function ResetPassword() {
                     type="submit"
                     variant="hero"
                     className="w-full mt-2"
-                    disabled={loading || !sessionReady}
+                    disabled={loading || !sessionReady || !!error}
                   >
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
                         Modification...
                       </>
+                    ) : !sessionReady && !error ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Vérification du lien...
+                      </>
                     ) : (
                       'Enregistrer le nouveau mot de passe'
                     )}
                   </Button>
-
-                  {!sessionReady && (
-                    <p className="text-muted-foreground text-xs text-center">
-                      Vérification du lien en cours...
-                    </p>
-                  )}
                 </form>
               )}
             </CardContent>
