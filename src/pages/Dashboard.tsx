@@ -129,22 +129,11 @@ export default function Dashboard() {
       : Math.max(0, limits.maxAnalysesPerMonth - currentMonthAnalyses.length);
   const hasReachedLimit = !isPro && currentMonthAnalyses.length >= limits.maxAnalysesPerMonth;
 
-  // Load analyses on mount
-  useEffect(() => {
-    loadAnalyses();
-  }, []);
-
-  // Load specific analysis from query param
-  useEffect(() => {
-    if (analysisIdParam) {
-      loadAnalysis(analysisIdParam);
-    }
-  }, [analysisIdParam]);
-
-  const loadAnalyses = async () => {
+  // Load analyses on mount and when user changes (login/logout → clé storage différente)
+  const loadAnalyses = useCallback(async () => {
     try {
       setLoading(true);
-      const allAnalyses = await getAllAnalyses();
+      const allAnalyses = await getAllAnalyses(user?.id ?? undefined);
       setAnalyses(allAnalyses);
     } catch (err) {
       setError("Erreur lors du chargement des analyses");
@@ -152,11 +141,22 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadAnalyses();
+  }, [loadAnalyses]);
+
+  // Load specific analysis from query param (recharger si user change)
+  useEffect(() => {
+    if (analysisIdParam) {
+      loadAnalysis(analysisIdParam);
+    }
+  }, [analysisIdParam, user?.id]);
 
   const loadAnalysis = async (id: string) => {
     try {
-      const analysis = await getAnalysisById(id);
+      const analysis = await getAnalysisById(id, user?.id ?? undefined);
       if (analysis) {
         setSelectedAnalysis(analysis);
       } else {
@@ -182,7 +182,7 @@ export default function Dashboard() {
     if (!analysisToDelete) return;
 
     try {
-      const success = await deleteAnalysis(analysisToDelete);
+      const success = await deleteAnalysis(analysisToDelete, user?.id ?? undefined);
       if (success) {
         // Reload analyses
         await loadAnalyses();
@@ -215,10 +215,11 @@ export default function Dashboard() {
   const handleCompareLoad = async () => {
     if (!compareAnalysis1 || !compareAnalysis2) return;
 
+    const uid = user?.id ?? undefined;
     try {
       const [result1, result2] = await Promise.all([
-        getAnalysisById(compareAnalysis1),
-        getAnalysisById(compareAnalysis2),
+        getAnalysisById(compareAnalysis1, uid),
+        getAnalysisById(compareAnalysis2, uid),
       ]);
 
       setCompareResult1(result1);
@@ -279,7 +280,7 @@ export default function Dashboard() {
   // Actions admin (fonctionnelles)
   const handleAdminClearCache = async () => {
     try {
-      const count = await clearAllAnalyses();
+      const count = await clearAllAnalyses(user?.id ?? undefined);
       await loadAnalyses();
       setSelectedAnalysis(null);
       setCompareResult1(null);

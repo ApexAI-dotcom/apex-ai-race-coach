@@ -31,13 +31,29 @@ interface StoredAnalysis {
 // CONSTANTS
 // ============================================================================
 
-const STORAGE_PREFIX = "apex_analysis_";
-const STORAGE_INDEX_KEY = "apex_analyses_index";
+const STORAGE_INDEX_PREFIX = "apex_analyses_index_";
+const STORAGE_ITEM_PREFIX = "apex_analysis_";
+const STORAGE_GUEST = "guest";
 const MAX_STORED_ANALYSES = 20; // Limite d'analyses dans localStorage
 
 // ============================================================================
 // UTILITIES
 // ============================================================================
+
+/**
+ * Suffix de clé localStorage : user id ou "guest" si non connecté
+ */
+function getStorageSuffix(userId: string | null | undefined): string {
+  return (userId && typeof userId === "string" && userId.trim()) ? userId.trim() : STORAGE_GUEST;
+}
+
+function getIndexKey(suffix: string): string {
+  return `${STORAGE_INDEX_PREFIX}${suffix}`;
+}
+
+function getItemKey(suffix: string, id: string): string {
+  return `${STORAGE_ITEM_PREFIX}${suffix}_${id}`;
+}
 
 /**
  * Génère un ID unique pour une analyse
@@ -49,11 +65,11 @@ function generateAnalysisId(): string {
 }
 
 /**
- * Récupère l'index des analyses depuis localStorage
+ * Récupère l'index des analyses depuis localStorage (pour un utilisateur donné)
  */
-function getAnalysesIndex(): string[] {
+function getAnalysesIndex(suffix: string): string[] {
   try {
-    const indexJson = localStorage.getItem(STORAGE_INDEX_KEY);
+    const indexJson = localStorage.getItem(getIndexKey(suffix));
     if (!indexJson) return [];
     return JSON.parse(indexJson) as string[];
   } catch (error) {
@@ -65,9 +81,9 @@ function getAnalysesIndex(): string[] {
 /**
  * Sauvegarde l'index des analyses dans localStorage
  */
-function saveAnalysesIndex(index: string[]): void {
+function saveAnalysesIndex(index: string[], suffix: string): void {
   try {
-    localStorage.setItem(STORAGE_INDEX_KEY, JSON.stringify(index));
+    localStorage.setItem(getIndexKey(suffix), JSON.stringify(index));
   } catch (error) {
     console.error("Error saving analyses index:", error);
   }
@@ -76,17 +92,17 @@ function saveAnalysesIndex(index: string[]): void {
 /**
  * Nettoie les anciennes analyses si on dépasse la limite
  */
-function cleanupOldAnalyses(): void {
+function cleanupOldAnalyses(suffix: string): void {
   try {
-    const index = getAnalysesIndex();
+    const index = getAnalysesIndex(suffix);
 
     if (index.length <= MAX_STORED_ANALYSES) {
       return;
     }
 
-    // Trier par timestamp (plus ancien en premier)
+    const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
     const analysesWithTimestamps = index.map((id) => {
-      const stored = localStorage.getItem(`${STORAGE_PREFIX}${id}`);
+      const stored = localStorage.getItem(prefix + id);
       if (!stored) return { id, timestamp: 0 };
 
       try {
@@ -99,19 +115,17 @@ function cleanupOldAnalyses(): void {
 
     analysesWithTimestamps.sort((a, b) => a.timestamp - b.timestamp);
 
-    // Supprimer les plus anciennes
     const toRemove = analysesWithTimestamps.slice(0, index.length - MAX_STORED_ANALYSES);
 
     for (const item of toRemove) {
-      localStorage.removeItem(`${STORAGE_PREFIX}${item.id}`);
+      localStorage.removeItem(prefix + item.id);
     }
 
-    // Mettre à jour l'index
     const newIndex = analysesWithTimestamps
       .slice(index.length - MAX_STORED_ANALYSES)
       .map((item) => item.id);
 
-    saveAnalysesIndex(newIndex);
+    saveAnalysesIndex(newIndex, suffix);
   } catch (error) {
     console.error("Error cleaning up old analyses:", error);
   }
@@ -136,22 +150,23 @@ function isLocalStorageAvailable(): boolean {
 // ============================================================================
 
 /**
- * Sauvegarde un résultat d'analyse
+ * Sauvegarde un résultat d'analyse (isolé par compte : analyses_${userId} ou guest)
  *
  * @param result - Résultat de l'analyse à sauvegarder
+ * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
  * @returns ID unique de l'analyse sauvegardée
  */
-export async function saveAnalysis(result: AnalysisResult): Promise<string> {
+export async function saveAnalysis(result: AnalysisResult, userId?: string | null): Promise<string> {
   if (!isLocalStorageAvailable()) {
     throw new Error("localStorage n'est pas disponible dans ce navigateur");
   }
 
+  const suffix = getStorageSuffix(userId);
+
   try {
-    // Générer un ID unique si pas déjà présent
     const analysisId = result.analysis_id || generateAnalysisId();
     const timestamp = Date.now();
 
-    // Créer l'objet à stocker
     const stored: StoredAnalysis = {
       id: analysisId,
       timestamp,
@@ -161,19 +176,16 @@ export async function saveAnalysis(result: AnalysisResult): Promise<string> {
       },
     };
 
-    // Sauvegarder dans localStorage
-    const storageKey = `${STORAGE_PREFIX}${analysisId}`;
+    const storageKey = getItemKey(suffix, analysisId);
     localStorage.setItem(storageKey, JSON.stringify(stored));
 
-    // Mettre à jour l'index
-    const index = getAnalysesIndex();
+    const index = getAnalysesIndex(suffix);
     if (!index.includes(analysisId)) {
       index.push(analysisId);
-      saveAnalysesIndex(index);
+      saveAnalysesIndex(index, suffix);
     }
 
-    // Nettoyer les anciennes analyses
-    cleanupOldAnalyses();
+    cleanupOldAnalyses(suffix);
 
     return analysisId;
   } catch (error) {
@@ -185,22 +197,26 @@ export async function saveAnalysis(result: AnalysisResult): Promise<string> {
 }
 
 /**
- * Récupère toutes les analyses sauvegardées (résumés)
+ * Récupère toutes les analyses sauvegardées pour l'utilisateur courant (résumés)
  *
+ * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
  * @returns Tableau des résumés d'analyses, trié par date (plus récent en premier)
  */
-export async function getAllAnalyses(): Promise<AnalysisSummary[]> {
+export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSummary[]> {
   if (!isLocalStorageAvailable()) {
     return [];
   }
 
+  const suffix = getStorageSuffix(userId);
+
   try {
-    const index = getAnalysesIndex();
+    const index = getAnalysesIndex(suffix);
     const summaries: AnalysisSummary[] = [];
+    const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
 
     for (const id of index) {
       try {
-        const storedJson = localStorage.getItem(`${STORAGE_PREFIX}${id}`);
+        const storedJson = localStorage.getItem(prefix + id);
         if (!storedJson) continue;
 
         const stored = JSON.parse(storedJson) as StoredAnalysis;
@@ -218,11 +234,9 @@ export async function getAllAnalyses(): Promise<AnalysisSummary[]> {
         });
       } catch (error) {
         console.warn(`Error reading analysis ${id}:`, error);
-        // Continuer avec les autres analyses
       }
     }
 
-    // Trier par date (plus récent en premier)
     summaries.sort((a, b) => b.timestamp - a.timestamp);
 
     return summaries;
@@ -233,12 +247,13 @@ export async function getAllAnalyses(): Promise<AnalysisSummary[]> {
 }
 
 /**
- * Récupère une analyse complète par son ID
+ * Récupère une analyse complète par son ID (pour l'utilisateur courant)
  *
  * @param id - ID de l'analyse
+ * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
  * @returns Résultat complet de l'analyse ou null si non trouvé
  */
-export async function getAnalysisById(id: string): Promise<AnalysisResult | null> {
+export async function getAnalysisById(id: string, userId?: string | null): Promise<AnalysisResult | null> {
   if (!isLocalStorageAvailable()) {
     return null;
   }
@@ -247,8 +262,10 @@ export async function getAnalysisById(id: string): Promise<AnalysisResult | null
     return null;
   }
 
+  const suffix = getStorageSuffix(userId);
+
   try {
-    const storageKey = `${STORAGE_PREFIX}${id}`;
+    const storageKey = getItemKey(suffix, id);
     const storedJson = localStorage.getItem(storageKey);
 
     if (!storedJson) {
@@ -264,12 +281,13 @@ export async function getAnalysisById(id: string): Promise<AnalysisResult | null
 }
 
 /**
- * Supprime une analyse
+ * Supprime une analyse (pour l'utilisateur courant)
  *
  * @param id - ID de l'analyse à supprimer
+ * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
  * @returns true si la suppression a réussi, false sinon
  */
-export async function deleteAnalysis(id: string): Promise<boolean> {
+export async function deleteAnalysis(id: string, userId?: string | null): Promise<boolean> {
   if (!isLocalStorageAvailable()) {
     return false;
   }
@@ -278,21 +296,20 @@ export async function deleteAnalysis(id: string): Promise<boolean> {
     return false;
   }
 
-  try {
-    const storageKey = `${STORAGE_PREFIX}${id}`;
+  const suffix = getStorageSuffix(userId);
 
-    // Vérifier si l'analyse existe
+  try {
+    const storageKey = getItemKey(suffix, id);
+
     if (!localStorage.getItem(storageKey)) {
       return false;
     }
 
-    // Supprimer l'analyse
     localStorage.removeItem(storageKey);
 
-    // Mettre à jour l'index
-    const index = getAnalysesIndex();
+    const index = getAnalysesIndex(suffix);
     const newIndex = index.filter((analysisId) => analysisId !== id);
-    saveAnalysesIndex(newIndex);
+    saveAnalysesIndex(newIndex, suffix);
 
     return true;
   } catch (error) {
@@ -305,10 +322,11 @@ export async function deleteAnalysis(id: string): Promise<boolean> {
  * Exporte une analyse en tant que Blob JSON téléchargeable
  *
  * @param id - ID de l'analyse à exporter
+ * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
  * @returns Blob contenant le JSON de l'analyse
  */
-export async function exportAnalysisAsJSON(id: string): Promise<Blob> {
-  const analysis = await getAnalysisById(id);
+export async function exportAnalysisAsJSON(id: string, userId?: string | null): Promise<Blob> {
+  const analysis = await getAnalysisById(id, userId);
 
   if (!analysis) {
     throw new Error(`Analyse non trouvée: ${id}`);
@@ -331,10 +349,11 @@ export async function exportAnalysisAsJSON(id: string): Promise<Blob> {
  *
  * @param id - ID de l'analyse à télécharger
  * @param filename - Nom du fichier (optionnel, par défaut: apex-analysis-{id}.json)
+ * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
  */
-export async function downloadAnalysis(id: string, filename?: string): Promise<void> {
+export async function downloadAnalysis(id: string, filename?: string, userId?: string | null): Promise<void> {
   try {
-    const blob = await exportAnalysisAsJSON(id);
+    const blob = await exportAnalysisAsJSON(id, userId);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -350,17 +369,20 @@ export async function downloadAnalysis(id: string, filename?: string): Promise<v
 }
 
 /**
- * Récupère le nombre d'analyses sauvegardées
+ * Récupère le nombre d'analyses sauvegardées pour l'utilisateur courant
  *
+ * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
  * @returns Nombre d'analyses dans le stockage
  */
-export async function getAnalysesCount(): Promise<number> {
+export async function getAnalysesCount(userId?: string | null): Promise<number> {
   if (!isLocalStorageAvailable()) {
     return 0;
   }
 
+  const suffix = getStorageSuffix(userId);
+
   try {
-    const index = getAnalysesIndex();
+    const index = getAnalysesIndex(suffix);
     return index.length;
   } catch (error) {
     console.error("Error getting analyses count:", error);
@@ -369,30 +391,33 @@ export async function getAnalysesCount(): Promise<number> {
 }
 
 /**
- * Vide toutes les analyses sauvegardées
+ * Vide toutes les analyses sauvegardées pour l'utilisateur courant (pas le localStorage global)
  *
+ * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
  * @returns Nombre d'analyses supprimées
  */
-export async function clearAllAnalyses(): Promise<number> {
+export async function clearAllAnalyses(userId?: string | null): Promise<number> {
   if (!isLocalStorageAvailable()) {
     return 0;
   }
 
+  const suffix = getStorageSuffix(userId);
+
   try {
-    const index = getAnalysesIndex();
+    const index = getAnalysesIndex(suffix);
     let deletedCount = 0;
+    const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
 
     for (const id of index) {
       try {
-        localStorage.removeItem(`${STORAGE_PREFIX}${id}`);
+        localStorage.removeItem(prefix + id);
         deletedCount++;
       } catch (error) {
         console.warn(`Error deleting analysis ${id}:`, error);
       }
     }
 
-    // Vider l'index
-    localStorage.removeItem(STORAGE_INDEX_KEY);
+    localStorage.removeItem(getIndexKey(suffix));
 
     return deletedCount;
   } catch (error) {
@@ -402,18 +427,21 @@ export async function clearAllAnalyses(): Promise<number> {
 }
 
 /**
- * Vérifie si une analyse existe
+ * Vérifie si une analyse existe pour l'utilisateur courant
  *
  * @param id - ID de l'analyse
+ * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
  * @returns true si l'analyse existe, false sinon
  */
-export async function analysisExists(id: string): Promise<boolean> {
+export async function analysisExists(id: string, userId?: string | null): Promise<boolean> {
   if (!isLocalStorageAvailable() || !id || id.trim() === "") {
     return false;
   }
 
+  const suffix = getStorageSuffix(userId);
+
   try {
-    const storageKey = `${STORAGE_PREFIX}${id}`;
+    const storageKey = getItemKey(suffix, id);
     return localStorage.getItem(storageKey) !== null;
   } catch (error) {
     console.error(`Error checking if analysis ${id} exists:`, error);

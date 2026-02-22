@@ -59,7 +59,7 @@ export default function Profile() {
       try {
         setLoadingSessions(true);
         setError(null);
-        const analyses = await getAllAnalyses();
+        const analyses = await getAllAnalyses(user.id);
         setSessions(analyses.slice(0, 10)); // Limiter à 10 dernières sessions
 
         // Calculer les statistiques

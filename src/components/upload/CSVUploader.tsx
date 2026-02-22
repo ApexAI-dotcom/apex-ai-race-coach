@@ -58,8 +58,9 @@ const ANALYSIS_STEPS = [
 
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const navigate = useNavigate();
-  const { isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
+  const { user, isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
   const canUpload = isAuthenticated || canUploadFree;
+  const storageUserId = user?.id ?? undefined;
 
   // États upload
   const [isDragging, setIsDragging] = useState(false);
@@ -97,8 +98,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   // ─── Chargement initial du compteur ──────────────────────────────────────
 
   useEffect(() => {
-    getAnalysesCount().then(setAnalysesCount).catch(() => {});
-  }, []);
+    getAnalysesCount(storageUserId).then(setAnalysesCount).catch(() => {});
+  }, [storageUserId]);
 
   // ─── Progression simulée pendant l'analyse ───────────────────────────────
 
@@ -168,7 +169,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     setSavedAnalysisId(null);
     setSaveSuccess(null);
     setAnalysisStepIndex(0);
-    getAnalysesCount().then(setAnalysesCount).catch(() => {});
+    getAnalysesCount(storageUserId).then(setAnalysesCount).catch(() => {});
   };
 
   // ─── Sauvegarde manuelle (si l'auto-save a échoué) ───────────────────────
@@ -177,10 +178,10 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     if (!result || savedAnalysisId) return; // déjà sauvegardé
 
     try {
-      const analysisId = await saveAnalysis(result);
+      const analysisId = await saveAnalysis(result, storageUserId);
       setSavedAnalysisId(analysisId);
       setSaveSuccess(`Analyse sauvegardée (ID : ${analysisId})`);
-      const count = await getAnalysesCount();
+      const count = await getAnalysesCount(storageUserId);
       setAnalysesCount(count);
       setTimeout(() => setSaveSuccess(null), 5000);
     } catch (err) {
@@ -261,14 +262,14 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       // Upload + analyse
       const analysisResult = await uploadAndAnalyzeCSV(file);
 
-      // Auto-save
+      // Auto-save (clé storage = user courant ou guest)
       let analysisId: string | null = null;
       try {
-        analysisId = await saveAnalysis(analysisResult);
+        analysisId = await saveAnalysis(analysisResult, storageUserId);
         setSavedAnalysisId(analysisId);
         setSaveSuccess(`Analyse sauvegardée automatiquement.`);
         setTimeout(() => setSaveSuccess(null), 5000);
-        const count = await getAnalysesCount();
+        const count = await getAnalysesCount(storageUserId);
         setAnalysesCount(count);
       } catch (saveErr) {
         console.warn("Auto-save failed:", saveErr);
