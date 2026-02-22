@@ -5,7 +5,7 @@ export const LegalFooter = () => (
     <div className="container mx-auto px-4">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
         <div>
-          <strong className="text-foreground">Apex AI SARL</strong>
+          <strong className="text-foreground">Apex AI</strong>
           <span className="mx-1">•</span>
           <span>France</span>
         </div>

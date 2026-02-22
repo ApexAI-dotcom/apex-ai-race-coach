@@ -25,7 +25,7 @@ export default function Legal() {
               Éditeur
             </h2>
             <p className="text-muted-foreground">
-              <strong className="text-foreground">Apex AI SARL</strong>
+              <strong className="text-foreground">Apex AI</strong>
               <br />
               France
               <br />

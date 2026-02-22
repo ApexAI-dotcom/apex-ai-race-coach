@@ -452,7 +452,7 @@ export default function Dashboard() {
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
-        doc.text("Apex AI SARL - contact@apexai.run - www.apexai.run", 20, doc.internal.pageSize.height - 15);
+        doc.text("Apex AI - contact@apexai.run - www.apexai.run", 20, doc.internal.pageSize.height - 15);
         doc.text(`Page ${i}/${pageCount}`, 180, doc.internal.pageSize.height - 15, { align: "right" });
       }
 

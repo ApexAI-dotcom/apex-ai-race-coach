@@ -320,8 +320,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       animate={{ opacity: 1, y: 0 }}
       className="glass-card p-8"
     >
-      {/* Compteur analyses sauvegardées */}
-      {analysesCount > 0 && (
+      {/* Compteur analyses sauvegardées (masqué si non connecté) */}
+      {isAuthenticated && analysesCount > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -330,7 +330,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
           <Database className="w-4 h-4" />
           <span>
             {analysesCount} analyse{analysesCount > 1 ? "s" : ""} sauvegardée
-            {analysesCount > 1 ? "s" : ""} localement
+            {analysesCount > 1 ? "s" : ""}
           </span>
         </motion.div>
       )}

@@ -353,7 +353,7 @@ export default function Index() {
               </Link>
             </div>
             <div className="text-sm text-muted-foreground">
-              © 2024 APEX AI. Tous droits réservés.
+              © 2026 APEX AI. Tous droits réservés.
             </div>
           </div>
         </div>

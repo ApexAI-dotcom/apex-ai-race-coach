@@ -96,6 +96,42 @@ export default function Login() {
               <div className="[&_.supabase-auth-ui_ui-message]:text-sm [&_.supabase-auth-ui_ui-message]:text-muted-foreground [&_.supabase-auth-ui_ui-message]:mb-4 [&_.supabase-auth-ui_ui-label]:text-sm [&_.supabase-auth-ui_ui-label]:font-medium [&_.supabase-auth-ui_ui-label]:text-foreground [&_.supabase-auth-ui_ui-label]:mb-2 [&_.supabase-auth-ui_ui-input]:w-full [&_.supabase-auth-ui_ui-input]:px-3 [&_.supabase-auth-ui_ui-input]:py-2 [&_.supabase-auth-ui_ui-input]:rounded-lg [&_.supabase-auth-ui_ui-input]:bg-secondary/50 [&_.supabase-auth-ui_ui-input]:border [&_.supabase-auth-ui_ui-input]:border-white/10 [&_.supabase-auth-ui_ui-input]:text-foreground [&_.supabase-auth-ui_ui-input]:placeholder:text-muted-foreground [&_.supabase-auth-ui_ui-input]:focus:outline-none [&_.supabase-auth-ui_ui-input]:focus:ring-2 [&_.supabase-auth-ui_ui-input]:focus:ring-primary [&_.supabase-auth-ui_ui-input]:focus:border-transparent [&_.supabase-auth-ui_ui-button]:w-full [&_.supabase-auth-ui_ui-button]:mt-4 [&_.supabase-auth-ui_ui-button]:px-4 [&_.supabase-auth-ui_ui-button]:py-2 [&_.supabase-auth-ui_ui-button]:rounded-lg [&_.supabase-auth-ui_ui-button]:bg-primary [&_.supabase-auth-ui_ui-button]:text-primary-foreground [&_.supabase-auth-ui_ui-button]:font-medium [&_.supabase-auth-ui_ui-button]:hover:bg-primary/90 [&_.supabase-auth-ui_ui-button]:transition-colors [&_.supabase-auth-ui_ui-divider]:my-4 [&_.supabase-auth-ui_ui-divider]:border-t [&_.supabase-auth-ui_ui-divider]:border-white/10 [&_.supabase-auth-ui_ui-link]:text-primary [&_.supabase-auth-ui_ui-link]:hover:underline">
                 <Auth
                   supabaseClient={supabase}
+                  localization={{
+                    variables: {
+                      sign_in: {
+                        email_label: 'Adresse email',
+                        password_label: 'Mot de passe',
+                        email_input_placeholder: 'Votre adresse email',
+                        password_input_placeholder: 'Votre mot de passe',
+                        button_label: 'Se connecter',
+                        loading_button_label: 'Connexion…',
+                        link_text: 'Déjà un compte ? Se connecter',
+                      },
+                      sign_up: {
+                        email_label: 'Adresse email',
+                        password_label: 'Créer un mot de passe',
+                        email_input_placeholder: 'Votre adresse email',
+                        password_input_placeholder: 'Votre mot de passe',
+                        button_label: "S'inscrire",
+                        loading_button_label: "Inscription…",
+                        link_text: "Pas encore de compte ? S'inscrire",
+                      },
+                      magic_link: {
+                        email_input_label: 'Adresse email',
+                        email_input_placeholder: 'Votre adresse email',
+                        button_label: 'Recevoir un lien de connexion',
+                        loading_button_label: 'Envoi du lien…',
+                        link_text: 'Recevoir un lien de connexion',
+                      },
+                      forgotten_password: {
+                        email_label: 'Adresse email',
+                        email_input_placeholder: 'Votre adresse email',
+                        button_label: 'Envoyer les instructions',
+                        loading_button_label: 'Envoi…',
+                        link_text: 'Mot de passe oublié ?',
+                      },
+                    },
+                  }}
                   appearance={{
                     theme: ThemeSupa,
                     variables: {
