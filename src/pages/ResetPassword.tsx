@@ -22,29 +22,22 @@ export default function ResetPassword() {
   const [sessionReady, setSessionReady] = useState(false)
 
   useEffect(() => {
-    // Supabase traite le hash automatiquement et émet PASSWORD_RECOVERY
-    // On écoute cet événement + on vérifie si une session existe déjà
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        setSessionReady(true)
-        return
-      }
-    }
-    checkSession()
-
+    // 1. Enregistrer le listener EN PREMIER, avant tout
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
         setSessionReady(true)
       }
     })
 
-    // Timeout de sécurité : si après 5s rien ne se passe, afficher erreur
+    // 2. Ensuite vérifier si session déjà présente (cas refresh de page)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSessionReady(true)
+    })
+
+    // 3. Timeout fallback
     const timeout = setTimeout(() => {
       setSessionReady((prev) => {
-        if (!prev) {
-          setError('Lien invalide ou expiré. Demande un nouveau lien depuis la page de connexion.')
-        }
+        if (!prev) setError('Lien invalide ou expiré. Demande un nouveau lien depuis la page de connexion.')
         return prev
       })
     }, 5000)
