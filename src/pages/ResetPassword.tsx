@@ -21,9 +21,28 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
 
-  // Supabase envoie le token dans l'URL hash (#access_token=...)
-  // On attend que la session soit établie
+  // Lire le token dans l'URL hash et établir la session (PASSWORD_RECOVERY ne se déclenche pas toujours)
   useEffect(() => {
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.replace('#', ''))
+    const accessToken = params.get('access_token')
+    const type = params.get('type')
+
+    if (accessToken && type === 'recovery') {
+      supabase.auth
+        .setSession({
+          access_token: accessToken,
+          refresh_token: params.get('refresh_token') || '',
+        })
+        .then(({ error }) => {
+          if (!error) {
+            setSessionReady(true)
+          } else {
+            setError('Lien invalide ou expiré. Demande un nouveau lien de réinitialisation.')
+          }
+        })
+      return
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setSessionReady(true)
