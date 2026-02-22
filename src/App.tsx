@@ -21,6 +21,7 @@ import Upload from "./pages/Upload";
 import Pricing from "./pages/Pricing";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import Success from "./pages/Success";
 import Legal from "./pages/Legal";
 import Parametres from "./pages/Parametres";
@@ -60,6 +61,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/success" element={<Success />} />
             <Route path="/legal" element={<Legal />} />
