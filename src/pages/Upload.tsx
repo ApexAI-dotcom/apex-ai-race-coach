@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { CSVUploader } from "@/components/upload/CSVUploader";
 import { PageMeta } from "@/components/seo/PageMeta";
@@ -32,6 +33,9 @@ const features = [
 export default function Upload() {
   return (
     <Layout>
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <PageMeta
         title="Upload CSV MyChron5 → Analyse IA Immédiate | ApexAI"
         description="Upload MyChron5, AiM RaceBox → IA analyse apices, freinage. Score + coaching 30s."

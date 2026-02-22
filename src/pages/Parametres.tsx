@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Settings, Save, Sun, Moon, User, ImagePlus, Loader2 } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Button } from "@/components/ui/button";
@@ -140,6 +141,9 @@ export default function Parametres() {
 
   return (
     <Layout>
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <PageMeta
         title="Paramètres | ApexAI"
         description="Personnalise ton expérience ApexAI"

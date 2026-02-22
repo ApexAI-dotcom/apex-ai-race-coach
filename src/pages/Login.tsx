@@ -5,6 +5,7 @@ import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { Helmet } from 'react-helmet-async'
 import { Layout } from '@/components/layout/Layout'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -61,6 +62,9 @@ export default function Login() {
 
   return (
     <Layout>
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <PageMeta
         title="Connexion | ApexAI"
         description="Connectez-vous pour accéder à votre tableau de bord et vos analyses."

@@ -25,6 +25,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageMeta } from "@/components/seo/PageMeta";
+import { Helmet } from "react-helmet-async";
 import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
 import { API_BASE_URL } from "@/lib/api";
 import { ADMIN_EMAIL } from "@/constants";
@@ -211,6 +212,9 @@ export default function Profile() {
 
   return (
     <Layout>
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <PageMeta
         title="Mon profil | ApexAI"
         description="Statistiques, historique des sessions et gestion de l'abonnement."

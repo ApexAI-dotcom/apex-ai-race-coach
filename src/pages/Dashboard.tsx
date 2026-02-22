@@ -64,6 +64,7 @@ import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { PageMeta } from "@/components/seo/PageMeta";
+import { Helmet } from "react-helmet-async";
 import { ADMIN_EMAIL } from "@/constants";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -508,6 +509,9 @@ export default function Dashboard() {
 
   return (
     <Layout>
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <PageMeta
         title="Tableau de bord | ApexAI"
         description="Historique de vos analyses, comparaison de sessions et export PDF."
