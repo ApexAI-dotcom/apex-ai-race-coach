@@ -27,6 +27,7 @@ interface AuthContextType {
   signInEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signUpEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signInMagicLink: (email: string) => Promise<{ error: AuthError | null }>
+  resetPasswordForEmail: (email: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<{ error: AuthError | null }>
 }
 
@@ -131,6 +132,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error }
   }
 
+  const resetPasswordForEmail = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    return { error }
+  }
+
   const signOut = async () => {
     try {
       localStorage.removeItem('userRole')
@@ -153,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInEmail,
     signUpEmail,
     signInMagicLink,
+    resetPasswordForEmail,
     signOut,
   }
 
