@@ -73,6 +73,57 @@ export interface CornerAnalysis {
   time_lost: number;
   grade: string;
   score: number;
+  entry_speed?: number | null;
+  exit_speed?: number | null;
+  target_entry_speed?: number | null;
+  target_exit_speed?: number | null;
+}
+
+const CORNER_KEYS: (keyof CornerAnalysis)[] = [
+  "corner_id", "corner_number", "corner_type", "apex_speed_real", "apex_speed_optimal",
+  "speed_efficiency", "apex_distance_error", "apex_direction_error", "lateral_g_max",
+  "time_lost", "grade", "score"
+];
+
+/**
+ * Normalise un objet virage brut de l'API vers CornerAnalysis.
+ * Gère les clés alternatives (type → corner_type, apex_distance_m → apex_distance_error)
+ * et log un warning si une clé attendue est absente.
+ */
+export function mapCornerData(raw: Record<string, unknown>): CornerAnalysis {
+  const corner_type = (raw.corner_type ?? raw.type ?? "unknown") as string;
+  const apex_distance_error = Number(raw.apex_distance_error ?? raw.apex_distance_m ?? 0);
+  const time_lost = Number(raw.time_lost ?? 0);
+  if (raw.type !== undefined && raw.corner_type === undefined) {
+    console.warn("[ApexAI] corner: expected 'corner_type', got 'type'");
+  }
+  if (raw.apex_distance_m !== undefined && raw.apex_distance_error === undefined) {
+    console.warn("[ApexAI] corner: expected 'apex_distance_error', got 'apex_distance_m'");
+  }
+  for (const k of CORNER_KEYS) {
+    if (k === "corner_type" || k === "apex_distance_error" || k === "time_lost") continue;
+    if (raw[k] === undefined && (k === "corner_id" || k === "corner_number" || k === "grade" || k === "score")) {
+      console.warn("[ApexAI] corner: missing expected key", k);
+    }
+  }
+  return {
+    corner_id: Number(raw.corner_id ?? 0),
+    corner_number: Number(raw.corner_number ?? raw.corner_id ?? 0),
+    corner_type,
+    apex_speed_real: Number(raw.apex_speed_real ?? 0),
+    apex_speed_optimal: Number(raw.apex_speed_optimal ?? 0),
+    speed_efficiency: Number(raw.speed_efficiency ?? 0),
+    apex_distance_error,
+    apex_direction_error: String(raw.apex_direction_error ?? "center"),
+    lateral_g_max: Number(raw.lateral_g_max ?? 0),
+    time_lost,
+    grade: String(raw.grade ?? "C"),
+    score: Number(raw.score ?? 50),
+    entry_speed: raw.entry_speed != null ? Number(raw.entry_speed) : undefined,
+    exit_speed: raw.exit_speed != null ? Number(raw.exit_speed) : undefined,
+    target_entry_speed: raw.target_entry_speed != null ? Number(raw.target_entry_speed) : undefined,
+    target_exit_speed: raw.target_exit_speed != null ? Number(raw.target_exit_speed) : undefined,
+  };
 }
 
 export interface CoachingAdvice {
@@ -83,6 +134,25 @@ export interface CoachingAdvice {
   message: string;
   explanation: string;
   difficulty: string; // "facile" | "moyen" | "difficile"
+}
+
+/**
+ * Normalise un conseil brut (impact_seconds vs time_impact_seconds).
+ */
+function mapAdviceData(raw: Record<string, unknown>): CoachingAdvice {
+  const impact_seconds = Number(raw.impact_seconds ?? raw.time_impact_seconds ?? 0);
+  if (raw.time_impact_seconds !== undefined && raw.impact_seconds === undefined) {
+    console.warn("[ApexAI] coaching: expected 'impact_seconds', got 'time_impact_seconds'");
+  }
+  return {
+    priority: Number(raw.priority ?? 5),
+    category: String(raw.category ?? "global"),
+    impact_seconds,
+    corner: raw.corner != null ? Number(raw.corner) : undefined,
+    message: String(raw.message ?? ""),
+    explanation: String(raw.explanation ?? ""),
+    difficulty: String(raw.difficulty ?? "moyen"),
+  };
 }
 
 export interface PlotUrls {
@@ -335,6 +405,14 @@ export async function uploadAndAnalyzeCSV(
 
     // Parser réponse JSON
     const result = await parseJSONResponse<AnalysisResult>(response);
+
+    // Normaliser les clés backend (corner_type, apex_distance_error, time_lost)
+    if (Array.isArray(result.corner_analysis)) {
+      result.corner_analysis = result.corner_analysis.map((c) => mapCornerData(c as Record<string, unknown>));
+    }
+    if (Array.isArray(result.coaching_advice)) {
+      result.coaching_advice = result.coaching_advice.map((a) => mapAdviceData(a as Record<string, unknown>));
+    }
 
     // Vérifier que la réponse contient success: true
     if (!result.success) {
