@@ -29,10 +29,12 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   uploadAndAnalyzeCSV,
+  parseLaps,
   checkBackendConnection,
   API_BASE_URL,
   type AnalysisResult,
   type ApiError,
+  type LapInfo,
 } from "@/lib/api";
 import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,6 +45,16 @@ import { ToastAction } from "@/components/ui/toast";
 
 interface CSVUploaderProps {
   onUploadComplete?: (data: AnalysisResult) => void;
+}
+
+function formatLapTime(seconds: number): string {
+  if (seconds <= 0 || !Number.isFinite(seconds)) return "—";
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  const ms = Math.round((s % 1) * 1000);
+  const sec = Math.floor(s);
+  if (m > 0) return `${m}:${sec.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
+  return `${sec}.${ms.toString().padStart(3, "0")}s`;
 }
 
 // Étapes de progression affichées pendant l'analyse
@@ -65,6 +77,10 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   // États upload
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  // Tours détectés (parse-laps) : null = pas encore chargé ou erreur
+  const [laps, setLaps] = useState<LapInfo[] | null>(null);
+  const [lapsLoading, setLapsLoading] = useState(false);
+  const [selectedLapNumbers, setSelectedLapNumbers] = useState<number[]>([]);
 
   // États analyse
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -100,6 +116,35 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   useEffect(() => {
     getAnalysesCount(storageUserId).then(setAnalysesCount).catch(() => {});
   }, [storageUserId]);
+
+  // ─── Détection des tours (parse-laps) à la sélection du fichier ───────────
+  useEffect(() => {
+    if (!file) {
+      setLaps(null);
+      setSelectedLapNumbers([]);
+      setLapsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLapsLoading(true);
+    setLaps(null);
+    parseLaps(file)
+      .then((res) => {
+        if (cancelled) return;
+        setLaps(res.laps);
+        const defaultSelected = (res.laps || []).filter((l) => !l.is_outlier).map((l) => l.lap_number);
+        setSelectedLapNumbers(defaultSelected);
+      })
+      .catch(() => {
+        if (!cancelled) setLaps(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLapsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [file]);
 
   // ─── Progression simulée pendant l'analyse ───────────────────────────────
 
@@ -162,6 +207,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
   const handleReset = () => {
     setFile(null);
+    setLaps(null);
+    setSelectedLapNumbers([]);
     setIsComplete(false);
     setIsAnalyzing(false);
     setError(null);
@@ -260,7 +307,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       }
 
       // Upload + analyse
-      const analysisResult = await uploadAndAnalyzeCSV(file);
+      const lapFilter =
+        selectedLapNumbers.length > 0 && laps?.length ? selectedLapNumbers : undefined;
+      const analysisResult = await uploadAndAnalyzeCSV(file, lapFilter ? { lapFilter } : undefined);
 
       // Auto-save (clé storage = user courant ou guest)
       let analysisId: string | null = null;
@@ -745,6 +794,119 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 </div>
               )}
             </div>
+
+            {/* Sélection des tours (si parse-laps a réussi) */}
+            {file && (lapsLoading || laps) && (
+              <Card className="mt-6 glass-card border-white/10 w-full max-w-2xl mx-auto">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-[#ff6b35]" />
+                    Tours à analyser
+                  </CardTitle>
+                  <CardDescription>
+                    {lapsLoading
+                      ? "Détection des tours en cours…"
+                      : "Cochez les tours à inclure. Les tours stand/prépa (⚠️) sont décochés par défaut."}
+                  </CardDescription>
+                </CardHeader>
+                {laps && laps.length > 0 && (
+                  <CardContent className="pt-0">
+                    <div className="overflow-x-auto rounded-lg border border-white/10">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-white/10 bg-white/5">
+                            <th className="px-4 py-2 text-left text-muted-foreground w-12">Inclure</th>
+                            <th className="px-4 py-2 text-left text-muted-foreground">N°</th>
+                            <th className="px-4 py-2 text-left text-muted-foreground">Temps</th>
+                            <th className="px-4 py-2 text-left text-muted-foreground">Points</th>
+                            <th className="px-4 py-2 text-left text-muted-foreground">Statut</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {laps.map((lap) => {
+                            const checked = selectedLapNumbers.includes(lap.lap_number);
+                            return (
+                              <tr
+                                key={lap.lap_number}
+                                className="border-b border-white/5 hover:bg-white/5 cursor-pointer"
+                                onClick={() => {
+                                  setSelectedLapNumbers((prev) =>
+                                    prev.includes(lap.lap_number)
+                                      ? prev.filter((n) => n !== lap.lap_number)
+                                      : [...prev, lap.lap_number]
+                                  );
+                                }}
+                              >
+                                <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => {
+                                      setSelectedLapNumbers((prev) =>
+                                        prev.includes(lap.lap_number)
+                                          ? prev.filter((n) => n !== lap.lap_number)
+                                          : [...prev, lap.lap_number]
+                                      );
+                                    }}
+                                    className="h-4 w-4 rounded border-white/20 text-[#ff6b35] focus:ring-[#ff6b35]"
+                                  />
+                                </td>
+                                <td className="px-4 py-2 font-medium">{lap.lap_number}</td>
+                                <td className="px-4 py-2 font-mono">{formatLapTime(lap.lap_time_seconds)}</td>
+                                <td className="px-4 py-2 text-muted-foreground">{lap.points_count}</td>
+                                <td className="px-4 py-2">
+                                  {lap.is_outlier ? (
+                                    <span className="text-amber-500" title="Tour stand / prépa">⚠️ outlier</span>
+                                  ) : (
+                                    <span className="text-green-500">✅ normal</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-white/10 text-[#ff6b35] hover:bg-[#ff6b35]/10"
+                        onClick={() => setSelectedLapNumbers(laps.map((l) => l.lap_number))}
+                      >
+                        Tout cocher
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-white/10"
+                        onClick={() => setSelectedLapNumbers([])}
+                      >
+                        Tout décocher
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-white/10"
+                        onClick={() =>
+                          setSelectedLapNumbers(laps.filter((l) => !l.is_outlier).map((l) => l.lap_number))
+                        }
+                      >
+                        Normaux seulement
+                      </Button>
+                    </div>
+                  </CardContent>
+                )}
+                {laps && laps.length === 0 && !lapsLoading && (
+                  <CardContent className="text-sm text-muted-foreground">
+                    Aucun tour détecté — l'analyse portera sur l'ensemble du fichier.
+                  </CardContent>
+                )}
+              </Card>
+            )}
 
             {/* Bouton analyser + avertissement accès */}
             {file && (

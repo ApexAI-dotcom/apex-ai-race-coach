@@ -88,6 +88,18 @@ export interface AnalysisResult {
   statistics: Statistics;
 }
 
+export interface LapInfo {
+  lap_number: number;
+  lap_time_seconds: number;
+  points_count: number;
+  is_outlier: boolean;
+}
+
+export interface ParseLapsResponse {
+  success: boolean;
+  laps: LapInfo[];
+}
+
 export interface AnalysisStatus {
   analysis_id: string;
   status: string; // "completed" | "processing" | "failed"
@@ -214,10 +226,14 @@ async function parseJSONResponse<T>(response: Response): Promise<T> {
  * Upload et analyse un fichier CSV de télémétrie
  *
  * @param file - Fichier CSV à analyser
+ * @param options - Optionnel : lapFilter = liste des numéros de tours à inclure
  * @returns Résultats de l'analyse complète
  * @throws ApiError en cas d'erreur
  */
-export async function uploadAndAnalyzeCSV(file: File): Promise<AnalysisResult> {
+export async function uploadAndAnalyzeCSV(
+  file: File,
+  options?: { lapFilter?: number[] }
+): Promise<AnalysisResult> {
   // Validation du fichier
   const validation = validateCSVFile(file);
   if (!validation.valid) {
@@ -231,6 +247,9 @@ export async function uploadAndAnalyzeCSV(file: File): Promise<AnalysisResult> {
   // Créer FormData
   const formData = new FormData();
   formData.append("file", file);
+  if (options?.lapFilter && options.lapFilter.length > 0) {
+    formData.append("lap_filter", JSON.stringify(options.lapFilter));
+  }
 
   // Créer controller avec timeout
   const controller = createTimeoutController(API_TIMEOUT_MS);
@@ -290,6 +309,44 @@ export async function uploadAndAnalyzeCSV(file: File): Promise<AnalysisResult> {
     // Sinon, gérer comme erreur fetch
     throw handleFetchError(error, "l'upload et l'analyse du CSV");
   }
+}
+
+/**
+ * Parse un fichier CSV et retourne la liste des tours détectés (pour sélection avant analyse).
+ *
+ * @param file - Fichier CSV
+ * @returns Liste des tours avec lap_number, lap_time_seconds, points_count, is_outlier
+ */
+export async function parseLaps(file: File): Promise<ParseLapsResponse> {
+  const validation = validateCSVFile(file);
+  if (!validation.valid) {
+    throw {
+      success: false,
+      error: "validation",
+      message: validation.error || "Erreur de validation",
+    } as ApiError;
+  }
+  const formData = new FormData();
+  formData.append("file", file);
+  const controller = createTimeoutController(20000);
+  const response = await fetch(`${API_BASE_URL}/api/v1/parse-laps`, {
+    method: "POST",
+    body: formData,
+    signal: controller.signal,
+  });
+  if (!response.ok) {
+    const err = await parseJSONResponse<ApiError>(response).catch(() => ({}));
+    throw {
+      success: false,
+      error: err.error || "http_error",
+      message: err.message || `Erreur ${response.status}`,
+    } as ApiError;
+  }
+  const data = await parseJSONResponse<ParseLapsResponse>(response);
+  if (!data.success || !Array.isArray(data.laps)) {
+    throw { success: false, error: "invalid_response", message: "Réponse parse-laps invalide" } as ApiError;
+  }
+  return data;
 }
 
 /**
