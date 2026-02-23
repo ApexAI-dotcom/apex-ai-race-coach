@@ -75,6 +75,11 @@ export interface Statistics {
   avg_apex_speed_efficiency: number;
 }
 
+export interface SessionConditions {
+  track_condition: string; // "dry" | "damp" | "wet" | "rain"
+  track_temperature?: number | null; // °C
+}
+
 export interface AnalysisResult {
   success: boolean;
   analysis_id: string;
@@ -86,6 +91,7 @@ export interface AnalysisResult {
   coaching_advice: CoachingAdvice[];
   plots: PlotUrls;
   statistics: Statistics;
+  session_conditions?: SessionConditions | null;
 }
 
 export interface LapInfo {
@@ -232,7 +238,7 @@ async function parseJSONResponse<T>(response: Response): Promise<T> {
  */
 export async function uploadAndAnalyzeCSV(
   file: File,
-  options?: { lapFilter?: number[] }
+  options?: { lapFilter?: number[]; track_condition?: string; track_temperature?: number | null }
 ): Promise<AnalysisResult> {
   // Validation du fichier
   const validation = validateCSVFile(file);
@@ -249,6 +255,13 @@ export async function uploadAndAnalyzeCSV(
   formData.append("file", file);
   if (options?.lapFilter && options.lapFilter.length > 0) {
     formData.append("lap_filter", JSON.stringify(options.lapFilter));
+  }
+  const cond = options?.track_condition && ["dry", "damp", "wet", "rain"].includes(options.track_condition)
+    ? options.track_condition
+    : "dry";
+  formData.append("track_condition", cond);
+  if (options?.track_temperature != null && Number.isFinite(options.track_temperature)) {
+    formData.append("track_temperature", String(options.track_temperature));
   }
 
   // Créer controller avec timeout

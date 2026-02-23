@@ -81,6 +81,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const [laps, setLaps] = useState<LapInfo[] | null>(null);
   const [lapsLoading, setLapsLoading] = useState(false);
   const [selectedLapNumbers, setSelectedLapNumbers] = useState<number[]>([]);
+  const [trackCondition, setTrackCondition] = useState<"dry" | "damp" | "wet" | "rain">("dry");
+  const [trackTemperature, setTrackTemperature] = useState<number | "">("");
 
   // États analyse
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -309,7 +311,15 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       // Upload + analyse
       const lapFilter =
         selectedLapNumbers.length > 0 && laps?.length ? selectedLapNumbers : undefined;
-      const analysisResult = await uploadAndAnalyzeCSV(file, lapFilter ? { lapFilter } : undefined);
+      const tempNum =
+        trackTemperature === "" || trackTemperature == null
+          ? undefined
+          : Number(trackTemperature);
+      const analysisResult = await uploadAndAnalyzeCSV(file, {
+        lapFilter: lapFilter ?? undefined,
+        track_condition: trackCondition,
+        track_temperature: tempNum ?? undefined,
+      });
 
       // Auto-save (clé storage = user courant ou guest)
       let analysisId: string | null = null;
@@ -451,9 +461,31 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               <h3 className="text-2xl font-display font-bold text-foreground mb-2">
                 Analyse terminée !
               </h3>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-muted-foreground mb-4">
                 Votre session a été analysée avec succès.
               </p>
+              {result.session_conditions && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-muted-foreground mb-6">
+                  <span>
+                    {result.session_conditions.track_condition === "dry" && "☀️"}
+                    {result.session_conditions.track_condition === "damp" && "🌦️"}
+                    {result.session_conditions.track_condition === "wet" && "💧"}
+                    {result.session_conditions.track_condition === "rain" && "🌧️"}
+                  </span>
+                  <span>
+                    Conditions :{" "}
+                    {result.session_conditions.track_condition === "dry" && "Sec"}
+                    {result.session_conditions.track_condition === "damp" && "Humide"}
+                    {result.session_conditions.track_condition === "wet" && "Mouillée"}
+                    {result.session_conditions.track_condition === "rain" && "Pluie"}
+                    {result.session_conditions.track_temperature != null &&
+                    Number.isFinite(result.session_conditions.track_temperature)
+                      ? ` — ${result.session_conditions.track_temperature}°C`
+                      : ""}
+                  </span>
+                </div>
+              )}
+              {!result.session_conditions && <div className="mb-6" />}
               <div className="flex flex-col sm:flex-row justify-center gap-3 flex-wrap">
                 <Button variant="heroOutline" onClick={handleReset}>
                   Nouvelle analyse
@@ -905,6 +937,58 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     Aucun tour détecté — l'analyse portera sur l'ensemble du fichier.
                   </CardContent>
                 )}
+              </Card>
+            )}
+
+            {/* Conditions de piste */}
+            {file && (
+              <Card className="mt-6 glass-card border-white/10 w-full max-w-2xl mx-auto">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Conditions de piste</CardTitle>
+                  <CardDescription>
+                    Sélectionne la condition et optionnellement la température
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {(
+                      [
+                        { value: "dry" as const, label: "Sec", icon: "☀️" },
+                        { value: "damp" as const, label: "Humide", icon: "🌦️" },
+                        { value: "wet" as const, label: "Mouillée", icon: "💧" },
+                        { value: "rain" as const, label: "Pluie", icon: "🌧️" },
+                      ] as const
+                    ).map(({ value, label, icon }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setTrackCondition(value)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
+                          trackCondition === value
+                            ? "bg-[#ff6b35] text-white border-[#ff6b35]"
+                            : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
+                        }`}
+                      >
+                        {icon} {label}
+                      </button>
+                    ))}
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground block mb-1">
+                      Température piste (°C)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="ex. 28"
+                      value={trackTemperature === "" ? "" : trackTemperature}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setTrackTemperature(v === "" ? "" : parseFloat(v) || 0);
+                      }}
+                      className="w-full max-w-[120px] p-2 rounded-lg bg-secondary/50 border border-white/10 text-foreground placeholder:text-muted-foreground"
+                    />
+                  </div>
+                </CardContent>
               </Card>
             )}
 
