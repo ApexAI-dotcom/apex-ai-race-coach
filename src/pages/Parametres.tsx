@@ -46,17 +46,35 @@ export default function Parametres() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Init display name & avatar from Supabase user
+  // Charger le profil depuis la table profiles (full_name, avatar_url)
   useEffect(() => {
     if (!user) return;
-    const name =
-      (user.user_metadata?.full_name as string) ||
-      user.email?.split("@")[0] ||
-      "";
-    const avatar = (user.user_metadata?.avatar_url as string) || "";
-    setDisplayName(name);
-    setAvatarUrl(avatar);
-  }, [user]);
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      if (cancelled) return;
+      if (!error && data) {
+        if (data.full_name != null) setDisplayName(String(data.full_name));
+        if (data.avatar_url != null) setAvatarUrl(String(data.avatar_url));
+      } else {
+        // Fallback user_metadata si pas encore de ligne profiles
+        const name =
+          (user.user_metadata?.full_name as string) ||
+          user.email?.split("@")[0] ||
+          "";
+        const avatar = (user.user_metadata?.avatar_url as string) || "";
+        setDisplayName(name);
+        setAvatarUrl(avatar);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     try {
@@ -85,15 +103,24 @@ export default function Parametres() {
   const saveProfile = async () => {
     if (!user) return;
     setSavingProfile(true);
+    const full_name = displayName.trim() || null;
+    const avatar_url = avatarUrl.trim() || null;
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          full_name: displayName.trim() || null,
-          avatar_url: avatarUrl.trim() || null,
-        },
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          full_name,
+          avatar_url,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+      if (profileError) throw profileError;
+      // Garder auth user_metadata en sync pour l'affichage ailleurs
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { full_name, avatar_url },
       });
-      if (error) throw error;
-      const nomPilote = displayName.trim() || settings.nomPilote;
+      if (authError) throw authError;
+      const nomPilote = full_name || settings.nomPilote;
       if (nomPilote) {
         const next = { ...settings, nomPilote };
         setSettings(next);
