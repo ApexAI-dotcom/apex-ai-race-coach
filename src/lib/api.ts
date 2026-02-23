@@ -176,6 +176,7 @@ export interface Statistics {
   worst_corners: number[];
   avg_apex_distance: number;
   avg_apex_speed_efficiency: number;
+  laps_analyzed?: number;
 }
 
 export interface SessionConditions {
@@ -189,6 +190,9 @@ export interface AnalysisResult {
   timestamp: string;
   corners_detected: number;
   lap_time: number;
+  best_lap_time?: number | null;
+  avg_lap_time?: number | null;
+  lap_times?: number[] | null;
   performance_score: PerformanceScore;
   corner_analysis: CornerAnalysis[];
   coaching_advice: CoachingAdvice[];

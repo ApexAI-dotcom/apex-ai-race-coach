@@ -994,17 +994,44 @@ export default function Dashboard() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="glass-card">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-primary" />
-                      <div className="text-xs text-muted-foreground">Temps du tour</div>
-                    </div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {selectedAnalysis.lap_time.toFixed(2)}s
-                    </div>
-                  </CardContent>
-                </Card>
+                {(selectedAnalysis.statistics.laps_analyzed ?? 1) <= 1 ? (
+                  <Card className="glass-card">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="w-4 h-4 text-primary" />
+                        <div className="text-xs text-muted-foreground">Temps du tour</div>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground">
+                        {selectedAnalysis.lap_time.toFixed(2)}s
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
+                    <Card className="glass-card border-green-500/30">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-4 h-4 text-green-500" />
+                          <div className="text-xs text-muted-foreground">Meilleur tour</div>
+                        </div>
+                        <div className="text-2xl font-bold text-green-500">
+                          {(selectedAnalysis.best_lap_time ?? selectedAnalysis.lap_time).toFixed(2)}s
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="glass-card">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-4 h-4 text-primary" />
+                          <div className="text-xs text-muted-foreground">Temps moyen</div>
+                        </div>
+                        <div className="text-2xl font-bold text-muted-foreground">
+                          {(selectedAnalysis.avg_lap_time ?? selectedAnalysis.lap_time).toFixed(2)}s
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
                 <Card className="glass-card">
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-2 mb-2">
@@ -1028,6 +1055,28 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
               </div>
+
+              {(selectedAnalysis.statistics.laps_analyzed ?? 0) > 1 &&
+                selectedAnalysis.lap_times &&
+                selectedAnalysis.lap_times.length > 0 && (
+                  <Card className="glass-card mt-4">
+                    <CardHeader>
+                      <CardTitle className="text-sm">Temps par tour</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedAnalysis.lap_times.map((t, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-1 rounded bg-secondary/50 font-mono text-sm"
+                          >
+                            Tour {i + 1}: {t.toFixed(2)}s
+                          </span>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
               {/* Coaching Advice */}
               {selectedAnalysis.coaching_advice && selectedAnalysis.coaching_advice.length > 0 && (

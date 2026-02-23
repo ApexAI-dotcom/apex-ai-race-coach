@@ -553,23 +553,86 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
             {/* Stats rapides */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { icon: Target,      label: "Virages détectés",  value: String(result.corners_detected) },
-                { icon: Clock,       label: "Temps du tour",     value: `${result.lap_time.toFixed(2)}s` },
-                { icon: Zap,         label: "Points de données", value: String(result.statistics.data_points) },
-                { icon: Clock,       label: "Temps traitement",  value: `${result.statistics.processing_time_seconds.toFixed(1)}s` },
-              ].map(({ icon: Icon, label, value }) => (
-                <Card key={label} className="glass-card">
+              <Card className="glass-card">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-4 h-4 text-primary" />
+                    <div className="text-xs text-muted-foreground">Virages détectés</div>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">{result.corners_detected}</div>
+                </CardContent>
+              </Card>
+              {(result.statistics.laps_analyzed ?? 1) <= 1 ? (
+                <Card className="glass-card">
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-2 mb-2">
-                      <Icon className="w-4 h-4 text-primary" />
-                      <div className="text-xs text-muted-foreground">{label}</div>
+                      <Clock className="w-4 h-4 text-primary" />
+                      <div className="text-xs text-muted-foreground">Temps du tour</div>
                     </div>
-                    <div className="text-2xl font-bold text-foreground">{value}</div>
+                    <div className="text-2xl font-bold text-foreground">{result.lap_time.toFixed(2)}s</div>
                   </CardContent>
                 </Card>
-              ))}
+              ) : (
+                <>
+                  <Card className="glass-card border-green-500/30">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="w-4 h-4 text-green-500" />
+                        <div className="text-xs text-muted-foreground">Meilleur tour</div>
+                      </div>
+                      <div className="text-2xl font-bold text-green-500">
+                        {(result.best_lap_time ?? result.lap_time).toFixed(2)}s
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="glass-card">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="w-4 h-4 text-primary" />
+                        <div className="text-xs text-muted-foreground">Temps moyen</div>
+                      </div>
+                      <div className="text-2xl font-bold text-muted-foreground">
+                        {(result.avg_lap_time ?? result.lap_time).toFixed(2)}s
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+              <Card className="glass-card">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap className="w-4 h-4 text-primary" />
+                    <div className="text-xs text-muted-foreground">Points de données</div>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">{result.statistics.data_points}</div>
+                </CardContent>
+              </Card>
+              <Card className="glass-card">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <div className="text-xs text-muted-foreground">Temps traitement</div>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">{result.statistics.processing_time_seconds.toFixed(1)}s</div>
+                </CardContent>
+              </Card>
             </div>
+            {((result.statistics.laps_analyzed ?? 0) > 1) && result.lap_times && result.lap_times.length > 0 && (
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="text-sm">Temps par tour</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {result.lap_times.map((t, i) => (
+                      <span key={i} className="px-2 py-1 rounded bg-secondary/50 font-mono text-sm">
+                        Tour {i + 1}: {t.toFixed(2)}s
+                      </span>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Conseils de coaching */}
             {result.coaching_advice?.length > 0 && (
