@@ -60,7 +60,7 @@ import {
   clearAllAnalyses,
   type AnalysisSummary,
 } from "@/lib/storage";
-import type { AnalysisResult, CornerAnalysis, CoachingAdvice } from "@/lib/api";
+import { getDisplayScore, type AnalysisResult, type CornerAnalysis, type CoachingAdvice } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { PageMeta } from "@/components/seo/PageMeta";
@@ -783,7 +783,7 @@ export default function Dashboard() {
                       <CardContent className="space-y-4">
                         <div className="text-center">
                           <div className="text-4xl font-bold text-foreground mb-2">
-                            {Math.round(compareResult1.performance_score.overall_score)}/100
+                            {Math.round(getDisplayScore(compareResult1.performance_score))}/100
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {compareResult1.corners_detected} virages •{" "}
@@ -809,7 +809,7 @@ export default function Dashboard() {
                       <CardContent className="space-y-4">
                         <div className="text-center">
                           <div className="text-4xl font-bold text-foreground mb-2">
-                            {Math.round(compareResult2.performance_score.overall_score)}/100
+                            {Math.round(getDisplayScore(compareResult2.performance_score))}/100
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {compareResult2.corners_detected} virages •{" "}
@@ -832,22 +832,22 @@ export default function Dashboard() {
                             </div>
                             <div
                               className={`text-2xl font-bold ${
-                                compareResult2.performance_score.overall_score >
-                                compareResult1.performance_score.overall_score
+                                getDisplayScore(compareResult2.performance_score) >
+                                getDisplayScore(compareResult1.performance_score)
                                   ? "text-green-400"
-                                  : compareResult2.performance_score.overall_score <
-                                      compareResult1.performance_score.overall_score
+                                  : getDisplayScore(compareResult2.performance_score) <
+                                      getDisplayScore(compareResult1.performance_score)
                                     ? "text-red-400"
                                     : "text-foreground"
                               }`}
                             >
-                              {compareResult2.performance_score.overall_score >
-                              compareResult1.performance_score.overall_score
+                              {getDisplayScore(compareResult2.performance_score) >
+                              getDisplayScore(compareResult1.performance_score)
                                 ? "+"
                                 : ""}
                               {(
-                                compareResult2.performance_score.overall_score -
-                                compareResult1.performance_score.overall_score
+                                getDisplayScore(compareResult2.performance_score) -
+                                getDisplayScore(compareResult1.performance_score)
                               ).toFixed(1)}
                             </div>
                           </div>
@@ -882,11 +882,11 @@ export default function Dashboard() {
                           <div className="text-center p-4 rounded-lg bg-secondary/50">
                             <div className="text-xs text-muted-foreground mb-1">Amélioration</div>
                             <div className="text-2xl font-bold text-foreground flex justify-center">
-                              {compareResult2.performance_score.overall_score >
-                              compareResult1.performance_score.overall_score ? (
+                              {getDisplayScore(compareResult2.performance_score) >
+                              getDisplayScore(compareResult1.performance_score) ? (
                                 <CheckCircle2 className="w-6 h-6 text-green-500" />
-                              ) : compareResult2.performance_score.overall_score <
-                                  compareResult1.performance_score.overall_score ? (
+                              ) : getDisplayScore(compareResult2.performance_score) <
+                                  getDisplayScore(compareResult1.performance_score) ? (
                                 <X className="w-6 h-6 text-destructive" />
                               ) : (
                                 <ArrowRight className="w-6 h-6 text-muted-foreground" />
@@ -943,7 +943,7 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="text-center mb-6">
                     <div className="text-6xl font-display font-bold bg-gradient-to-r from-primary to-pink-500 text-transparent bg-clip-text mb-2">
-                      {Math.round(selectedAnalysis.performance_score.overall_score)}/100
+                      {Math.round(getDisplayScore(selectedAnalysis.performance_score))}/100
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Percentile: {selectedAnalysis.performance_score.percentile || "N/A"}%
@@ -962,7 +962,7 @@ export default function Dashboard() {
                         {Math.round(
                           selectedAnalysis.performance_score.breakdown.trajectory_consistency
                         )}
-                        /20
+                        /25
                       </div>
                     </div>
                     <div className="text-center p-3 rounded-lg bg-secondary/50">
@@ -974,7 +974,7 @@ export default function Dashboard() {
                     <div className="text-center p-3 rounded-lg bg-secondary/50">
                       <div className="text-xs text-muted-foreground mb-1">Temps Secteurs</div>
                       <div className="text-lg font-bold text-foreground">
-                        {Math.round(selectedAnalysis.performance_score.breakdown.sector_times)}/25
+                        {Math.round(selectedAnalysis.performance_score.breakdown.sector_times)}/20
                       </div>
                     </div>
                   </div>

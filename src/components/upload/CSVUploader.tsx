@@ -32,6 +32,7 @@ import {
   parseLaps,
   checkBackendConnection,
   API_BASE_URL,
+  getDisplayScore,
   type AnalysisResult,
   type ApiError,
   type LapInfo,
@@ -526,7 +527,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               <CardContent>
                 <div className="text-center mb-6">
                   <div className="text-6xl font-display font-bold bg-gradient-to-r from-primary to-pink-500 text-transparent bg-clip-text mb-2">
-                    {Math.round(result.performance_score.overall_score)}/100
+                    {Math.round(getDisplayScore(result.performance_score))}/100
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Centile : {result.performance_score.percentile ?? "—"}%
@@ -535,9 +536,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
                     { label: "Précision Apex", value: result.performance_score.breakdown.apex_precision, max: 30 },
-                    { label: "Régularité",     value: result.performance_score.breakdown.trajectory_consistency, max: 20 },
+                    { label: "Régularité",     value: result.performance_score.breakdown.trajectory_consistency, max: 25 },
                     { label: "Vitesse Apex",   value: result.performance_score.breakdown.apex_speed, max: 25 },
-                    { label: "Temps Secteurs", value: result.performance_score.breakdown.sector_times, max: 25 },
+                    { label: "Temps Secteurs", value: result.performance_score.breakdown.sector_times, max: 20 },
                   ].map(({ label, value, max }) => (
                     <div key={label} className="text-center p-3 rounded-lg bg-secondary/50">
                       <div className="text-xs text-muted-foreground mb-1">{label}</div>

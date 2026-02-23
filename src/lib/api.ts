@@ -27,6 +27,39 @@ export interface PerformanceScore {
   percentile?: number;
 }
 
+/** Max par catégorie (somme = 100). */
+export const BREAKDOWN_MAX = {
+  apex_precision: 30,
+  trajectory_consistency: 25,
+  apex_speed: 25,
+  sector_times: 20,
+} as const;
+
+/**
+ * Valeur de score à afficher : overall_score uniquement.
+ * Si incohérence avec sum(breakdown) > 0.5, log warning et utilise la somme en fallback.
+ */
+export function getDisplayScore(ps: PerformanceScore): number {
+  const b = ps.breakdown;
+  const sum =
+    (b?.apex_precision ?? 0) +
+    (b?.trajectory_consistency ?? 0) +
+    (b?.apex_speed ?? 0) +
+    (b?.sector_times ?? 0);
+  const overall = ps.overall_score ?? 0;
+  if (Math.abs(sum - overall) > 0.5) {
+    console.warn(
+      "[ApexAI] Score inconsistency: overall_score",
+      overall,
+      "!= sum(breakdown)",
+      sum,
+      "; using sum as fallback."
+    );
+    return Math.round(sum * 10) / 10;
+  }
+  return overall;
+}
+
 export interface CornerAnalysis {
   corner_id: number;
   corner_number: number;
