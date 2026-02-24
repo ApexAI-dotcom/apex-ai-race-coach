@@ -1017,11 +1017,6 @@ export default function Dashboard() {
                       <div className="text-2xl font-bold text-green-500">
                         {(selectedAnalysis.best_lap_time ?? selectedAnalysis.lap_time).toFixed(2)}s
                       </div>
-                      {selectedAnalysis.lap_times && selectedAnalysis.lap_times.length > 1 && (
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          Tours : {selectedAnalysis.lap_times.map((t) => `${t.toFixed(1)}s`).join(' | ')}
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 )}

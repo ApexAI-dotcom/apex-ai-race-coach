@@ -583,11 +583,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     <div className="text-2xl font-bold text-green-500">
                       {(result.best_lap_time ?? result.lap_time).toFixed(2)}s
                     </div>
-                    {result.lap_times && result.lap_times.length > 1 && (
-                      <div className="mt-2 text-xs text-muted-foreground">
-                        Tours : {result.lap_times.map((t) => `${t.toFixed(1)}s`).join(' | ')}
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               )}
