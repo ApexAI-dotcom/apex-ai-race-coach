@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -91,6 +91,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [modalTitle, setModalTitle] = useState<string>("");
+  const [expandedCorner, setExpandedCorner] = useState<number | null>(null);
 
   // Fermeture modal par ESC
   useEffect(() => {
@@ -1007,30 +1008,22 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <>
-                    <Card className="glass-card border-green-500/30">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Clock className="w-4 h-4 text-green-500" />
-                          <div className="text-xs text-muted-foreground">Meilleur tour</div>
+                  <Card className="glass-card border-green-500/30">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="w-4 h-4 text-green-500" />
+                        <div className="text-xs text-muted-foreground">Meilleur tour</div>
+                      </div>
+                      <div className="text-2xl font-bold text-green-500">
+                        {(selectedAnalysis.best_lap_time ?? selectedAnalysis.lap_time).toFixed(2)}s
+                      </div>
+                      {selectedAnalysis.lap_times && selectedAnalysis.lap_times.length > 1 && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          Tours : {selectedAnalysis.lap_times.map((t) => `${t.toFixed(1)}s`).join(' | ')}
                         </div>
-                        <div className="text-2xl font-bold text-green-500">
-                          {(selectedAnalysis.best_lap_time ?? selectedAnalysis.lap_time).toFixed(2)}s
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card className="glass-card">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Clock className="w-4 h-4 text-primary" />
-                          <div className="text-xs text-muted-foreground">Temps moyen</div>
-                        </div>
-                        <div className="text-2xl font-bold text-muted-foreground">
-                          {(selectedAnalysis.avg_lap_time ?? selectedAnalysis.lap_time).toFixed(2)}s
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </>
+                      )}
+                    </CardContent>
+                  </Card>
                 )}
                 <Card className="glass-card">
                   <CardContent className="pt-6">
@@ -1056,27 +1049,6 @@ export default function Dashboard() {
                 </Card>
               </div>
 
-              {(selectedAnalysis.statistics.laps_analyzed ?? 0) > 1 &&
-                selectedAnalysis.lap_times &&
-                selectedAnalysis.lap_times.length > 0 && (
-                  <Card className="glass-card mt-4">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Temps par tour</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedAnalysis.lap_times.map((t, i) => (
-                          <span
-                            key={i}
-                            className="px-2 py-1 rounded bg-secondary/50 font-mono text-sm"
-                          >
-                            Tour {i + 1}: {t.toFixed(2)}s
-                          </span>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
 
               {/* Coaching Advice */}
               {selectedAnalysis.coaching_advice && selectedAnalysis.coaching_advice.length > 0 && (
@@ -1131,12 +1103,18 @@ export default function Dashboard() {
                       <Target className="w-5 h-5 text-primary" />
                       Analyse des Virages
                     </CardTitle>
+                    <CardDescription>
+                      {selectedAnalysis.statistics?.laps_analyzed === 1
+                        ? "Performance sur ce tour"
+                        : `Valeurs moyennées sur les ${selectedAnalysis.statistics?.laps_analyzed ?? 0} tours sélectionnés`}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
                           <TableRow>
+                            <TableHead></TableHead>
                             <TableHead>Virage</TableHead>
                             <TableHead>Type</TableHead>
                             <TableHead>Vitesse Réelle</TableHead>
@@ -1148,22 +1126,70 @@ export default function Dashboard() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {selectedAnalysis.corner_analysis.map((corner, index) => (
-                            <TableRow key={index}>
-                              <TableCell className="font-medium">#{corner.corner_number}</TableCell>
-                              <TableCell className="capitalize">{corner.corner_type}</TableCell>
-                              <TableCell>{corner.apex_speed_real.toFixed(1)} km/h</TableCell>
-                              <TableCell>{corner.apex_speed_optimal.toFixed(1)} km/h</TableCell>
-                              <TableCell>{corner.lateral_g_max.toFixed(2)}G</TableCell>
-                              <TableCell>{corner.time_lost.toFixed(3)}s</TableCell>
-                              <TableCell>{Math.round(corner.score)}/100</TableCell>
-                              <TableCell>
-                                <Badge className={getGradeColor(corner.grade)}>
-                                  {corner.grade}
-                                </Badge>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {selectedAnalysis.corner_analysis.map((corner, index) => {
+                            const cornerTypeLabel = corner.corner_type === "right" ? "Droite" : corner.corner_type === "left" ? "Gauche" : corner.corner_type;
+                            const hasPerLap = (corner.per_lap_data?.length ?? 0) > 1 && (selectedAnalysis.statistics?.laps_analyzed ?? 0) > 1;
+                            const showWarning = corner.time_lost > 0.05;
+                            return (
+                              <Fragment key={index}>
+                                <TableRow>
+                                  <TableCell className="w-8">
+                                    {hasPerLap && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setExpandedCorner(expandedCorner === corner.corner_id ? null : corner.corner_id)}
+                                        className="text-muted-foreground hover:text-foreground"
+                                      >
+                                        {expandedCorner === corner.corner_id ? "▼" : "▶"}
+                                      </button>
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="font-medium">{corner.label ?? `#${corner.corner_number}`}</TableCell>
+                                  <TableCell>{cornerTypeLabel}</TableCell>
+                                  <TableCell>{corner.apex_speed_real.toFixed(1)} km/h</TableCell>
+                                  <TableCell>{corner.apex_speed_optimal.toFixed(1)} km/h</TableCell>
+                                  <TableCell>{corner.lateral_g_max.toFixed(2)}G</TableCell>
+                                  <TableCell>{corner.time_lost.toFixed(3)}s</TableCell>
+                                  <TableCell>
+                                    {showWarning && <span className="text-orange-500 mr-1" title="Temps perdu &gt; 0.05s">⚠️</span>}
+                                    {Math.round(corner.score)}/100
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge className={getGradeColor(corner.grade)}>
+                                      {corner.grade}
+                                    </Badge>
+                                  </TableCell>
+                                </TableRow>
+                                {hasPerLap && expandedCorner === corner.corner_id && corner.per_lap_data && (
+                                  <TableRow>
+                                    <TableCell colSpan={9} className="bg-muted/30 p-4">
+                                      <div className="text-xs font-medium text-muted-foreground mb-2">Détail par tour</div>
+                                      <table className="w-full text-sm">
+                                        <thead>
+                                          <tr className="border-b border-white/5">
+                                            <th className="text-left py-1">Tour</th>
+                                            <th className="text-left py-1">Vit. Apex</th>
+                                            <th className="text-left py-1">G Lat</th>
+                                            <th className="text-left py-1">Tps Perdu</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {corner.per_lap_data.map((lap, i) => (
+                                            <tr key={i}>
+                                              <td className="py-1">{lap.lap}</td>
+                                              <td className="py-1">{(lap.apex_speed_kmh ?? 0).toFixed(1)} km/h</td>
+                                              <td className="py-1">{(lap.max_lateral_g ?? 0).toFixed(2)}G</td>
+                                              <td className="py-1">{(lap.time_lost ?? 0).toFixed(3)}s</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </Fragment>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </div>

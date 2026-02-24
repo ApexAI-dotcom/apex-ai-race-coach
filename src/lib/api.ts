@@ -60,6 +60,13 @@ export function getDisplayScore(ps: PerformanceScore): number {
   return overall;
 }
 
+export interface PerLapCornerData {
+  lap: number;
+  apex_speed_kmh?: number;
+  max_lateral_g?: number;
+  time_lost?: number;
+}
+
 export interface CornerAnalysis {
   corner_id: number;
   corner_number: number;
@@ -77,6 +84,11 @@ export interface CornerAnalysis {
   exit_speed?: number | null;
   target_entry_speed?: number | null;
   target_exit_speed?: number | null;
+  label?: string;
+  avg_note?: string;
+  per_lap_data?: PerLapCornerData[];
+  apex_lat?: number | null;
+  apex_lon?: number | null;
 }
 
 const CORNER_KEYS: (keyof CornerAnalysis)[] = [
@@ -123,6 +135,11 @@ export function mapCornerData(raw: Record<string, unknown>): CornerAnalysis {
     exit_speed: raw.exit_speed != null ? Number(raw.exit_speed) : undefined,
     target_entry_speed: raw.target_entry_speed != null ? Number(raw.target_entry_speed) : undefined,
     target_exit_speed: raw.target_exit_speed != null ? Number(raw.target_exit_speed) : undefined,
+    label: raw.label != null ? String(raw.label) : undefined,
+    avg_note: raw.avg_note != null ? String(raw.avg_note) : undefined,
+    per_lap_data: Array.isArray(raw.per_lap_data) ? (raw.per_lap_data as PerLapCornerData[]) : undefined,
+    apex_lat: raw.apex_lat != null ? Number(raw.apex_lat) : undefined,
+    apex_lon: raw.apex_lon != null ? Number(raw.apex_lon) : undefined,
   };
 }
 

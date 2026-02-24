@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -98,6 +98,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [modalTitle, setModalTitle] = useState<string>("");
+  const [expandedCorner, setExpandedCorner] = useState<number | null>(null);
 
   // Fermeture modal par ESC
   useEffect(() => {
@@ -573,30 +574,22 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   </CardContent>
                 </Card>
               ) : (
-                <>
-                  <Card className="glass-card border-green-500/30">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="w-4 h-4 text-green-500" />
-                        <div className="text-xs text-muted-foreground">Meilleur tour</div>
+                <Card className="glass-card border-green-500/30">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-green-500" />
+                      <div className="text-xs text-muted-foreground">Meilleur tour</div>
+                    </div>
+                    <div className="text-2xl font-bold text-green-500">
+                      {(result.best_lap_time ?? result.lap_time).toFixed(2)}s
+                    </div>
+                    {result.lap_times && result.lap_times.length > 1 && (
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        Tours : {result.lap_times.map((t) => `${t.toFixed(1)}s`).join(' | ')}
                       </div>
-                      <div className="text-2xl font-bold text-green-500">
-                        {(result.best_lap_time ?? result.lap_time).toFixed(2)}s
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card className="glass-card">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="w-4 h-4 text-primary" />
-                        <div className="text-xs text-muted-foreground">Temps moyen</div>
-                      </div>
-                      <div className="text-2xl font-bold text-muted-foreground">
-                        {(result.avg_lap_time ?? result.lap_time).toFixed(2)}s
-                      </div>
-                    </CardContent>
-                  </Card>
-                </>
+                    )}
+                  </CardContent>
+                </Card>
               )}
               <Card className="glass-card">
                 <CardContent className="pt-6">
@@ -617,22 +610,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 </CardContent>
               </Card>
             </div>
-            {((result.statistics.laps_analyzed ?? 0) > 1) && result.lap_times && result.lap_times.length > 0 && (
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle className="text-sm">Temps par tour</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {result.lap_times.map((t, i) => (
-                      <span key={i} className="px-2 py-1 rounded bg-secondary/50 font-mono text-sm">
-                        Tour {i + 1}: {t.toFixed(2)}s
-                      </span>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Conseils de coaching */}
             {result.coaching_advice?.length > 0 && (
@@ -687,7 +664,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     Analyse des Virages
                   </CardTitle>
                   <CardDescription>
-                    Détails de performance pour chaque virage détecté
+                    {result.statistics?.laps_analyzed === 1
+                      ? "Performance sur ce tour"
+                      : `Valeurs moyennées sur les ${result.statistics?.laps_analyzed ?? 0} tours sélectionnés`}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -695,26 +674,70 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-white/5">
+                          <th className="px-4 py-2 text-left text-muted-foreground w-8"></th>
                           {["Virage","Type","Vit. Réelle","Vit. Optimale","G Latéral","Tps Perdu","Score","Grade"].map((h) => (
                             <th key={h} className="px-4 py-2 text-left text-muted-foreground">{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
-                        {result.corner_analysis.slice(0, 10).map((corner, index) => (
-                          <tr key={index} className="border-b border-white/5 hover:bg-white/5">
-                            <td className="px-4 py-2 font-medium">#{corner.corner_number}</td>
-                            <td className="px-4 py-2 capitalize">{corner.corner_type}</td>
-                            <td className="px-4 py-2">{corner.apex_speed_real.toFixed(1)} km/h</td>
-                            <td className="px-4 py-2">{corner.apex_speed_optimal.toFixed(1)} km/h</td>
-                            <td className="px-4 py-2">{corner.lateral_g_max.toFixed(2)}G</td>
-                            <td className="px-4 py-2">{corner.time_lost.toFixed(3)}s</td>
-                            <td className="px-4 py-2">{Math.round(corner.score)}/100</td>
-                            <td className="px-4 py-2">
-                              <Badge className={getGradeColor(corner.grade)}>{corner.grade}</Badge>
-                            </td>
-                          </tr>
-                        ))}
+                        {result.corner_analysis.slice(0, 10).map((corner, index) => {
+                          const cornerTypeLabel = corner.corner_type === "right" ? "Droite" : corner.corner_type === "left" ? "Gauche" : corner.corner_type;
+                          const hasPerLap = (corner.per_lap_data?.length ?? 0) > 1 && (result.statistics?.laps_analyzed ?? 0) > 1;
+                          const showWarning = corner.time_lost > 0.05;
+                          return (
+                            <React.Fragment key={index}>
+                              <tr className="border-b border-white/5 hover:bg-white/5">
+                                <td className="px-4 py-2 w-8">
+                                  {hasPerLap && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedCorner(expandedCorner === corner.corner_id ? null : corner.corner_id)}
+                                      className="text-muted-foreground hover:text-foreground"
+                                    >
+                                      {expandedCorner === corner.corner_id ? "▼" : "▶"}
+                                    </button>
+                                  )}
+                                </td>
+                                <td className="px-4 py-2 font-medium">{corner.label ?? `#${corner.corner_number}`}</td>
+                                <td className="px-4 py-2">{cornerTypeLabel}</td>
+                                <td className="px-4 py-2">{corner.apex_speed_real.toFixed(1)} km/h</td>
+                                <td className="px-4 py-2">{corner.apex_speed_optimal.toFixed(1)} km/h</td>
+                                <td className="px-4 py-2">{corner.lateral_g_max.toFixed(2)}G</td>
+                                <td className="px-4 py-2">{corner.time_lost.toFixed(3)}s</td>
+                                <td className="px-4 py-2">
+                                  {showWarning && <span className="text-orange-500 mr-1" title="Temps perdu &gt; 0.05s">⚠️</span>}
+                                  {Math.round(corner.score)}/100
+                                </td>
+                                <td className="px-4 py-2">
+                                  <Badge className={getGradeColor(corner.grade)}>{corner.grade}</Badge>
+                                </td>
+                              </tr>
+                              {hasPerLap && expandedCorner === corner.corner_id && corner.per_lap_data && (
+                                <tr className="border-b border-white/5 bg-white/5">
+                                  <td colSpan={9} className="px-4 py-2">
+                                    <div className="text-xs text-muted-foreground mb-1">Détail par tour</div>
+                                    <table className="w-full text-xs">
+                                      <thead>
+                                        <tr><th className="text-left py-0.5">Tour</th><th className="text-left py-0.5">Vit. Apex</th><th className="text-left py-0.5">G Lat</th><th className="text-left py-0.5">Tps Perdu</th></tr>
+                                      </thead>
+                                      <tbody>
+                                        {corner.per_lap_data.map((lap, i) => (
+                                          <tr key={i}>
+                                            <td className="py-0.5">{lap.lap}</td>
+                                            <td className="py-0.5">{(lap.apex_speed_kmh ?? 0).toFixed(1)} km/h</td>
+                                            <td className="py-0.5">{(lap.max_lateral_g ?? 0).toFixed(2)}G</td>
+                                            <td className="py-0.5">{(lap.time_lost ?? 0).toFixed(3)}s</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
