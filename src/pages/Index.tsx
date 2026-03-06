@@ -1,9 +1,11 @@
 import { motion } from "framer-motion";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowRight, Zap, Target, Timer, TrendingUp, Users, Star, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowRight, Zap, Target, Timer, TrendingUp, Star, CheckCircle2, XCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import heroImage from "@/assets/hero-racing.jpg";
 
 const stats = [
@@ -45,11 +47,21 @@ const testimonials = [
   },
 ];
 
+function getCtaLabel(tier: string | undefined, isLoading: boolean): string {
+  if (isLoading) return "Chargement…";
+  if (!tier || tier === "rookie") return "3 analyses ce mois — Analyser";
+  if (tier === "racer") return "Analyses illimitées — Analyser";
+  if (tier === "team") return "Analyses illimitées + Équipe — Analyser";
+  return "Analyser";
+}
+
 export default function Index() {
   const [searchParams, setSearchParams] = useSearchParams();
   const success = searchParams.get('success');
   const canceled = searchParams.get('canceled');
   const sessionId = searchParams.get('session_id');
+  const { isAuthenticated } = useAuth();
+  const { tier, isLoading } = useSubscription();
 
   // Nettoyer les paramètres après 5 secondes
   useEffect(() => {
@@ -156,7 +168,7 @@ export default function Index() {
             >
               <Link to="/upload" className="group">
                 <Button variant="hero" size="xl" className="group hover:bg-orange-500 hover:scale-105 hover:shadow-lg shadow-md transition-all duration-300">
-                  Essai Gratuit - 3 Analyses
+                  {isAuthenticated ? getCtaLabel(tier, isLoading) : "Commencer — 3 analyses"}
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>

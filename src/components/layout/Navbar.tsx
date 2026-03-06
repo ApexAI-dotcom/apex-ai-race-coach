@@ -5,6 +5,7 @@ import { Menu, X, Zap, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { ADMIN_EMAIL } from "@/constants";
 
 const navItems = [
@@ -69,6 +70,7 @@ export const Navbar = () => {
                     Admin
                   </span>
                 )}
+                <SubscriptionBadge />
                 <Link to="/profile">
                   <Button variant="ghost" size="sm" className="gap-2">
                     {(user?.user_metadata?.avatar_url as string) ? (
@@ -149,6 +151,9 @@ export const Navbar = () => {
                         Admin
                       </span>
                     )}
+                    <div className="w-fit">
+                      <SubscriptionBadge />
+                    </div>
                     <Link to="/profile" onClick={() => setIsOpen(false)}>
                       <Button variant="ghost" className="w-full gap-2">
                         <User className="w-4 h-4" />

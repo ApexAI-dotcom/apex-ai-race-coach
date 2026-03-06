@@ -362,7 +362,12 @@ async function parseJSONResponse<T>(response: Response): Promise<T> {
  */
 export async function uploadAndAnalyzeCSV(
   file: File,
-  options?: { lapFilter?: number[]; track_condition?: string; track_temperature?: number | null }
+  options?: {
+    lapFilter?: number[];
+    track_condition?: string;
+    track_temperature?: number | null;
+    accessToken?: string | null;
+  }
 ): Promise<AnalysisResult> {
   // Validation du fichier
   const validation = validateCSVFile(file);
@@ -391,13 +396,17 @@ export async function uploadAndAnalyzeCSV(
   // Créer controller avec timeout
   const controller = createTimeoutController(API_TIMEOUT_MS);
 
+  const headers: Record<string, string> = {};
+  if (options?.accessToken) {
+    headers["Authorization"] = `Bearer ${options.accessToken}`;
+  }
+
   try {
-    // Requête POST
     const response = await fetch(`${API_BASE_URL}/api/v1/analyze`, {
       method: "POST",
       body: formData,
       signal: controller.signal,
-      // Headers sont automatiquement gérés par fetch pour FormData
+      headers: Object.keys(headers).length ? headers : undefined,
     });
 
     // Gérer erreurs HTTP
@@ -405,12 +414,13 @@ export async function uploadAndAnalyzeCSV(
       let errorData: ApiError;
 
       try {
-        const errorJson = await parseJSONResponse<ApiError>(response);
+        const errorJson = await parseJSONResponse<{ detail?: ApiError } & ApiError>(response);
+        const d = errorJson.detail ?? errorJson;
         errorData = {
           success: false,
-          error: errorJson.error || "http_error",
-          message: errorJson.message || `Erreur HTTP ${response.status}`,
-          details: errorJson.details,
+          error: d.error || "http_error",
+          message: d.message || `Erreur HTTP ${response.status}`,
+          details: d.details,
         };
       } catch {
         // Si pas de JSON, créer erreur générique
@@ -584,6 +594,66 @@ export async function checkBackendConnection(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/** Clés price_id acceptées par le backend Stripe */
+export type StripePriceId =
+  | "racer_monthly"
+  | "racer_annual"
+  | "team_monthly"
+  | "team_annual";
+
+export interface CreateCheckoutSessionResponse {
+  checkout_url: string;
+}
+
+/**
+ * Crée une session Stripe Checkout pour abonnement.
+ * Rediriger l'utilisateur vers checkout_url après appel réussi.
+ */
+export async function createCheckoutSession(
+  userId: string,
+  priceId: StripePriceId
+): Promise<CreateCheckoutSessionResponse> {
+  const controller = createTimeoutController(15000);
+  const response = await fetch(`${API_BASE_URL}/api/stripe/create-checkout-session`, {
+    method: "POST",
+    signal: controller.signal,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, price_id: priceId }),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const message =
+      (data?.message as string) || (data?.detail?.message as string) || `Erreur ${response.status}`;
+    throw new Error(message);
+  }
+  return parseJSONResponse<CreateCheckoutSessionResponse>(response);
+}
+
+export interface CreatePortalSessionResponse {
+  portal_url: string;
+}
+
+/**
+ * Crée une session Stripe Customer Portal pour gérer l'abonnement.
+ * Rediriger l'utilisateur vers portal_url après appel réussi.
+ */
+export async function createPortalSession(userId: string): Promise<CreatePortalSessionResponse> {
+  const controller = createTimeoutController(15000);
+  const response = await fetch(`${API_BASE_URL}/api/stripe/create-portal-session`, {
+    method: "POST",
+    signal: controller.signal,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const message =
+      (data?.message as string) || (data?.detail?.message as string) || `Erreur ${response.status}`;
+    throw new Error(message);
+  }
+  return parseJSONResponse<CreatePortalSessionResponse>(response);
 }
 
 // ============================================================================

@@ -61,7 +61,7 @@ import {
   type AnalysisSummary,
 } from "@/lib/storage";
 import { getDisplayScore, type AnalysisResult, type CornerAnalysis, type CoachingAdvice } from "@/lib/api";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscriptionLegacy } from "@/hooks/useSubscriptionLegacy";
 import { useAuth } from "@/hooks/useAuth";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Helmet } from "react-helmet-async";
@@ -74,7 +74,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const analysisIdParam = searchParams.get("analysisId");
-  const { subscription, limits, isPro } = useSubscription();
+  const { subscription, limits, isPro } = useSubscriptionLegacy();
   const { user } = useAuth();
   const isAdmin = user?.email === ADMIN_EMAIL;
 

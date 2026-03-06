@@ -4,7 +4,10 @@ import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useUser, useAuth } from "@/hooks/useAuth";
+import { useSubscriptionLegacy } from "@/hooks/useSubscriptionLegacy";
 import { useSubscription } from "@/hooks/useSubscription";
+import { SubscriptionBadge } from "@/components/SubscriptionBadge";
+import { createPortalSession } from "@/lib/api";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -27,7 +30,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Helmet } from "react-helmet-async";
 import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
-import { API_BASE_URL } from "@/lib/api";
 import { ADMIN_EMAIL } from "@/constants";
 
 const achievements = [
@@ -39,7 +41,15 @@ const achievements = [
 export default function Profile() {
   const { user, loading } = useUser();
   const { signOut } = useAuth();
-  const { subscription, isPro, isActive } = useSubscription();
+  const { subscription, isPro, isActive } = useSubscriptionLegacy();
+  const {
+    tier,
+    status,
+    billingPeriod,
+    subscriptionEndDate,
+    isLoading: subscriptionLoading,
+  } = useSubscription();
+  const hasActivePaidSubscription = (tier === "racer" || tier === "team") && status === "active";
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<AnalysisSummary[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
@@ -108,31 +118,20 @@ export default function Profile() {
   };
 
   const handleCustomerPortal = async () => {
-    if (!subscription?.customerId) {
-      setError("Aucun abonnement actif");
+    if (!user?.id) {
+      setError("Session invalide");
       return;
     }
-
     try {
       setLoadingPortal(true);
       setError(null);
-
-      const response = await fetch(
-        `${API_BASE_URL}/api/customer-portal?user_id=${user?.id}&customer_id=${subscription.customerId}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'ouverture du portail");
-      }
-
-      const { url } = await response.json();
-
-      if (url) {
-        window.location.href = url;
-      }
+      const { portal_url } = await createPortalSession(user.id);
+      if (portal_url) window.location.href = portal_url;
     } catch (err) {
       console.error("Customer portal error:", err);
-      setError("Erreur lors de l'ouverture du portail client");
+      setError(
+        err instanceof Error ? err.message : "Erreur lors de l'ouverture du portail client"
+      );
     } finally {
       setLoadingPortal(false);
     }
@@ -292,7 +291,7 @@ export default function Profile() {
                   Paramètres
                 </Link>
               </Button>
-              {isPro && isActive && subscription?.customerId && (
+              {hasActivePaidSubscription && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -394,6 +393,80 @@ export default function Profile() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Abonnement */}
+            <div className="glass-card p-6">
+              <h3 className="font-display font-semibold text-lg text-foreground mb-4">
+                Abonnement
+              </h3>
+              {subscriptionLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Chargement…</span>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <SubscriptionBadge />
+                  </div>
+                  {billingPeriod && (
+                    <p className="text-sm text-muted-foreground">
+                      Facturation{" "}
+                      {billingPeriod === "annual" ? "annuelle" : "mensuelle"}
+                    </p>
+                  )}
+                  {subscriptionEndDate && (
+                    <p className="text-sm text-muted-foreground">
+                      Prochain renouvellement :{" "}
+                      {format(new Date(subscriptionEndDate), "d MMMM yyyy", { locale: fr })}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Changez de plan, mettez à jour vos moyens de paiement ou annulez
+                    depuis le portail Stripe.
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {tier === "rookie" ? (
+                      <Button variant="hero" size="sm" asChild className="w-full gap-2">
+                        <Link to="/pricing">
+                          <Zap className="w-4 h-4" />
+                          Passer à un plan payant
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2"
+                        onClick={async () => {
+                          if (!user?.id) return;
+                          try {
+                            setLoadingPortal(true);
+                            setError(null);
+                            const { portal_url } = await createPortalSession(user.id);
+                            if (portal_url) window.location.href = portal_url;
+                          } catch (err) {
+                            setError(
+                              err instanceof Error ? err.message : "Erreur lors de l'ouverture du portail"
+                            );
+                          } finally {
+                            setLoadingPortal(false);
+                          }
+                        }}
+                        disabled={loadingPortal}
+                      >
+                        {loadingPortal ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <ExternalLink className="w-4 h-4" />
+                        )}
+                        Gérer mon abonnement
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Achievements */}

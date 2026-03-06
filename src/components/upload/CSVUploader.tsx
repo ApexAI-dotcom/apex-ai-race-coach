@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Upload,
   FileSpreadsheet,
@@ -27,6 +27,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   uploadAndAnalyzeCSV,
   parseLaps,
@@ -71,7 +79,7 @@ const ANALYSIS_STEPS = [
 
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
+  const { user, session, isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
   const canUpload = isAuthenticated || canUploadFree;
   const storageUserId = user?.id ?? undefined;
 
@@ -90,6 +98,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const [isComplete, setIsComplete] = useState(false);
   const [analysisStepIndex, setAnalysisStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [showLimitReachedModal, setShowLimitReachedModal] = useState(false);
 
   // Résultats
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -321,6 +330,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         lapFilter: lapFilter ?? undefined,
         track_condition: trackCondition,
         track_temperature: tempNum ?? undefined,
+        accessToken: session?.access_token ?? undefined,
       });
 
       // Auto-save (clé storage = user courant ou guest)
@@ -347,9 +357,14 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     } catch (err) {
       setIsAnalyzing(false);
       const apiError = err as ApiError;
-      setError(
-        apiError?.message ?? "Une erreur inattendue s'est produite. Réessayez dans quelques instants."
-      );
+      if (apiError?.error === "limit_reached") {
+        setError(null);
+        setShowLimitReachedModal(true);
+      } else {
+        setError(
+          apiError?.message ?? "Une erreur inattendue s'est produite. Réessayez dans quelques instants."
+        );
+      }
     }
   };
 
@@ -414,6 +429,29 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modal limite Rookie atteinte */}
+      <Dialog open={showLimitReachedModal} onOpenChange={setShowLimitReachedModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Limite atteinte</DialogTitle>
+            <DialogDescription>
+              Passez à Racer pour des analyses illimitées.
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Vous avez utilisé vos 3 analyses du mois. Passez au plan Racer pour analyser sans limite.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLimitReachedModal(false)}>
+              Fermer
+            </Button>
+            <Button asChild>
+              <Link to="/pricing">Voir les offres Racer</Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Alerte erreur */}
       <AnimatePresence>
