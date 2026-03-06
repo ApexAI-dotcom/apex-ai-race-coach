@@ -77,6 +77,7 @@ export function useSubscription() {
         return;
       }
       const data: SubscriptionResponse = await res.json();
+      console.log("[useSubscription] Response:", data);
       setTier(data.tier ?? "rookie");
       setStatus(data.status ?? null);
       setBillingPeriod(data.billing_period ?? null);
@@ -97,11 +98,12 @@ export function useSubscription() {
     fetchSubscription();
   }, [fetchSubscription]);
 
-  // Après paiement : ?session_id= présent → polling 2s pendant 10s, nettoyer l’URL quand tier change
+  // Après paiement : ?session_id= présent → refetch immédiat puis polling 2s pendant 10s
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
     if (!sessionId || !user?.id) return;
 
+    fetchSubscription();
     let elapsed = 0;
 
     const poll = () => {

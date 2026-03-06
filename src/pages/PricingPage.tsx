@@ -150,7 +150,7 @@ export default function PricingPage() {
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
           <Loader2 className="w-12 h-12 animate-spin text-primary" />
           <p className="text-white font-medium">Redirection vers Stripe…</p>
-          <p className="text-sm text-slate-400">Ne fermez pas cette page.</p>
+          <p className="text-sm text-muted-foreground">Ne fermez pas cette page.</p>
         </div>
       )}
       <PageMeta
@@ -183,19 +183,19 @@ export default function PricingPage() {
             <h1 className="font-bold text-3xl md:text-4xl text-foreground mb-3">
               Tarifs <span className="text-primary">ApexAI</span>
             </h1>
-            <p className="text-slate-400 max-w-lg mx-auto mb-8">
+            <p className="text-muted-foreground max-w-lg mx-auto mb-8">
               Choisissez le plan adapté à votre pratique. Paiement sécurisé, annulable à tout moment.
             </p>
 
             {/* Toggle Mensuel / Annuel */}
-            <div className="inline-flex items-center gap-3 p-1.5 rounded-xl bg-slate-800/80 border border-slate-700/80">
+            <div className="inline-flex items-center gap-3 p-1.5 rounded-xl bg-card border border-border">
               <button
                 type="button"
                 onClick={() => setPeriod("monthly")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   period === "monthly"
-                    ? "bg-slate-700 text-white shadow"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "bg-secondary text-foreground shadow"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Mensuel
@@ -206,11 +206,11 @@ export default function PricingPage() {
                 className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   period === "annual"
                     ? "bg-primary text-primary-foreground shadow shadow-primary/30"
-                    : "text-slate-400 hover:text-slate-200"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Annuel
-                <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/90 text-white">
+                <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/90 text-primary-foreground">
                   -17%
                 </span>
               </button>
@@ -251,8 +251,8 @@ export default function PricingPage() {
                   }`}
                 >
                   {planItem.popular && (
-                    <div className="absolute top-0 left-0 right-0 py-1.5 bg-gradient-to-r from-orange-600 to-amber-600 text-center">
-                      <span className="text-xs font-bold text-white tracking-wide">
+                    <div className="absolute top-0 left-0 right-0 py-1.5 bg-primary text-center">
+                      <span className="text-xs font-bold text-primary-foreground tracking-wide">
                         Le plus populaire
                       </span>
                     </div>
@@ -267,7 +267,7 @@ export default function PricingPage() {
                       <span className="text-3xl font-bold text-foreground">
                         {price === 0 ? "0" : price.toFixed(2).replace(".", ",")}€
                       </span>
-                      <span className="text-slate-400 text-sm ml-1">
+                      <span className="text-muted-foreground text-sm ml-1">
                         {price === 0 ? "" : period === "annual" ? "/an" : "/mois"}
                       </span>
                     </div>
@@ -276,11 +276,11 @@ export default function PricingPage() {
                       {planItem.features.map((f, i) => (
                         <li key={i} className="flex items-center gap-3 text-sm">
                           {f.included ? (
-                            <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                            <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
                           ) : (
-                            <X className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                            <X className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           )}
-                          <span className={f.included ? "text-slate-300" : "text-slate-500"}>
+                          <span className={f.included ? "text-foreground" : "text-muted-foreground"}>
                             {f.text}
                           </span>
                         </li>
