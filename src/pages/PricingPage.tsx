@@ -148,7 +148,7 @@ export default function PricingPage() {
       {/* Overlay pendant redirection Stripe Checkout */}
       {isRedirecting && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
-          <Loader2 className="w-12 h-12 animate-spin text-orange-500" />
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
           <p className="text-white font-medium">Redirection vers Stripe…</p>
           <p className="text-sm text-slate-400">Ne fermez pas cette page.</p>
         </div>
@@ -158,7 +158,7 @@ export default function PricingPage() {
         description="Choisissez votre plan : Rookie gratuit, Racer illimité, Team avec comparaison. Paiement sécurisé Stripe."
         path="/pricing"
       />
-      <div className="min-h-screen bg-[#0a0a0b] text-slate-100">
+      <div className="min-h-screen bg-background text-foreground">
         <div className="container mx-auto px-4 py-12 md:py-16">
           {canceled === "true" && (
             <Alert className="mb-8 border-amber-500/40 bg-amber-500/10 max-w-xl mx-auto">
@@ -171,17 +171,17 @@ export default function PricingPage() {
           )}
 
           {error && (
-            <Alert className="mb-8 border-red-500/40 bg-red-500/10 max-w-xl mx-auto">
-              <X className="h-4 w-4 text-red-500" />
-              <AlertTitle className="text-red-500">Erreur</AlertTitle>
+            <Alert className="mb-8 border-destructive/40 bg-destructive/10 max-w-xl mx-auto">
+              <X className="h-4 w-4 text-destructive" />
+              <AlertTitle className="text-destructive">Erreur</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="font-bold text-3xl md:text-4xl text-white mb-3">
-              Tarifs <span className="text-orange-500">ApexAI</span>
+            <h1 className="font-bold text-3xl md:text-4xl text-foreground mb-3">
+              Tarifs <span className="text-primary">ApexAI</span>
             </h1>
             <p className="text-slate-400 max-w-lg mx-auto mb-8">
               Choisissez le plan adapté à votre pratique. Paiement sécurisé, annulable à tout moment.
@@ -205,7 +205,7 @@ export default function PricingPage() {
                 onClick={() => setPeriod("annual")}
                 className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   period === "annual"
-                    ? "bg-orange-600 text-white shadow shadow-orange-900/30"
+                    ? "bg-primary text-primary-foreground shadow shadow-primary/30"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
@@ -244,10 +244,10 @@ export default function PricingPage() {
               return (
                 <div
                   key={planItem.id}
-                  className={`relative rounded-2xl border bg-slate-900/60 backdrop-blur-sm overflow-hidden ${
+                  className={`relative rounded-2xl border bg-card/80 backdrop-blur-sm overflow-hidden ${
                     planItem.popular
-                      ? "border-orange-500/60 shadow-lg shadow-orange-500/10 ring-1 ring-orange-500/30"
-                      : "border-slate-700/60"
+                      ? "border-primary/60 shadow-lg shadow-primary/10 ring-1 ring-primary/30"
+                      : "border-border"
                   }`}
                 >
                   {planItem.popular && (
@@ -259,12 +259,12 @@ export default function PricingPage() {
                   )}
                   <div className={`p-6 md:p-8 ${planItem.popular ? "pt-10" : ""}`}>
                     <div className="flex items-center gap-2 mb-2">
-                      <Icon className="w-6 h-6 text-orange-500" />
-                      <h2 className="text-xl font-bold text-white">{planItem.name}</h2>
+                      <Icon className="w-6 h-6 text-primary" />
+                      <h2 className="text-xl font-bold text-foreground">{planItem.name}</h2>
                     </div>
 
                     <div className="mb-6">
-                      <span className="text-3xl font-bold text-white">
+                      <span className="text-3xl font-bold text-foreground">
                         {price === 0 ? "0" : price.toFixed(2).replace(".", ",")}€
                       </span>
                       <span className="text-slate-400 text-sm ml-1">
@@ -293,12 +293,12 @@ export default function PricingPage() {
                       disabled={buttonDisabled}
                       className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
                         isRookie
-                          ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                          ? "bg-secondary text-muted-foreground cursor-not-allowed"
                           : isCurrent || isLower
-                            ? "bg-slate-700 text-slate-400 cursor-default"
+                            ? "bg-secondary text-muted-foreground cursor-default"
                             : planItem.popular
-                              ? "bg-orange-600 hover:bg-orange-500 text-white"
-                              : "bg-slate-700 hover:bg-slate-600 text-white border border-slate-600"
+                              ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                              : "bg-secondary hover:bg-secondary/80 text-foreground border border-border"
                       }`}
                     >
                       {loadingPriceId === priceId ? (
@@ -317,12 +317,12 @@ export default function PricingPage() {
           </div>
 
           {/* Paiement sécurisé */}
-          <div className="text-center py-8 border-t border-slate-800">
-            <p className="text-slate-500 text-sm mb-3">Paiement sécurisé par Stripe</p>
-            <div className="flex justify-center items-center gap-6 text-slate-600">
+          <div className="text-center py-8 border-t border-border">
+            <p className="text-muted-foreground text-sm mb-3">Paiement sécurisé par Stripe</p>
+            <div className="flex justify-center items-center gap-6 text-muted-foreground">
               <CreditCard className="w-6 h-6" />
               <Lock className="w-6 h-6" />
-              <Check className="w-6 h-6 text-emerald-600/80" />
+              <Check className="w-6 h-6 text-green-500" />
             </div>
           </div>
         </div>
