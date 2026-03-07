@@ -354,13 +354,13 @@ export default function Index() {
               </span>
             </Link>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link to="/pricing" className="hover:text-orange-300 transition-colors duration-200">
+              <Link to="/pricing" className="hover:text-primary transition-colors duration-200">
                 Tarifs
               </Link>
-              <Link to="/#contact" className="hover:text-orange-300 transition-colors duration-200">
+              <Link to="/#contact" className="hover:text-primary transition-colors duration-200">
                 Contact
               </Link>
-              <Link to="/legal" className="hover:text-orange-300 transition-colors duration-200">
+              <Link to="/legal" className="hover:text-primary transition-colors duration-200">
                 Mentions légales
               </Link>
             </div>

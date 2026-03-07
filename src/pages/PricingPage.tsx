@@ -153,7 +153,7 @@ export default function PricingPage() {
       {/* Overlay pendant redirection Stripe Checkout */}
       {isRedirecting && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
-          <Loader2 className="w-12 h-12 animate-spin text-orange-500" />
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
           <p className="text-white font-medium">Redirection vers Stripe…</p>
           <p className="text-sm text-slate-400">Ne fermez pas cette page.</p>
         </div>
@@ -186,7 +186,7 @@ export default function PricingPage() {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="font-bold text-3xl md:text-4xl text-white mb-3">
-              Tarifs <span className="text-orange-500">ApexAI</span>
+              Tarifs <span className="text-gradient-primary">ApexAI</span>
             </h1>
             <p className="text-slate-400 max-w-lg mx-auto mb-8">
               Choisissez le plan adapté à votre pratique. Paiement sécurisé, annulable à tout moment.
@@ -210,12 +210,12 @@ export default function PricingPage() {
                 onClick={() => setPeriod("annual")}
                 className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   period === "annual"
-                    ? "bg-orange-600 text-white shadow shadow-orange-900/30"
+                    ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/30"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
                 Annuel
-                <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/90 text-white">
+                <span className="absolute -top-2 -right-2 rounded-full bg-primary/90 text-primary-foreground text-xs font-semibold px-1.5 py-0.5">
                   -17%
                 </span>
               </button>
@@ -251,7 +251,7 @@ export default function PricingPage() {
                   key={planItem.id}
                   className={`relative rounded-2xl border bg-slate-900/60 backdrop-blur-sm overflow-hidden ${
                     planItem.popular
-                      ? "border-orange-500/60 shadow-lg shadow-orange-500/10 ring-1 ring-orange-500/30"
+                      ? "border-primary/60 shadow-lg shadow-primary/10 ring-1 ring-primary/30"
                       : "border-slate-700/60"
                   }`}
                 >
@@ -302,11 +302,13 @@ export default function PricingPage() {
                           : isCurrent || isLower
                             ? "bg-secondary text-muted-foreground cursor-not-allowed"
                             : planItem.popular
-                              ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                              : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border"
+                              ? "gradient-primary text-primary-foreground hover:opacity-90"
+                              : "gradient-primary text-primary-foreground hover:opacity-90 border border-primary/50"
                       }`}
                     >
-                      {loadingPriceId !== null && loadingPriceId === priceId ? (
+                      {isRookie ? (
+                        "Gratuit"
+                      ) : loadingPriceId !== null && loadingPriceId === priceId ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
                           Redirection...
