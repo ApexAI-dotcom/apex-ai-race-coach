@@ -110,13 +110,9 @@ export default function PricingPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { user } = useAuth();
-  const { plan: currentPlan, isPollingAfterPayment } = useSubscription();
+  const { plan: currentPlan } = useSubscription();
   const currentPlanId = planToPlanId(currentPlan ?? "free");
   const canceled = searchParams.get("canceled");
-
-  useEffect(() => {
-    setLoadingPriceId(null);
-  }, []);
 
   useEffect(() => {
     if (canceled === "true") {
@@ -140,7 +136,6 @@ export default function PricingPage() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erreur lors de la création de la session.";
       setError(msg);
-      setLoadingPriceId(null);
     } finally {
       setLoadingPriceId(null);
     }
@@ -180,16 +175,6 @@ export default function PricingPage() {
               <X className="h-4 w-4 text-red-500" />
               <AlertTitle className="text-red-500">Erreur</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {isPollingAfterPayment && (
-            <Alert className="mb-8 border-emerald-500/40 bg-emerald-500/10 max-w-xl mx-auto">
-              <Loader2 className="h-4 w-4 text-emerald-500 animate-spin" />
-              <AlertTitle className="text-emerald-500">Mise à jour en cours…</AlertTitle>
-              <AlertDescription>
-                Vérification de votre abonnement après paiement.
-              </AlertDescription>
             </Alert>
           )}
 
@@ -253,7 +238,7 @@ export default function PricingPage() {
               if (loadingPriceId === priceId) buttonLabel = "Redirection...";
               else if (isRookie) buttonLabel = "Gratuit";
               else if (isCurrent) buttonLabel = "Plan actuel";
-              else if (isLower) buttonLabel = "Inclus";
+              else if (isLower) buttonLabel = `Plan actuel : ${planItem.name}`;
               else buttonLabel = "S'abonner";
 
               return (
@@ -266,13 +251,13 @@ export default function PricingPage() {
                   }`}
                 >
                   {planItem.popular && (
-                    <div className="absolute top-2 right-2">
-                      <span className="py-0.5 px-2 text-xs font-medium rounded bg-orange-600/90 text-white">
+                    <div className="absolute top-0 left-0 right-0 py-1.5 bg-gradient-to-r from-orange-600 to-amber-600 text-center">
+                      <span className="text-xs font-bold text-white tracking-wide">
                         Le plus populaire
                       </span>
                     </div>
                   )}
-                  <div className={`p-6 md:p-8 ${planItem.popular ? "pt-8" : ""}`}>
+                  <div className={`p-6 md:p-8 ${planItem.popular ? "pt-10" : ""}`}>
                     <div className="flex items-center gap-2 mb-2">
                       <Icon className="w-6 h-6 text-orange-500" />
                       <h2 className="text-xl font-bold text-white">{planItem.name}</h2>
