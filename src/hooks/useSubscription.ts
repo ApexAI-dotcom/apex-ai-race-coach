@@ -52,8 +52,7 @@ export function useSubscription() {
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchSubscription = useCallback(async () => {
-    const token = session?.access_token;
-    if (!user?.id || !token) {
+    if (!user?.id) {
       setTier("rookie");
       setStatus(null);
       setBillingPeriod(null);
@@ -63,10 +62,14 @@ export function useSubscription() {
       return;
     }
 
+    const token = session?.access_token;
+    const url = `${API_BASE_URL}/api/user/subscription?user_id=${user.id}`;
+    console.log("[useSubscription] fetching, user_id:", user.id);
+
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/user/subscription`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) {
         setTier("rookie");
