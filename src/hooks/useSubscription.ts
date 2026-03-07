@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/api";
 
 const POLL_INTERVAL_MS = 2000;
-const POLL_MAX_DURATION_MS = 10000;
+const POLL_MAX_DURATION_MS = 15000;
 
 export type SubscriptionTier = "rookie" | "racer" | "team";
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing" | null;
@@ -49,11 +49,11 @@ export function useSubscription() {
   const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | null>(null);
   const [limits, setLimits] = useState<SubscriptionLimits | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPollingAfterPayment, setIsPollingAfterPayment] = useState(false);
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchSubscription = useCallback(async () => {
-    const token = session?.access_token;
-    if (!user?.id || !token) {
+    if (!user?.id) {
       setTier("rookie");
       setStatus(null);
       setBillingPeriod(null);
@@ -63,10 +63,15 @@ export function useSubscription() {
       return;
     }
 
+    const token = session?.access_token;
+    console.log("[useSubscription] fetching, user_id:", user.id);
+
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/user/subscription`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const url = new URL(`${API_BASE_URL}/api/user/subscription`);
+      url.searchParams.set("user_id", user.id);
+      const res = await fetch(url.toString(), {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) {
         setTier("rookie");
@@ -77,13 +82,13 @@ export function useSubscription() {
         return;
       }
       const data: SubscriptionResponse = await res.json();
-      console.log("[useSubscription] Response:", data);
       setTier(data.tier ?? "rookie");
       setStatus(data.status ?? null);
       setBillingPeriod(data.billing_period ?? null);
       setSubscriptionEndDate(data.subscription_end_date ?? null);
       setLimits(data.limits ?? null);
-    } catch {
+    } catch (err) {
+      console.error("[useSubscription] fetch error:", err);
       setTier("rookie");
       setStatus(null);
       setBillingPeriod(null);
@@ -98,18 +103,22 @@ export function useSubscription() {
     fetchSubscription();
   }, [fetchSubscription]);
 
-  // Après paiement : ?session_id= présent → refetch immédiat puis polling 2s pendant 10s
+  // Après paiement : ?session_id= présent → polling 2s pendant 10s, nettoyer l’URL quand tier change
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
-    if (!sessionId || !user?.id) return;
+    if (!sessionId || !user?.id) {
+      setIsPollingAfterPayment(false);
+      return;
+    }
 
-    fetchSubscription();
+    setIsPollingAfterPayment(true);
     let elapsed = 0;
 
     const poll = () => {
       elapsed += POLL_INTERVAL_MS;
       fetchSubscription().then(() => {});
       if (elapsed >= POLL_MAX_DURATION_MS) {
+        setIsPollingAfterPayment(false);
         if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
         const next = new URLSearchParams(searchParams);
         next.delete("session_id");
@@ -122,6 +131,7 @@ export function useSubscription() {
 
     pollTimeoutRef.current = setTimeout(poll, POLL_INTERVAL_MS);
     return () => {
+      setIsPollingAfterPayment(false);
       if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
     };
   }, [searchParams.get("session_id"), user?.id, fetchSubscription]);
@@ -130,6 +140,9 @@ export function useSubscription() {
   const prevTierRef = useRef<SubscriptionTier>("rookie");
   useEffect(() => {
     if (prevTierRef.current === "rookie" && tier !== "rookie" && searchParams.has("session_id")) {
+      setIsPollingAfterPayment(false);
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+      pollTimeoutRef.current = null;
       const next = new URLSearchParams(searchParams);
       next.delete("session_id");
       next.delete("success");
@@ -147,5 +160,6 @@ export function useSubscription() {
     limits,
     isLoading,
     plan,
+    isPollingAfterPayment,
   };
 }

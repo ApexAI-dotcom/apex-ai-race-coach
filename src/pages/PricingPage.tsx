@@ -110,9 +110,13 @@ export default function PricingPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { user } = useAuth();
-  const { plan: currentPlan } = useSubscription();
+  const { plan: currentPlan, isPollingAfterPayment } = useSubscription();
   const currentPlanId = planToPlanId(currentPlan ?? "free");
   const canceled = searchParams.get("canceled");
+
+  useEffect(() => {
+    setLoadingPriceId(null);
+  }, []);
 
   useEffect(() => {
     if (canceled === "true") {
@@ -136,6 +140,7 @@ export default function PricingPage() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erreur lors de la création de la session.";
       setError(msg);
+      setLoadingPriceId(null);
     } finally {
       setLoadingPriceId(null);
     }
@@ -148,9 +153,9 @@ export default function PricingPage() {
       {/* Overlay pendant redirection Stripe Checkout */}
       {isRedirecting && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
-          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+          <Loader2 className="w-12 h-12 animate-spin text-orange-500" />
           <p className="text-white font-medium">Redirection vers Stripe…</p>
-          <p className="text-sm text-muted-foreground">Ne fermez pas cette page.</p>
+          <p className="text-sm text-slate-400">Ne fermez pas cette page.</p>
         </div>
       )}
       <PageMeta
@@ -158,7 +163,7 @@ export default function PricingPage() {
         description="Choisissez votre plan : Rookie gratuit, Racer illimité, Team avec comparaison. Paiement sécurisé Stripe."
         path="/pricing"
       />
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-[#0a0a0b] text-slate-100">
         <div className="container mx-auto px-4 py-12 md:py-16">
           {canceled === "true" && (
             <Alert className="mb-8 border-amber-500/40 bg-amber-500/10 max-w-xl mx-auto">
@@ -171,31 +176,41 @@ export default function PricingPage() {
           )}
 
           {error && (
-            <Alert className="mb-8 border-destructive/40 bg-destructive/10 max-w-xl mx-auto">
-              <X className="h-4 w-4 text-destructive" />
-              <AlertTitle className="text-destructive">Erreur</AlertTitle>
+            <Alert className="mb-8 border-red-500/40 bg-red-500/10 max-w-xl mx-auto">
+              <X className="h-4 w-4 text-red-500" />
+              <AlertTitle className="text-red-500">Erreur</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {isPollingAfterPayment && (
+            <Alert className="mb-8 border-emerald-500/40 bg-emerald-500/10 max-w-xl mx-auto">
+              <Loader2 className="h-4 w-4 text-emerald-500 animate-spin" />
+              <AlertTitle className="text-emerald-500">Mise à jour en cours…</AlertTitle>
+              <AlertDescription>
+                Vérification de votre abonnement après paiement.
+              </AlertDescription>
             </Alert>
           )}
 
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="font-bold text-3xl md:text-4xl text-foreground mb-3">
-              Tarifs <span className="text-primary">ApexAI</span>
+            <h1 className="font-bold text-3xl md:text-4xl text-white mb-3">
+              Tarifs <span className="text-orange-500">ApexAI</span>
             </h1>
-            <p className="text-muted-foreground max-w-lg mx-auto mb-8">
+            <p className="text-slate-400 max-w-lg mx-auto mb-8">
               Choisissez le plan adapté à votre pratique. Paiement sécurisé, annulable à tout moment.
             </p>
 
             {/* Toggle Mensuel / Annuel */}
-            <div className="inline-flex items-center gap-3 p-1.5 rounded-xl bg-card border border-border">
+            <div className="inline-flex items-center gap-3 p-1.5 rounded-xl bg-slate-800/80 border border-slate-700/80">
               <button
                 type="button"
                 onClick={() => setPeriod("monthly")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   period === "monthly"
-                    ? "bg-secondary text-foreground shadow"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-slate-700 text-white shadow"
+                    : "text-slate-400 hover:text-slate-200"
                 }`}
               >
                 Mensuel
@@ -205,12 +220,12 @@ export default function PricingPage() {
                 onClick={() => setPeriod("annual")}
                 className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   period === "annual"
-                    ? "bg-primary text-primary-foreground shadow shadow-primary/30"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-orange-600 text-white shadow shadow-orange-900/30"
+                    : "text-slate-400 hover:text-slate-200"
                 }`}
               >
                 Annuel
-                <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/90 text-primary-foreground">
+                <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/90 text-white">
                   -17%
                 </span>
               </button>
@@ -238,36 +253,36 @@ export default function PricingPage() {
               if (loadingPriceId === priceId) buttonLabel = "Redirection...";
               else if (isRookie) buttonLabel = "Gratuit";
               else if (isCurrent) buttonLabel = "Plan actuel";
-              else if (isLower) buttonLabel = `Plan actuel : ${planItem.name}`;
+              else if (isLower) buttonLabel = "Inclus";
               else buttonLabel = "S'abonner";
 
               return (
                 <div
                   key={planItem.id}
-                  className={`relative rounded-2xl border bg-card/80 backdrop-blur-sm overflow-hidden ${
+                  className={`relative rounded-2xl border bg-slate-900/60 backdrop-blur-sm overflow-hidden ${
                     planItem.popular
-                      ? "border-primary/60 shadow-lg shadow-primary/10 ring-1 ring-primary/30"
-                      : "border-border"
+                      ? "border-orange-500/60 shadow-lg shadow-orange-500/10 ring-1 ring-orange-500/30"
+                      : "border-slate-700/60"
                   }`}
                 >
                   {planItem.popular && (
-                    <div className="absolute top-0 left-0 right-0 py-1.5 bg-primary text-center">
-                      <span className="text-xs font-bold text-primary-foreground tracking-wide">
+                    <div className="absolute top-2 right-2">
+                      <span className="py-0.5 px-2 text-xs font-medium rounded bg-orange-600/90 text-white">
                         Le plus populaire
                       </span>
                     </div>
                   )}
-                  <div className={`p-6 md:p-8 ${planItem.popular ? "pt-10" : ""}`}>
+                  <div className={`p-6 md:p-8 ${planItem.popular ? "pt-8" : ""}`}>
                     <div className="flex items-center gap-2 mb-2">
-                      <Icon className="w-6 h-6 text-primary" />
-                      <h2 className="text-xl font-bold text-foreground">{planItem.name}</h2>
+                      <Icon className="w-6 h-6 text-orange-500" />
+                      <h2 className="text-xl font-bold text-white">{planItem.name}</h2>
                     </div>
 
                     <div className="mb-6">
-                      <span className="text-3xl font-bold text-foreground">
+                      <span className="text-3xl font-bold text-white">
                         {price === 0 ? "0" : price.toFixed(2).replace(".", ",")}€
                       </span>
-                      <span className="text-muted-foreground text-sm ml-1">
+                      <span className="text-slate-400 text-sm ml-1">
                         {price === 0 ? "" : period === "annual" ? "/an" : "/mois"}
                       </span>
                     </div>
@@ -276,11 +291,11 @@ export default function PricingPage() {
                       {planItem.features.map((f, i) => (
                         <li key={i} className="flex items-center gap-3 text-sm">
                           {f.included ? (
-                            <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                            <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                           ) : (
-                            <X className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <X className="w-4 h-4 text-slate-600 flex-shrink-0" />
                           )}
-                          <span className={f.included ? "text-foreground" : "text-muted-foreground"}>
+                          <span className={f.included ? "text-slate-300" : "text-slate-500"}>
                             {f.text}
                           </span>
                         </li>
@@ -293,12 +308,12 @@ export default function PricingPage() {
                       disabled={buttonDisabled}
                       className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
                         isRookie
-                          ? "bg-secondary text-muted-foreground cursor-not-allowed"
+                          ? "bg-slate-800 text-slate-500 cursor-not-allowed"
                           : isCurrent || isLower
-                            ? "bg-secondary text-muted-foreground cursor-default"
+                            ? "bg-slate-700 text-slate-400 cursor-default"
                             : planItem.popular
-                              ? "bg-primary hover:bg-primary/90 text-primary-foreground"
-                              : "bg-secondary hover:bg-secondary/80 text-foreground border border-border"
+                              ? "bg-orange-600 hover:bg-orange-500 text-white"
+                              : "bg-slate-700 hover:bg-slate-600 text-white border border-slate-600"
                       }`}
                     >
                       {loadingPriceId === priceId ? (
@@ -317,12 +332,12 @@ export default function PricingPage() {
           </div>
 
           {/* Paiement sécurisé */}
-          <div className="text-center py-8 border-t border-border">
-            <p className="text-muted-foreground text-sm mb-3">Paiement sécurisé par Stripe</p>
-            <div className="flex justify-center items-center gap-6 text-muted-foreground">
+          <div className="text-center py-8 border-t border-slate-800">
+            <p className="text-slate-500 text-sm mb-3">Paiement sécurisé par Stripe</p>
+            <div className="flex justify-center items-center gap-6 text-slate-600">
               <CreditCard className="w-6 h-6" />
               <Lock className="w-6 h-6" />
-              <Check className="w-6 h-6 text-green-500" />
+              <Check className="w-6 h-6 text-emerald-600/80" />
             </div>
           </div>
         </div>

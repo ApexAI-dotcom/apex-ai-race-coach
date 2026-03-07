@@ -4,5 +4,3 @@ dist/
 .env.local
 .vercel
 .env*.local
-.env.production
-.env.production.*
