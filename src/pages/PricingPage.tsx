@@ -303,7 +303,7 @@ export default function PricingPage() {
                             ? "bg-secondary text-muted-foreground cursor-not-allowed"
                             : planItem.popular
                               ? "gradient-primary text-primary-foreground hover:opacity-90"
-                              : "gradient-primary text-primary-foreground hover:opacity-90 border border-primary/50"
+                              : "bg-slate-700 hover:bg-slate-600 text-white border border-slate-600"
                       }`}
                     >
                       {isRookie ? (
