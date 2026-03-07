@@ -10,19 +10,19 @@ const TIER_CONFIG: Record<
     Icon: Flag,
     label: "Rookie",
     className:
-      "bg-slate-700/80 text-slate-300 border-slate-600/60 hover:bg-slate-700",
+      "bg-secondary text-muted-foreground border-border hover:bg-secondary/80",
   },
   racer: {
     Icon: Car,
     label: "Racer",
     className:
-      "bg-blue-600/80 text-blue-100 border-blue-500/60 hover:bg-blue-600",
+      "bg-primary/80 text-primary-foreground border-primary/60 hover:bg-primary",
   },
   team: {
     Icon: Trophy,
     label: "Team",
     className:
-      "bg-violet-600/80 text-violet-100 border-violet-500/60 hover:bg-violet-600",
+      "bg-primary text-primary-foreground border-primary hover:bg-primary/90",
   },
 };
 

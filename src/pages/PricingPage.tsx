@@ -257,7 +257,7 @@ export default function PricingPage() {
                 >
                   {planItem.popular && (
                     <div className="absolute top-2 right-2">
-                      <span className="py-0.5 px-2 text-xs font-medium rounded bg-orange-600/90 text-white">
+                      <span className="py-0.5 px-2 text-xs font-medium rounded bg-primary/90 text-primary-foreground">
                         Le plus populaire
                       </span>
                     </div>
@@ -298,18 +298,18 @@ export default function PricingPage() {
                       disabled={buttonDisabled}
                       className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
                         isRookie
-                          ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                          ? "bg-secondary text-muted-foreground cursor-not-allowed"
                           : isCurrent || isLower
-                            ? "bg-slate-700 text-slate-400 cursor-default"
+                            ? "bg-secondary text-muted-foreground cursor-not-allowed"
                             : planItem.popular
-                              ? "bg-orange-600 hover:bg-orange-500 text-white"
-                              : "bg-slate-700 hover:bg-slate-600 text-white border border-slate-600"
+                              ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                              : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border"
                       }`}
                     >
-                      {loadingPriceId === priceId ? (
+                      {loadingPriceId !== null && loadingPriceId === priceId ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          {buttonLabel}
+                          Redirection...
                         </>
                       ) : (
                         buttonLabel
