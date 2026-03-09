@@ -612,15 +612,18 @@ export interface CreateCheckoutSessionResponse {
  * Rediriger l'utilisateur vers checkout_url après appel réussi.
  */
 export async function createCheckoutSession(
-  userId: string,
+  accessToken: string,
   priceId: StripePriceId
 ): Promise<CreateCheckoutSessionResponse> {
   const controller = createTimeoutController(15000);
   const response = await fetch(`${API_BASE_URL}/api/stripe/create-checkout-session`, {
     method: "POST",
     signal: controller.signal,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId, price_id: priceId }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ price_id: priceId }),
   });
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
@@ -639,13 +642,16 @@ export interface CreatePortalSessionResponse {
  * Crée une session Stripe Customer Portal pour gérer l'abonnement.
  * Rediriger l'utilisateur vers portal_url après appel réussi.
  */
-export async function createPortalSession(userId: string): Promise<CreatePortalSessionResponse> {
+export async function createPortalSession(accessToken: string): Promise<CreatePortalSessionResponse> {
   const controller = createTimeoutController(15000);
   const response = await fetch(`${API_BASE_URL}/api/stripe/create-portal-session`, {
     method: "POST",
     signal: controller.signal,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({}),
   });
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));

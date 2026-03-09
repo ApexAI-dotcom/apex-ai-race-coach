@@ -109,7 +109,7 @@ export default function PricingPage() {
   const [loadingPriceId, setLoadingPriceId] = useState<PriceKey | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { plan: currentPlan } = useSubscription();
   const currentPlanId = planToPlanId(currentPlan ?? "free");
   const canceled = searchParams.get("canceled");
@@ -127,14 +127,15 @@ export default function PricingPage() {
 
   const handleSubscribe = async (planId: string) => {
     const priceId = getPriceId(planId, period);
-    if (!priceId || !user?.id) {
+    const token = session?.access_token;
+    if (!priceId || !user?.id || !token) {
       if (!user) window.location.href = "/login?redirect=/pricing";
       return;
     }
     setError(null);
     setLoadingPriceId(priceId);
     try {
-      const { checkout_url } = await createCheckoutSession(user.id, priceId);
+      const { checkout_url } = await createCheckoutSession(token, priceId);
       if (checkout_url) window.location.href = checkout_url;
       else setError("Réponse serveur invalide.");
     } catch (e) {
@@ -303,7 +304,7 @@ export default function PricingPage() {
                             ? "bg-secondary text-muted-foreground cursor-not-allowed"
                             : planItem.popular
                               ? "gradient-primary text-primary-foreground hover:opacity-90"
-                              : "bg-secondary/50 hover:bg-secondary/70 text-foreground border border-white/10"
+                              : "gradient-primary text-primary-foreground hover:opacity-90 border border-primary/50"
                       }`}
                     >
                       {isRookie ? (

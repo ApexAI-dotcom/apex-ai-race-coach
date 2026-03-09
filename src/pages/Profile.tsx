@@ -40,7 +40,7 @@ const achievements = [
 
 export default function Profile() {
   const { user, loading } = useUser();
-  const { signOut } = useAuth();
+  const { signOut, session } = useAuth();
   const { subscription, isPro, isActive } = useSubscriptionLegacy();
   const {
     tier,
@@ -118,14 +118,15 @@ export default function Profile() {
   };
 
   const handleCustomerPortal = async () => {
-    if (!user?.id) {
+    const token = session?.access_token;
+    if (!user?.id || !token) {
       setError("Session invalide");
       return;
     }
     try {
       setLoadingPortal(true);
       setError(null);
-      const { portal_url } = await createPortalSession(user.id);
+      const { portal_url } = await createPortalSession(token);
       if (portal_url) window.location.href = portal_url;
     } catch (err) {
       console.error("Customer portal error:", err);
@@ -440,11 +441,12 @@ export default function Profile() {
                         size="sm"
                         className="w-full gap-2"
                         onClick={async () => {
-                          if (!user?.id) return;
+                          const token = session?.access_token;
+                          if (!user?.id || !token) return;
                           try {
                             setLoadingPortal(true);
                             setError(null);
-                            const { portal_url } = await createPortalSession(user.id);
+                            const { portal_url } = await createPortalSession(token);
                             if (portal_url) window.location.href = portal_url;
                           } catch (err) {
                             setError(
