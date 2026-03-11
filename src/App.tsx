@@ -20,6 +20,7 @@ import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
 import PricingPage from "./pages/PricingPage";
 import Profile from "./pages/Profile";
+import Analyses from "./pages/Analyses";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import Success from "./pages/Success";
@@ -79,6 +80,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analyses"
+              element={
+                <ProtectedRoute>
+                  <Analyses />
                 </ProtectedRoute>
               }
             />

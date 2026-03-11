@@ -11,6 +11,7 @@ import { ADMIN_EMAIL } from "@/constants";
 const navItems = [
   { name: "Accueil", path: "/" },
   { name: "Tableau de bord", path: "/dashboard" },
+  { name: "Analyses", path: "/analyses" },
   { name: "Télécharger", path: "/upload" },
   { name: "Tarifs", path: "/pricing" },
 ];

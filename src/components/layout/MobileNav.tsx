@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BarChart3, Upload, User, Tag } from "lucide-react";
+import { Home, BarChart3, FileBarChart, Upload, User, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 
 const navItems = [
   { icon: Home, label: "Accueil", path: "/" },
   { icon: BarChart3, label: "Tableau de bord", labelShort: "Tableau", path: "/dashboard" },
+  { icon: FileBarChart, label: "Analyses", path: "/analyses" },
   { icon: Upload, label: "Télécharger", path: "/upload" },
   { icon: Tag, label: "Tarifs", path: "/pricing" },
   { icon: User, label: "Profil", path: "/profile" },

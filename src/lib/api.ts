@@ -249,6 +249,23 @@ export interface ApiError {
   details?: unknown;
 }
 
+/** Élément de la liste paginée GET /api/analyses */
+export interface AnalysisListItem {
+  id?: string;
+  track_name?: string | null;
+  created_at?: string | null;
+  lap_count?: number | null;
+  ai_insights?: { braking_score?: number | null; [key: string]: unknown } | null;
+  [key: string]: unknown;
+}
+
+export interface GetAnalysesResponse {
+  analyses: AnalysisListItem[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
 // ============================================================================
 // UTILITIES
 // ============================================================================
@@ -662,6 +679,34 @@ export async function createPortalSession(accessToken: string): Promise<CreatePo
   return parseJSONResponse<CreatePortalSessionResponse>(response);
 }
 
+/**
+ * Liste paginée des analyses de l'utilisateur (JWT obligatoire).
+ * GET /api/analyses?page=&limit=
+ */
+export async function getAnalyses(
+  accessToken: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<GetAnalysesResponse> {
+  const controller = createTimeoutController(15000);
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  const response = await fetch(`${API_BASE_URL}/api/analyses?${params}`, {
+    method: "GET",
+    signal: controller.signal,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const message =
+      (data?.message as string) || (data?.detail?.message as string) || `Erreur ${response.status}`;
+    throw new Error(message);
+  }
+  return parseJSONResponse<GetAnalysesResponse>(response);
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -671,5 +716,6 @@ export default {
   getAnalysisStatus,
   getBackendHealth,
   checkBackendConnection,
+  getAnalyses,
   API_BASE_URL,
 };
