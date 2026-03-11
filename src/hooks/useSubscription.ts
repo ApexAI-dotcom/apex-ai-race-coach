@@ -63,8 +63,7 @@ export function useSubscription() {
     }
 
     const token = session?.access_token;
-    const url = `${API_BASE_URL}/api/user/subscription?user_id=${user.id}`;
-    console.log("[useSubscription] fetching, user_id:", user.id);
+    const url = `${API_BASE_URL}/api/user/subscription`;
 
     setIsLoading(true);
     try {
