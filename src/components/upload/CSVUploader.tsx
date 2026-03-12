@@ -47,6 +47,7 @@ import {
 } from "@/lib/api";
 import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 
@@ -80,8 +81,15 @@ const ANALYSIS_STEPS = [
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const navigate = useNavigate();
   const { user, session, isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
+  const { tier, limits } = useSubscription();
   const canUpload = isAuthenticated || canUploadFree;
   const storageUserId = user?.id ?? undefined;
+
+  const freeLimit =
+    limits?.analyses_per_month != null && typeof limits.analyses_used === "number"
+      ? limits.analyses_used >= limits.analyses_per_month
+      : false;
+  const isFreeAtLimit = isAuthenticated && tier === "rookie" && freeLimit;
 
   // États upload
   const [isDragging, setIsDragging] = useState(false);
@@ -277,6 +285,11 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
   const handleAnalyze = async () => {
     if (!file) return;
+
+    if (isFreeAtLimit) {
+      setShowLimitReachedModal(true);
+      return;
+    }
 
     // Gestion accès
     if (!canUpload) {
@@ -1119,7 +1132,20 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-6 flex flex-col items-center gap-4"
               >
-                {!canUpload && !isAuthenticated && (
+                {isFreeAtLimit && (
+                  <Alert className="bg-amber-500/10 border-amber-500/30 w-full max-w-md">
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                    <AlertTitle>Limite du plan gratuit atteinte</AlertTitle>
+                    <AlertDescription className="flex items-center gap-2 flex-wrap">
+                      Vous avez utilisé vos {limits?.analyses_per_month ?? 3} analyses du mois.
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to="/pricing">Passer à Racer</Link>
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {!canUpload && !isAuthenticated && !isFreeAtLimit && (
                   <Alert className="bg-primary/10 border-primary/30 w-full max-w-md">
                     <AlertCircle className="h-4 w-4 text-primary" />
                     <AlertTitle>
@@ -1149,7 +1175,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   variant="hero"
                   size="lg"
                   onClick={handleAnalyze}
-                  disabled={isAnalyzing}
+                  disabled={isAnalyzing || isFreeAtLimit}
                   className="min-w-[200px]"
                 >
                   {isAnalyzing ? (

@@ -6,6 +6,8 @@ import { API_BASE_URL } from "@/lib/api";
 const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_DURATION_MS = 10000;
 
+const SUBSCRIPTION_STORAGE_KEY = "apex_subscription_backend";
+
 export type SubscriptionTier = "rookie" | "racer" | "team";
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing" | null;
 
@@ -84,6 +86,14 @@ export function useSubscription() {
       setBillingPeriod(data.billing_period ?? null);
       setSubscriptionEndDate(data.subscription_end_date ?? null);
       setLimits(data.limits ?? null);
+      try {
+        localStorage.setItem(
+          SUBSCRIPTION_STORAGE_KEY,
+          JSON.stringify({ ...data, _ts: Date.now() })
+        );
+      } catch {
+        // ignore
+      }
     } catch {
       setTier("rookie");
       setStatus(null);

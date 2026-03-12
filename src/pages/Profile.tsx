@@ -50,6 +50,7 @@ export default function Profile() {
     isLoading: subscriptionLoading,
   } = useSubscription();
   const hasActivePaidSubscription = (tier === "racer" || tier === "team") && status === "active";
+  const isFreeTier = tier === "rookie";
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<AnalysisSummary[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
@@ -275,8 +276,10 @@ export default function Profile() {
                   <Calendar className="w-4 h-4" />
                   Membre depuis {getMemberSince()}
                 </span>
-                {isPro && <span className="apex-badge-pro">PRO</span>}
-                {!isPro && (
+                {(tier === "racer" || tier === "team") && (
+                  <span className="apex-badge-pro">{tier === "team" ? "Team" : "PRO"}</span>
+                )}
+                {isFreeTier && (
                   <span className="px-2 py-1 rounded-full text-xs bg-secondary/50 text-muted-foreground">
                     Gratuit
                   </span>
@@ -310,7 +313,7 @@ export default function Profile() {
                   )}
                 </Button>
               )}
-              {!isPro && (
+              {isFreeTier && (
                 <Button
                   variant="hero"
                   size="sm"
