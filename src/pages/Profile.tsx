@@ -45,6 +45,7 @@ export default function Profile() {
   const {
     tier,
     status,
+    limits,
     billingPeriod,
     subscriptionEndDate,
     isLoading: subscriptionLoading,
@@ -52,7 +53,9 @@ export default function Profile() {
   const hasActivePaidSubscription = (tier === "racer" || tier === "team") && status === "active";
   const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
   const isFreeTier = !isPaidTier;
-  if (typeof window !== "undefined") console.log("[Profile] subscription tier:", tier);
+  if (typeof window !== "undefined") {
+    console.log("[Profile] TIER:", tier, "STATUS:", status, "COUNT:", limits?.analyses_used, "/", limits?.analyses_per_month, "isFreeTier:", isFreeTier);
+  }
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<AnalysisSummary[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);

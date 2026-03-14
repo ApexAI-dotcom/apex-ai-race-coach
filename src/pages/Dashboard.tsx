@@ -62,6 +62,7 @@ import {
 } from "@/lib/storage";
 import { getDisplayScore, type AnalysisResult, type CornerAnalysis, type CoachingAdvice } from "@/lib/api";
 import { useSubscriptionLegacy } from "@/hooks/useSubscriptionLegacy";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Helmet } from "react-helmet-async";
@@ -74,9 +75,25 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const analysisIdParam = searchParams.get("analysisId");
-  const { subscription, limits, isPro } = useSubscriptionLegacy();
+  const { subscription, limits: legacyLimits, isPro } = useSubscriptionLegacy();
+  const { tier, status, limits: backendLimits } = useSubscription();
   const { user } = useAuth();
   const isAdmin = user?.email === ADMIN_EMAIL;
+
+  const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
+  const isFreeTier = !isPaidTier;
+  const freeLimitReached =
+    backendLimits?.analyses_per_month != null &&
+    typeof backendLimits.analyses_used === "number" &&
+    backendLimits.analyses_used >= backendLimits.analyses_per_month;
+  const showFreeBanner = isFreeTier && freeLimitReached;
+  const freeAnalysesRemaining =
+    isFreeTier && backendLimits?.analyses_per_month != null && typeof backendLimits.analyses_used === "number"
+      ? Math.max(0, backendLimits.analyses_per_month - backendLimits.analyses_used)
+      : 0;
+  if (typeof window !== "undefined") {
+    console.log("[Dashboard] TIER:", tier, "STATUS:", status, "COUNT:", backendLimits?.analyses_used, "/", backendLimits?.analyses_per_month, "showFreeBanner:", showFreeBanner);
+  }
 
   // States
   const [analyses, setAnalyses] = useState<AnalysisSummary[]>([]);
@@ -124,11 +141,6 @@ export default function Dashboard() {
   };
 
   const currentMonthAnalyses = getCurrentMonthAnalyses();
-  const analysesRemaining =
-    limits.maxAnalysesPerMonth === Infinity
-      ? Infinity
-      : Math.max(0, limits.maxAnalysesPerMonth - currentMonthAnalyses.length);
-  const hasReachedLimit = !isPro && currentMonthAnalyses.length >= limits.maxAnalysesPerMonth;
 
   // Load analyses on mount and when user changes (login/logout → clé storage différente)
   const loadAnalyses = useCallback(async () => {
@@ -542,23 +554,23 @@ export default function Dashboard() {
               <Button
                 variant="heroOutline"
                 onClick={() => navigate("/upload")}
-                disabled={hasReachedLimit}
+                disabled={isFreeTier && freeLimitReached}
               >
                 Nouvelle analyse
               </Button>
             </div>
           </div>
 
-          {/* Limit Warning for Free Plan */}
-          {!isPro && (
+          {/* Limit Warning: uniquement si tier free/rookie ET (limite atteinte ou rappel restantes) */}
+          {isFreeTier && (
             <Alert className="mb-6 border-primary/30 bg-primary/5">
               <AlertCircle className="h-4 w-4 text-primary" />
               <AlertTitle>Plan Gratuit</AlertTitle>
               <AlertDescription className="flex items-center justify-between">
                 <span>
-                  {hasReachedLimit
+                  {freeLimitReached
                     ? "Vous avez atteint la limite de 3 analyses ce mois-ci."
-                    : `${analysesRemaining} analyse${analysesRemaining > 1 ? "s" : ""} restante${analysesRemaining > 1 ? "s" : ""} ce mois-ci.`}
+                    : `${freeAnalysesRemaining} analyse${freeAnalysesRemaining !== 1 ? "s" : ""} restante${freeAnalysesRemaining !== 1 ? "s" : ""} ce mois-ci.`}
                 </span>
                 <Button
                   variant="hero"
@@ -581,9 +593,9 @@ export default function Dashboard() {
                   <div className="text-xs text-muted-foreground">Analyses totales</div>
                 </div>
                 <div className="text-2xl font-bold text-foreground">{statistics.total}</div>
-                {!isPro && (
+                {isFreeTier && backendLimits?.analyses_per_month != null && (
                   <div className="text-xs text-muted-foreground mt-1">
-                    {currentMonthAnalyses.length}/{limits.maxAnalysesPerMonth} ce mois
+                    {backendLimits.analyses_used}/{backendLimits.analyses_per_month} ce mois
                   </div>
                 )}
               </CardContent>

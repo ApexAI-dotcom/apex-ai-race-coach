@@ -81,7 +81,7 @@ const ANALYSIS_STEPS = [
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const navigate = useNavigate();
   const { user, session, isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
-  const { tier, limits } = useSubscription();
+  const { tier, status, limits } = useSubscription();
   const canUpload = isAuthenticated || canUploadFree;
   const storageUserId = user?.id ?? undefined;
 
@@ -92,7 +92,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
   const isFreeAtLimit =
     isAuthenticated && !isPaidTier && freeLimit;
-  if (typeof window !== "undefined") console.log("[CSVUploader] subscription tier:", tier, "isFreeAtLimit:", isFreeAtLimit);
+  if (typeof window !== "undefined") {
+    console.log("[CSVUploader] TIER:", tier, "STATUS:", status, "COUNT:", limits?.analyses_used, "/", limits?.analyses_per_month, "isFreeAtLimit:", isFreeAtLimit);
+  }
 
   // États upload
   const [isDragging, setIsDragging] = useState(false);
