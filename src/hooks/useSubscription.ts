@@ -7,6 +7,21 @@ const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_DURATION_MS = 10000;
 
 const SUBSCRIPTION_STORAGE_KEY = "apex_subscription_backend";
+const CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 min — affichage immédiat du badge
+
+function getCachedTier(): SubscriptionTier {
+  if (typeof window === "undefined") return "rookie";
+  try {
+    const raw = localStorage.getItem(SUBSCRIPTION_STORAGE_KEY);
+    if (!raw) return "rookie";
+    const data = JSON.parse(raw) as { tier?: string; _ts?: number };
+    if (data._ts && Date.now() - data._ts > CACHE_MAX_AGE_MS) return "rookie";
+    if (data.tier && ["rookie", "racer", "team"].includes(data.tier)) return data.tier as SubscriptionTier;
+  } catch {
+    // ignore
+  }
+  return "rookie";
+}
 
 export type SubscriptionTier = "rookie" | "racer" | "team";
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing" | null;
@@ -45,7 +60,7 @@ function tierToPlan(tier: SubscriptionTier): SubscriptionPlan {
 export function useSubscription() {
   const { user, session } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tier, setTier] = useState<SubscriptionTier>("rookie");
+  const [tier, setTier] = useState<SubscriptionTier>(getCachedTier);
   const [status, setStatus] = useState<SubscriptionStatus>(null);
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>(null);
   const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | null>(null);

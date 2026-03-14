@@ -31,7 +31,9 @@ export function SubscriptionBadge() {
   const config = TIER_CONFIG[tier];
   const Icon = config.Icon;
 
-  if (isLoading) {
+  const showLoading = isLoading && tier === "rookie";
+
+  if (showLoading) {
     return (
       <span
         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-transparent bg-slate-800/60 text-slate-500 animate-pulse"
