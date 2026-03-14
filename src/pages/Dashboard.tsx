@@ -932,6 +932,17 @@ export default function Dashboard() {
                 </Button>
                 <div className="flex gap-2">
                   <Button
+                    variant="default"
+                    onClick={() =>
+                      navigate(`/analysis/${selectedAnalysis.analysis_id}`, {
+                        state: { analysis: selectedAnalysis },
+                      })
+                    }
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Voir en détail
+                  </Button>
+                  <Button
                     variant="destructive"
                     onClick={() => handleDeleteClick(selectedAnalysis.analysis_id)}
                   >

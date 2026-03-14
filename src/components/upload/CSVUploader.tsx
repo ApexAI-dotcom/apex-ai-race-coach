@@ -271,6 +271,11 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     if (id) navigate(`/dashboard?analysisId=${id}`);
   };
 
+  const handleViewDetail = () => {
+    const id = savedAnalysisId ?? result?.analysis_id;
+    if (id && result) navigate(`/analysis/${id}`, { state: { analysis: result } });
+  };
+
   // ─── Download JSON ────────────────────────────────────────────────────────
 
   const handleDownloadResults = () => {
@@ -553,10 +558,16 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   Télécharger JSON
                 </Button>
                 {(savedAnalysisId || result?.analysis_id) && (
-                  <Button variant="heroOutline" onClick={handleViewInDashboard}>
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Voir dans le Dashboard
-                  </Button>
+                  <>
+                    <Button variant="hero" onClick={handleViewDetail}>
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      Voir le détail
+                    </Button>
+                    <Button variant="heroOutline" onClick={handleViewInDashboard}>
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Button>
+                  </>
                 )}
                 {/* Bouton sauvegarde manuelle si auto-save a échoué */}
                 {!savedAnalysisId && (

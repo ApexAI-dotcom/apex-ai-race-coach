@@ -25,6 +25,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Success from "./pages/Success";
 import Legal from "./pages/Legal";
 import Parametres from "./pages/Parametres";
+import AnalysisResultPage from "./pages/AnalysisResultPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,7 +83,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            {/* Analyses page supprimée (doublon dashboard) — single source of truth */}
+            <Route
+              path="/analysis/:analysisId"
+              element={
+                <ProtectedRoute>
+                  <AnalysisResultPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/parametres"
               element={
