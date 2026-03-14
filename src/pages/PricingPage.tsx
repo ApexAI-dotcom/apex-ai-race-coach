@@ -194,14 +194,14 @@ export default function PricingPage() {
             </p>
 
             {/* Toggle Mensuel / Annuel */}
-            <div className="inline-flex items-center gap-3 p-1.5 rounded-xl bg-slate-800/80 border border-slate-700/80">
+            <div className="inline-flex items-center gap-3 p-1.5 glass-card">
               <button
                 type="button"
                 onClick={() => setPeriod("monthly")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   period === "monthly"
-                    ? "bg-slate-700 text-white shadow"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "bg-primary/20 text-primary border border-primary/30"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Mensuel
@@ -212,7 +212,7 @@ export default function PricingPage() {
                 className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   period === "annual"
                     ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/30"
-                    : "text-slate-400 hover:text-slate-200"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Annuel
@@ -250,10 +250,10 @@ export default function PricingPage() {
               return (
                 <div
                   key={planItem.id}
-                  className={`relative rounded-2xl border bg-slate-900/60 backdrop-blur-sm overflow-hidden ${
+                  className={`relative glass-card overflow-hidden ${
                     planItem.popular
-                      ? "border-primary/60 shadow-lg shadow-primary/10 ring-1 ring-primary/30"
-                      : "border-slate-700/60"
+                      ? "border-primary/30 shadow-lg shadow-primary/10 ring-1 ring-primary/20"
+                      : ""
                   }`}
                 >
                   {planItem.popular && (
@@ -265,15 +265,15 @@ export default function PricingPage() {
                   )}
                   <div className={`p-6 md:p-8 ${planItem.popular ? "pt-8" : ""}`}>
                     <div className="flex items-center gap-2 mb-2">
-                      <Icon className="w-6 h-6 text-orange-500" />
-                      <h2 className="text-xl font-bold text-white">{planItem.name}</h2>
+                      <Icon className="w-6 h-6 text-primary" />
+                      <h2 className="text-xl font-bold text-foreground">{planItem.name}</h2>
                     </div>
 
                     <div className="mb-6">
-                      <span className="text-3xl font-bold text-white">
+                      <span className="text-3xl font-bold text-foreground">
                         {price === 0 ? "0" : price.toFixed(2).replace(".", ",")}€
                       </span>
-                      <span className="text-slate-400 text-sm ml-1">
+                      <span className="text-muted-foreground text-sm ml-1">
                         {price === 0 ? "" : period === "annual" ? "/an" : "/mois"}
                       </span>
                     </div>
@@ -284,9 +284,9 @@ export default function PricingPage() {
                           {f.included ? (
                             <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                           ) : (
-                            <X className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                            <X className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           )}
-                          <span className={f.included ? "text-slate-300" : "text-slate-500"}>
+                          <span className={f.included ? "text-foreground" : "text-muted-foreground"}>
                             {f.text}
                           </span>
                         </li>
@@ -325,9 +325,9 @@ export default function PricingPage() {
           </div>
 
           {/* Paiement sécurisé */}
-          <div className="text-center py-8 border-t border-slate-800">
-            <p className="text-slate-500 text-sm mb-3">Paiement sécurisé par Stripe</p>
-            <div className="flex justify-center items-center gap-6 text-slate-600">
+          <div className="text-center py-8 border-t border-border">
+            <p className="text-muted-foreground text-sm mb-3">Paiement sécurisé par Stripe</p>
+            <div className="flex justify-center items-center gap-6 text-muted-foreground">
               <CreditCard className="w-6 h-6" />
               <Lock className="w-6 h-6" />
               <Check className="w-6 h-6 text-emerald-600/80" />
