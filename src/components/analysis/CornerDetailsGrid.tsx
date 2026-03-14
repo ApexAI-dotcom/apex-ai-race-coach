@@ -56,7 +56,7 @@ export function CornerDetailsGrid({ corners }: CornerDetailsGridProps) {
               )}
             </div>
             <div className="text-apex-muted text-xs">
-              Apex: {c.apex_speed_real.toFixed(1)} km/h
+              Apex: {c.apex_speed_real != null ? c.apex_speed_real.toFixed(1) : "—"} km/h
             </div>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
               <span
@@ -66,11 +66,13 @@ export function CornerDetailsGrid({ corners }: CornerDetailsGridProps) {
                 {c.grade}
               </span>
               <span className="text-apex-muted text-xs">
-                {c.margin_kmh >= 0 ? "+" : ""}{c.margin_kmh.toFixed(1)} km/h
+                {c.margin_kmh != null
+                  ? `${c.margin_kmh >= 0 ? "+" : ""}${c.margin_kmh.toFixed(1)} km/h`
+                  : "—"}
               </span>
             </div>
             <div className="text-apex-muted text-xs mt-1">
-              Time lost: {(c.time_lost * 1000).toFixed(0)} ms
+              Time lost: {c.time_lost != null ? `${(c.time_lost * 1000).toFixed(0)} ms` : "—"}
             </div>
           </div>
         );
