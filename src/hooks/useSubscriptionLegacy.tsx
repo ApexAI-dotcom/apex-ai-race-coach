@@ -90,34 +90,9 @@ export function useSubscriptionLegacy() {
         if (cached) {
           setSubscription(cached)
           setLoading(false)
+          return
         }
-        try {
-          const response = await fetch(
-            `${API_BASE_URL}/api/subscription-status?user_id=${user.id}`,
-            { cache: 'no-cache' }
-          )
-          if (response.ok) {
-            const data = await response.json()
-            if (data.plan && data.plan !== 'free') {
-              const subscriptionData: SubscriptionData = {
-                plan: data.plan as SubscriptionPlan,
-                status: (data.status || 'active') as SubscriptionStatus,
-                customerId: data.customer_id || null,
-                currentPeriodEnd: null,
-                cancelAtPeriodEnd: false,
-              }
-              setCachedSubscription(user.id, subscriptionData)
-              setSubscription(subscriptionData)
-              setLoading(false)
-              return
-            }
-          }
-        } catch {
-          if (cached) {
-            setLoading(false)
-            return
-          }
-        }
+        /* Endpoint /api/subscription-status n'existe pas (404). Source de vérité = /api/user/subscription (Bearer) via useSubscription. On utilise uniquement cache + user_metadata ici. */
         const plan = (user.user_metadata?.subscription?.plan as SubscriptionPlan) || (user.user_metadata?.subscription as SubscriptionPlan) || 'free'
         const status = (user.user_metadata?.subscription?.status as SubscriptionStatus) || (user.user_metadata?.subscription_status as SubscriptionStatus) || 'active'
         const subscriptionData: SubscriptionData = {
