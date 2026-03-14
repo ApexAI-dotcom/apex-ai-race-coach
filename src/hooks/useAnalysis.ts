@@ -20,7 +20,7 @@ export function mapApiResultToResponse(r: AnalysisResult): AnalysisResponse {
     corner_analysis: r.corner_analysis ?? [],
     coaching_advice: r.coaching_advice ?? [],
     plots: r.plots ?? {},
-    plot_data: (r as unknown as AnalysisResponse).plot_data,
+    plot_data: (r as Record<string, unknown>).plot_data as AnalysisResponse["plot_data"] ?? undefined,
     statistics: r.statistics ?? {},
     session_conditions: r.session_conditions
       ? {
