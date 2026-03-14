@@ -76,17 +76,18 @@ export default function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   const analysisIdParam = searchParams.get("analysisId");
   const { subscription, limits: legacyLimits, isPro } = useSubscriptionLegacy();
-  const { tier, status, limits: backendLimits } = useSubscription();
+  const { tier, status, limits: backendLimits, isLoading: subscriptionLoading } = useSubscription();
   const { user } = useAuth();
   const isAdmin = user?.email === ADMIN_EMAIL;
 
   const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
   const isFreeTier = !isPaidTier;
+  const subscriptionReady = !subscriptionLoading;
   const freeLimitReached =
     backendLimits?.analyses_per_month != null &&
     typeof backendLimits.analyses_used === "number" &&
     backendLimits.analyses_used >= backendLimits.analyses_per_month;
-  const showFreeBanner = isFreeTier && freeLimitReached;
+  const showFreeBanner = subscriptionReady && isFreeTier && freeLimitReached;
   const freeAnalysesRemaining =
     isFreeTier && backendLimits?.analyses_per_month != null && typeof backendLimits.analyses_used === "number"
       ? Math.max(0, backendLimits.analyses_per_month - backendLimits.analyses_used)
@@ -554,15 +555,15 @@ export default function Dashboard() {
               <Button
                 variant="heroOutline"
                 onClick={() => navigate("/upload")}
-                disabled={isFreeTier && freeLimitReached}
+                disabled={subscriptionReady && isFreeTier && freeLimitReached}
               >
                 Nouvelle analyse
               </Button>
             </div>
           </div>
 
-          {/* Limit Warning: uniquement si tier free/rookie ET (limite atteinte ou rappel restantes) */}
-          {isFreeTier && (
+          {/* Limit Warning: uniquement quand abo chargé + tier free/rookie (évite le flash rookie→team) */}
+          {subscriptionReady && isFreeTier && (
             <Alert className="mb-6 border-primary/30 bg-primary/5">
               <AlertCircle className="h-4 w-4 text-primary" />
               <AlertTitle>Plan Gratuit</AlertTitle>
@@ -593,7 +594,7 @@ export default function Dashboard() {
                   <div className="text-xs text-muted-foreground">Analyses totales</div>
                 </div>
                 <div className="text-2xl font-bold text-foreground">{statistics.total}</div>
-                {isFreeTier && backendLimits?.analyses_per_month != null && (
+                {subscriptionReady && isFreeTier && backendLimits?.analyses_per_month != null && (
                   <div className="text-xs text-muted-foreground mt-1">
                     {backendLimits.analyses_used}/{backendLimits.analyses_per_month} ce mois
                   </div>
