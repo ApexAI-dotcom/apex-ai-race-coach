@@ -89,7 +89,10 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     limits?.analyses_per_month != null && typeof limits.analyses_used === "number"
       ? limits.analyses_used >= limits.analyses_per_month
       : false;
-  const isFreeAtLimit = isAuthenticated && tier === "rookie" && freeLimit;
+  const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
+  const isFreeAtLimit =
+    isAuthenticated && !isPaidTier && freeLimit;
+  if (typeof window !== "undefined") console.log("[CSVUploader] subscription tier:", tier, "isFreeAtLimit:", isFreeAtLimit);
 
   // États upload
   const [isDragging, setIsDragging] = useState(false);

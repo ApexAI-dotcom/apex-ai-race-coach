@@ -50,7 +50,9 @@ export default function Profile() {
     isLoading: subscriptionLoading,
   } = useSubscription();
   const hasActivePaidSubscription = (tier === "racer" || tier === "team") && status === "active";
-  const isFreeTier = tier === "rookie";
+  const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
+  const isFreeTier = !isPaidTier;
+  if (typeof window !== "undefined") console.log("[Profile] subscription tier:", tier);
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<AnalysisSummary[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
@@ -276,7 +278,7 @@ export default function Profile() {
                   <Calendar className="w-4 h-4" />
                   Membre depuis {getMemberSince()}
                 </span>
-                {(tier === "racer" || tier === "team") && (
+                {isPaidTier && (
                   <span className="apex-badge-pro">{tier === "team" ? "Team" : "PRO"}</span>
                 )}
                 {isFreeTier && (
@@ -431,7 +433,7 @@ export default function Profile() {
                     depuis le portail Stripe.
                   </p>
                   <div className="flex flex-col gap-2">
-                    {tier === "rookie" ? (
+                    {isFreeTier ? (
                       <Button variant="hero" size="sm" asChild className="w-full gap-2">
                         <Link to="/pricing">
                           <Zap className="w-4 h-4" />
