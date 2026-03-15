@@ -85,22 +85,26 @@ export function TrackMap({ corners, margins = [], laps }: TrackMapProps) {
 
     if (lap0 && lap0.lat.length > 0 && lap0.lon.length > 0) {
       const n = Math.min(lap0.lat.length, lap0.lon.length);
-      trackPolyline = Array.from({ length: n }, (_, i) =>
+      const trackPoints = Array.from({ length: n }, (_, i) =>
         project(lap0.lat[i], lap0.lon[i], bounds)
-      )
-        .map(([x, y]) => `${x},${y}`)
-        .join(" ");
+      ).map(([x, y]) => `${x},${y}`);
+      if (trackPoints.length > 2) trackPoints.push(trackPoints[0]);
+      trackPolyline = trackPoints.join(" ");
     }
     if (laps && laps.length > 1 && laps[1]?.lat?.length && laps[1]?.lon?.length) {
       const lap1 = laps[1];
       const n = Math.min(lap1.lat.length, lap1.lon.length);
-      refPolyline = Array.from({ length: n }, (_, i) => project(lap1.lat[i], lap1.lon[i], bounds))
-        .map(([x, y]) => `${x},${y}`)
-        .join(" ");
+      const refPoints = Array.from({ length: n }, (_, i) =>
+        project(lap1.lat[i], lap1.lon[i], bounds)
+      ).map(([x, y]) => `${x},${y}`);
+      if (refPoints.length > 2) refPoints.push(refPoints[0]);
+      refPolyline = refPoints.join(" ");
     }
 
     if (!trackPolyline && pts.length > 1) {
-      trackPolyline = pts.map((p) => `${p.x},${p.y}`).join(" ");
+      const fallbackPoints = pts.map((p) => `${p.x},${p.y}`);
+      if (fallbackPoints.length > 2) fallbackPoints.push(fallbackPoints[0]);
+      trackPolyline = fallbackPoints.join(" ");
     }
 
     return { points: pts, width, height, trackPolyline, refPolyline };

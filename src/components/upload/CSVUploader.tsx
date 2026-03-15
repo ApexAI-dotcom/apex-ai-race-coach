@@ -48,6 +48,8 @@ import {
 import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { mapApiResultToResponse } from "@/hooks/useAnalysis";
+import { AnalysisDashboardContent } from "@/components/analysis/AnalysisDashboardContent";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 
@@ -552,12 +554,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   <Download className="w-4 h-4 mr-2" />
                   Télécharger JSON
                 </Button>
-                {(savedAnalysisId || result?.analysis_id) && (
-                  <Button variant="heroOutline" onClick={handleViewInDashboard}>
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Voir dans le Dashboard
-                  </Button>
-                )}
                 {/* Bouton sauvegarde manuelle si auto-save a échoué */}
                 {!savedAnalysisId && (
                   <Button variant="outline" onClick={handleSaveAnalysis}>
@@ -660,6 +656,15 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   <div className="text-2xl font-bold text-foreground">{result.statistics.processing_time_seconds.toFixed(1)}s</div>
                 </CardContent>
               </Card>
+            </div>
+
+            {/* Dashboard Recharts — graphiques sur la même page */}
+            <div className="mt-8 rounded-xl border border-[#30363d] bg-[#0d1117] p-4 md:p-6">
+              <h3 className="text-lg font-semibold text-[#e6edf3] mb-4">Graphiques de la session</h3>
+              <AnalysisDashboardContent
+                analysis={mapApiResultToResponse(result)}
+                embedded
+              />
             </div>
 
             {/* Conseils de coaching */}
