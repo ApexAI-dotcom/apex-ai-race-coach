@@ -64,6 +64,8 @@ import { getDisplayScore, type AnalysisResult, type CornerAnalysis, type Coachin
 import { useSubscriptionLegacy } from "@/hooks/useSubscriptionLegacy";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
+import { mapApiResultToResponse } from "@/hooks/useAnalysis";
+import { AnalysisDashboardContent } from "@/components/analysis/AnalysisDashboardContent";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Helmet } from "react-helmet-async";
 import { ADMIN_EMAIL } from "@/constants";
@@ -916,12 +918,13 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
 
-          {/* Details Tab */}
+          {/* Details Tab — dashboard Recharts intégré */}
           {selectedAnalysis && (
             <TabsContent value="details" className="space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <Button
                   variant="ghost"
+                  className="text-[#8b949e] hover:text-[#e6edf3]"
                   onClick={() => {
                     setSelectedAnalysis(null);
                     setSearchParams({});
@@ -930,338 +933,19 @@ export default function Dashboard() {
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Retour à la liste
                 </Button>
-                <div className="flex gap-2">
-                  <Button
-                    variant="default"
-                    onClick={() =>
-                      navigate(`/analysis/${selectedAnalysis.analysis_id}`, {
-                        state: { analysis: selectedAnalysis },
-                      })
-                    }
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Voir en détail
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDeleteClick(selectedAnalysis.analysis_id)}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Supprimer
-                  </Button>
-                </div>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDeleteClick(selectedAnalysis.analysis_id)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Supprimer
+                </Button>
               </div>
 
-              {/* Score Card */}
-              <Card className="glass-card border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-primary" />
-                      Score de Performance
-                    </span>
-                    <Badge className={getGradeColor(selectedAnalysis.performance_score.grade)}>
-                      {selectedAnalysis.performance_score.grade}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center mb-6">
-                    <div className="text-6xl font-display font-bold bg-gradient-to-r from-primary to-pink-500 text-transparent bg-clip-text mb-2">
-                      {Math.round(getDisplayScore(selectedAnalysis.performance_score))}/100
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Percentile: {selectedAnalysis.performance_score.percentile || "N/A"}%
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-3 rounded-lg bg-secondary/50">
-                      <div className="text-xs text-muted-foreground mb-1">Précision Apex</div>
-                      <div className="text-lg font-bold text-foreground">
-                        {Math.round(selectedAnalysis.performance_score.breakdown.apex_precision)}/30
-                      </div>
-                    </div>
-                    <div className="text-center p-3 rounded-lg bg-secondary/50">
-                      <div className="text-xs text-muted-foreground mb-1">Régularité</div>
-                      <div className="text-lg font-bold text-foreground">
-                        {Math.round(
-                          selectedAnalysis.performance_score.breakdown.trajectory_consistency
-                        )}
-                        /25
-                      </div>
-                    </div>
-                    <div className="text-center p-3 rounded-lg bg-secondary/50">
-                      <div className="text-xs text-muted-foreground mb-1">Vitesse Apex</div>
-                      <div className="text-lg font-bold text-foreground">
-                        {Math.round(selectedAnalysis.performance_score.breakdown.apex_speed)}/25
-                      </div>
-                    </div>
-                    <div className="text-center p-3 rounded-lg bg-secondary/50">
-                      <div className="text-xs text-muted-foreground mb-1">Temps Secteurs</div>
-                      <div className="text-lg font-bold text-foreground">
-                        {Math.round(selectedAnalysis.performance_score.breakdown.sector_times)}/20
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Statistics */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="glass-card">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      <div className="text-xs text-muted-foreground">Virages détectés</div>
-                    </div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {selectedAnalysis.corners_detected}
-                    </div>
-                  </CardContent>
-                </Card>
-                {(selectedAnalysis.statistics.laps_analyzed ?? 1) <= 1 ? (
-                  <Card className="glass-card">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="w-4 h-4 text-primary" />
-                        <div className="text-xs text-muted-foreground">Temps du tour</div>
-                      </div>
-                      <div className="text-2xl font-bold text-foreground">
-                        {selectedAnalysis.lap_time.toFixed(2)}s
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card className="glass-card border-green-500/30">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="w-4 h-4 text-green-500" />
-                        <div className="text-xs text-muted-foreground">Meilleur tour</div>
-                      </div>
-                      <div className="text-2xl font-bold text-green-500">
-                        {(selectedAnalysis.best_lap_time ?? selectedAnalysis.lap_time).toFixed(2)}s
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-                <Card className="glass-card">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="w-4 h-4 text-primary" />
-                      <div className="text-xs text-muted-foreground">Points de données</div>
-                    </div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {selectedAnalysis.statistics.data_points}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="glass-card">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-primary" />
-                      <div className="text-xs text-muted-foreground">Temps traitement</div>
-                    </div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {selectedAnalysis.statistics.processing_time_seconds.toFixed(1)}s
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-
-              {/* Coaching Advice */}
-              {selectedAnalysis.coaching_advice && selectedAnalysis.coaching_advice.length > 0 && (
-                <Card className="glass-card border-primary/20">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Zap className="w-5 h-5 text-primary" />
-                      Conseils de Coaching
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {selectedAnalysis.coaching_advice.map((advice, index) => (
-                        <div
-                          key={index}
-                          className="p-4 rounded-lg bg-secondary/50 border border-white/5"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs">
-                                Priorité {advice.priority}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs capitalize">
-                                {advice.category}
-                              </Badge>
-                              {advice.corner && (
-                                <Badge variant="outline" className="text-xs">
-                                  Virage {advice.corner}
-                                </Badge>
-                              )}
-                            </div>
-                            {advice.impact_seconds > 0 && (
-                              <span className="text-xs text-muted-foreground">
-                                Gain potentiel: {advice.impact_seconds.toFixed(2)}s
-                              </span>
-                            )}
-                          </div>
-                          <p className="font-semibold text-foreground mb-1">{advice.message}</p>
-                          <p className="text-sm text-muted-foreground">{advice.explanation}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Corner Analysis */}
-              {selectedAnalysis.corner_analysis && selectedAnalysis.corner_analysis.length > 0 && (
-                <Card className="glass-card border-primary/20">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-primary" />
-                      Analyse des Virages
-                    </CardTitle>
-                    <CardDescription>
-                      {selectedAnalysis.statistics?.laps_analyzed === 1
-                        ? "Performance sur ce tour"
-                        : `Valeurs moyennées sur les ${selectedAnalysis.statistics?.laps_analyzed ?? 0} tours sélectionnés`}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead></TableHead>
-                            <TableHead>Virage</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Vitesse Réelle</TableHead>
-                            <TableHead>Vitesse Optimale</TableHead>
-                            <TableHead>G Latéral</TableHead>
-                            <TableHead>Temps Perdu</TableHead>
-                            <TableHead>Score</TableHead>
-                            <TableHead>Grade</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {selectedAnalysis.corner_analysis.map((corner, index) => {
-                            const cornerTypeLabel = corner.corner_type === "right" ? "Droite" : corner.corner_type === "left" ? "Gauche" : corner.corner_type;
-                            const hasPerLap = (corner.per_lap_data?.length ?? 0) > 1 && (selectedAnalysis.statistics?.laps_analyzed ?? 0) > 1;
-                            const showWarning = corner.time_lost > 0.05;
-                            return (
-                              <Fragment key={index}>
-                                <TableRow>
-                                  <TableCell className="w-8">
-                                    {hasPerLap && (
-                                      <button
-                                        type="button"
-                                        onClick={() => setExpandedCorner(expandedCorner === corner.corner_id ? null : corner.corner_id)}
-                                        className="text-muted-foreground hover:text-foreground"
-                                      >
-                                        {expandedCorner === corner.corner_id ? "▼" : "▶"}
-                                      </button>
-                                    )}
-                                  </TableCell>
-                                  <TableCell className="font-medium">{corner.label ?? `#${corner.corner_number}`}</TableCell>
-                                  <TableCell>{cornerTypeLabel}</TableCell>
-                                  <TableCell>{corner.apex_speed_real.toFixed(1)} km/h</TableCell>
-                                  <TableCell>{corner.apex_speed_optimal.toFixed(1)} km/h</TableCell>
-                                  <TableCell>{corner.lateral_g_max.toFixed(2)}G</TableCell>
-                                  <TableCell>{corner.time_lost.toFixed(3)}s</TableCell>
-                                  <TableCell>
-                                    {showWarning && <span className="text-orange-500 mr-1" title="Temps perdu &gt; 0.05s">⚠️</span>}
-                                    {Math.round(corner.score)}/100
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge className={getGradeColor(corner.grade)}>
-                                      {corner.grade}
-                                    </Badge>
-                                  </TableCell>
-                                </TableRow>
-                                {hasPerLap && expandedCorner === corner.corner_id && corner.per_lap_data && (
-                                  <TableRow>
-                                    <TableCell colSpan={9} className="bg-muted/30 p-4">
-                                      <div className="text-xs font-medium text-muted-foreground mb-2">Détail par tour</div>
-                                      <table className="w-full text-sm">
-                                        <thead>
-                                          <tr className="border-b border-white/5">
-                                            <th className="text-left py-1">Tour</th>
-                                            <th className="text-left py-1">Vit. Apex</th>
-                                            <th className="text-left py-1">G Lat</th>
-                                            <th className="text-left py-1">Tps Perdu</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {corner.per_lap_data.map((lap, i) => (
-                                            <tr key={i}>
-                                              <td className="py-1">{lap.lap}</td>
-                                              <td className="py-1">{(lap.apex_speed_kmh ?? 0).toFixed(1)} km/h</td>
-                                              <td className="py-1">{(lap.max_lateral_g ?? 0).toFixed(2)}G</td>
-                                              <td className="py-1">{(lap.time_lost ?? 0).toFixed(3)}s</td>
-                                            </tr>
-                                          ))}
-                                        </tbody>
-                                      </table>
-                                    </TableCell>
-                                  </TableRow>
-                                )}
-                              </Fragment>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Plots */}
-              {selectedAnalysis.plots && Object.keys(selectedAnalysis.plots).length > 0 && (
-                <Card className="glass-card border-primary/20">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileDown className="w-5 h-5 text-primary" />
-                      Graphiques Générés
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {Object.entries(selectedAnalysis.plots).map(([plotName, plotUrl]) => {
-                        if (!plotUrl) return null;
-                        const displayName = plotName
-                          .replace(/_/g, " ")
-                          .replace(/\b\w/g, (l) => l.toUpperCase());
-                        return (
-                          <div
-                            key={plotName}
-                            onClick={() => {
-                              setModalImage(plotUrl);
-                              setModalTitle(displayName);
-                            }}
-                            className="p-4 rounded-lg bg-secondary/50 border border-white/5 hover:border-primary/50 transition-colors group cursor-pointer hover:opacity-80"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-foreground">
-                                {displayName}
-                              </span>
-                              <Eye className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                            </div>
-                            <img
-                              src={plotUrl}
-                              alt={displayName}
-                              className="w-full h-32 object-cover rounded border border-white/5"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = "none";
-                              }}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <AnalysisDashboardContent
+                analysis={mapApiResultToResponse(selectedAnalysis)}
+                embedded
+              />
             </TabsContent>
           )}
         </Tabs>

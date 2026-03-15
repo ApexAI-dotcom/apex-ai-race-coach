@@ -31,18 +31,18 @@ export function MetricsHeader({ analysis }: MetricsHeaderProps) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div className="rounded-xl border border-apex-border bg-apex-surface p-4">
-        <div className="text-apex-muted text-xs font-medium uppercase tracking-wide mb-1">
+      <div className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
+        <div className="text-[#8b949e] text-xs font-medium uppercase tracking-wide mb-1">
           Meilleur tour
         </div>
-        <div className="text-apex-text text-2xl font-bold">
+        <div className="text-[#e6edf3] text-2xl font-bold">
           {typeof bestLap === "number" ? bestLap.toFixed(2) : bestLap}s
         </div>
-        <div className="text-apex-muted text-sm">Tour #{bestLapNum}</div>
+        <div className="text-[#8b949e] text-sm">Tour #{bestLapNum}</div>
       </div>
 
-      <div className="rounded-xl border border-apex-border bg-apex-surface p-4">
-        <div className="text-apex-muted text-xs font-medium uppercase tracking-wide mb-1">
+      <div className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
+        <div className="text-[#8b949e] text-xs font-medium uppercase tracking-wide mb-1">
           Score global
         </div>
         <div className="text-2xl font-bold" style={{ color: gradeColor }}>
@@ -56,26 +56,26 @@ export function MetricsHeader({ analysis }: MetricsHeaderProps) {
         </span>
       </div>
 
-      <div className="rounded-xl border border-apex-border bg-apex-surface p-4">
-        <div className="text-apex-muted text-xs font-medium uppercase tracking-wide mb-1">
+      <div className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
+        <div className="text-[#8b949e] text-xs font-medium uppercase tracking-wide mb-1">
           Vitesse moyenne
         </div>
-        <div className="text-apex-text text-2xl font-bold">
+        <div className="text-[#e6edf3] text-2xl font-bold">
           {avgSpeed != null ? `${Math.round(avgSpeed)} km/h` : "—"}
         </div>
       </div>
 
-      <div className="rounded-xl border border-apex-border bg-apex-surface p-4">
-        <div className="text-apex-muted text-xs font-medium uppercase tracking-wide mb-1">
+      <div className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
+        <div className="text-[#8b949e] text-xs font-medium uppercase tracking-wide mb-1">
           Virages
         </div>
-        <div className="text-apex-text text-2xl font-bold">{corners}</div>
-        <div className="text-apex-muted text-sm flex flex-wrap gap-1 mt-1">
+        <div className="text-[#e6edf3] text-2xl font-bold">{corners}</div>
+        <div className="text-[#8b949e] text-sm flex flex-wrap gap-1 mt-1">
           {Object.entries(gradeCounts).map(([g, n]) => (
             <span
               key={g}
               className="px-1.5 py-0.5 rounded text-xs"
-              style={{ backgroundColor: `${GRADE_COLORS[g] ?? "#8b949e"}30` }}
+              style={{ backgroundColor: `${GRADE_COLORS[g] ?? "#8b949e"}30`, color: GRADE_COLORS[g] ?? "#8b949e" }}
             >
               {g}:{n}
             </span>

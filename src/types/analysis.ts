@@ -69,13 +69,20 @@ export interface TrajectoryCorner {
   apex_speed: number;
 }
 
+/** Points GPS d'un tour pour tracer le circuit (trajectory_2d.laps) */
+export interface TrajectoryLap {
+  lat: number[];
+  lon: number[];
+  speed_kmh?: number[];
+}
+
 export interface PlotData {
   speed_trace: SpeedTraceData;
   throttle_brake: { laps: ThrottleBrakeLap[] };
   time_delta: TimeDeltaData;
   performance_radar: RadarData;
   apex_margin: { corners: CornerMargin[] };
-  trajectory_2d: { corners: TrajectoryCorner[] };
+  trajectory_2d: { corners: TrajectoryCorner[]; laps?: TrajectoryLap[] };
 }
 
 export interface AnalysisPerformanceScore {
