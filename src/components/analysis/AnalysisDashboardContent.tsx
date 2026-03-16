@@ -71,6 +71,18 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
     <div className={wrapperClass}>
       {hasPlotData ? (
         <>
+          {/* 0. Track Map — Pleine largeur tout en haut */}
+          {plotData.trajectory_2d?.corners?.length > 0 && (
+            <section className={sectionClass}>
+              <h2 className={titleClass}>Track Map</h2>
+              <TrackMap
+                corners={plotData.trajectory_2d.corners}
+                margins={plotData.apex_margin?.corners}
+                laps={plotData.trajectory_2d.laps}
+              />
+            </section>
+          )}
+
           {/* 1. Speed Trace — pleine largeur */}
           {plotData.speed_trace && (
             <section className={sectionClass}>
@@ -79,24 +91,15 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
             </section>
           )}
 
-          {/* 2. Performance Radar + Track Map — 2 colonnes */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* 2. Performance Radar — 1 colonne centrée ou grid si on veut ajouter autre chose */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {plotData.performance_radar && (
               <section className={sectionClassNoMb}>
                 <h2 className={titleClass}>Performance Radar</h2>
                 <PerformanceRadar data={plotData.performance_radar} />
               </section>
             )}
-            {plotData.trajectory_2d?.corners?.length > 0 && (
-              <section className={sectionClassNoMb}>
-                <h2 className={titleClass}>Track Map</h2>
-                <TrackMap
-                  corners={plotData.trajectory_2d.corners}
-                  margins={plotData.apex_margin?.corners}
-                  laps={plotData.trajectory_2d.laps}
-                />
-              </section>
-            )}
+            {/* Espace libre pour un éventuel futur composant */}
           </div>
 
           {/* 3. Apex Margin — pleine largeur */}

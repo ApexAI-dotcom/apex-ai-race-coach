@@ -8,9 +8,9 @@ interface TrackMapProps {
   laps?: TrajectoryLap[];
 }
 
-const W = 400;
-const H = 300;
-const PAD = 20;
+const W = 800;
+const H = 600;
+const PAD = 40;
 
 function getBoundsFromCorners(corners: TrajectoryCorner[]) {
   let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
@@ -119,82 +119,122 @@ export function TrackMap({ corners, margins = [], laps }: TrackMapProps) {
   if (points.length === 0 && !trackPolyline) return null;
 
   return (
-    <div className="w-full" aria-label="Track map">
+    <div className="w-full relative rounded-xl bg-[#0d1117] p-4 flex justify-center items-center" aria-label="Track map">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="w-full h-auto max-h-[280px]"
+        className="w-full h-auto max-h-[600px] drop-shadow-2xl"
         style={{ aspectRatio: `${width} / ${height}` }}
       >
-        {/* Fond piste (trait épais gris) */}
+        {/* Glow de la piste (pour l'effet asphalte chaud/lumière) */}
+        {trackPolyline && (
+          <polyline
+            points={trackPolyline}
+            fill="none"
+            stroke="#ff6b35"
+            strokeWidth="30"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={0.15}
+            style={{ filter: "blur(8px)" }}
+          />
+        )}
+        {/* Fond piste (trait très épais gris foncé/noir) */}
+        {trackPolyline && (
+          <polyline
+            points={trackPolyline}
+            fill="none"
+            stroke="#161b22"
+            strokeWidth="24"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+        {/* Bordures de piste (effet vibreur/limite) */}
         {trackPolyline && (
           <polyline
             points={trackPolyline}
             fill="none"
             stroke="#30363d"
-            strokeWidth="14"
+            strokeWidth="26"
             strokeLinecap="round"
             strokeLinejoin="round"
+            opacity={0.5}
+            strokeDasharray="10 10"
           />
         )}
-        {/* Trajectoire (trait fin orange) */}
+        {/* Trajectoire idéale (trait fin couleur accent) */}
         {trackPolyline && (
           <polyline
             points={trackPolyline}
             fill="none"
-            stroke="#f97316"
+            stroke="#ff6b35"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+        {/* Tour référence (pointillé bleu cyan) */}
+        {refPolyline && (
+          <polyline
+            points={refPolyline}
+            fill="none"
+            stroke="#38bdf8"
             strokeWidth="2"
+            strokeDasharray="6 6"
             strokeLinecap="round"
             strokeLinejoin="round"
             opacity={0.8}
           />
         )}
-        {/* Tour référence (pointillé bleu) */}
-        {refPolyline && (
-          <polyline
-            points={refPolyline}
-            fill="none"
-            stroke="#3b82f6"
-            strokeWidth="1.5"
-            strokeDasharray="4 3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity={0.6}
-          />
-        )}
-        {/* Corners */}
+        {/* Corners - Style F1 (Badges noirs avec texte blanc épais) */}
         {points.map((p) => {
           const margin = marginByLabel[p.label];
-          const grade = p.grade ?? "C";
-          const fill = GRADE_COLORS[grade] ?? "#8b949e";
           const isHover = hoverId === p.id;
+          
           return (
             <g
               key={p.id}
               onMouseEnter={() => setHoverId(p.id)}
               onMouseLeave={() => setHoverId(null)}
+              className="cursor-pointer"
+              style={{ transition: "all 0.2s ease" }}
             >
               <circle
                 cx={p.x}
                 cy={p.y}
-                r={isHover ? 10 : 7}
-                fill={fill}
-                stroke="#e6edf3"
-                strokeWidth={isHover ? 2 : 1}
+                r={isHover ? 6 : 4}
+                fill="#ffffff"
+                className="pointer-events-none"
+              />
+              {/* Badge F1 (rond noir bordé de blanc avec numéro) */}
+              <circle
+                cx={p.x}
+                cy={p.y - 20}
+                r={isHover ? 14 : 12}
+                fill="#000000"
+                stroke={isHover ? "#ff6b35" : "#ffffff"}
+                strokeWidth={isHover ? 3 : 2}
               />
               <text
                 x={p.x}
-                y={p.y - 12}
+                y={p.y - 16}
                 textAnchor="middle"
-                fill="#e6edf3"
-                fontSize="10"
+                fill="#ffffff"
+                fontSize={isHover ? "12" : "10"}
+                fontWeight="bold"
+                className="font-display select-none pointer-events-none"
               >
-                {p.label}
+                {p.label.replace('V', '')}
               </text>
+              
               {isHover && margin && (
-                <title>
-                  {p.label} | Vitesse: {p.apex_speed?.toFixed(1)} km/h | Grade: {p.grade}
-                  {margin.time_lost != null ? ` | Time lost: ${(margin.time_lost * 1000).toFixed(0)} ms` : ""}
-                </title>
+                <g className="pointer-events-none">
+                  {/* Tooltip SVG basique si besoin, ou on s'appuie sur le <title> natif */}
+                  <title>
+                    Virage {p.label.replace('V', '')} | Vitesse: {p.apex_speed?.toFixed(1)} km/h | Grade: {p.grade}
+                    {margin.time_lost != null ? ` | Temps perdu: ${(margin.time_lost * 1000).toFixed(0)} ms` : ""}
+                  </title>
+                </g>
               )}
             </g>
           );
