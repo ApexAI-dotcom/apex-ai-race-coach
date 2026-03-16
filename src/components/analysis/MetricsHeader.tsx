@@ -42,12 +42,12 @@ export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderPro
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div className={cardClass}>
-        <div className={labelClass}>Meilleur tour</div>
-        <div className={valueClass}>
+      <div className={cardClass} style={{ borderColor: 'rgba(34, 197, 94, 0.3)', backgroundColor: 'rgba(34, 197, 94, 0.05)' }}>
+        <div className={labelClass} style={{ color: '#4ade80' }}>Meilleur tour</div>
+        <div className={valueClass} style={{ color: '#22c55e' }}>
           {typeof bestLap === "number" ? bestLap.toFixed(2) : bestLap}s
         </div>
-        <div className={metaClass}>Tour #{bestLapNum}</div>
+        <div className={metaClass} style={{ color: '#4ade80' }}>Tour #{bestLapNum}</div>
       </div>
 
       <div className={cardClass}>
