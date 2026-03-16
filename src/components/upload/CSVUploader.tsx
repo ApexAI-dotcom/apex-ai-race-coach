@@ -21,7 +21,6 @@ import {
   WifiOff,
   Brain,
   BarChart3,
-  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -658,15 +657,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               </Card>
             </div>
 
-            {/* Dashboard Recharts — graphiques sur la même page */}
-            <div className="mt-8 rounded-xl border border-[#30363d] bg-[#0d1117] p-4 md:p-6">
-              <h3 className="text-lg font-semibold text-[#e6edf3] mb-4">Graphiques de la session</h3>
-              <AnalysisDashboardContent
-                analysis={mapApiResultToResponse(result)}
-                embedded
-              />
-            </div>
-
             {/* Conseils de coaching */}
             {result.coaching_advice?.length > 0 && (
               <Card className="glass-card border-primary/20">
@@ -711,8 +701,14 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               </Card>
             )}
 
-            {/* Analyse des virages */}
-            {result.corner_analysis?.length > 0 && (
+            {/* Analyse des virages — tableau */}
+            {result.corner_analysis?.length > 0 && (() => {
+              const showLateralG = result.corner_analysis.some((c) => c.lateral_g_max >= 0.1);
+              const headers = ["Virage","Type","Vit. Réelle","Vit. Optimale",
+                ...(showLateralG ? ["G Latéral"] : []),
+                "Tps Perdu","Score","Grade"];
+              const colSpan = headers.length + 1; // +1 for expand button column
+              return (
               <Card className="glass-card border-primary/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -731,7 +727,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                       <thead>
                         <tr className="border-b border-white/5">
                           <th className="px-4 py-2 text-left text-muted-foreground w-8"></th>
-                          {["Virage","Type","Vit. Réelle","Vit. Optimale","G Latéral","Tps Perdu","Score","Grade"].map((h) => (
+                          {headers.map((h) => (
                             <th key={h} className="px-4 py-2 text-left text-muted-foreground">{h}</th>
                           ))}
                         </tr>
@@ -759,7 +755,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                                 <td className="px-4 py-2">{cornerTypeLabel}</td>
                                 <td className="px-4 py-2">{corner.apex_speed_real.toFixed(1)} km/h</td>
                                 <td className="px-4 py-2">{corner.apex_speed_optimal.toFixed(1)} km/h</td>
-                                <td className="px-4 py-2">{corner.lateral_g_max.toFixed(2)}G</td>
+                                {showLateralG && <td className="px-4 py-2">{corner.lateral_g_max.toFixed(2)}G</td>}
                                 <td className="px-4 py-2">{corner.time_lost.toFixed(3)}s</td>
                                 <td className="px-4 py-2">
                                   {showWarning && <span className="text-orange-500 mr-1" title="Temps perdu &gt; 0.05s">⚠️</span>}
@@ -771,18 +767,23 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                               </tr>
                               {hasPerLap && expandedCorner === corner.corner_id && corner.per_lap_data && (
                                 <tr className="border-b border-white/5 bg-white/5">
-                                  <td colSpan={9} className="px-4 py-2">
+                                  <td colSpan={colSpan} className="px-4 py-2">
                                     <div className="text-xs text-muted-foreground mb-1">Détail par tour</div>
                                     <table className="w-full text-xs">
                                       <thead>
-                                        <tr><th className="text-left py-0.5">Tour</th><th className="text-left py-0.5">Vit. Apex</th><th className="text-left py-0.5">G Lat</th><th className="text-left py-0.5">Tps Perdu</th></tr>
+                                        <tr>
+                                          <th className="text-left py-0.5">Tour</th>
+                                          <th className="text-left py-0.5">Vit. Apex</th>
+                                          {showLateralG && <th className="text-left py-0.5">G Lat</th>}
+                                          <th className="text-left py-0.5">Tps Perdu</th>
+                                        </tr>
                                       </thead>
                                       <tbody>
                                         {corner.per_lap_data.map((lap, i) => (
                                           <tr key={i}>
                                             <td className="py-0.5">{lap.lap}</td>
                                             <td className="py-0.5">{(lap.apex_speed_kmh ?? 0).toFixed(1)} km/h</td>
-                                            <td className="py-0.5">{(lap.max_lateral_g ?? 0).toFixed(2)}G</td>
+                                            {showLateralG && <td className="py-0.5">{(lap.max_lateral_g ?? 0).toFixed(2)}G</td>}
                                             <td className="py-0.5">{(lap.time_lost ?? 0).toFixed(3)}s</td>
                                           </tr>
                                         ))}
@@ -799,53 +800,27 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   </div>
                 </CardContent>
               </Card>
-            )}
+              );
+            })()}
 
-            {/* Graphiques */}
-            {result.plots && Object.keys(result.plots).length > 0 && (
-              <Card className="glass-card border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-primary" />
-                    Graphiques Générés
-                  </CardTitle>
-                  <CardDescription>Visualisations de votre performance</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Object.entries(result.plots).map(([plotName, plotUrl]) => {
-                      if (!plotUrl) return null;
-                      const displayName = plotName
-                        .replace(/_/g, " ")
-                        .replace(/\b\w/g, (l) => l.toUpperCase());
-                      return (
-                        <div
-                          key={plotName}
-                          onClick={() => {
-                            setModalImage(plotUrl);
-                            setModalTitle(displayName);
-                          }}
-                          className="p-4 rounded-lg bg-secondary/50 border border-white/5 hover:border-primary/50 transition-colors group cursor-pointer hover:opacity-80"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-foreground">{displayName}</span>
-                            <Eye className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                          </div>
-                          <img
-                            src={plotUrl}
-                            alt={displayName}
-                            className="w-full h-32 object-cover rounded border border-white/5"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = "none";
-                            }}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* ─── Séparateur Graphiques détaillés ─── */}
+            <div className="relative my-10">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/10" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-background px-4 text-sm text-muted-foreground flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Graphiques détaillés
+                </span>
+              </div>
+            </div>
+
+            {/* Graphiques Recharts — sans wrapper Card */}
+            <AnalysisDashboardContent
+              analysis={mapApiResultToResponse(result)}
+              embedded
+            />
           </motion.div>
 
         ) : isAnalyzing ? (

@@ -4,10 +4,20 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CornerDetailsGridProps {
   corners: CornerMargin[];
+  /** "app" = thème page (border-white/5, text-foreground). "racing" = thème sombre hex. */
+  variant?: "racing" | "app";
 }
 
-export function CornerDetailsGrid({ corners }: CornerDetailsGridProps) {
+export function CornerDetailsGrid({ corners, variant = "racing" }: CornerDetailsGridProps) {
   if (corners.length === 0) return null;
+
+  const isApp = variant === "app";
+  const cardClass = isApp
+    ? "rounded-lg border border-white/5 bg-secondary/50 p-3"
+    : "rounded-xl border border-[#30363d] bg-[#161b22] p-3";
+  const labelClass = isApp ? "font-semibold text-foreground" : "font-semibold text-[#e6edf3]";
+  const iconClass = isApp ? "w-4 h-4 text-muted-foreground" : "w-4 h-4 text-[#8b949e]";
+  const metaClass = isApp ? "text-muted-foreground text-xs" : "text-[#8b949e] text-xs";
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -15,19 +25,16 @@ export function CornerDetailsGrid({ corners }: CornerDetailsGridProps) {
         const gradeColor = GRADE_COLORS[c.grade] ?? "#8b949e";
         const isLeft = c.corner_type === "left";
         return (
-          <div
-            key={c.label}
-            className="rounded-xl border border-[#30363d] bg-[#161b22] p-3"
-          >
+          <div key={c.label} className={cardClass}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[#e6edf3] font-semibold">{c.label}</span>
+              <span className={labelClass}>{c.label}</span>
               {isLeft ? (
-                <ChevronLeft className="w-4 h-4 text-[#8b949e]" aria-hidden />
+                <ChevronLeft className={iconClass} aria-hidden />
               ) : (
-                <ChevronRight className="w-4 h-4 text-[#8b949e]" aria-hidden />
+                <ChevronRight className={iconClass} aria-hidden />
               )}
             </div>
-            <div className="text-[#8b949e] text-xs">
+            <div className={metaClass}>
               Apex: {c.apex_speed_real != null ? c.apex_speed_real.toFixed(1) : "—"} km/h
             </div>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -37,13 +44,13 @@ export function CornerDetailsGrid({ corners }: CornerDetailsGridProps) {
               >
                 {c.grade}
               </span>
-              <span className="text-[#8b949e] text-xs">
+              <span className={metaClass}>
                 {c.margin_kmh != null
                   ? `${c.margin_kmh >= 0 ? "+" : ""}${c.margin_kmh.toFixed(1)} km/h`
                   : "—"}
               </span>
             </div>
-            <div className="text-[#8b949e] text-xs mt-1">
+            <div className={`${metaClass} mt-1`}>
               Time lost: {c.time_lost != null ? `${(c.time_lost * 1000).toFixed(0)} ms` : "—"}
             </div>
           </div>

@@ -5,7 +5,6 @@ import { TimeDeltaChart } from "./TimeDeltaChart";
 import { PerformanceRadar } from "./PerformanceRadar";
 import { TrackMap } from "./TrackMap";
 import { ApexMarginChart } from "./ApexMarginChart";
-import { MetricsHeader } from "./MetricsHeader";
 import { CornerDetailsGrid } from "./CornerDetailsGrid";
 
 interface AnalysisDashboardContentProps {
@@ -43,51 +42,54 @@ function enrichCornersWithCornerAnalysis(
 export function AnalysisDashboardContent({ analysis, embedded = false }: AnalysisDashboardContentProps) {
   const plotData = analysis.plot_data;
   const hasPlotData = !!plotData;
-  const data = analysis;
 
-  const wrapperClass = embedded
-    ? "space-y-6 rounded-xl border border-[#30363d] bg-[#0d1117] p-4 md:p-6"
-    : "";
+  const wrapperClass = embedded ? "space-y-6" : "";
+  const sectionClass = embedded
+    ? "mb-8 rounded-lg border border-white/5 bg-secondary/50 p-4"
+    : "mb-8 rounded-xl border border-[#30363d] bg-[#161b22] p-4";
+  const sectionClassNoMb = embedded
+    ? "rounded-lg border border-white/5 bg-secondary/50 p-4"
+    : "rounded-xl border border-[#30363d] bg-[#161b22] p-4";
+  const titleClass = embedded
+    ? "text-lg font-semibold text-foreground mb-4"
+    : "text-lg font-semibold text-[#e6edf3] mb-4";
+  const fallbackTextClass = embedded ? "text-muted-foreground text-sm" : "text-[#8b949e] text-sm";
+  const fallbackBlockClass = embedded
+    ? "rounded-lg border border-white/5 bg-secondary/50 p-4"
+    : "rounded-xl border border-[#30363d] bg-[#161b22] p-4";
+
+  // Throttle/Brake : vérifier si données réelles (pas du bruit)
+  const hasThrottleBrake = plotData?.throttle_brake?.laps?.[0]?.throttle_pct?.some(
+    (v: number) => v > 10
+  ) ?? false;
+
+  // Time Delta : vérifier que les valeurs sont raisonnables (max ±10s)
+  const timeDeltaValid = plotData?.time_delta?.delta_s?.length > 0 &&
+    plotData.time_delta.delta_s.every((v: number) => Math.abs(v) < 10);
 
   return (
     <div className={wrapperClass}>
-      <MetricsHeader analysis={data} />
-
       {hasPlotData ? (
         <>
+          {/* 1. Speed Trace — pleine largeur */}
           {plotData.speed_trace && (
-            <section className="mb-8 rounded-xl border border-[#30363d] bg-[#161b22] p-4">
-              <h2 className="text-lg font-semibold text-[#e6edf3] mb-4">Speed Trace</h2>
+            <section className={sectionClass}>
+              <h2 className={titleClass}>Speed Trace</h2>
               <SpeedTraceChart data={plotData.speed_trace} />
             </section>
           )}
 
-          {plotData.throttle_brake?.laps?.[0] && (
-            <section className="mb-8 rounded-xl border border-[#30363d] bg-[#161b22] p-4">
-              <h2 className="text-lg font-semibold text-[#e6edf3] mb-4">Throttle & Brake</h2>
-              <ThrottleBrakeChart data={plotData.throttle_brake.laps[0]} />
-            </section>
-          )}
-
+          {/* 2. Performance Radar + Track Map — 2 colonnes */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {plotData.time_delta && (
-              <section className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
-                <h2 className="text-lg font-semibold text-[#e6edf3] mb-4">Time Delta</h2>
-                <TimeDeltaChart data={plotData.time_delta} />
-              </section>
-            )}
             {plotData.performance_radar && (
-              <section className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
-                <h2 className="text-lg font-semibold text-[#e6edf3] mb-4">Performance Radar</h2>
+              <section className={sectionClassNoMb}>
+                <h2 className={titleClass}>Performance Radar</h2>
                 <PerformanceRadar data={plotData.performance_radar} />
               </section>
             )}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {plotData.trajectory_2d?.corners?.length > 0 && (
-              <section className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
-                <h2 className="text-lg font-semibold text-[#e6edf3] mb-4">Track Map</h2>
+              <section className={sectionClassNoMb}>
+                <h2 className={titleClass}>Track Map</h2>
                 <TrackMap
                   corners={plotData.trajectory_2d.corners}
                   margins={plotData.apex_margin?.corners}
@@ -95,56 +97,70 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
                 />
               </section>
             )}
-            {plotData.apex_margin?.corners?.length > 0 && (
-              <section className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
-                <h2 className="text-lg font-semibold text-[#e6edf3] mb-4">Apex Margin</h2>
-                <ApexMarginChart data={plotData.apex_margin.corners} />
-              </section>
-            )}
           </div>
 
+          {/* 3. Apex Margin — pleine largeur */}
+          {plotData.apex_margin?.corners?.length > 0 && (
+            <section className={sectionClass}>
+              <h2 className={titleClass}>Apex Margin</h2>
+              <ApexMarginChart data={plotData.apex_margin.corners} />
+            </section>
+          )}
+
+          {/* 4. Throttle & Brake — conditionnel */}
+          {hasThrottleBrake ? (
+            <section className={sectionClass}>
+              <h2 className={titleClass}>Throttle & Brake</h2>
+              <ThrottleBrakeChart data={plotData.throttle_brake.laps[0]} />
+            </section>
+          ) : (
+            <section className={sectionClass}>
+              <h2 className={titleClass}>Throttle & Brake</h2>
+              <p className={fallbackTextClass}>
+                Données throttle/brake non disponibles pour ce format.
+              </p>
+            </section>
+          )}
+
+          {/* 5. Time Delta — conditionnel */}
+          {timeDeltaValid ? (
+            <section className={sectionClass}>
+              <h2 className={titleClass}>Time Delta</h2>
+              <TimeDeltaChart data={plotData.time_delta} />
+            </section>
+          ) : plotData.time_delta ? (
+            <section className={sectionClass}>
+              <h2 className={titleClass}>Time Delta</h2>
+              <p className={fallbackTextClass}>
+                Données time delta non exploitables (valeurs hors plage).
+              </p>
+            </section>
+          ) : null}
+
+          {/* 6. Détail des virages — cartes */}
           {plotData.apex_margin?.corners?.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-lg font-semibold text-[#e6edf3] mb-4">Détail des virages</h2>
+              <h2 className={titleClass}>Détail des virages</h2>
               <CornerDetailsGrid
                 corners={enrichCornersWithCornerAnalysis(plotData, analysis)}
+                variant={embedded ? "app" : "racing"}
               />
             </section>
           )}
         </>
       ) : (
         <section className="space-y-6">
-          <p className="text-[#8b949e] text-sm">
-            {data.plots && Object.keys(data.plots).length > 0
+          <p className={fallbackTextClass}>
+            {analysis.plots && Object.keys(analysis.plots).length > 0
               ? "Données graphiques (fallback images base64)."
-              : "Données graphiques non disponibles. Métriques affichées ci-dessus."}
+              : "Données graphiques non disponibles."}
           </p>
-          {data.plots?.speed_trace && (
-            <div className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
-              <h2 className="text-lg font-semibold text-[#e6edf3] mb-4">Speed Trace</h2>
+          {analysis.plots?.speed_trace && (
+            <div className={fallbackBlockClass}>
+              <h2 className={titleClass}>Speed Trace</h2>
               <img
-                src={data.plots.speed_trace}
+                src={analysis.plots.speed_trace}
                 alt="Speed trace"
-                className="w-full h-auto rounded-lg"
-              />
-            </div>
-          )}
-          {data.plots?.throttle_brake && (
-            <div className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
-              <h2 className="text-lg font-semibold text-[#e6edf3] mb-4">Throttle & Brake</h2>
-              <img
-                src={data.plots.throttle_brake}
-                alt="Throttle and brake"
-                className="w-full h-auto rounded-lg"
-              />
-            </div>
-          )}
-          {data.plots?.performance_radar && (
-            <div className="rounded-xl border border-[#30363d] bg-[#161b22] p-4">
-              <h2 className="text-lg font-semibold text-[#e6edf3] mb-4">Performance Radar</h2>
-              <img
-                src={data.plots.performance_radar}
-                alt="Performance radar"
                 className="w-full h-auto rounded-lg"
               />
             </div>
