@@ -196,7 +196,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           {plotData.time_delta_laps && plotData.time_delta_laps.laps?.length > 0 && (
             <section className={sectionClass}>
               <div className="flex flex-col mb-4">
-                <h2 className={`${titleClass} mb-1`}>Heure Delta</h2>
+                <h2 className={`${titleClass} mb-1`}>Delta Temps</h2>
                 <p className="text-sm text-[#8b949e]">
                   Différence de temps par rapport au meilleur tour (T{plotData.time_delta_laps.best_lap_number}). Les valeurs positives indiquent des tours plus lents.
                 </p>
