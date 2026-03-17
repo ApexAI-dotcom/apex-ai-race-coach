@@ -61,7 +61,8 @@ export function ApexMarginChart({ data }: ApexMarginChartProps) {
             width={36}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d" }}
+            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", color: "#ffffff" }}
+            itemStyle={{ color: "#ffffff" }}
             formatter={(value: number, _name: string, props: { payload: (typeof series)[0] }) => {
               const p = props.payload;
               return [

@@ -93,7 +93,8 @@ export function SpeedTraceChart({ data }: SpeedTraceChartProps) {
             label={{ value: "km/h", angle: -90, position: "insideLeft", fill: "#8b949e" }}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d" }}
+            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", color: "#ffffff" }}
+            itemStyle={{ color: "#ffffff" }}
             labelStyle={{ color: "#e6edf3" }}
             formatter={(value: number) => [value, "km/h"]}
             labelFormatter={(label) => `Distance: ${label} m`}

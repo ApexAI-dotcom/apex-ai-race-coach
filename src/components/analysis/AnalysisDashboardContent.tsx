@@ -86,7 +86,12 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           {/* 1. Speed Trace — pleine largeur */}
           {plotData.speed_trace && (
             <section className={sectionClass}>
-              <h2 className={titleClass}>Trace de Vitesse</h2>
+              <div className="flex flex-col mb-4">
+                <h2 className={`${titleClass} mb-1`}>Trace de Vitesse</h2>
+                <p className="text-sm text-[#8b949e]">
+                  Comparez votre vitesse tout au long du tour par rapport au meilleur tour. Identifiez où vous perdez de la vitesse en ligne droite ou en courbe.
+                </p>
+              </div>
               <SpeedTraceChart data={plotData.speed_trace} />
             </section>
           )}
@@ -95,7 +100,12 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {plotData.performance_radar && (
               <section className={sectionClassNoMb}>
-                <h2 className={titleClass}>Radar de Performance</h2>
+                <div className="flex flex-col mb-4">
+                  <h2 className={`${titleClass} mb-1`}>Radar de Performance</h2>
+                  <p className="text-sm text-[#8b949e]">
+                    Aperçu global de vos compétences. Un grand triangle régulier indique un pilotage complet et maîtrisé.
+                  </p>
+                </div>
                 <PerformanceRadar data={plotData.performance_radar} />
               </section>
             )}
@@ -105,7 +115,12 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           {/* 3. Apex Margin — pleine largeur */}
           {plotData.apex_margin?.corners?.length > 0 && (
             <section className={sectionClass}>
-              <h2 className={titleClass}>Apex Margin</h2>
+              <div className="flex flex-col mb-4">
+                <h2 className={`${titleClass} mb-1`}>Marge à l'Apex (Vitesse perdue)</h2>
+                <p className="text-sm text-[#8b949e]">
+                  Représente l'écart en km/h entre la vitesse théorique maximale et votre vitesse réelle. Une barre plus petite signifie que vous étiez à la limite (Grade A/B).
+                </p>
+              </div>
               <ApexMarginChart data={plotData.apex_margin.corners} />
             </section>
           )}
@@ -113,7 +128,12 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           {/* 4. Throttle & Brake — conditionnel */}
           {hasThrottleBrake ? (
             <section className={sectionClass}>
-              <h2 className={titleClass}>Throttle & Brake</h2>
+              <div className="flex flex-col mb-4">
+                <h2 className={`${titleClass} mb-1`}>Accélérateur & Frein</h2>
+                <p className="text-sm text-[#8b949e]">
+                  Visualisez vos points de freinage et vos remises de gaz. Cherchez les phases de "coasting" (ni gaz ni frein) à éliminer.
+                </p>
+              </div>
               <ThrottleBrakeChart data={plotData.throttle_brake.laps[0]} />
             </section>
           ) : (
@@ -143,7 +163,12 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           {/* 6. Détail des virages — cartes */}
           {plotData.apex_margin?.corners?.length > 0 && (
             <section className="mb-8">
-              <h2 className={titleClass}>Détail des virages</h2>
+              <div className="flex flex-col mb-4">
+                <h2 className={`${titleClass} mb-1`}>Détails des virages</h2>
+                <p className="text-sm text-[#8b949e] max-w-2xl">
+                  Analyse granulaire. <strong>Grades :</strong> (A) Excellent, proche de la limite. (B) Bon, légère marge. (C) Moyen, perte de temps notable. (D) Critique, erreur ou freinage excessif.
+                </p>
+              </div>
               <CornerDetailsGrid
                 corners={enrichCornersWithCornerAnalysis(plotData, analysis)}
                 variant={embedded ? "app" : "racing"}
