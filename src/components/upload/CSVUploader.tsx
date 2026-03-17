@@ -686,7 +686,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     Conseils de Coaching (Top {result.coaching_advice.length})
                   </CardTitle>
                   <CardDescription>
-                    Conseils prioritaires pour améliorer votre performance
+                    Conseils prioritaires pour améliorer votre performance — Basé sur le meilleur tour{result.statistics.fastest_lap_number ? ` (Tour ${result.statistics.fastest_lap_number})` : ""}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
