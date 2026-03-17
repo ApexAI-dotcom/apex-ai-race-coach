@@ -2,7 +2,7 @@ import type { AnalysisResponse, CornerMargin, PlotData } from "@/types/analysis"
 import { useState, useMemo } from "react";
 import { SpeedTraceChart } from "./SpeedTraceChart";
 import { ThrottleBrakeChart } from "./ThrottleBrakeChart";
-import { TimeDeltaChart } from "./TimeDeltaChart";
+import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { PerformanceRadar } from "./PerformanceRadar";
 import { TrackMap } from "./TrackMap";
 import { ApexMarginChart } from "./ApexMarginChart";
@@ -115,9 +115,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
     (v: number) => v > 10
   ) ?? false;
 
-  // Time Delta : check reasonable bounds
-  const timeDeltaValid = plotData?.time_delta?.delta_s?.length > 0 &&
-    plotData.time_delta.delta_s.every((v: number) => Math.abs(v) < 10);
+
 
   return (
     <div className={wrapperClass}>
@@ -194,6 +192,22 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
             </section>
           )}
 
+          {/* ═══ 1b. HEURE DELTA — Tours sélectionnés ═══ */}
+          {plotData.time_delta_laps && plotData.time_delta_laps.laps?.length > 0 && (
+            <section className={sectionClass}>
+              <div className="flex flex-col mb-4">
+                <h2 className={`${titleClass} mb-1`}>Heure Delta</h2>
+                <p className="text-sm text-[#8b949e]">
+                  Différence de temps par rapport au meilleur tour (T{plotData.time_delta_laps.best_lap_number}). Les valeurs positives indiquent des tours plus lents.
+                </p>
+              </div>
+              <TimeDeltaLapsChart
+                data={plotData.time_delta_laps}
+                selectedLaps={selectedLapNumbers}
+              />
+            </section>
+          )}
+
           {/* ═══ 2. RADAR — Pas de changement ═══ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {plotData.performance_radar && (
@@ -250,20 +264,9 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
             </section>
           )}
 
-          {/* ═══ 5. TIME DELTA ═══ */}
-          {timeDeltaValid ? (
-            <section className={sectionClass}>
-              <h2 className={titleClass}>Delta de Temps</h2>
-              <TimeDeltaChart data={plotData.time_delta} />
-            </section>
-          ) : plotData.time_delta ? (
-            <section className={sectionClass}>
-              <h2 className={titleClass}>Delta de Temps</h2>
-              <p className={fallbackTextClass}>
-                Données time delta non exploitables (valeurs hors plage).
-              </p>
-            </section>
-          ) : null}
+
+          {/* (Time Delta now handled by TimeDeltaLapsChart above) */}
+
 
           {/* ═══ 6. DÉTAILS DES VIRAGES — Meilleur tour ═══ */}
           {plotData.apex_margin?.corners?.length > 0 && (

@@ -83,6 +83,15 @@ export interface PlotData {
   performance_radar: RadarData;
   apex_margin: { corners: CornerMargin[] };
   trajectory_2d: { corners: TrajectoryCorner[]; laps?: TrajectoryLap[] };
+  time_delta_laps?: {
+    best_lap_number: number;
+    laps: {
+      lap_number: number;
+      distance_m: number[];
+      delta_s: number[];
+      is_best: boolean;
+    }[];
+  };
 }
 
 export interface AnalysisPerformanceScore {

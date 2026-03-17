@@ -635,7 +635,25 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-2xl font-bold text-foreground">
-                      {result.statistics.max_speed?.toFixed(1) ?? "—"} km/h
+                      {(() => {
+                        // Backend stat
+                        if (result.statistics.max_speed != null && result.statistics.max_speed > 0)
+                          return `${result.statistics.max_speed.toFixed(1)} km/h`;
+                        // Frontend fallback: compute from speed_trace plot data
+                        const laps = (result as any).plot_data?.speed_trace?.laps;
+                        if (laps && Array.isArray(laps)) {
+                          let maxV = 0;
+                          for (const lap of laps) {
+                            if (lap.speed_kmh && Array.isArray(lap.speed_kmh)) {
+                              for (const v of lap.speed_kmh) {
+                                if (v > maxV) maxV = v;
+                              }
+                            }
+                          }
+                          if (maxV > 0) return `${maxV.toFixed(1)} km/h`;
+                        }
+                        return "— km/h";
+                      })()}
                     </span>
                     <span className="text-sm text-muted-foreground">
                       {result.statistics.max_speed_lap ? `Tour ${result.statistics.max_speed_lap}` : ""}
