@@ -196,6 +196,17 @@ export function TrackMap({ corners, margins = [], laps }: TrackMapProps) {
               key={p.id}
               onMouseEnter={() => setHoverId(p.id)}
               onMouseLeave={() => setHoverId(null)}
+              onClick={() => {
+                const el = document.getElementById(`corner-${p.label}`);
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  // Add a brief highlight flash
+                  el.style.backgroundColor = '#38bdf840';
+                  setTimeout(() => {
+                    el.style.backgroundColor = '';
+                  }, 1000);
+                }
+              }}
               className="cursor-pointer"
               style={{ transition: "all 0.2s ease" }}
             >

@@ -84,6 +84,7 @@ export function SpeedTraceChart({ data }: SpeedTraceChartProps) {
             stroke="#8b949e"
             tick={{ fontSize: 11 }}
             tickFormatter={(v) => `${v}m`}
+            domain={["dataMin", "dataMax"]}
           />
           <YAxis
             stroke="#8b949e"

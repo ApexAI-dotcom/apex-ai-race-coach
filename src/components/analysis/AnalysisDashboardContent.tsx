@@ -74,7 +74,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           {/* 0. Track Map — Pleine largeur tout en haut */}
           {plotData.trajectory_2d?.corners?.length > 0 && (
             <section className={sectionClass}>
-              <h2 className={titleClass}>Track Map</h2>
+              <h2 className={titleClass}>Carte du Circuit</h2>
               <TrackMap
                 corners={plotData.trajectory_2d.corners}
                 margins={plotData.apex_margin?.corners}
@@ -86,7 +86,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           {/* 1. Speed Trace — pleine largeur */}
           {plotData.speed_trace && (
             <section className={sectionClass}>
-              <h2 className={titleClass}>Speed Trace</h2>
+              <h2 className={titleClass}>Trace de Vitesse</h2>
               <SpeedTraceChart data={plotData.speed_trace} />
             </section>
           )}
@@ -95,7 +95,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {plotData.performance_radar && (
               <section className={sectionClassNoMb}>
-                <h2 className={titleClass}>Performance Radar</h2>
+                <h2 className={titleClass}>Radar de Performance</h2>
                 <PerformanceRadar data={plotData.performance_radar} />
               </section>
             )}
@@ -128,12 +128,12 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           {/* 5. Time Delta — conditionnel */}
           {timeDeltaValid ? (
             <section className={sectionClass}>
-              <h2 className={titleClass}>Time Delta</h2>
+              <h2 className={titleClass}>Delta de Temps</h2>
               <TimeDeltaChart data={plotData.time_delta} />
             </section>
           ) : plotData.time_delta ? (
             <section className={sectionClass}>
-              <h2 className={titleClass}>Time Delta</h2>
+              <h2 className={titleClass}>Delta de Temps</h2>
               <p className={fallbackTextClass}>
                 Données time delta non exploitables (valeurs hors plage).
               </p>

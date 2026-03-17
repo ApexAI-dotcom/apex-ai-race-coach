@@ -25,7 +25,7 @@ export function CornerDetailsGrid({ corners, variant = "racing" }: CornerDetails
         const gradeColor = GRADE_COLORS[c.grade] ?? "#8b949e";
         const isLeft = c.corner_type === "left";
         return (
-          <div key={c.label} className={cardClass}>
+          <div key={c.label} id={`corner-${c.label}`} className={cardClass}>
             <div className="flex items-center justify-between mb-1">
               <span className={labelClass}>{c.label}</span>
               {isLeft ? (
@@ -36,6 +36,10 @@ export function CornerDetailsGrid({ corners, variant = "racing" }: CornerDetails
             </div>
             <div className={metaClass}>
               Apex: {c.apex_speed_real != null ? c.apex_speed_real.toFixed(1) : "—"} km/h
+              <br/>
+              <span className="text-[10px] opacity-70">
+                In: {c.entry_speed != null ? Math.round(c.entry_speed) : "—"} | Out: {c.exit_speed != null ? Math.round(c.exit_speed) : "—"}
+              </span>
             </div>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
               <span
@@ -51,7 +55,7 @@ export function CornerDetailsGrid({ corners, variant = "racing" }: CornerDetails
               </span>
             </div>
             <div className={`${metaClass} mt-1`}>
-              Time lost: {c.time_lost != null ? `${(c.time_lost * 1000).toFixed(0)} ms` : "—"}
+              Perte tps: {c.time_lost != null ? `${(c.time_lost * 1000).toFixed(0)} ms` : "—"}
             </div>
           </div>
         );
