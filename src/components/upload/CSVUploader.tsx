@@ -100,10 +100,15 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   // États upload
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  // Tours détectés (parse-laps) : null = pas encore chargé ou erreur
   const [laps, setLaps] = useState<LapInfo[] | null>(null);
   const [lapsLoading, setLapsLoading] = useState(false);
-  const [selectedLapNumbers, setSelectedLapNumbers] = useState<number[]>([]);
+  
+  // Nouveaux champs pour la session
+  const [sessionName, setSessionName] = useState<string>(() => {
+    const today = new Date();
+    return `Session du ${today.toLocaleDateString("fr-FR")}`;
+  });
+
   const [trackCondition, setTrackCondition] = useState<"dry" | "damp" | "wet" | "rain">("dry");
   const [trackTemperature, setTrackTemperature] = useState<number | "">("");
 
@@ -148,7 +153,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   useEffect(() => {
     if (!file) {
       setLaps(null);
-      setSelectedLapNumbers([]);
       setLapsLoading(false);
       return;
     }
@@ -159,8 +163,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       .then((res) => {
         if (cancelled) return;
         setLaps(res.laps);
-        const defaultSelected = (res.laps || []).filter((l) => !l.is_outlier).map((l) => l.lap_number);
-        setSelectedLapNumbers(defaultSelected);
       })
       .catch(() => {
         if (!cancelled) setLaps(null);
@@ -235,7 +237,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const handleReset = () => {
     setFile(null);
     setLaps(null);
-    setSelectedLapNumbers([]);
     setIsComplete(false);
     setIsAnalyzing(false);
     setError(null);
@@ -339,16 +340,15 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       }
 
       // Upload + analyse
-      const lapFilter =
-        selectedLapNumbers.length > 0 && laps?.length ? selectedLapNumbers : undefined;
       const tempNum =
         trackTemperature === "" || trackTemperature == null
           ? undefined
           : Number(trackTemperature);
       const analysisResult = await uploadAndAnalyzeCSV(file, {
-        lapFilter: lapFilter ?? undefined,
+        lapFilter: undefined, // Analysis operates on full session now
         track_condition: trackCondition,
         track_temperature: tempNum ?? undefined,
+        session_name: sessionName,
         accessToken: session?.access_token ?? undefined,
       });
 
@@ -603,56 +603,76 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               </CardContent>
             </Card>
 
-            {/* Stats rapides */}
+            {/* Stats rapides (Mise à jour) */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Tour le plus rapide */}
               <Card className="glass-card">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2 mb-2">
-                    <Target className="w-4 h-4 text-primary" />
-                    <div className="text-xs text-muted-foreground">Virages détectés</div>
+                    <Clock className="w-4 h-4 text-green-500" />
+                    <div className="text-xs text-muted-foreground">Tour le plus rapide</div>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">{result.corners_detected}</div>
+                  <div className="flex flex-col">
+                    <span className="text-2xl font-bold text-green-500">
+                      {(result.statistics.fastest_lap_number != null ? 
+                         result.lap_times?.[result.statistics.fastest_lap_number - 1] ?? result.best_lap_time :
+                         result.best_lap_time
+                      )?.toFixed(3) ?? "—"}s
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {result.statistics.fastest_lap_number ? `Tour ${result.statistics.fastest_lap_number}` : ""}
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
-              {(result.statistics.laps_analyzed ?? 1) <= 1 ? (
-                <Card className="glass-card">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-primary" />
-                      <div className="text-xs text-muted-foreground">Temps du tour</div>
-                    </div>
-                    <div className="text-2xl font-bold text-foreground">{result.lap_time.toFixed(2)}s</div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="glass-card border-green-500/30">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-green-500" />
-                      <div className="text-xs text-muted-foreground">Meilleur tour</div>
-                    </div>
-                    <div className="text-2xl font-bold text-green-500">
-                      {(result.best_lap_time ?? result.lap_time).toFixed(2)}s
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+
+              {/* Vitesse maximale */}
               <Card className="glass-card">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2 mb-2">
                     <Zap className="w-4 h-4 text-primary" />
-                    <div className="text-xs text-muted-foreground">Points de données</div>
+                    <div className="text-xs text-muted-foreground">Vitesse maximale</div>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">{result.statistics.data_points}</div>
+                  <div className="flex flex-col">
+                    <span className="text-2xl font-bold text-foreground">
+                      {result.statistics.max_speed?.toFixed(1) ?? "—"} km/h
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {result.statistics.max_speed_lap ? `Tour ${result.statistics.max_speed_lap}` : ""}
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
+
+              {/* Cohérence */}
               <Card className="glass-card">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <div className="text-xs text-muted-foreground">Temps traitement</div>
+                    <Target className="w-4 h-4 text-primary" />
+                    <div className="text-xs text-muted-foreground">Cohérence</div>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">{result.statistics.processing_time_seconds.toFixed(1)}s</div>
+                  <div className="flex flex-col">
+                    <span className="text-2xl font-bold text-foreground">
+                      {result.statistics.consistency_gap?.toFixed(2) ?? "—"} s
+                    </span>
+                    <span className="text-sm text-muted-foreground">Écart moyen</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Amélioration */}
+              <Card className="glass-card">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-4 h-4 text-primary" />
+                    <div className="text-xs text-muted-foreground">Amélioration</div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-2xl font-bold text-foreground">
+                      {result.statistics.improvement_gap?.toFixed(2) ?? "—"} s
+                    </span>
+                    <span className="text-sm text-muted-foreground">Pire au meilleur</span>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -845,166 +865,73 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               )}
             </div>
 
-            {/* Sélection des tours (si parse-laps a réussi) */}
-            {file && (lapsLoading || laps) && (
-              <Card className="mt-6 glass-card border-white/10 w-full max-w-2xl mx-auto">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-[#ff6b35]" />
-                    Tours à analyser
-                  </CardTitle>
-                  <CardDescription>
-                    {lapsLoading
-                      ? "Détection des tours en cours…"
-                      : "Cochez les tours à inclure. Les tours stand/prépa (⚠️) sont décochés par défaut."}
-                  </CardDescription>
-                </CardHeader>
-                {laps && laps.length > 0 && (
-                  <CardContent className="pt-0">
-                    <div className="overflow-x-auto rounded-lg border border-white/10">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-white/10 bg-white/5">
-                            <th className="px-4 py-2 text-left text-muted-foreground w-12">Inclure</th>
-                            <th className="px-4 py-2 text-left text-muted-foreground">N°</th>
-                            <th className="px-4 py-2 text-left text-muted-foreground">Temps</th>
-                            <th className="px-4 py-2 text-left text-muted-foreground">Points</th>
-                            <th className="px-4 py-2 text-left text-muted-foreground">Statut</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {laps.map((lap) => {
-                            const checked = selectedLapNumbers.includes(lap.lap_number);
-                            return (
-                              <tr
-                                key={lap.lap_number}
-                                className="border-b border-white/5 hover:bg-white/5 cursor-pointer"
-                                onClick={() => {
-                                  setSelectedLapNumbers((prev) =>
-                                    prev.includes(lap.lap_number)
-                                      ? prev.filter((n) => n !== lap.lap_number)
-                                      : [...prev, lap.lap_number]
-                                  );
-                                }}
-                              >
-                                <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
-                                  <input
-                                    type="checkbox"
-                                    checked={checked}
-                                    onChange={() => {
-                                      setSelectedLapNumbers((prev) =>
-                                        prev.includes(lap.lap_number)
-                                          ? prev.filter((n) => n !== lap.lap_number)
-                                          : [...prev, lap.lap_number]
-                                      );
-                                    }}
-                                    className="h-4 w-4 rounded border-white/20 text-[#ff6b35] focus:ring-[#ff6b35]"
-                                  />
-                                </td>
-                                <td className="px-4 py-2 font-medium">{lap.lap_number}</td>
-                                <td className="px-4 py-2 font-mono">{formatLapTime(lap.lap_time_seconds)}</td>
-                                <td className="px-4 py-2 text-muted-foreground">{lap.points_count}</td>
-                                <td className="px-4 py-2">
-                                  {lap.is_outlier ? (
-                                    <span className="text-amber-500" title="Tour stand / prépa">⚠️ outlier</span>
-                                  ) : (
-                                    <span className="text-green-500">✅ normal</span>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="border-white/10 text-[#ff6b35] hover:bg-[#ff6b35]/10"
-                        onClick={() => setSelectedLapNumbers(laps.map((l) => l.lap_number))}
-                      >
-                        Tout cocher
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="border-white/10"
-                        onClick={() => setSelectedLapNumbers([])}
-                      >
-                        Tout décocher
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="border-white/10"
-                        onClick={() =>
-                          setSelectedLapNumbers(laps.filter((l) => !l.is_outlier).map((l) => l.lap_number))
-                        }
-                      >
-                        Normaux seulement
-                      </Button>
-                    </div>
-                  </CardContent>
-                )}
-                {laps && laps.length === 0 && !lapsLoading && (
-                  <CardContent className="text-sm text-muted-foreground">
-                    Aucun tour détecté — l'analyse portera sur l'ensemble du fichier.
-                  </CardContent>
-                )}
-              </Card>
-            )}
-
-            {/* Conditions de piste */}
+            {/* Remplacement du composant de la sélection de tours par les conditions de piste & Nom de Session */}
             {file && (
               <Card className="mt-6 glass-card border-white/10 w-full max-w-2xl mx-auto">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Conditions de piste</CardTitle>
+                  <CardTitle className="text-lg">Informations de Session</CardTitle>
                   <CardDescription>
-                    Sélectionne la condition et optionnellement la température
+                    Configurez l'analyse avant le lancement
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-0 space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    {(
-                      [
-                        { value: "dry" as const, label: "Sec", icon: "☀️" },
-                        { value: "damp" as const, label: "Humide", icon: "🌦️" },
-                        { value: "wet" as const, label: "Mouillée", icon: "💧" },
-                        { value: "rain" as const, label: "Pluie", icon: "🌧️" },
-                      ] as const
-                    ).map(({ value, label, icon }) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setTrackCondition(value)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
-                          trackCondition === value
-                            ? "bg-[#ff6b35] text-white border-[#ff6b35]"
-                            : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
-                        }`}
-                      >
-                        {icon} {label}
-                      </button>
-                    ))}
-                  </div>
+                <CardContent className="pt-0 space-y-6">
+                  {/* Nom de Session */}
                   <div>
-                    <label className="text-sm text-muted-foreground block mb-1">
-                      Température piste (°C)
+                    <label className="text-sm font-medium text-foreground block mb-2">
+                      Nom de la session (Optionnel)
                     </label>
                     <input
-                      type="number"
-                      placeholder="ex. 28"
-                      value={trackTemperature === "" ? "" : trackTemperature}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setTrackTemperature(v === "" ? "" : parseFloat(v) || 0);
-                      }}
-                      className="w-full max-w-[120px] p-2 rounded-lg bg-secondary/50 border border-white/10 text-foreground placeholder:text-muted-foreground"
+                      type="text"
+                      placeholder="Ex: Track Day Le Mans"
+                      value={sessionName}
+                      onChange={(e) => setSessionName(e.target.value)}
+                      className="w-full p-2.5 rounded-lg bg-secondary/50 border border-white/10 text-foreground placeholder:text-muted-foreground/50 transition-colors focus:border-[#ff6b35]/50 focus:outline-none focus:ring-1 focus:ring-[#ff6b35]/50"
                     />
+                  </div>
+
+                  {/* Conditions de piste */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground block mb-3">
+                      Conditions de piste
+                    </label>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {(
+                        [
+                          { value: "dry" as const, label: "Sec", icon: "☀️" },
+                          { value: "damp" as const, label: "Humide", icon: "🌦️" },
+                          { value: "wet" as const, label: "Mouillée", icon: "💧" },
+                          { value: "rain" as const, label: "Pluie", icon: "🌧️" },
+                        ] as const
+                      ).map(({ value, label, icon }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setTrackCondition(value)}
+                          className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
+                            trackCondition === value
+                              ? "bg-[#ff6b35] text-white border-[#ff6b35]"
+                              : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
+                          }`}
+                        >
+                          {icon} {label}
+                        </button>
+                      ))}
+                    </div>
+                    <div>
+                      <label className="text-sm text-muted-foreground block mb-1">
+                        Température piste (°C) (Optionnel)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="ex. 28"
+                        value={trackTemperature === "" ? "" : trackTemperature}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setTrackTemperature(v === "" ? "" : parseFloat(v) || 0);
+                        }}
+                        className="w-full max-w-[150px] p-2 rounded-lg bg-secondary/50 border border-white/10 text-foreground placeholder:text-muted-foreground"
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>

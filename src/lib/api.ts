@@ -194,9 +194,15 @@ export interface Statistics {
   avg_apex_distance: number;
   avg_apex_speed_efficiency: number;
   laps_analyzed?: number;
+  fastest_lap_number?: number | null;
+  max_speed?: number | null;
+  max_speed_lap?: number | null;
+  consistency_gap?: number | null;
+  improvement_gap?: number | null;
 }
 
 export interface SessionConditions {
+  session_name?: string | null;
   track_condition: string; // "dry" | "damp" | "wet" | "rain"
   track_temperature?: number | null; // °C
 }
@@ -383,6 +389,7 @@ export async function uploadAndAnalyzeCSV(
     lapFilter?: number[];
     track_condition?: string;
     track_temperature?: number | null;
+    session_name?: string;
     accessToken?: string | null;
   }
 ): Promise<AnalysisResult> {
@@ -408,6 +415,9 @@ export async function uploadAndAnalyzeCSV(
   formData.append("track_condition", cond);
   if (options?.track_temperature != null && Number.isFinite(options.track_temperature)) {
     formData.append("track_temperature", String(options.track_temperature));
+  }
+  if (options?.session_name) {
+    formData.append("session_name", options.session_name);
   }
 
   // Créer controller avec timeout

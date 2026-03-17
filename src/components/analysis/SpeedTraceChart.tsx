@@ -15,54 +15,58 @@ import { downsample, downsamplePair } from "./utils";
 
 interface SpeedTraceChartProps {
   data: SpeedTraceData;
+  selectedLaps: number[];
+  bestLapNumber?: number;
 }
+
+const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
 
 function buildSeries(
   laps: SpeedTraceData["laps"],
   sectors: SpeedTraceData["sectors"],
+  selectedLapNumbers: number[],
   maxPoints: number
 ) {
-  const mainLap = laps.find((l) => l.is_reference) ?? laps[0];
-  const refLap = laps.find((l) => !l.is_reference && l !== mainLap) ?? laps[1];
-  if (!mainLap) return { series: [], sectors };
+  const selectedLaps = laps.filter(l => selectedLapNumbers.includes(l.lap_number));
+  if (selectedLaps.length === 0) return { series: [], sectors, activeLaps: [] };
 
-  const dist = mainLap.distance_m;
-  const speed = mainLap.speed_kmh;
-  const len = Math.min(dist.length, speed.length);
+  // Use the first selected lap as the distance reference
+  const referenceLap = selectedLaps[0];
+  const dist = referenceLap.distance_m;
+  const len = dist.length;
+  
   const needDownsample = len > maxPoints;
-  const distOut = needDownsample ? downsample(dist.slice(0, len), maxPoints) : dist.slice(0, len);
-  const speedOut = needDownsample ? downsample(speed.slice(0, len), maxPoints) : speed.slice(0, len);
+  const distOut = needDownsample ? downsample(dist, maxPoints) : dist;
 
-  const series: { distance_m: number; speed_kmh: number; ref_kmh?: number }[] = distOut.map(
-    (d, i) => ({
-      distance_m: Math.round(d * 10) / 10,
-      speed_kmh: Math.round((speedOut[i] ?? 0) * 10) / 10,
-      ref_kmh:
-        refLap && refLap.distance_m.length > 0
-          ? (() => {
-              const j = Math.min(
-                Math.round((i / (distOut.length - 1 || 1)) * (refLap.distance_m.length - 1)),
-                refLap.distance_m.length - 1
-              );
-              return Math.round((refLap.speed_kmh[j] ?? 0) * 10) / 10;
-            })()
-          : undefined,
-    })
-  );
+  const series = distOut.map((d, i) => {
+    const point: any = { distance_m: Math.round(d * 10) / 10 };
+    
+    selectedLaps.forEach(lap => {
+      // Linear interpolation or simple nearest neighbor for speed
+      // Since distance arrays might differ slightly in length/sampling
+      const idx = Math.min(
+        Math.round((i / (distOut.length - 1 || 1)) * (lap.distance_m.length - 1)),
+        lap.distance_m.length - 1
+      );
+      point[`speed_lap_${lap.lap_number}`] = Math.round((lap.speed_kmh[idx] ?? 0) * 10) / 10;
+    });
+    
+    return point;
+  });
 
-  return { series, sectors };
+  return { series, sectors, activeLaps: selectedLaps };
 }
 
-export function SpeedTraceChart({ data }: SpeedTraceChartProps) {
-  const { series, sectors } = useMemo(
-    () => buildSeries(data.laps, data.sectors ?? [], 100),
-    [data.laps, data.sectors]
+export function SpeedTraceChart({ data, selectedLaps, bestLapNumber }: SpeedTraceChartProps) {
+  const { series, sectors, activeLaps } = useMemo(
+    () => buildSeries(data.laps, data.sectors ?? [], selectedLaps, 100),
+    [data.laps, data.sectors, selectedLaps]
   );
 
   if (series.length === 0) return null;
 
   return (
-    <div className="h-[280px] w-full" aria-label="Speed trace by distance">
+    <div className="h-[320px] w-full" aria-label="Speed trace by distance">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={series}
@@ -96,29 +100,28 @@ export function SpeedTraceChart({ data }: SpeedTraceChartProps) {
             contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", color: "#ffffff" }}
             itemStyle={{ color: "#ffffff" }}
             labelStyle={{ color: "#e6edf3" }}
-            formatter={(value: number) => [value, "km/h"]}
+            formatter={(value: number, name: string) => [value, name]}
             labelFormatter={(label) => `Distance: ${label} m`}
           />
           <Legend />
-          <Line
-            type="monotone"
-            dataKey="speed_kmh"
-            stroke="#f97316"
-            strokeWidth={2}
-            dot={false}
-            name="Tour"
-          />
-          {series[0]?.ref_kmh != null && (
-            <Line
-              type="monotone"
-              dataKey="ref_kmh"
-              stroke="#3b82f6"
-              strokeWidth={1.5}
-              strokeDasharray="4 4"
-              dot={false}
-              name="Référence"
-            />
-          )}
+          
+          {activeLaps.map((lap, idx) => {
+            const isBest = lap.lap_number === bestLapNumber;
+            const color = LAP_COLORS[idx % LAP_COLORS.length];
+            return (
+              <Line
+                key={lap.lap_number}
+                type="monotone"
+                dataKey={`speed_lap_${lap.lap_number}`}
+                stroke={color}
+                strokeWidth={isBest ? 3 : 1.5}
+                strokeDasharray={isBest ? "" : "3 3"}
+                dot={false}
+                name={`Tour ${lap.lap_number} ${isBest ? "(Best)" : ""}`}
+                animationDuration={300}
+              />
+            );
+          })}
         </LineChart>
       </ResponsiveContainer>
     </div>

@@ -1,4 +1,5 @@
 import type { AnalysisResponse, CornerMargin, PlotData } from "@/types/analysis";
+import { useState, useMemo } from "react";
 import { SpeedTraceChart } from "./SpeedTraceChart";
 import { ThrottleBrakeChart } from "./ThrottleBrakeChart";
 import { TimeDeltaChart } from "./TimeDeltaChart";
@@ -6,6 +7,9 @@ import { PerformanceRadar } from "./PerformanceRadar";
 import { TrackMap } from "./TrackMap";
 import { ApexMarginChart } from "./ApexMarginChart";
 import { CornerDetailsGrid } from "./CornerDetailsGrid";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Check, Clock } from "lucide-react";
 
 interface AnalysisDashboardContentProps {
   analysis: AnalysisResponse;
@@ -42,6 +46,26 @@ function enrichCornersWithCornerAnalysis(
 export function AnalysisDashboardContent({ analysis, embedded = false }: AnalysisDashboardContentProps) {
   const plotData = analysis.plot_data;
   const hasPlotData = !!plotData;
+
+  // Initialisation des tours sélectionnés : par défaut le meilleur tour
+  const bestLapIndex = useMemo(() => {
+    if (!analysis.lap_times || analysis.lap_times.length === 0) return 0;
+    const minTime = Math.min(...analysis.lap_times);
+    return analysis.lap_times.indexOf(minTime);
+  }, [analysis.lap_times]);
+
+  const [selectedLapNumbers, setSelectedLapNumbers] = useState<number[]>(() => {
+    const lapNum = (bestLapIndex + 1);
+    return [lapNum];
+  });
+
+  const toggleLap = (lapNum: number) => {
+    setSelectedLapNumbers(prev => 
+      prev.includes(lapNum) 
+        ? (prev.length > 1 ? prev.filter(n => n !== lapNum) : prev) 
+        : [...prev, lapNum].sort((a, b) => a - b)
+    );
+  };
 
   const wrapperClass = embedded ? "space-y-6" : "";
   const sectionClass = embedded
@@ -86,13 +110,46 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           {/* 1. Speed Trace — pleine largeur */}
           {plotData.speed_trace && (
             <section className={sectionClass}>
-              <div className="flex flex-col mb-4">
-                <h2 className={`${titleClass} mb-1`}>Trace de Vitesse</h2>
-                <p className="text-sm text-[#8b949e]">
-                  Comparez votre vitesse tout au long du tour par rapport au tour de référence (le plus rapide). Identifiez où vous perdez de la vitesse en ligne droite ou en courbe.
-                </p>
+              <div className="flex flex-col md:flex-row md:items-end justify-between mb-4 gap-4">
+                <div className="flex flex-col">
+                  <h2 className={`${titleClass} mb-1`}>Trace de Vitesse</h2>
+                  <p className="text-sm text-[#8b949e]">
+                    Comparez votre vitesse tout au long du tour. Sélectionnez les tours à superposer.
+                  </p>
+                </div>
+                
+                {/* Lap Selector */}
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-xs font-medium text-muted-foreground mr-1">Tours :</span>
+                  {analysis.lap_times?.map((time, idx) => {
+                    const lapNum = idx + 1;
+                    const isSelected = selectedLapNumbers.includes(lapNum);
+                    const isBest = idx === bestLapIndex;
+                    return (
+                      <Badge
+                        key={lapNum}
+                        variant={isSelected ? "default" : "outline"}
+                        className={`cursor-pointer transition-all hover:scale-105 active:scale-95 py-1.5 px-3 flex items-center gap-1.5 ${
+                          isSelected 
+                            ? "bg-primary text-white border-transparent" 
+                            : "bg-transparent border-white/10 text-muted-foreground hover:border-[#ff6b35]/50"
+                        } ${isBest ? "ring-1 ring-green-500/50" : ""}`}
+                        onClick={() => toggleLap(lapNum)}
+                      >
+                        {isSelected && <Check className="w-3 h-3" />}
+                        <span>T{lapNum}</span>
+                        <span className="text-[10px] opacity-60">({time.toFixed(2)}s)</span>
+                        {isBest && <div className="w-1.5 h-1.5 rounded-full bg-green-500" title="Meilleur tour" />}
+                      </Badge>
+                    );
+                  })}
+                </div>
               </div>
-              <SpeedTraceChart data={plotData.speed_trace} />
+              <SpeedTraceChart 
+                data={plotData.speed_trace} 
+                selectedLaps={selectedLapNumbers}
+                bestLapNumber={bestLapIndex + 1}
+              />
             </section>
           )}
 
@@ -131,10 +188,13 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
               <div className="flex flex-col mb-4">
                 <h2 className={`${titleClass} mb-1`}>Accélérateur & Frein</h2>
                 <p className="text-sm text-[#8b949e]">
-                  Visualisez vos points de freinage et vos remises de gaz. Cherchez les phases de "coasting" (ni gaz ni frein) à éliminer.
+                  Visualisez vos points de freinage et vos remises de gaz pour les tours sélectionnés.
                 </p>
               </div>
-              <ThrottleBrakeChart data={plotData.throttle_brake.laps[0]} />
+              <ThrottleBrakeChart 
+                data={plotData.throttle_brake} 
+                selectedLaps={selectedLapNumbers}
+              />
             </section>
           ) : (
             <section className={sectionClass}>
