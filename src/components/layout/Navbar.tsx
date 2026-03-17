@@ -8,11 +8,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { ADMIN_EMAIL } from "@/constants";
 
-const navItems = [
+const guestNavItems = [
   { name: "Accueil", path: "/" },
   { name: "Tableau de bord", path: "/dashboard" },
   { name: "Télécharger", path: "/upload" },
   { name: "Tarifs", path: "/pricing" },
+];
+
+const subscriberNavItems = [
+  { name: "Accueil", path: "/" },
+  { name: "Tableau de bord", path: "/dashboard" },
+  { name: "Analyser", path: "/upload", isHero: true },
+  { name: "Abonnement", path: "/pricing" },
 ];
 
 export const Navbar = () => {
@@ -20,6 +27,8 @@ export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, user, signOut, loading } = useAuth();
+
+  const navItems = isAuthenticated ? subscriberNavItems : guestNavItems;
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -32,7 +41,7 @@ export const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-white/5">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo → accueil */}
+          {/* Logo */}
           <Link to="/" replace className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer no-underline">
             <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 group-hover:shadow-primary/50 transition-transform duration-200 cursor-pointer">
               <Zap className="w-5 h-5 text-primary-foreground" />
@@ -46,12 +55,14 @@ export const Navbar = () => {
           <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
               <Link
-                key={item.path}
+                key={item.path + item.name}
                 to={item.path}
                 className={`text-sm font-medium transition-all ${
-                  location.pathname === item.path
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-primary hover:underline underline-offset-4"
+                  (item as any).isHero
+                    ? "gradient-primary text-primary-foreground px-4 py-1.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100"
+                    : location.pathname === item.path
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-primary hover:underline underline-offset-4"
                 }`}
               >
                 {item.name}
@@ -86,11 +97,7 @@ export const Navbar = () => {
                     {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
                   </Button>
                 </Link>
-                <Link to="/upload">
-                  <Button variant="hero" size="sm">
-                    Analyser CSV
-                  </Button>
-                </Link>
+                {/* No more "Analyser CSV" button here — it's now in the nav items */}
                 <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
                   <LogOut className="w-4 h-4" />
                   Déconnexion
@@ -99,14 +106,10 @@ export const Navbar = () => {
             ) : (
               <>
                 <Link to="/login">
-                  <Button variant="ghost" size="sm">
-                    Connexion
-                  </Button>
+                  <Button variant="ghost" size="sm">Connexion</Button>
                 </Link>
                 <Link to="/login">
-                  <Button variant="hero" size="sm">
-                    Inscription
-                  </Button>
+                  <Button variant="hero" size="sm">Inscription</Button>
                 </Link>
               </>
             )}
@@ -131,11 +134,15 @@ export const Navbar = () => {
             <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
               {navItems.map((item) => (
                 <Link
-                  key={item.path}
+                  key={item.path + item.name}
                   to={item.path}
                   onClick={() => setIsOpen(false)}
                   className={`text-sm font-medium py-2 rounded-lg transition-all hover:bg-slate-800 hover:scale-[1.02] ${
-                    location.pathname === item.path ? "text-primary" : "text-muted-foreground"
+                    (item as any).isHero
+                      ? "gradient-primary text-primary-foreground text-center rounded-full shadow-lg"
+                      : location.pathname === item.path
+                        ? "text-primary"
+                        : "text-muted-foreground"
                   }`}
                 >
                   {item.name}
@@ -151,28 +158,14 @@ export const Navbar = () => {
                         Admin
                       </span>
                     )}
-                    <div className="w-fit">
-                      <SubscriptionBadge />
-                    </div>
+                    <div className="w-fit"><SubscriptionBadge /></div>
                     <Link to="/profile" onClick={() => setIsOpen(false)}>
                       <Button variant="ghost" className="w-full gap-2">
                         <User className="w-4 h-4" />
                         {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Mon Profil"}
                       </Button>
                     </Link>
-                    <Link to="/upload" onClick={() => setIsOpen(false)}>
-                      <Button variant="hero" className="w-full">
-                        Analyser CSV
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      className="w-full gap-2"
-                      onClick={() => {
-                        setIsOpen(false);
-                        handleSignOut();
-                      }}
-                    >
+                    <Button variant="ghost" className="w-full gap-2" onClick={() => { setIsOpen(false); handleSignOut(); }}>
                       <LogOut className="w-4 h-4" />
                       Déconnexion
                     </Button>
@@ -180,14 +173,10 @@ export const Navbar = () => {
                 ) : (
                   <>
                     <Link to="/login" onClick={() => setIsOpen(false)}>
-                      <Button variant="ghost" className="w-full">
-                        Connexion
-                      </Button>
+                      <Button variant="ghost" className="w-full">Connexion</Button>
                     </Link>
                     <Link to="/login" onClick={() => setIsOpen(false)}>
-                      <Button variant="hero" className="w-full">
-                        Inscription
-                      </Button>
+                      <Button variant="hero" className="w-full">Inscription</Button>
                     </Link>
                   </>
                 )}
