@@ -89,7 +89,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
               <div className="flex flex-col mb-4">
                 <h2 className={`${titleClass} mb-1`}>Trace de Vitesse</h2>
                 <p className="text-sm text-[#8b949e]">
-                  Comparez votre vitesse tout au long du tour par rapport au meilleur tour. Identifiez où vous perdez de la vitesse en ligne droite ou en courbe.
+                  Comparez votre vitesse tout au long du tour par rapport au tour de référence (le plus rapide). Identifiez où vous perdez de la vitesse en ligne droite ou en courbe.
                 </p>
               </div>
               <SpeedTraceChart data={plotData.speed_trace} />
@@ -103,7 +103,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
                 <div className="flex flex-col mb-4">
                   <h2 className={`${titleClass} mb-1`}>Radar de Performance</h2>
                   <p className="text-sm text-[#8b949e]">
-                    Aperçu global de vos compétences. Un grand triangle régulier indique un pilotage complet et maîtrisé.
+                    Aperçu global de vos compétences. Un grand polygone régulier indique un pilotage complet et maîtrisé.
                   </p>
                 </div>
                 <PerformanceRadar data={plotData.performance_radar} />
