@@ -3,9 +3,11 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight, Zap, Target, Timer, TrendingUp, Star, CheckCircle2, XCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
+import SubscriberHome from "@/components/home/SubscriberHome";
 import heroImage from "@/assets/hero-racing.jpg";
 
 const stats = [
@@ -60,8 +62,17 @@ export default function Index() {
   const success = searchParams.get('success');
   const canceled = searchParams.get('canceled');
   const sessionId = searchParams.get('session_id');
-  const { isAuthenticated } = useAuth();
-  const { tier, isLoading } = useSubscription();
+  const { isAuthenticated, user } = useAuth();
+  const { tier, isLoading: subLoading } = useSubscription();
+  const [hasAnalyses, setHasAnalyses] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      getAllAnalyses(user.id).then(data => setHasAnalyses(data.length > 0));
+    } else {
+      setHasAnalyses(false);
+    }
+  }, [isAuthenticated, user]);
 
   // Nettoyer les paramètres après 5 secondes
   useEffect(() => {
@@ -72,6 +83,17 @@ export default function Index() {
       return () => clearTimeout(timer);
     }
   }, [success, canceled, setSearchParams]);
+
+  // If subscriber and has analyses, show personalized hub
+  if (isAuthenticated && hasAnalyses === true) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12 pt-24">
+          <SubscriberHome />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -168,7 +190,7 @@ export default function Index() {
             >
               <Link to="/upload" className="group">
                 <Button variant="hero" size="xl" className="group hover:bg-orange-500 hover:scale-105 hover:shadow-lg shadow-md transition-all duration-300">
-                  {isAuthenticated ? getCtaLabel(tier, isLoading) : "Commencer — 3 analyses"}
+                  {isAuthenticated ? getCtaLabel(tier, subLoading) : "Commencer — 3 analyses"}
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>

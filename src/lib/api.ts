@@ -12,6 +12,7 @@ const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 // ============================================================================
 // TYPES
 // ============================================================================
+import { type PlotData } from "@/types/analysis";
 
 export interface ScoreBreakdown {
   apex_precision: number;
@@ -222,6 +223,7 @@ export interface AnalysisResult {
   plots: PlotUrls;
   statistics: Statistics;
   session_conditions?: SessionConditions | null;
+  plot_data?: PlotData;
 }
 
 export interface LapInfo {
@@ -466,10 +468,10 @@ export async function uploadAndAnalyzeCSV(
 
     // Normaliser les clés backend (corner_type, apex_distance_error, time_lost)
     if (Array.isArray(result.corner_analysis)) {
-      result.corner_analysis = result.corner_analysis.map((c) => mapCornerData(c as Record<string, unknown>));
+      result.corner_analysis = (result.corner_analysis as unknown[]).map((c) => mapCornerData(c as Record<string, unknown>));
     }
     if (Array.isArray(result.coaching_advice)) {
-      result.coaching_advice = result.coaching_advice.map((a) => mapAdviceData(a as Record<string, unknown>));
+      result.coaching_advice = (result.coaching_advice as unknown[]).map((a) => mapAdviceData(a as Record<string, unknown>));
     }
 
     // Vérifier que la réponse contient success: true
@@ -517,7 +519,7 @@ export async function parseLaps(file: File): Promise<ParseLapsResponse> {
     signal: controller.signal,
   });
   if (!response.ok) {
-    const err = await parseJSONResponse<ApiError>(response).catch(() => ({}));
+    const err = (await parseJSONResponse<ApiError>(response).catch(() => ({ }))) as any;
     throw {
       success: false,
       error: err.error || "http_error",

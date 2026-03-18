@@ -450,6 +450,112 @@ export async function analysisExists(id: string, userId?: string | null): Promis
 }
 
 // ============================================================================
+// FOLDERS
+// ============================================================================
+
+export interface AnalysisFolder {
+  id: string;
+  name: string;
+  parentId: string | null;
+  analysisIds: string[];
+  createdAt: number;
+}
+
+const FOLDERS_KEY_PREFIX = "apex_folders_";
+
+function getFoldersKey(userId: string | null | undefined): string {
+  return `${FOLDERS_KEY_PREFIX}${getStorageSuffix(userId)}`;
+}
+
+export function getAllFolders(userId?: string | null): AnalysisFolder[] {
+  try {
+    const raw = localStorage.getItem(getFoldersKey(userId));
+    if (!raw) return [];
+    return JSON.parse(raw) as AnalysisFolder[];
+  } catch { return []; }
+}
+
+export function saveFolders(folders: AnalysisFolder[], userId?: string | null): void {
+  localStorage.setItem(getFoldersKey(userId), JSON.stringify(folders));
+}
+
+export function createFolder(name: string, parentId: string | null, userId?: string | null): AnalysisFolder {
+  const folders = getAllFolders(userId);
+  const folder: AnalysisFolder = {
+    id: `folder_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    name,
+    parentId,
+    analysisIds: [],
+    createdAt: Date.now(),
+  };
+  folders.push(folder);
+  saveFolders(folders, userId);
+  return folder;
+}
+
+export function renameFolder(folderId: string, newName: string, userId?: string | null): void {
+  const folders = getAllFolders(userId);
+  const f = folders.find((x) => x.id === folderId);
+  if (f) { f.name = newName; saveFolders(folders, userId); }
+}
+
+export function deleteFolder(folderId: string, userId?: string | null): void {
+  let folders = getAllFolders(userId);
+  // Remove this folder + children recursively
+  const toRemove = new Set<string>();
+  const collectChildren = (id: string) => {
+    toRemove.add(id);
+    folders.filter((f) => f.parentId === id).forEach((f) => collectChildren(f.id));
+  };
+  collectChildren(folderId);
+  folders = folders.filter((f) => !toRemove.has(f.id));
+  saveFolders(folders, userId);
+}
+
+export function moveAnalysisToFolder(analysisId: string, folderId: string | null, userId?: string | null): void {
+  const folders = getAllFolders(userId);
+  // Remove from all folders first
+  for (const f of folders) {
+    f.analysisIds = f.analysisIds.filter((id) => id !== analysisId);
+  }
+  // Add to target folder
+  if (folderId) {
+    const target = folders.find((f) => f.id === folderId);
+    if (target) target.analysisIds.push(analysisId);
+  }
+  saveFolders(folders, userId);
+}
+
+// ============================================================================
+// OBJECTIVES (for subscriber home)
+// ============================================================================
+
+export interface UserObjective {
+  id: string;
+  label: string;
+  targetValue: number;
+  currentValue: number;
+  unit: string;
+}
+
+const OBJECTIVES_KEY_PREFIX = "apex_objectives_";
+
+export function getObjectives(userId?: string | null): UserObjective[] {
+  try {
+    const raw = localStorage.getItem(`${OBJECTIVES_KEY_PREFIX}${getStorageSuffix(userId)}`);
+    if (!raw) return [
+      { id: "score", label: "Score de", targetValue: 85, currentValue: 0, unit: "/100" },
+      { id: "laptime", label: "Passer sous", targetValue: 49, currentValue: 0, unit: "s" },
+    ];
+    return JSON.parse(raw) as UserObjective[];
+  } catch { return []; }
+}
+
+export function saveObjectives(objectives: UserObjective[], userId?: string | null): void {
+  localStorage.setItem(`${OBJECTIVES_KEY_PREFIX}${getStorageSuffix(userId)}`, JSON.stringify(objectives));
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -463,4 +569,13 @@ export default {
   getAnalysesCount,
   clearAllAnalyses,
   analysisExists,
+  getAllFolders,
+  saveFolders,
+  createFolder,
+  renameFolder,
+  deleteFolder,
+  moveAnalysisToFolder,
+  getObjectives,
+  saveObjectives,
 };
+

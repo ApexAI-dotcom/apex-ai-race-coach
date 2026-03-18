@@ -137,12 +137,12 @@ export const Navbar = () => {
                   key={item.path + item.name}
                   to={item.path}
                   onClick={() => setIsOpen(false)}
-                  className={`text-sm font-medium py-2 rounded-lg transition-all hover:bg-slate-800 hover:scale-[1.02] ${
+                  className={`text-sm font-medium py-3 px-4 rounded-xl transition-all active:scale-95 ${
                     (item as any).isHero
-                      ? "gradient-primary text-primary-foreground text-center rounded-full shadow-lg"
+                      ? "bg-primary text-primary-foreground text-center font-bold shadow-lg shadow-primary/20"
                       : location.pathname === item.path
-                        ? "text-primary"
-                        : "text-muted-foreground"
+                        ? "text-primary bg-primary/5"
+                        : "text-muted-foreground hover:bg-white/5"
                   }`}
                 >
                   {item.name}
