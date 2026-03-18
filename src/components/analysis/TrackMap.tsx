@@ -39,12 +39,14 @@ function getBoundsFromLap(lap: TrajectoryLap) {
 function project(
   lat: number,
   lon: number,
-  bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number }
+  bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number },
+  scale: number,
+  offsetX: number,
+  offsetY: number,
+  lonScale: number
 ) {
-  const width = W - PAD * 2;
-  const height = H - PAD * 2;
-  const x = PAD + ((lon - bounds.minLon) / (bounds.maxLon - bounds.minLon || 1)) * width;
-  const y = H - PAD - ((lat - bounds.minLat) / (bounds.maxLat - bounds.minLat || 1)) * height;
+  const x = offsetX + (lon - bounds.minLon) * lonScale * scale;
+  const y = H - (offsetY + (lat - bounds.minLat) * scale);
   return [x, y] as const;
 }
 
@@ -52,14 +54,12 @@ export function TrackMap({ corners, margins = [], laps }: TrackMapProps) {
   const [hoverId, setHoverId] = useState<number | null>(null);
 
   const { points, width, height, trackPolyline, refPolyline } = useMemo(() => {
-    const width = W;
-    const height = H;
     const hasLaps = laps?.length && laps[0]?.lat?.length && laps[0]?.lon?.length;
     const lap0 = hasLaps ? laps![0] : null;
     const cornerBounds = corners.length > 0 ? getBoundsFromCorners(corners) : null;
     const lapBounds = lap0 ? getBoundsFromLap(lap0) : null;
 
-    let bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number };
+    let bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number } | null = null;
     if (cornerBounds && lapBounds) {
       bounds = {
         minLat: Math.min(cornerBounds.minLat, lapBounds.minLat),
@@ -67,47 +67,65 @@ export function TrackMap({ corners, margins = [], laps }: TrackMapProps) {
         minLon: Math.min(cornerBounds.minLon, lapBounds.minLon),
         maxLon: Math.max(cornerBounds.maxLon, lapBounds.maxLon),
       };
-    } else if (lapBounds) {
-      bounds = lapBounds;
-    } else if (cornerBounds) {
-      bounds = cornerBounds;
     } else {
-      bounds = { minLat: 0, maxLat: 1, minLon: 0, maxLon: 1 };
+      bounds = lapBounds || cornerBounds || null;
     }
 
+    if (!bounds) return { points: [], width: W, height: H, trackPolyline: null, refPolyline: null };
+
+    // Aspect ratio correction
+    const avgLat = (bounds.minLat + bounds.maxLat) / 2;
+    const lonScale = Math.cos((avgLat * Math.PI) / 180);
+    
+    const latSpan = bounds.maxLat - bounds.minLat || 0.0001;
+    const lonSpan = (bounds.maxLon - bounds.minLon || 0.0001) * lonScale;
+    
+    const availableW = W - PAD * 2;
+    const availableH = H - PAD * 2;
+    
+    // Scale to fit while preserving aspect ratio
+    const scale = Math.min(availableW / lonSpan, availableH / latSpan);
+    
+    // Center logic
+    const offsetX = PAD + (availableW - lonSpan * scale) / 2;
+    const offsetY = PAD + (availableH - latSpan * scale) / 2;
+
+    const projectPoint = (lt: number, ln: number) => project(lt, ln, bounds!, scale, offsetX, offsetY, lonScale);
+
     const pts = corners.map((c) => {
-      const [x, y] = project(c.lat, c.lon, bounds);
+      const [x, y] = projectPoint(c.lat, c.lon);
       return { ...c, x, y };
     });
 
     let trackPolyline: string | null = null;
     let refPolyline: string | null = null;
 
-    if (lap0 && lap0.lat.length > 0 && lap0.lon.length > 0) {
+    if (lap0 && lap0.lat.length > 0) {
       const n = Math.min(lap0.lat.length, lap0.lon.length);
       const trackPoints = Array.from({ length: n }, (_, i) =>
-        project(lap0.lat[i], lap0.lon[i], bounds)
-      ).map(([x, y]) => `${x},${y}`);
+        projectPoint(lap0.lat[i], lap0.lon[i])
+      ).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`);
       if (trackPoints.length > 2) trackPoints.push(trackPoints[0]);
       trackPolyline = trackPoints.join(" ");
     }
-    if (laps && laps.length > 1 && laps[1]?.lat?.length && laps[1]?.lon?.length) {
+    
+    if (laps && laps.length > 1 && laps[1]?.lat?.length) {
       const lap1 = laps[1];
       const n = Math.min(lap1.lat.length, lap1.lon.length);
       const refPoints = Array.from({ length: n }, (_, i) =>
-        project(lap1.lat[i], lap1.lon[i], bounds)
-      ).map(([x, y]) => `${x},${y}`);
+        projectPoint(lap1.lat[i], lap1.lon[i])
+      ).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`);
       if (refPoints.length > 2) refPoints.push(refPoints[0]);
       refPolyline = refPoints.join(" ");
     }
 
     if (!trackPolyline && pts.length > 1) {
-      const fallbackPoints = pts.map((p) => `${p.x},${p.y}`);
+      const fallbackPoints = pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`);
       if (fallbackPoints.length > 2) fallbackPoints.push(fallbackPoints[0]);
       trackPolyline = fallbackPoints.join(" ");
     }
 
-    return { points: pts, width, height, trackPolyline, refPolyline };
+    return { points: pts, width: W, height: H, trackPolyline, refPolyline };
   }, [corners, laps]);
 
   const marginByLabel = useMemo(() => {

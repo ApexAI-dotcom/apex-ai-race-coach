@@ -132,7 +132,7 @@ export default function SubscriberHome() {
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: "#8b949e", fontSize: 12 }}
+                  tick={{ fill: "#ffffff", opacity: 0.6, fontSize: 12 }}
                   dy={10}
                 />
                 <YAxis hide domain={[0, 100]} />
@@ -195,23 +195,30 @@ export default function SubscriberHome() {
         <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">Mes Objectifs</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {objectives.map((obj) => {
-            // Update current value from latest analysis if applicable
             const current = obj.id === "score" ? (latestAnalysis?.score || 0) : 
-                            obj.id === "laptime" ? (latestAnalysis?.lap_time || 49.68) : obj.currentValue;
-            const progress = (current / obj.targetValue) * 100;
+                            obj.id === "laptime" ? (latestAnalysis?.lap_time || 0) : obj.currentValue;
+            
+            // Progress calculation: for laptime, lower is better. 
+            // If current <= target, progress is 100%.
+            let progress = 0;
+            if (obj.id === "laptime") {
+              progress = current > 0 ? (obj.targetValue / current) * 100 : 0;
+            } else {
+              progress = obj.targetValue > 0 ? (current / obj.targetValue) * 100 : 0;
+            }
             
             return (
               <Card key={obj.id} className="glass-card p-5">
                 <div className="flex justify-between items-center mb-4">
                   <span className="font-bold text-lg text-foreground">{obj.label} {obj.targetValue}{obj.unit}</span>
                   <Button variant="ghost" size="sm" className="text-primary text-xs h-auto p-0 hover:bg-transparent" onClick={() => handleEditObjective(obj.id)}>
-                    Modifier
+                    Modifier l'objectif
                   </Button>
                 </div>
                 <Progress value={Math.min(100, progress)} className="h-2 bg-secondary" />
                 <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                  <span>{current.toFixed(2)}{obj.unit} actuel</span>
-                  <span>{obj.targetValue}{obj.unit} objectif</span>
+                  <span>{current > 0 ? current.toFixed(2) : "—"}{obj.unit} actuel</span>
+                  <span>{obj.targetValue}{obj.unit} cible</span>
                 </div>
               </Card>
             );

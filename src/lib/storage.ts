@@ -19,6 +19,8 @@ export interface AnalysisSummary {
   lap_time: number;
   grade: string;
   filename?: string;
+  circuit_name?: string;
+  session_name?: string;
 }
 
 interface StoredAnalysis {
@@ -231,6 +233,8 @@ export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSu
           lap_time: result.lap_time,
           grade: result.performance_score.grade,
           filename: result.analysis_id ? `${result.analysis_id}.json` : undefined,
+          circuit_name: result.session_conditions?.circuit_name || undefined,
+          session_name: result.session_conditions?.session_name || undefined,
         });
       } catch (error) {
         console.warn(`Error reading analysis ${id}:`, error);

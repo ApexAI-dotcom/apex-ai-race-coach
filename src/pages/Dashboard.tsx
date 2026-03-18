@@ -121,6 +121,9 @@ export default function Dashboard() {
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [moveAnalysisId, setMoveAnalysisId] = useState<string | null>(null);
+  const [moveTargetFolderId, setMoveTargetFolderId] = useState<string>("root");
+  const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
 
   // Featured: latest analysis full data
   const [featuredAnalysis, setFeaturedAnalysis] = useState<AnalysisResult | null>(null);
@@ -170,13 +173,20 @@ export default function Dashboard() {
     }
   };
 
-  const handleMoveAnalysis = (id: string) => {
-    const foldersList = folders.map(f => `${f.name} (${f.id})`).join("\n");
-    const targetId = prompt(`Entrez l'ID du dossier cible pour cette analyse :\n\n${foldersList}\n\n(Laissez vide pour racine)`);
-    if (targetId !== null) {
-      moveAnalysisToFolder(id, targetId || null, user?.id);
+  const handleMoveAnalysisRequest = (id: string) => {
+    setMoveAnalysisId(id);
+    const folder = folders.find(f => f.analysisIds.includes(id));
+    setMoveTargetFolderId(folder?.id || "root");
+    setIsMoveDialogOpen(true);
+  };
+
+  const handleConfirmMove = () => {
+    if (moveAnalysisId) {
+      moveAnalysisToFolder(moveAnalysisId, moveTargetFolderId === "root" ? null : moveTargetFolderId, user?.id);
       loadData();
       toast.success("Analyse déplacée");
+      setIsMoveDialogOpen(false);
+      setMoveAnalysisId(null);
     }
   };
 
@@ -422,6 +432,26 @@ export default function Dashboard() {
     );
   }
 
+  interface AnalysisResponse {
+    id: string;
+    date: string;
+    score: number;
+    grade: string;
+    corner_count: number;
+    lap_time: number;
+    filename: string;
+    performance_score: {
+      grade: string;
+      score: number;
+    };
+    session_conditions?: {
+      track_temperature?: number;
+      circuit_name?: string;
+      session_name?: string;
+    };
+    plot_data?: any;
+  }
+
   const latestAnalysis = analyses[0];
   const featuredScore = featuredAnalysis ? Math.round(getDisplayScore(featuredAnalysis.performance_score)) : latestAnalysis.score;
   const featuredGrade = featuredAnalysis?.performance_score?.grade || latestAnalysis.grade;
@@ -469,7 +499,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end">
                 <div>
                   <h3 className="text-3xl font-bold text-foreground mb-1">
-                    {featuredAnalysis.session_conditions?.circuit_name || "Circuit Adria"}
+                    {featuredAnalysis.session_conditions?.session_name || featuredAnalysis.session_conditions?.circuit_name || featuredAnalysis.analysis_id || "Session"}
                   </h3>
                   <p className="text-muted-foreground text-lg mb-8 uppercase tracking-widest flex items-center gap-2">
                     {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> PRACTICE
@@ -582,7 +612,10 @@ export default function Dashboard() {
             <div className={`flex-1 w-full h-16 rounded-2xl border-2 flex items-center justify-between px-6 transition-all ${compareSlot1 ? "border-primary bg-primary/5 shadow-inner" : "border-dashed border-white/10 bg-secondary/10"}`}>
                <span className={compareSlot1 ? "font-bold text-foreground" : "text-muted-foreground italic text-sm"}>
                   {compareSlot1 ? (
-                    `${analyses.find(a => a.id === compareSlot1)?.score}/100 — ${formatDate(analyses.find(a => a.id === compareSlot1)?.date || "").split(" ")[0]}`
+                    (() => {
+                      const a = analyses.find(x => x.id === compareSlot1);
+                      return `${a?.score}/100 — ${a?.session_name || a?.circuit_name || "Session"}`;
+                    })()
                   ) : "Choisir une analyse (cliquez ⇆)"}
                </span>
                {compareSlot1 && <Button variant="ghost" size="icon" onClick={() => setCompareSlot1("")}><X className="w-4 h-4" /></Button>}
@@ -595,8 +628,11 @@ export default function Dashboard() {
             <div className={`flex-1 w-full h-16 rounded-2xl border-2 flex items-center justify-between px-6 transition-all ${compareSlot2 ? "border-primary bg-primary/5 shadow-inner" : "border-dashed border-white/10 bg-secondary/10"}`}>
                <span className={compareSlot2 ? "font-bold text-foreground" : "text-muted-foreground italic text-sm"}>
                   {compareSlot2 ? (
-                    `${analyses.find(a => a.id === compareSlot2)?.score}/100 — ${formatDate(analyses.find(a => a.id === compareSlot2)?.date || "").split(" ")[0]}`
-                  ) : "Glisser une analyse ici"}
+                    (() => {
+                      const a = analyses.find(x => x.id === compareSlot2);
+                      return `${a?.score}/100 — ${a?.session_name || a?.circuit_name || "Session"}`;
+                    })()
+                  ) : "Deuxième analyse..."}
                </span>
                {compareSlot2 && <Button variant="ghost" size="icon" onClick={() => setCompareSlot2("")}><X className="w-4 h-4" /></Button>}
             </div>
@@ -626,7 +662,7 @@ export default function Dashboard() {
                   <TableRow key={analysis.id} className="hover:bg-white/5 border-white/5 transition-colors group">
                     <TableCell className="py-5">
                       <div className="font-bold text-foreground">{formatDate(analysis.date)}</div>
-                      <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">Circuit Adria — Practice</div>
+                      <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">{analysis.session_name || analysis.circuit_name || "Session"} — Practice</div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[10px] uppercase border-white/10 bg-white/5">
@@ -644,7 +680,7 @@ export default function Dashboard() {
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" size="icon" title="Voir" className="h-10 w-10 hover:bg-primary/20 hover:text-primary" onClick={() => handleViewAnalysis(analysis.id)}><Eye className="w-5 h-5" /></Button>
                         <Button variant="ghost" size="icon" title="Comparer" className="h-10 w-10 hover:bg-primary/20 hover:text-primary" onClick={() => handleCompareAdd(analysis.id)}><GitCompareArrows className="w-5 h-5" /></Button>
-                        <Button variant="ghost" size="icon" title="Sanger de dossier" className="h-10 w-10 hover:bg-primary/20 hover:text-primary" onClick={() => handleMoveAnalysis(analysis.id)}><TrendingUp className="w-5 h-5" /></Button>
+                        <Button variant="ghost" size="icon" title="Changer de dossier" className="h-10 w-10 hover:bg-primary/20 hover:text-primary" onClick={() => handleMoveAnalysisRequest(analysis.id)}><FolderInput className="w-5 h-5" /></Button>
                         <Button variant="ghost" size="icon" title="Supprimer" className="h-10 w-10 hover:bg-red-500/20 hover:text-red-500" onClick={() => handleDeleteClick(analysis.id)}><Trash2 className="w-5 h-5" /></Button>
                       </div>
                     </TableCell>
@@ -664,13 +700,13 @@ export default function Dashboard() {
               exit={{ opacity: 0, x: 100 }}
               className="fixed inset-0 z-50 bg-background flex flex-col md:flex-row shadow-2xl overflow-hidden"
             >
-              <div className="w-full h-full flex flex-col overflow-y-auto custom-scrollbar bg-[#0d1117]">
-                <div className="sticky top-0 z-10 p-6 flex items-center justify-between border-b border-white/5 bg-[#0d1117]/80 backdrop-blur-xl">
+              <div className="w-full h-full flex flex-col overflow-y-auto custom-scrollbar bg-background">
+                <div className="sticky top-0 z-10 p-6 flex items-center justify-between border-b border-white/5 bg-background/80 backdrop-blur-xl">
                   <div className="flex items-center gap-4">
                     <Button variant="ghost" size="icon" className="hover:bg-white/5" onClick={handleCloseOverlay}><ArrowLeft className="w-6 h-6" /></Button>
                     <div>
                       <h2 className="text-2xl font-bold text-foreground">Détails de l'analyse</h2>
-                      <p className="text-sm text-muted-foreground uppercase tracking-widest">{selectedAnalysis.session_conditions?.circuit_name || "Circuit Adria"}</p>
+                      <p className="text-sm text-muted-foreground uppercase tracking-widest">{selectedAnalysis.session_conditions?.session_name || selectedAnalysis.session_conditions?.circuit_name || selectedAnalysis.analysis_id || "Session"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -707,11 +743,11 @@ export default function Dashboard() {
               </div>
 
               <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-                <div className="flex-1 overflow-y-auto p-4 md:p-8 border-r border-white/5 custom-scrollbar bg-[#0d1117]">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 border-r border-white/5 custom-scrollbar bg-background">
                    <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20 flex justify-between items-center">
                       <div>
                         <span className="text-[10px] uppercase font-bold text-primary block mb-1">Session A</span>
-                        <h3 className="font-bold text-lg">{compareResult1.session_conditions?.circuit_name || "Circuit A"}</h3>
+                        <h3 className="font-bold text-lg">{compareResult1.session_conditions?.session_name || compareResult1.session_conditions?.circuit_name || compareResult1.analysis_id || "Session A"}</h3>
                       </div>
                       <div className="text-right">
                          <div className="text-2xl font-black text-primary">{getDisplayScore(compareResult1.performance_score)}</div>
@@ -721,11 +757,11 @@ export default function Dashboard() {
                    <AnalysisDashboardContent analysis={mapApiResultToResponse(compareResult1)} embedded />
                 </div>
                 
-                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-[#0d1117]">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-background">
                    <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20 flex justify-between items-center">
                       <div>
                         <span className="text-[10px] uppercase font-bold text-primary block mb-1">Session B</span>
-                        <h3 className="font-bold text-lg">{compareResult2.session_conditions?.circuit_name || "Circuit B"}</h3>
+                        <h3 className="font-bold text-lg">{compareResult2.session_conditions?.session_name || compareResult2.session_conditions?.circuit_name || compareResult2.analysis_id || "Session B"}</h3>
                       </div>
                       <div className="text-right">
                          <div className="text-2xl font-black text-primary">{getDisplayScore(compareResult2.performance_score)}</div>
@@ -738,6 +774,33 @@ export default function Dashboard() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ═══ MOVE FOLDER DIALOG ═══ */}
+        <Dialog open={isMoveDialogOpen} onOpenChange={setIsMoveDialogOpen}>
+          <DialogContent className="glass-card">
+            <DialogHeader>
+              <DialogTitle>Déplacer l'analyse</DialogTitle>
+              <DialogDescription>Choisissez le dossier de destination.</DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Select value={moveTargetFolderId} onValueChange={setMoveTargetFolderId}>
+                <SelectTrigger className="bg-white/5 border-white/10">
+                  <SelectValue placeholder="Choisir un dossier..." />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0a0a0a] border-white/10">
+                  <SelectItem value="root">Racine (Aucun dossier)</SelectItem>
+                  {folders.map(f => (
+                    <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setIsMoveDialogOpen(false)}>Annuler</Button>
+              <Button variant="hero" onClick={handleConfirmMove}>Déplacer</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* ═══ DELETE DIALOG ═══ */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
