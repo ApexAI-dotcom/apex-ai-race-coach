@@ -517,6 +517,7 @@ export default function Dashboard() {
                       featuredAnalysis.plot_data?.trajectory_2d?.laps
                         ? [
                             featuredAnalysis.plot_data.trajectory_2d.laps.find((l: any) => l.is_best) || 
+                            featuredAnalysis.plot_data.trajectory_2d.laps.find((l: any) => l.lap_number === featuredAnalysis.best_lap_number) ||
                             featuredAnalysis.plot_data.trajectory_2d.laps[0]
                           ].filter(Boolean)
                         : undefined
