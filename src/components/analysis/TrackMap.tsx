@@ -52,6 +52,7 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     };
 
     let hasData = false;
+    // Always check laps for bounds
     if (laps && laps.length > 0) {
       for (const lap of laps) {
         if (lap.lat && lap.lon) {
@@ -60,7 +61,8 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
       }
     }
 
-    if (!hasData && corners.length > 0) {
+    // AND always check corners for bounds to ensure the map covers everything
+    if (corners && corners.length > 0) {
       for (const c of corners) {
         if (c.lat === 0 && c.lon === 0) continue;
         minLat = Math.min(minLat, c.lat);
@@ -118,21 +120,21 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     let trackPolyline: string | null = null;
     let refPolyline: string | null = null;
 
-    if (lap0 && lap0.lat.length > 0) {
+    if (lap0 && lap0.lat?.length > 10) {
       const n = Math.min(lap0.lat.length, lap0.lon.length);
       const trackPoints = Array.from({ length: n }, (_, i) =>
         projectPoint(lap0.lat[i], lap0.lon[i])
       ).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`);
-      if (trackPoints.length > 2) trackPoints.push(trackPoints[0]);
+      // Only close the loop if points look like a circuit (start near end)
+      // but for now just joining them is fine.
       trackPolyline = trackPoints.join(" ");
     }
     
-    if (lapRef && lapRef.lat?.length) {
+    if (lapRef && lapRef.lat?.length > 10) {
       const n = Math.min(lapRef.lat.length, lapRef.lon.length);
       const refPoints = Array.from({ length: n }, (_, i) =>
         projectPoint(lapRef.lat[i], lapRef.lon[i])
       ).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`);
-      if (refPoints.length > 2) refPoints.push(refPoints[0]);
       refPolyline = refPoints.join(" ");
     }
 
