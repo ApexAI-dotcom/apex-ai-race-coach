@@ -66,18 +66,20 @@ export function ThrottleBrakeChart({ data, selectedLaps }: ThrottleBrakeChartPro
             <CartesianGrid strokeDasharray="3 3" stroke="#30363d" />
             <XAxis
               dataKey="distance_m"
-              stroke="#8b949e"
-              tick={{ fontSize: 11 }}
+              stroke="#e6edf3"
+              tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
               tickFormatter={(v) => `${v}m`}
             />
             <YAxis
-              stroke="#8b949e"
-              tick={{ fontSize: 11 }}
+              stroke="#e6edf3"
+              tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
               domain={[0, 100]}
               tickFormatter={(v) => `${v}%`}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d" }}
+              contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", borderRadius: 8 }}
+              itemStyle={{ color: "#ffffff" }}
+              labelStyle={{ color: "#e6edf3" }}
               formatter={(value: number) => [`${value}%`, ""]}
               labelFormatter={(label) => `Position: ${label} m`}
             />
@@ -112,18 +114,20 @@ export function ThrottleBrakeChart({ data, selectedLaps }: ThrottleBrakeChartPro
           <CartesianGrid strokeDasharray="3 3" stroke="#30363d" />
           <XAxis
             dataKey="distance_m"
-            stroke="#8b949e"
-            tick={{ fontSize: 11 }}
+            stroke="#e6edf3"
+            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
             tickFormatter={(v) => `${v}m`}
           />
           <YAxis
-            stroke="#8b949e"
-            tick={{ fontSize: 11 }}
+            stroke="#e6edf3"
+            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
             domain={[0, 100]}
             tickFormatter={(v) => `${v}%`}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d" }}
+            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", borderRadius: 8 }}
+            itemStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "#e6edf3" }}
             formatter={(value: number) => [`${value}%`, ""]}
           />
           <Legend />

@@ -67,24 +67,27 @@ export function TimeDeltaLapsChart({ data, selectedLaps }: TimeDeltaLapsChartPro
           <CartesianGrid strokeDasharray="3 3" stroke="#30363d" />
           <XAxis
             dataKey="distance_m"
-            stroke="#8b949e"
-            tick={{ fontSize: 11 }}
+            stroke="#e6edf3"
+            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
             tickFormatter={(v) => `${v}m`}
           />
           <YAxis
-            stroke="#8b949e"
-            tick={{ fontSize: 11 }}
+            stroke="#e6edf3"
+            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
             tickFormatter={(v) => `${v.toFixed(1)}s`}
             label={{
               value: "Delta (s)",
               angle: -90,
               position: "insideLeft",
-              fill: "#8b949e",
+              fill: "#e6edf3",
+              opacity: 0.8,
               fontSize: 11,
             }}
           />
           <Tooltip
             contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", borderRadius: 8 }}
+            itemStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "#e6edf3" }}
             formatter={(value: number, name: string) => [
               `${value > 0 ? "+" : ""}${value.toFixed(3)}s`,
               name,

@@ -501,10 +501,10 @@ export default function Dashboard() {
                   </div>
 
                   <div className="flex gap-4">
-                    <Button variant="hero" className="flex-1 h-12 shadow-lg shadow-primary/20" onClick={() => handleViewAnalysis(latestAnalysis.id)}>
+                    <Button variant="hero" className="flex-1 h-12 shadow-lg shadow-primary/20" onClick={() => handleViewAnalysis(featuredAnalysis.analysis_id || featuredAnalysis.id)}>
                       <Eye className="w-4 h-4 mr-2" />Voir l'analyse complète
                     </Button>
-                    <Button variant="heroOutline" className="flex-1 h-12" onClick={() => handleCompareAdd(latestAnalysis.id)}>
+                    <Button variant="heroOutline" className="flex-1 h-12" onClick={() => handleCompareAdd(featuredAnalysis.analysis_id || featuredAnalysis.id)}>
                       <GitCompareArrows className="w-4 h-4 mr-2" />Comparer
                     </Button>
                   </div>
@@ -678,7 +678,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, x: 100 }} 
               animate={{ opacity: 1, x: 0 }} 
               exit={{ opacity: 0, x: 100 }}
-              className="fixed inset-0 z-50 bg-background flex flex-col md:flex-row shadow-2xl overflow-hidden"
+              className="fixed inset-0 z-[100] bg-background flex flex-col md:flex-row shadow-2xl overflow-hidden"
             >
               <div className="w-full h-full flex flex-col overflow-y-auto custom-scrollbar bg-background">
                 <div className="sticky top-0 z-10 p-6 flex items-center justify-between border-b border-white/5 bg-background/80 backdrop-blur-xl">
@@ -712,7 +712,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: "100%" }} 
               animate={{ opacity: 1, y: 0 }} 
               exit={{ opacity: 0, y: "100%" }}
-              className="fixed inset-0 z-[60] bg-background flex flex-col overflow-hidden"
+              className="fixed inset-0 z-[110] bg-background flex flex-col overflow-hidden"
             >
               <div className="p-6 flex items-center justify-between bg-secondary/50 border-b border-white/5 backdrop-blur-xl">
                 <div className="flex items-center gap-4 text-foreground">

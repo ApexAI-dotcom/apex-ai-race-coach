@@ -139,6 +139,7 @@ export default function SubscriberHome() {
                 <Tooltip 
                   cursor={{ fill: "rgba(255,255,255,0.05)" }}
                   contentStyle={{ backgroundColor: "#0d1117", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+                  itemStyle={{ color: "#ffffff" }}
                 />
                 <Bar dataKey="score" radius={[4, 4, 0, 0]} barSize={40}>
                   {chartData.map((entry, index) => (

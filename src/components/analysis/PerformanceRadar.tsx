@@ -52,7 +52,9 @@ export function PerformanceRadar({ data }: PerformanceRadarProps) {
             strokeWidth={1.5}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d" }}
+            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", borderRadius: 8 }}
+            itemStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "#e6edf3" }}
             formatter={(value: number, _name: string, props: { payload: { raw?: number; max?: number } }) => [
               `${value}%${props.payload?.raw != null && props.payload?.max != null ? ` (${props.payload.raw.toFixed(1)} / ${props.payload.max})` : ""}`,
               "",

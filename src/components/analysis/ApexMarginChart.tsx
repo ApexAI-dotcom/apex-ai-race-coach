@@ -50,19 +50,20 @@ export function ApexMarginChart({ data }: ApexMarginChartProps) {
           <XAxis
             type="category"
             dataKey="label"
-            stroke="#8b949e"
-            tick={{ fontSize: 11 }}
+            stroke="#e6edf3"
+            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
           />
           <YAxis
             type="number"
-            stroke="#8b949e"
-            tick={{ fontSize: 11 }}
+            stroke="#e6edf3"
+            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
             unit=" km/h"
             width={36}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", color: "#ffffff" }}
+            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", borderRadius: 8 }}
             itemStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "#e6edf3" }}
             formatter={(value: number, _name: string, props: { payload: (typeof series)[0] }) => {
               const p = props.payload;
               return [

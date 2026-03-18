@@ -84,17 +84,16 @@ export function SpeedTraceChart({ data, selectedLaps, bestLapNumber }: SpeedTrac
           ))}
           <XAxis
             dataKey="distance_m"
-            type="number"
-            stroke="#8b949e"
-            tick={{ fontSize: 11 }}
+            stroke="#e6edf3"
+            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
             tickFormatter={(v) => `${v}m`}
             domain={["dataMin", "dataMax"]}
           />
           <YAxis
-            stroke="#8b949e"
-            tick={{ fontSize: 11 }}
+            stroke="#e6edf3"
+            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
             tickFormatter={(v) => `${v}`}
-            label={{ value: "km/h", angle: -90, position: "insideLeft", fill: "#8b949e" }}
+            label={{ value: "km/h", angle: -90, position: "insideLeft", fill: "#e6edf3", opacity: 0.8 }}
           />
           <Tooltip
             contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", color: "#ffffff" }}
