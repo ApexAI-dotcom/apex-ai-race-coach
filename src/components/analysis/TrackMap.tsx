@@ -10,7 +10,16 @@ interface TrackMapProps {
 
 const W = 800;
 const H = 600;
-const PAD = 40;
+const DEFAULT_PAD = 60; // Increased padding for safety
+
+interface TrackMapProps {
+  corners: TrajectoryCorner[];
+  margins?: CornerMargin[];
+  laps?: TrajectoryLap[];
+  transparent?: boolean;
+  className?: string;
+  padding?: number;
+}
 
 function getBoundsFromCorners(corners: TrajectoryCorner[]) {
   let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
@@ -50,30 +59,53 @@ function project(
   return [x, y] as const;
 }
 
-export function TrackMap({ corners, margins = [], laps }: TrackMapProps) {
+export function TrackMap({ corners, margins = [], laps, transparent = false, className = "", padding }: TrackMapProps) {
   const [hoverId, setHoverId] = useState<number | null>(null);
+  const PAD = padding ?? DEFAULT_PAD;
 
   const { points, width, height, trackPolyline, refPolyline } = useMemo(() => {
-    const hasLaps = laps?.length && laps[0]?.lat?.length && laps[0]?.lon?.length;
-    const lap0 = hasLaps ? laps![0] : null;
-    const cornerBounds = corners.length > 0 ? getBoundsFromCorners(corners) : null;
-    const lapBounds = lap0 ? getBoundsFromLap(lap0) : null;
+    // Collect all unique points to find true bounds
+    let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
+    
+    const updateBoundsFromCoords = (lats: number[], lons: number[]) => {
+      for (let i = 0; i < lats.length; i++) {
+        minLat = Math.min(minLat, lats[i]);
+        maxLat = Math.max(maxLat, lats[i]);
+        minLon = Math.min(minLon, lons[i]);
+        maxLon = Math.max(maxLon, lons[i]);
+      }
+    };
 
-    let bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number } | null = null;
-    if (cornerBounds && lapBounds) {
-      bounds = {
-        minLat: Math.min(cornerBounds.minLat, lapBounds.minLat),
-        maxLat: Math.max(cornerBounds.maxLat, lapBounds.maxLat),
-        minLon: Math.min(cornerBounds.minLon, lapBounds.minLon),
-        maxLon: Math.max(cornerBounds.maxLon, lapBounds.maxLon),
-      };
-    } else {
-      bounds = lapBounds || cornerBounds || null;
+    if (corners.length > 0) {
+      for (const c of corners) {
+        minLat = Math.min(minLat, c.lat);
+        maxLat = Math.max(maxLat, c.lat);
+        minLon = Math.min(minLon, c.lon);
+        maxLon = Math.max(maxLon, c.lon);
+      }
     }
 
-    if (!bounds) return { points: [], width: W, height: H, trackPolyline: null, refPolyline: null };
+    if (laps && laps.length > 0) {
+      for (const lap of laps) {
+        if (lap.lat && lap.lon) updateBoundsFromCoords(lap.lat, lap.lon);
+      }
+    }
 
-    // Aspect ratio correction
+    // Default bounds if none found
+    if (minLat === Infinity) {
+      return { points: [], width: W, height: H, trackPolyline: null, refPolyline: null };
+    }
+
+    const bounds = { minLat, maxLat, minLon, maxLon };
+
+    // Find representatve laps
+    // lap0 = longest lap for main trail
+    // lap1 = 2nd longest or best if we had it
+    const sortedLaps = [...(laps ?? [])].sort((a, b) => (b.lat?.length || 0) - (a.lat?.length || 0));
+    const lap0 = sortedLaps[0];
+    const lapRef = sortedLaps[1];
+
+    // Aspect ratio correction (mercator-ish)
     const avgLat = (bounds.minLat + bounds.maxLat) / 2;
     const lonScale = Math.cos((avgLat * Math.PI) / 180);
     
@@ -90,7 +122,7 @@ export function TrackMap({ corners, margins = [], laps }: TrackMapProps) {
     const offsetX = PAD + (availableW - lonSpan * scale) / 2;
     const offsetY = PAD + (availableH - latSpan * scale) / 2;
 
-    const projectPoint = (lt: number, ln: number) => project(lt, ln, bounds!, scale, offsetX, offsetY, lonScale);
+    const projectPoint = (lt: number, ln: number) => project(lt, ln, bounds, scale, offsetX, offsetY, lonScale);
 
     const pts = corners.map((c) => {
       const [x, y] = projectPoint(c.lat, c.lon);
@@ -109,11 +141,10 @@ export function TrackMap({ corners, margins = [], laps }: TrackMapProps) {
       trackPolyline = trackPoints.join(" ");
     }
     
-    if (laps && laps.length > 1 && laps[1]?.lat?.length) {
-      const lap1 = laps[1];
-      const n = Math.min(lap1.lat.length, lap1.lon.length);
+    if (lapRef && lapRef.lat?.length) {
+      const n = Math.min(lapRef.lat.length, lapRef.lon.length);
       const refPoints = Array.from({ length: n }, (_, i) =>
-        projectPoint(lap1.lat[i], lap1.lon[i])
+        projectPoint(lapRef.lat[i], lapRef.lon[i])
       ).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`);
       if (refPoints.length > 2) refPoints.push(refPoints[0]);
       refPolyline = refPoints.join(" ");
@@ -137,10 +168,10 @@ export function TrackMap({ corners, margins = [], laps }: TrackMapProps) {
   if (points.length === 0 && !trackPolyline) return null;
 
   return (
-    <div className="w-full relative rounded-xl bg-[#0d1117] p-4 flex justify-center items-center" aria-label="Track map">
+    <div className={`w-full relative ${transparent ? "" : "rounded-xl bg-[#0d1117] p-4"} flex justify-center items-center ${className}`} aria-label="Track map">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="w-full h-auto max-h-[600px] drop-shadow-2xl"
+        className="w-full h-auto max-h-[600px] drop-shadow-2xl overflow-visible"
         style={{ aspectRatio: `${width} / ${height}` }}
       >
         {/* Glow de la piste (pour l'effet asphalte chaud/lumière) */}

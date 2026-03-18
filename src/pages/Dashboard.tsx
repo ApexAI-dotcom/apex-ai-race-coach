@@ -501,22 +501,25 @@ export default function Dashboard() {
                   </div>
 
                   <div className="flex gap-4">
-                    <Button variant="hero" className="flex-1 h-12 shadow-lg shadow-primary/20" onClick={() => handleViewAnalysis(featuredAnalysis.analysis_id || featuredAnalysis.id)}>
+                    <Button variant="hero" className="flex-1 h-12 shadow-lg shadow-primary/20" onClick={() => handleViewAnalysis(featuredAnalysis.analysis_id)}>
                       <Eye className="w-4 h-4 mr-2" />Voir l'analyse complète
                     </Button>
-                    <Button variant="heroOutline" className="flex-1 h-12" onClick={() => handleCompareAdd(featuredAnalysis.analysis_id || featuredAnalysis.id)}>
+                    <Button variant="heroOutline" className="flex-1 h-12" onClick={() => handleCompareAdd(featuredAnalysis.analysis_id)}>
                       <GitCompareArrows className="w-4 h-4 mr-2" />Comparer
                     </Button>
                   </div>
                 </div>
 
-                <div className="h-56 bg-secondary/20 rounded-2xl border border-white/5 overflow-hidden p-4 relative group-hover:border-primary/20 transition-colors">
+                <div className="h-64 bg-secondary/10 rounded-2xl border border-white/5 p-4 relative group-hover:border-primary/20 transition-colors">
                   <TrackMap
                     corners={featuredAnalysis.plot_data?.trajectory_2d?.corners || []}
                     laps={featuredAnalysis.plot_data?.trajectory_2d?.laps || []}
+                    transparent
+                    padding={100}
+                    className="h-full"
                   />
-                  <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background/80 to-transparent flex items-end justify-center pb-2">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Aperçu du tracé</span>
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/90 to-transparent flex items-end justify-center pb-3">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em] opacity-50">Aperçu du tracé</span>
                   </div>
                 </div>
               </div>
