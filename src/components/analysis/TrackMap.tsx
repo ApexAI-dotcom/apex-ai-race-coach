@@ -68,26 +68,37 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
     
     const updateBoundsFromCoords = (lats: number[], lons: number[]) => {
+      let hasValid = false;
       for (let i = 0; i < lats.length; i++) {
+        if (lats[i] === 0 && lons[i] === 0) continue; // Ignore missing/0,0 GPS coords
         minLat = Math.min(minLat, lats[i]);
         maxLat = Math.max(maxLat, lats[i]);
         minLon = Math.min(minLon, lons[i]);
         maxLon = Math.max(maxLon, lons[i]);
+        hasValid = true;
       }
+      return hasValid;
     };
 
-    if (corners.length > 0) {
+    let boundsFromLaps = false;
+    if (laps && laps.length > 0) {
+      for (const lap of laps) {
+        if (lap.lat && lap.lon) {
+          if (updateBoundsFromCoords(lap.lat, lap.lon)) {
+            boundsFromLaps = true;
+          }
+        }
+      }
+    }
+
+    // Only fallback to corners if laps didn't provide any valid bounds
+    if (!boundsFromLaps && corners.length > 0) {
       for (const c of corners) {
+        if (c.lat === 0 && c.lon === 0) continue;
         minLat = Math.min(minLat, c.lat);
         maxLat = Math.max(maxLat, c.lat);
         minLon = Math.min(minLon, c.lon);
         maxLon = Math.max(maxLon, c.lon);
-      }
-    }
-
-    if (laps && laps.length > 0) {
-      for (const lap of laps) {
-        if (lap.lat && lap.lon) updateBoundsFromCoords(lap.lat, lap.lon);
       }
     }
 
