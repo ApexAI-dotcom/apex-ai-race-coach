@@ -516,9 +516,12 @@ export default function Dashboard() {
                     laps={
                       featuredAnalysis.plot_data?.trajectory_2d?.laps
                         ? [
-                            [...featuredAnalysis.plot_data.trajectory_2d.laps].sort(
-                              (a, b) => (b.lat?.length || 0) - (a.lat?.length || 0)
-                            )[0]
+                            featuredAnalysis.plot_data.trajectory_2d.laps.find((l: any) => l.is_best) ||
+                            [...featuredAnalysis.plot_data.trajectory_2d.laps].sort((a: any, b: any) => {
+                              const distA = a.distance_m?.length ? a.distance_m[a.distance_m.length - 1] : 0;
+                              const distB = b.distance_m?.length ? b.distance_m[b.distance_m.length - 1] : 0;
+                              return distB - distA;
+                            })[0]
                           ].filter(Boolean)
                         : []
                     }
