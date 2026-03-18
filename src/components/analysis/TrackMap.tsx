@@ -109,9 +109,7 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
 
     const bounds = { minLat, maxLat, minLon, maxLon };
 
-    // Find representatve laps
-    // lap0 = longest lap for main trail
-    // lap1 = 2nd longest or best if we had it
+    // Find representative laps
     const sortedLaps = [...(laps ?? [])].sort((a, b) => (b.lat?.length || 0) - (a.lat?.length || 0));
     const lap0 = sortedLaps[0];
     const lapRef = sortedLaps[1];
@@ -119,9 +117,14 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     // Aspect ratio correction (mercator-ish)
     const avgLat = (bounds.minLat + bounds.maxLat) / 2;
     const lonScale = Math.cos((avgLat * Math.PI) / 180);
-    
-    const latSpan = bounds.maxLat - bounds.minLat || 0.0001;
-    const lonSpan = (bounds.maxLon - bounds.minLon || 0.0001) * lonScale;
+
+    // Enforce a minimum span to avoid "noise-only" squashing (approx 100m)
+    const MIN_SPAN = 0.0008; 
+    const currentLatSpan = bounds.maxLat - bounds.minLat;
+    const currentLonSpan = (bounds.maxLon - bounds.minLon) * lonScale;
+
+    const latSpan = Math.max(currentLatSpan, MIN_SPAN);
+    const lonSpan = Math.max(currentLonSpan, MIN_SPAN);
     
     const availableW = W - PAD * 2;
     const availableH = H - PAD * 2;

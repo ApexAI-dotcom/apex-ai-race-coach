@@ -515,14 +515,24 @@ export default function Dashboard() {
                     corners={featuredAnalysis.plot_data?.trajectory_2d?.corners || []}
                     laps={
                       featuredAnalysis.plot_data?.trajectory_2d?.laps
-                        ? [
-                            featuredAnalysis.plot_data.trajectory_2d.laps.find((l: any) => l.is_best) ||
-                            [...featuredAnalysis.plot_data.trajectory_2d.laps].sort((a: any, b: any) => {
-                              const distA = a.distance_m?.length ? a.distance_m[a.distance_m.length - 1] : 0;
-                              const distB = b.distance_m?.length ? b.distance_m[b.distance_m.length - 1] : 0;
-                              return distB - distA;
-                            })[0]
-                          ].filter(Boolean)
+                        ? (() => {
+                            const allLaps = featuredAnalysis.plot_data.trajectory_2d.laps;
+                            // Pre-filter: only keep laps covered > 100m to avoid stationary noise
+                            const validLaps = allLaps.filter((l: any) => {
+                              const d = l.distance_m?.length ? l.distance_m[l.distance_m.length - 1] : 0;
+                              return d > 100;
+                            });
+                            // If no valid laps, fallback to all (better than nothing)
+                            const source = validLaps.length > 0 ? validLaps : allLaps;
+                            return [
+                              source.find((l: any) => l.is_best) ||
+                              [...source].sort((a: any, b: any) => {
+                                const distA = a.distance_m?.length ? a.distance_m[a.distance_m.length - 1] : 0;
+                                const distB = b.distance_m?.length ? b.distance_m[b.distance_m.length - 1] : 0;
+                                return distB - distA;
+                              })[0]
+                            ].filter(Boolean);
+                          })()
                         : []
                     }
                     transparent
