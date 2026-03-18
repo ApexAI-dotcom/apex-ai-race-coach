@@ -476,8 +476,7 @@ export default function Dashboard() {
                 SESSION LA PLUS RÉCENTE
               </Badge>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end">
-                <div>
+                <div className="flex flex-col justify-center">
                   <h3 className="text-3xl font-bold text-foreground mb-1">
                     {featuredAnalysis.session_conditions?.session_name || featuredAnalysis.session_conditions?.circuit_name || featuredAnalysis.analysis_id || "Session"}
                   </h3>
@@ -485,7 +484,7 @@ export default function Dashboard() {
                     {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> PRACTICE
                   </p>
 
-                  <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="grid grid-cols-3 gap-4 mb-8 max-w-2xl">
                     <div className="bg-secondary/40 p-4 rounded-xl">
                       <div className="text-xl font-bold text-foreground">{featuredAnalysis.lap_time.toFixed(2)}s</div>
                       <div className="text-[10px] text-muted-foreground uppercase mt-1 letter-spacing-wider">Best Lap</div>
@@ -500,7 +499,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 max-w-2xl">
                     <Button variant="hero" className="flex-1 h-12 shadow-lg shadow-primary/20" onClick={() => handleViewAnalysis(featuredAnalysis.analysis_id)}>
                       <Eye className="w-4 h-4 mr-2" />Voir l'analyse complète
                     </Button>
@@ -509,38 +508,6 @@ export default function Dashboard() {
                     </Button>
                   </div>
                 </div>
-
-                <div className="h-64 bg-secondary/10 rounded-2xl border border-white/5 p-4 relative group-hover:border-primary/20 transition-colors">
-                  <TrackMap
-                    corners={featuredAnalysis.plot_data?.trajectory_2d?.corners || []}
-                    laps={
-                      featuredAnalysis.plot_data?.trajectory_2d?.laps
-                        ? (() => {
-                            const allLaps = featuredAnalysis.plot_data.trajectory_2d.laps;
-                            // Pre-filter: only keep laps covered > 200m to avoid stationary noise
-                            const validLaps = allLaps.filter((l: any) => {
-                              const distArray = l.distance_m || [];
-                              const d = distArray.length ? distArray[distArray.length - 1] : 0;
-                              return d > 200;
-                            });
-                            // If no valid laps, fallback to all (better than nothing)
-                            const source = validLaps.length > 0 ? validLaps : allLaps;
-                            return [
-                              source.find((l: any) => l.is_best) ||
-                              [...source].sort((a: any, b: any) => (b.lat?.length || 0) - (a.lat?.length || 0))[0]
-                            ].filter(Boolean);
-                          })()
-                        : []
-                    }
-                    transparent
-                    padding={100}
-                    className="h-full"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/90 to-transparent flex items-end justify-center pb-3">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em] opacity-50">Aperçu du tracé</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </motion.div>
         )}
