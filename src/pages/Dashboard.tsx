@@ -9,7 +9,7 @@ import {
   Clock,
   Trash2,
   Eye,
-  Compare,
+  GitCompareArrows,
   BarChart3,
   Zap,
   AlertCircle,
@@ -320,7 +320,7 @@ export default function Dashboard() {
         headStyles: { fillColor: [239, 68, 68], textColor: 255, fontStyle: "bold" },
         margin: { left: 15, right: 15 },
       });
-      const pageCount = doc.internal.getNumberOfPages();
+      const pageCount = (doc as any).internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i); doc.setFillColor(30, 58, 138); doc.rect(0, doc.internal.pageSize.height - 30, 210, 30, "F");
         doc.setTextColor(255); doc.setFontSize(10); doc.setFont("helvetica", "normal");
@@ -488,7 +488,7 @@ export default function Dashboard() {
                   <Eye className="w-4 h-4 mr-2" />Voir l'analyse complète
                 </Button>
                 <Button variant="heroOutline" className="w-full" onClick={() => handleCompareAdd(latestAnalysis.id)}>
-                  <Compare className="w-4 h-4 mr-2" />Comparer
+                  <GitCompareArrows className="w-4 h-4 mr-2" />Comparer
                 </Button>
               </div>
             </div>
@@ -587,7 +587,7 @@ export default function Dashboard() {
                             <Eye className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="icon" title="Comparer" onClick={() => handleCompareAdd(analysis.id)}>
-                            <Compare className="w-4 h-4" />
+                            <GitCompareArrows className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="icon" title="Déplacer (bientôt)" onClick={() => toast.info("Système de dossiers bientôt disponible !")}>
                             <FolderInput className="w-4 h-4" />
@@ -661,7 +661,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex gap-2">
                     <Button variant="heroOutline" size="sm" onClick={() => { handleCompareAdd(selectedAnalysis.analysis_id); handleCloseOverlay(); }}>
-                      <Compare className="w-4 h-4 mr-2" />Comparer
+                      <GitCompareArrows className="w-4 h-4 mr-2" />Comparer
                     </Button>
                     <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(selectedAnalysis.analysis_id)}>
                       <Trash2 className="w-4 h-4 mr-2" />Supprimer
