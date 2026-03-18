@@ -476,7 +476,8 @@ export default function Dashboard() {
                 SESSION LA PLUS RÉCENTE
               </Badge>
               
-                <div className="flex flex-col justify-center">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end">
+                <div>
                   <h3 className="text-3xl font-bold text-foreground mb-1">
                     {featuredAnalysis.session_conditions?.session_name || featuredAnalysis.session_conditions?.circuit_name || featuredAnalysis.analysis_id || "Session"}
                   </h3>
@@ -508,6 +509,28 @@ export default function Dashboard() {
                     </Button>
                   </div>
                 </div>
+
+                <div className="h-64 bg-secondary/10 rounded-2xl border border-white/5 p-4 relative group-hover:border-primary/20 transition-colors">
+                  <TrackMap
+                    corners={featuredAnalysis.plot_data?.trajectory_2d?.corners || []}
+                    laps={
+                      featuredAnalysis.plot_data?.trajectory_2d?.laps
+                        ? [
+                            featuredAnalysis.plot_data.trajectory_2d.laps.find((l: any) => l.is_best) || 
+                            featuredAnalysis.plot_data.trajectory_2d.laps[0]
+                          ].filter(Boolean)
+                        : undefined
+                    }
+                    transparent
+                    padding={100}
+                    className="h-full"
+                    hideLabels={true}
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/90 to-transparent flex items-end justify-center pb-3 pointer-events-none">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em] opacity-50">Aperçu du tracé</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}

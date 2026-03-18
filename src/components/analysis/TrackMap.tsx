@@ -9,6 +9,7 @@ interface TrackMapProps {
   transparent?: boolean;
   className?: string;
   padding?: number;
+  hideLabels?: boolean;
 }
 
 const W = 800;
@@ -29,7 +30,7 @@ function project(
   return [x, y] as const;
 }
 
-export function TrackMap({ corners, margins = [], laps, transparent = false, className = "", padding }: TrackMapProps) {
+export function TrackMap({ corners, margins = [], laps, transparent = false, className = "", padding, hideLabels = false }: TrackMapProps) {
   const [hoverId, setHoverId] = useState<number | null>(null);
   const PAD = padding ?? DEFAULT_PAD;
 
@@ -170,7 +171,7 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
         {refPolyline && (
           <polyline points={refPolyline} fill="none" stroke="#38bdf8" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" strokeLinejoin="round" opacity={0.8} />
         )}
-        {points.map((p) => {
+        {!hideLabels && points.map((p) => {
           const margin = marginByLabel[p.label];
           const isHover = hoverId === p.id;
           return (
