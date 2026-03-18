@@ -432,26 +432,6 @@ export default function Dashboard() {
     );
   }
 
-  interface AnalysisResponse {
-    id: string;
-    date: string;
-    score: number;
-    grade: string;
-    corner_count: number;
-    lap_time: number;
-    filename: string;
-    performance_score: {
-      grade: string;
-      score: number;
-    };
-    session_conditions?: {
-      track_temperature?: number;
-      circuit_name?: string;
-      session_name?: string;
-    };
-    plot_data?: any;
-  }
-
   const latestAnalysis = analyses[0];
   const featuredScore = featuredAnalysis ? Math.round(getDisplayScore(featuredAnalysis.performance_score)) : latestAnalysis.score;
   const featuredGrade = featuredAnalysis?.performance_score?.grade || latestAnalysis.grade;
