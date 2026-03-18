@@ -114,5 +114,9 @@ export interface AnalysisResponse {
   plots: Record<string, string>;
   plot_data?: PlotData;
   statistics: unknown;
-  session_conditions?: { track_condition: string; track_temperature?: number };
+  session_conditions?: { 
+    track_condition: string; 
+    track_temperature?: number;
+    circuit_name?: string;
+  };
 }

@@ -14,18 +14,19 @@ export function mapApiResultToResponse(r: AnalysisResult): AnalysisResponse {
     performance_score: {
       overall_score: r.performance_score?.overall_score ?? 0,
       grade: r.performance_score?.grade ?? "—",
-      breakdown: r.performance_score?.breakdown ?? {},
+      breakdown: (r.performance_score?.breakdown as unknown as Record<string, number>) ?? {},
       percentile: r.performance_score?.percentile ?? 0,
     },
     corner_analysis: r.corner_analysis ?? [],
     coaching_advice: r.coaching_advice ?? [],
     plots: r.plots ?? {},
-    plot_data: (r as Record<string, unknown>).plot_data as AnalysisResponse["plot_data"] ?? undefined,
+    plot_data: (r as unknown as Record<string, unknown>).plot_data as AnalysisResponse["plot_data"] ?? undefined,
     statistics: r.statistics ?? {},
     session_conditions: r.session_conditions
       ? {
           track_condition: r.session_conditions.track_condition,
           track_temperature: r.session_conditions.track_temperature ?? undefined,
+          circuit_name: r.session_conditions.circuit_name ?? undefined,
         }
       : undefined,
   };

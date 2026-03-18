@@ -204,6 +204,7 @@ export interface Statistics {
 
 export interface SessionConditions {
   session_name?: string | null;
+  circuit_name?: string | null;
   track_condition: string; // "dry" | "damp" | "wet" | "rain"
   track_temperature?: number | null; // °C
 }

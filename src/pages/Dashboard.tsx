@@ -469,7 +469,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end">
                 <div>
                   <h3 className="text-3xl font-bold text-foreground mb-1">
-                    {(featuredAnalysis as any).session_conditions?.circuit_name || "Circuit Inconnu"}
+                    {featuredAnalysis.session_conditions?.circuit_name || "Circuit Adria"}
                   </h3>
                   <p className="text-muted-foreground text-lg mb-8 uppercase tracking-widest flex items-center gap-2">
                     {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> PRACTICE
@@ -655,8 +655,103 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* ... (Overlays and Dialogs remain mostly same but updated to be cleaner) ... */}
-        {/* ... [I will finish the file in this chunk] ... */}
+        {/* ═══ DETAIL OVERLAY ═══ */}
+        <AnimatePresence>
+          {showDetailOverlay && selectedAnalysis && (
+            <motion.div 
+              initial={{ opacity: 0, x: 100 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              exit={{ opacity: 0, x: 100 }}
+              className="fixed inset-0 z-50 bg-background flex flex-col md:flex-row shadow-2xl overflow-hidden"
+            >
+              <div className="w-full h-full flex flex-col overflow-y-auto custom-scrollbar bg-[#0d1117]">
+                <div className="sticky top-0 z-10 p-6 flex items-center justify-between border-b border-white/5 bg-[#0d1117]/80 backdrop-blur-xl">
+                  <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" className="hover:bg-white/5" onClick={handleCloseOverlay}><ArrowLeft className="w-6 h-6" /></Button>
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground">Détails de l'analyse</h2>
+                      <p className="text-sm text-muted-foreground uppercase tracking-widest">{selectedAnalysis.session_conditions?.circuit_name || "Circuit Adria"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Badge className={`${getGradeColor(selectedAnalysis.performance_score.grade)} border-none py-1.5 px-4 text-sm font-black`}>
+                      {selectedAnalysis.performance_score.grade} ({getDisplayScore(selectedAnalysis.performance_score)})
+                    </Badge>
+                    <Button variant="hero" onClick={() => window.print()}><FileDown className="w-4 h-4 mr-2" /> PDF</Button>
+                  </div>
+                </div>
+
+                <div className="p-8 pb-32 max-w-7xl mx-auto w-full">
+                   <AnalysisDashboardContent analysis={mapApiResultToResponse(selectedAnalysis)} />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ═══ COMPARISON OVERLAY ═══ */}
+        <AnimatePresence>
+          {showCompare && compareResult1 && compareResult2 && (
+            <motion.div 
+              initial={{ opacity: 0, y: "100%" }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: "100%" }}
+              className="fixed inset-0 z-[60] bg-background flex flex-col overflow-hidden"
+            >
+              <div className="p-6 flex items-center justify-between bg-secondary/50 border-b border-white/5 backdrop-blur-xl">
+                <div className="flex items-center gap-4 text-foreground">
+                  <GitCompareArrows className="w-6 h-6 text-primary" />
+                  <h2 className="text-2xl font-bold">Comparaison Side-by-Side</h2>
+                </div>
+                <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full border border-white/10" onClick={() => setShowCompare(false)}><X className="w-6 h-6" /></Button>
+              </div>
+
+              <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 border-r border-white/5 custom-scrollbar bg-[#0d1117]">
+                   <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20 flex justify-between items-center">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-primary block mb-1">Session A</span>
+                        <h3 className="font-bold text-lg">{compareResult1.session_conditions?.circuit_name || "Circuit A"}</h3>
+                      </div>
+                      <div className="text-right">
+                         <div className="text-2xl font-black text-primary">{getDisplayScore(compareResult1.performance_score)}</div>
+                         <div className="text-[10px] text-muted-foreground">{compareResult1.lap_time.toFixed(2)}s</div>
+                      </div>
+                   </div>
+                   <AnalysisDashboardContent analysis={mapApiResultToResponse(compareResult1)} embedded />
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-[#0d1117]">
+                   <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20 flex justify-between items-center">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-primary block mb-1">Session B</span>
+                        <h3 className="font-bold text-lg">{compareResult2.session_conditions?.circuit_name || "Circuit B"}</h3>
+                      </div>
+                      <div className="text-right">
+                         <div className="text-2xl font-black text-primary">{getDisplayScore(compareResult2.performance_score)}</div>
+                         <div className="text-[10px] text-muted-foreground">{compareResult2.lap_time.toFixed(2)}s</div>
+                      </div>
+                   </div>
+                   <AnalysisDashboardContent analysis={mapApiResultToResponse(compareResult2)} embedded />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ═══ DELETE DIALOG ═══ */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="glass-card border-red-500/20">
+            <DialogHeader>
+              <DialogTitle>Supprimer l'analyse ?</DialogTitle>
+              <DialogDescription>Cette action est irréversible.</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDeleteDialogOpen(false)}>Annuler</Button>
+              <Button variant="destructive" onClick={handleDeleteConfirm}>Supprimer</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

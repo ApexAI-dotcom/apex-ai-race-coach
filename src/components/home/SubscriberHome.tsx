@@ -69,8 +69,8 @@ export default function SubscriberHome() {
   // Color logic for bars (orange to green)
   const getBarColor = (score: number) => {
     if (score >= 85) return "#22c55e"; // Green
-    if (score >= 70) return "#a855f7"; // Purple/Indigo
-    if (score >= 50) return "#f59e0b"; // Orange
+    if (score >= 70) return "#f59e0b"; // Orange/Amber
+    if (score >= 50) return "#fbbf24"; // Pale Orange
     return "#ef4444"; // Red
   };
 
