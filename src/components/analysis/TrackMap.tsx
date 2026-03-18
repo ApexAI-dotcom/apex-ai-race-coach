@@ -6,44 +6,14 @@ interface TrackMapProps {
   corners: TrajectoryCorner[];
   margins?: CornerMargin[];
   laps?: TrajectoryLap[];
-}
-
-const W = 800;
-const H = 600;
-const DEFAULT_PAD = 60; // Increased padding for safety
-
-interface TrackMapProps {
-  corners: TrajectoryCorner[];
-  margins?: CornerMargin[];
-  laps?: TrajectoryLap[];
   transparent?: boolean;
   className?: string;
   padding?: number;
 }
 
-function getBoundsFromCorners(corners: TrajectoryCorner[]) {
-  let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
-  for (const c of corners) {
-    minLat = Math.min(minLat, c.lat);
-    maxLat = Math.max(maxLat, c.lat);
-    minLon = Math.min(minLon, c.lon);
-    maxLon = Math.max(maxLon, c.lon);
-  }
-  const pad = 0.0002;
-  return { minLat: minLat - pad, maxLat: maxLat + pad, minLon: minLon - pad, maxLon: maxLon + pad };
-}
-
-function getBoundsFromLap(lap: TrajectoryLap) {
-  const lat = lap.lat ?? [];
-  const lon = lap.lon ?? [];
-  if (lat.length === 0 || lon.length === 0) return null;
-  const minLat = Math.min(...lat);
-  const maxLat = Math.max(...lat);
-  const minLon = Math.min(...lon);
-  const maxLon = Math.max(...lon);
-  const pad = 0.0002;
-  return { minLat: minLat - pad, maxLat: maxLat + pad, minLon: minLon - pad, maxLon: maxLon + pad };
-}
+const W = 800;
+const H = 600;
+const DEFAULT_PAD = 60;
 
 function project(
   lat: number,
@@ -64,13 +34,13 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
   const PAD = padding ?? DEFAULT_PAD;
 
   const { points, width, height, trackPolyline, refPolyline } = useMemo(() => {
-    // Collect all unique points to find true bounds
+    // 1. Gather all points to find the real geographic center
     let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
     
     const updateBoundsFromCoords = (lats: number[], lons: number[]) => {
       let hasValid = false;
       for (let i = 0; i < lats.length; i++) {
-        if (lats[i] === 0 && lons[i] === 0) continue; // Ignore missing/0,0 GPS coords
+        if (lats[i] === 0 && lons[i] === 0) continue; 
         minLat = Math.min(minLat, lats[i]);
         maxLat = Math.max(maxLat, lats[i]);
         minLon = Math.min(minLon, lons[i]);
@@ -80,63 +50,64 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
       return hasValid;
     };
 
-    let boundsFromLaps = false;
+    let hasData = false;
     if (laps && laps.length > 0) {
       for (const lap of laps) {
         if (lap.lat && lap.lon) {
-          if (updateBoundsFromCoords(lap.lat, lap.lon)) {
-            boundsFromLaps = true;
-          }
+          if (updateBoundsFromCoords(lap.lat, lap.lon)) hasData = true;
         }
       }
     }
 
-    // Only fallback to corners if laps didn't provide any valid bounds
-    if (!boundsFromLaps && corners.length > 0) {
+    if (!hasData && corners.length > 0) {
       for (const c of corners) {
         if (c.lat === 0 && c.lon === 0) continue;
         minLat = Math.min(minLat, c.lat);
         maxLat = Math.max(maxLat, c.lat);
         minLon = Math.min(minLon, c.lon);
         maxLon = Math.max(maxLon, c.lon);
+        hasData = true;
       }
     }
 
-    // Default bounds if none found
-    if (minLat === Infinity) {
+    if (!hasData) {
       return { points: [], width: W, height: H, trackPolyline: null, refPolyline: null };
     }
 
-    const bounds = { minLat, maxLat, minLon, maxLon };
+    // 2. Centered Bounds Logic (Crucial for avoiding diagonal noise)
+    const midLat = (minLat + maxLat) / 2;
+    const midLon = (minLon + maxLon) / 2;
+    const initialLonScale = Math.cos((midLat * Math.PI) / 180);
 
-    // Find representative laps
+    // Enforce a minimum span (approx 250m) to prevent tiny noise from stretching
+    const MIN_SPAN_GPS = 0.002; 
+    const currentLatSpan = maxLat - minLat;
+    const currentLonSpan = (maxLon - minLon) * initialLonScale;
+
+    const latSpan = Math.max(currentLatSpan, MIN_SPAN_GPS);
+    const lonSpan = Math.max(currentLonSpan, MIN_SPAN_GPS);
+
+    // Final bounds centered on the data's intentional center
+    const finalBounds = {
+      minLat: midLat - latSpan / 2,
+      maxLat: midLat + latSpan / 2,
+      minLon: midLon - (lonSpan / initialLonScale) / 2,
+      maxLon: midLon + (lonSpan / initialLonScale) / 2,
+    };
+
+    const availableW = W - PAD * 2;
+    const availableH = H - PAD * 2;
+    const scale = Math.min(availableW / lonSpan, availableH / latSpan);
+    const offsetX = PAD + (availableW - lonSpan * scale) / 2;
+    const offsetY = PAD + (availableH - latSpan * scale) / 2;
+    
+    const projectPoint = (lt: number, ln: number) => 
+      project(lt, ln, finalBounds, scale, offsetX, offsetY, initialLonScale);
+
+    // 3. Projections
     const sortedLaps = [...(laps ?? [])].sort((a, b) => (b.lat?.length || 0) - (a.lat?.length || 0));
     const lap0 = sortedLaps[0];
     const lapRef = sortedLaps[1];
-
-    // Aspect ratio correction (mercator-ish)
-    const avgLat = (bounds.minLat + bounds.maxLat) / 2;
-    const lonScale = Math.cos((avgLat * Math.PI) / 180);
-
-    // Enforce a minimum span to avoid "noise-only" squashing (approx 100m)
-    const MIN_SPAN = 0.0008; 
-    const currentLatSpan = bounds.maxLat - bounds.minLat;
-    const currentLonSpan = (bounds.maxLon - bounds.minLon) * lonScale;
-
-    const latSpan = Math.max(currentLatSpan, MIN_SPAN);
-    const lonSpan = Math.max(currentLonSpan, MIN_SPAN);
-    
-    const availableW = W - PAD * 2;
-    const availableH = H - PAD * 2;
-    
-    // Scale to fit while preserving aspect ratio
-    const scale = Math.min(availableW / lonSpan, availableH / latSpan);
-    
-    // Center logic
-    const offsetX = PAD + (availableW - lonSpan * scale) / 2;
-    const offsetY = PAD + (availableH - latSpan * scale) / 2;
-
-    const projectPoint = (lt: number, ln: number) => project(lt, ln, bounds, scale, offsetX, offsetY, lonScale);
 
     const pts = corners.map((c) => {
       const [x, y] = projectPoint(c.lat, c.lon);
@@ -171,7 +142,7 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     }
 
     return { points: pts, width: W, height: H, trackPolyline, refPolyline };
-  }, [corners, laps]);
+  }, [corners, laps, padding]);
 
   const marginByLabel = useMemo(() => {
     const m: Record<string, CornerMargin> = {};
@@ -188,127 +159,32 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
         className="w-full h-auto max-h-[600px] drop-shadow-2xl overflow-visible"
         style={{ aspectRatio: `${width} / ${height}` }}
       >
-        {/* Glow de la piste (pour l'effet asphalte chaud/lumière) */}
         {trackPolyline && (
-          <polyline
-            points={trackPolyline}
-            fill="none"
-            className="stroke-primary"
-            strokeWidth="30"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity={0.15}
-            style={{ filter: "blur(8px)" }}
-          />
+          <>
+            <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth="30" strokeLinecap="round" strokeLinejoin="round" opacity={0.15} style={{ filter: "blur(8px)" }} />
+            <polyline points={trackPolyline} fill="none" className="stroke-secondary-foreground/20" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" />
+            <polyline points={trackPolyline} fill="none" className="stroke-border" strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" opacity={0.5} strokeDasharray="10 10" />
+            <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          </>
         )}
-        {/* Fond piste (trait très épais) */}
-        {trackPolyline && (
-          <polyline
-            points={trackPolyline}
-            fill="none"
-            className="stroke-secondary-foreground/20"
-            strokeWidth="24"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
-        {/* Bordures de piste (effet vibreur/limite) */}
-        {trackPolyline && (
-          <polyline
-            points={trackPolyline}
-            fill="none"
-            className="stroke-border"
-            strokeWidth="26"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity={0.5}
-            strokeDasharray="10 10"
-          />
-        )}
-        {/* Trajectoire idéale (trait fin couleur accent) */}
-        {trackPolyline && (
-          <polyline
-            points={trackPolyline}
-            fill="none"
-            className="stroke-primary"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
-        {/* Tour référence (pointillé bleu cyan) */}
         {refPolyline && (
-          <polyline
-            points={refPolyline}
-            fill="none"
-            stroke="#38bdf8"
-            strokeWidth="2"
-            strokeDasharray="6 6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity={0.8}
-          />
+          <polyline points={refPolyline} fill="none" stroke="#38bdf8" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" strokeLinejoin="round" opacity={0.8} />
         )}
-        {/* Corners - Style F1 (Badges noirs avec texte blanc épais) */}
         {points.map((p) => {
           const margin = marginByLabel[p.label];
           const isHover = hoverId === p.id;
-          
           return (
-            <g
-              key={p.id}
-              onMouseEnter={() => setHoverId(p.id)}
-              onMouseLeave={() => setHoverId(null)}
-              onClick={() => {
-                const el = document.getElementById(`corner-${p.label}`);
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  // Add a brief highlight flash
-                  el.style.backgroundColor = '#38bdf840';
-                  setTimeout(() => {
-                    el.style.backgroundColor = '';
-                  }, 1000);
-                }
-              }}
-              className="cursor-pointer"
-              style={{ transition: "all 0.2s ease" }}
-            >
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r={isHover ? 6 : 4}
-                fill="#ffffff"
-                className="pointer-events-none"
-              />
-              {/* Badge F1 (rond noir bordé de blanc avec numéro) */}
-              <circle
-                cx={p.x}
-                cy={p.y - 20}
-                r={isHover ? 14 : 12}
-                fill="#000000"
-                stroke={isHover ? "#ff6b35" : "#ffffff"}
-                strokeWidth={isHover ? 3 : 2}
-              />
-              <text
-                x={p.x}
-                y={p.y - 16}
-                textAnchor="middle"
-                fill="#ffffff"
-                fontSize={isHover ? "12" : "10"}
-                fontWeight="bold"
-                className="font-display select-none pointer-events-none"
-              >
+            <g key={p.id} onMouseEnter={() => setHoverId(p.id)} onMouseLeave={() => setHoverId(null)} className="cursor-pointer" style={{ transition: "all 0.2s ease" }}>
+              <circle cx={p.x} cy={p.y} r={isHover ? 6 : 4} fill="#ffffff" className="pointer-events-none" />
+              <circle cx={p.x} cy={p.y - 20} r={isHover ? 14 : 12} fill="#000000" stroke={isHover ? "#ff6b35" : "#ffffff"} strokeWidth={isHover ? 3 : 2} />
+              <text x={p.x} y={p.y - 16} textAnchor="middle" fill="#ffffff" fontSize={isHover ? "12" : "10"} fontWeight="bold" className="font-display select-none pointer-events-none">
                 {p.label.replace('V', '')}
               </text>
-              
               {isHover && margin && (
-                <g className="pointer-events-none">
-                  {/* Tooltip SVG basique si besoin, ou on s'appuie sur le <title> natif */}
-                  <title>
-                    Virage {p.label.replace('V', '')} | Vitesse: {p.apex_speed?.toFixed(1)} km/h | Grade: {p.grade}
-                    {margin.time_lost != null ? ` | Temps perdu: ${(margin.time_lost * 1000).toFixed(0)} ms` : ""}
-                  </title>
-                </g>
+                <title>
+                  Virage {p.label.replace('V', '')} | Vitesse: {p.apex_speed?.toFixed(1)} km/h | Grade: {p.grade}
+                  {margin.time_lost != null ? ` | Temps perdu: ${(margin.time_lost * 1000).toFixed(0)} ms` : ""}
+                </title>
               )}
             </g>
           );

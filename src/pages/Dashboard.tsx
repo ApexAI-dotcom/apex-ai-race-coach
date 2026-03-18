@@ -517,20 +517,17 @@ export default function Dashboard() {
                       featuredAnalysis.plot_data?.trajectory_2d?.laps
                         ? (() => {
                             const allLaps = featuredAnalysis.plot_data.trajectory_2d.laps;
-                            // Pre-filter: only keep laps covered > 100m to avoid stationary noise
+                            // Pre-filter: only keep laps covered > 200m to avoid stationary noise
                             const validLaps = allLaps.filter((l: any) => {
-                              const d = l.distance_m?.length ? l.distance_m[l.distance_m.length - 1] : 0;
-                              return d > 100;
+                              const distArray = l.distance_m || [];
+                              const d = distArray.length ? distArray[distArray.length - 1] : 0;
+                              return d > 200;
                             });
                             // If no valid laps, fallback to all (better than nothing)
                             const source = validLaps.length > 0 ? validLaps : allLaps;
                             return [
                               source.find((l: any) => l.is_best) ||
-                              [...source].sort((a: any, b: any) => {
-                                const distA = a.distance_m?.length ? a.distance_m[a.distance_m.length - 1] : 0;
-                                const distB = b.distance_m?.length ? b.distance_m[b.distance_m.length - 1] : 0;
-                                return distB - distA;
-                              })[0]
+                              [...source].sort((a: any, b: any) => (b.lat?.length || 0) - (a.lat?.length || 0))[0]
                             ].filter(Boolean);
                           })()
                         : []
