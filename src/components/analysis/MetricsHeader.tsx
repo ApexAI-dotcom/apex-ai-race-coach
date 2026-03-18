@@ -33,12 +33,10 @@ export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderPro
   const isApp = variant === "app";
   const cardClass = isApp
     ? "rounded-lg border border-white/5 bg-secondary/50 p-4"
-    : "rounded-xl border border-[#30363d] bg-[#161b22] p-4";
-  const labelClass = isApp
-    ? "text-muted-foreground text-xs font-medium uppercase tracking-wide mb-1"
-    : "text-[#8b949e] text-xs font-medium uppercase tracking-wide mb-1";
-  const valueClass = isApp ? "text-2xl font-bold text-foreground" : "text-2xl font-bold text-[#e6edf3]";
-  const metaClass = isApp ? "text-muted-foreground text-sm" : "text-[#8b949e] text-sm";
+    : "glass-card p-4";
+  const labelClass = "text-muted-foreground text-xs font-medium uppercase tracking-wide mb-1";
+  const valueClass = "text-2xl font-bold text-foreground";
+  const metaClass = "text-muted-foreground text-sm";
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

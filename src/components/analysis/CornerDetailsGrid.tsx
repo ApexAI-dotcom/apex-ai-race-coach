@@ -13,11 +13,11 @@ export function CornerDetailsGrid({ corners, variant = "racing" }: CornerDetails
 
   const isApp = variant === "app";
   const cardClass = isApp
-    ? "rounded-lg border border-white/5 bg-secondary/50 p-3"
-    : "rounded-xl border border-[#30363d] bg-[#161b22] p-3";
-  const labelClass = isApp ? "font-semibold text-foreground" : "font-semibold text-[#e6edf3]";
-  const iconClass = isApp ? "w-4 h-4 text-muted-foreground" : "w-4 h-4 text-[#8b949e]";
-  const metaClass = isApp ? "text-muted-foreground text-xs" : "text-[#8b949e] text-xs";
+    ? "rounded-lg border border-white/5 bg-secondary/50 p-4"
+    : "glass-card p-4 text-left";
+  const labelClass = "font-semibold text-foreground";
+  const iconClass = "w-4 h-4 text-muted-foreground";
+  const metaClass = "text-muted-foreground text-xs";
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">

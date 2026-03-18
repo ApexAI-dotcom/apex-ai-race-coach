@@ -72,33 +72,33 @@ export function SpeedTraceChart({ data, selectedLaps, bestLapNumber }: SpeedTrac
           data={series}
           margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#30363d" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           {sectors?.map((s, i) => (
             <ReferenceArea
               key={s.name}
               x1={s.start_m}
               x2={s.end_m}
-              fill={i === 0 ? "#3b82f620" : i === 1 ? "#22c55e20" : "#f9731620"}
-              fillOpacity={0.4}
+              fill={i === 0 ? "#3b82f6" : i === 1 ? "#22c55e" : "#f97316"}
+              fillOpacity={0.1}
             />
           ))}
           <XAxis
             dataKey="distance_m"
-            stroke="#e6edf3"
-            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
+            stroke="hsl(var(--border))"
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
             tickFormatter={(v) => `${v}m`}
             domain={["dataMin", "dataMax"]}
           />
           <YAxis
-            stroke="#e6edf3"
-            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
+            stroke="hsl(var(--border))"
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
             tickFormatter={(v) => `${v}`}
-            label={{ value: "km/h", angle: -90, position: "insideLeft", fill: "#e6edf3", opacity: 0.8 }}
+            label={{ value: "km/h", angle: -90, position: "insideLeft", fill: "hsl(var(--muted-foreground))" }}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", color: "#ffffff" }}
-            itemStyle={{ color: "#ffffff" }}
-            labelStyle={{ color: "#e6edf3" }}
+            contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))", borderRadius: "8px" }}
+            itemStyle={{ color: "hsl(var(--foreground))" }}
+            labelStyle={{ color: "hsl(var(--muted-foreground))" }}
             formatter={(value: number, name: string) => [value, name]}
             labelFormatter={(label) => `Distance: ${label} m`}
           />

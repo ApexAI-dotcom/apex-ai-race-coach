@@ -63,23 +63,23 @@ export function ThrottleBrakeChart({ data, selectedLaps }: ThrottleBrakeChartPro
       <div className="h-[240px] w-full" aria-label="Throttle and brake by distance">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#30363d" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="distance_m"
-              stroke="#e6edf3"
-              tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
+              stroke="hsl(var(--border))"
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
               tickFormatter={(v) => `${v}m`}
             />
             <YAxis
-              stroke="#e6edf3"
-              tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
+              stroke="hsl(var(--border))"
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
               domain={[0, 100]}
               tickFormatter={(v) => `${v}%`}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", borderRadius: 8 }}
-              itemStyle={{ color: "#ffffff" }}
-              labelStyle={{ color: "#e6edf3" }}
+              contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
+              itemStyle={{ color: "hsl(var(--foreground))" }}
+              labelStyle={{ color: "hsl(var(--muted-foreground))" }}
               formatter={(value: number) => [`${value}%`, ""]}
               labelFormatter={(label) => `Position: ${label} m`}
             />
@@ -111,23 +111,23 @@ export function ThrottleBrakeChart({ data, selectedLaps }: ThrottleBrakeChartPro
     <div className="h-[280px] w-full" aria-label="Throttle and brake by distance (multi-lap)">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#30363d" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="distance_m"
-            stroke="#e6edf3"
-            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
+            stroke="hsl(var(--border))"
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
             tickFormatter={(v) => `${v}m`}
           />
           <YAxis
-            stroke="#e6edf3"
-            tick={{ fill: "#e6edf3", fontSize: 11, opacity: 0.8 }}
+            stroke="hsl(var(--border))"
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
             domain={[0, 100]}
             tickFormatter={(v) => `${v}%`}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", borderRadius: 8 }}
-            itemStyle={{ color: "#ffffff" }}
-            labelStyle={{ color: "#e6edf3" }}
+            contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
+            itemStyle={{ color: "hsl(var(--foreground))" }}
+            labelStyle={{ color: "hsl(var(--muted-foreground))" }}
             formatter={(value: number) => [`${value}%`, ""]}
           />
           <Legend />

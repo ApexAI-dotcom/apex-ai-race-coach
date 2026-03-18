@@ -513,7 +513,15 @@ export default function Dashboard() {
                 <div className="h-64 bg-secondary/10 rounded-2xl border border-white/5 p-4 relative group-hover:border-primary/20 transition-colors">
                   <TrackMap
                     corners={featuredAnalysis.plot_data?.trajectory_2d?.corners || []}
-                    laps={featuredAnalysis.plot_data?.trajectory_2d?.laps || []}
+                    laps={
+                      featuredAnalysis.plot_data?.trajectory_2d?.laps
+                        ? [
+                            [...featuredAnalysis.plot_data.trajectory_2d.laps].sort(
+                              (a, b) => (b.lat?.length || 0) - (a.lat?.length || 0)
+                            )[0]
+                          ].filter(Boolean)
+                        : []
+                    }
                     transparent
                     padding={100}
                     className="h-full"

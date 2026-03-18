@@ -636,10 +636,7 @@ export default function Profile() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                // TODO: Naviguer vers la page de détail de l'analyse
-                                console.log("View session:", session.id);
-                              }}
+                              onClick={() => navigate(`/dashboard?analysisId=${session.id}`)}
                             >
                               Voir
                               <ChevronRight className="w-4 h-4" />

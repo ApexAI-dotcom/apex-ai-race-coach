@@ -98,17 +98,17 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
   const wrapperClass = embedded ? "space-y-6" : "";
   const sectionClass = embedded
     ? "mb-8 rounded-lg border border-white/5 bg-secondary/50 p-4"
-    : "mb-8 rounded-xl border border-[#30363d] bg-[#161b22] p-4";
+    : "glass-card p-6 mb-8";
   const sectionClassNoMb = embedded
     ? "rounded-lg border border-white/5 bg-secondary/50 p-4"
-    : "rounded-xl border border-[#30363d] bg-[#161b22] p-4";
+    : "glass-card p-6";
   const titleClass = embedded
     ? "text-lg font-semibold text-foreground mb-4"
-    : "text-lg font-semibold text-[#e6edf3] mb-4";
-  const fallbackTextClass = embedded ? "text-muted-foreground text-sm" : "text-[#8b949e] text-sm";
+    : "text-xl font-bold text-foreground mb-4";
+  const fallbackTextClass = "text-muted-foreground text-sm";
   const fallbackBlockClass = embedded
     ? "rounded-lg border border-white/5 bg-secondary/50 p-4"
-    : "rounded-xl border border-[#30363d] bg-[#161b22] p-4";
+    : "glass-card p-6";
 
   // Throttle/Brake : check real data
   const hasThrottleBrake = plotData?.throttle_brake?.laps?.[0]?.throttle_pct?.some(

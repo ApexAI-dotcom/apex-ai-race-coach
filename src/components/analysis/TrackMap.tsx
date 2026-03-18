@@ -168,7 +168,7 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
   if (points.length === 0 && !trackPolyline) return null;
 
   return (
-    <div className={`w-full relative ${transparent ? "" : "rounded-xl bg-[#0d1117] p-4"} flex justify-center items-center ${className}`} aria-label="Track map">
+    <div className={`w-full relative ${transparent ? "" : "glass-card p-4"} flex justify-center items-center ${className}`} aria-label="Track map">
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="w-full h-auto max-h-[600px] drop-shadow-2xl overflow-visible"
@@ -179,7 +179,7 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
           <polyline
             points={trackPolyline}
             fill="none"
-            stroke="#ff6b35"
+            className="stroke-primary"
             strokeWidth="30"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -187,12 +187,12 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
             style={{ filter: "blur(8px)" }}
           />
         )}
-        {/* Fond piste (trait très épais gris foncé/noir) */}
+        {/* Fond piste (trait très épais) */}
         {trackPolyline && (
           <polyline
             points={trackPolyline}
             fill="none"
-            stroke="#161b22"
+            className="stroke-secondary-foreground/20"
             strokeWidth="24"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -203,7 +203,7 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
           <polyline
             points={trackPolyline}
             fill="none"
-            stroke="#30363d"
+            className="stroke-border"
             strokeWidth="26"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -216,7 +216,7 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
           <polyline
             points={trackPolyline}
             fill="none"
-            stroke="#ff6b35"
+            className="stroke-primary"
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"

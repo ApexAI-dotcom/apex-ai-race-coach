@@ -36,12 +36,12 @@ export function PerformanceRadar({ data }: PerformanceRadarProps) {
     <div className="h-[260px] w-full" aria-label="Performance radar">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={chartData} margin={{ top: 16, right: 16, left: 16, bottom: 16 }}>
-          <PolarGrid stroke="#30363d" />
-          <PolarAngleAxis dataKey="subject" tick={{ fill: "#8b949e", fontSize: 11 }} />
+          <PolarGrid stroke="hsl(var(--border))" />
+          <PolarAngleAxis dataKey="subject" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
           <PolarRadiusAxis
             angle={90}
             domain={[0, 100]}
-            tick={{ fill: "#8b949e", fontSize: 10 }}
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
           />
           <Radar
             name="Score"
@@ -52,9 +52,9 @@ export function PerformanceRadar({ data }: PerformanceRadarProps) {
             strokeWidth={1.5}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: "#161b22", border: "1px solid #30363d", borderRadius: 8 }}
-            itemStyle={{ color: "#ffffff" }}
-            labelStyle={{ color: "#e6edf3" }}
+            contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
+            itemStyle={{ color: "hsl(var(--foreground))" }}
+            labelStyle={{ color: "hsl(var(--muted-foreground))" }}
             formatter={(value: number, _name: string, props: { payload: { raw?: number; max?: number } }) => [
               `${value}%${props.payload?.raw != null && props.payload?.max != null ? ` (${props.payload.raw.toFixed(1)} / ${props.payload.max})` : ""}`,
               "",
