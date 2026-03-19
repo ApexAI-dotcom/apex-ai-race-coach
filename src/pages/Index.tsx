@@ -108,7 +108,7 @@ export default function Index() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-white" />
-                <h3 className="text-white font-bold text-sm sm:text-base text-center">Abonnement activé !</h3>
+                <h3 className="text-white font-bold text-sm sm:text-base text-center">Accès activé !</h3>
               </div>
               <Link to="/dashboard" className="w-full sm:w-auto">
                 <Button variant="outline" size="sm" className="w-full bg-white/10 text-white border-white/30 hover:bg-white/20 h-8 text-xs">
@@ -368,7 +368,7 @@ export default function Index() {
           <div className="flex flex-col items-center justify-between gap-6">
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground order-2 md:order-1">
               <Link to="/pricing" className="hover:text-primary transition-colors duration-200">
-                Tarifs
+                Plans
               </Link>
               <Link to="/#contact" className="hover:text-primary transition-colors duration-200">
                 Contact

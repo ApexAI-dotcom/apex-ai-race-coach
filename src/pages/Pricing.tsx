@@ -92,8 +92,8 @@ export default function Pricing() {
   return (
     <Layout>
       <PageMeta
-        title="Pricing ApexAI - Analyse IA Circuit dès 9€ | Essai gratuit"
-        description="Analyse IA 1 tour = 9€ | 10 tours = 49€ | Abonnement 99€/mois. Upload CSV MyChron5/AiM → Score D/A/S instantané."
+        title="Plans ApexAI - Analyse IA Circuit dès 9€ | Essai gratuit"
+        description="Analyse IA 1 tour = 9€ | 10 tours = 49€ | Plan Team 99€/mois. Upload CSV MyChron5/AiM → Score D/A/S instantané."
         path="/pricing"
       />
       <div className="container mx-auto px-4 py-16">
@@ -134,7 +134,7 @@ export default function Pricing() {
           </motion.div>
 
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Tarifs <span className="text-gradient-primary">transparents</span>
+            Nos <span className="text-gradient-primary">Plans</span>
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
             Choisissez le plan adapté à vos besoins. Passez à une offre supérieure ou annulez à tout moment.
