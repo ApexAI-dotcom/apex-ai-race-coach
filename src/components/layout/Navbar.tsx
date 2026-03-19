@@ -118,20 +118,25 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] md:hidden bg-background/80 backdrop-blur-sm"
-          >
+          <div className="fixed inset-0 z-[60] md:hidden">
+            {/* Backdrop */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setIsOpen(false)}
+            />
+            
+            {/* Menu Content - Explicitly SOLID Background */}
+            <motion.div
+              initial={{ opacity: 0, x: "100%" }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="fixed inset-y-0 right-0 w-full max-w-sm bg-[#0d1117] border-l border-white/10 shadow-2xl p-6 pt-20"
+              exit={{ opacity: 0, x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="absolute inset-y-0 right-0 w-full max-w-[280px] bg-[#0d1117] border-l border-white/10 shadow-2xl p-6 pt-20 flex flex-col"
             >
               <div className="space-y-6">
                 {navItems.map((item) => (
@@ -190,7 +195,7 @@ export const Navbar = () => {
                 </div>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </nav>
