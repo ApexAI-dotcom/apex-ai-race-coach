@@ -2,17 +2,23 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, BarChart3, Zap, User, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/hooks/useAuth";
 
 export const MobileNav = () => {
   const location = useLocation();
-  const { tier, plan } = useSubscription();
-  const isPro = plan !== "free";
+  const { isAuthenticated } = useAuth();
+  const { plan, isLoading } = useSubscription();
+  
+  // Stabilize the label: if authenticated and loading, assume they might be pro if they were before
+  // or just show "Abonnement" if logged in to avoid flickering from "Tarifs" to "Abonnement"
+  const isSubscriber = isAuthenticated && plan !== "free";
+  const displayLabel = (isAuthenticated) ? "Abonnement" : "Tarifs";
 
   const navItems = [
     { icon: Home, label: "Accueil", path: "/" },
     { icon: BarChart3, label: "Tableau de bord", labelShort: "Tableau", path: "/dashboard" },
     { icon: Zap, label: "Analyser", path: "/upload", isHighlight: true },
-    { icon: Tag, label: isPro ? "Abonnement" : "Tarifs", path: "/pricing" },
+    { icon: Tag, label: displayLabel, path: "/pricing" },
     { icon: User, label: "Profil", path: "/profile" },
   ];
 
@@ -27,7 +33,7 @@ export const MobileNav = () => {
             <Link
               key={item.path}
               to={item.path}
-              className="relative flex flex-col items-center gap-1 py-2 px-4"
+              className={`relative flex flex-col items-center gap-1 py-2 px-4 transition-all active:scale-95 ${item.isHighlight ? "animate-shimmer rounded-xl" : ""}`}
             >
               {isActive && (
                 <motion.div
@@ -39,7 +45,7 @@ export const MobileNav = () => {
               <Icon
                 className={`w-5 h-5 relative z-10 ${
                   item.isHighlight
-                    ? "text-primary animate-pulse"
+                    ? "text-primary"
                     : isActive
                     ? "text-primary"
                     : "text-muted-foreground"
