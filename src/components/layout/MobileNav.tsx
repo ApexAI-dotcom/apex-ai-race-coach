@@ -1,17 +1,20 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BarChart3, Upload, User, Tag } from "lucide-react";
+import { Home, BarChart3, Zap, User, Tag } from "lucide-react";
 import { motion } from "framer-motion";
-
-const navItems = [
-  { icon: Home, label: "Accueil", path: "/" },
-  { icon: BarChart3, label: "Tableau de bord", labelShort: "Tableau", path: "/dashboard" },
-  { icon: Upload, label: "Télécharger", path: "/upload" },
-  { icon: Tag, label: "Tarifs", path: "/pricing" },
-  { icon: User, label: "Profil", path: "/profile" },
-];
+import { useSubscription } from "@/hooks/useSubscription";
 
 export const MobileNav = () => {
   const location = useLocation();
+  const { tier, plan } = useSubscription();
+  const isPro = plan !== "free";
+
+  const navItems = [
+    { icon: Home, label: "Accueil", path: "/" },
+    { icon: BarChart3, label: "Tableau de bord", labelShort: "Tableau", path: "/dashboard" },
+    { icon: Zap, label: "Analyser", path: "/upload", isHighlight: true },
+    { icon: Tag, label: isPro ? "Abonnement" : "Tarifs", path: "/pricing" },
+    { icon: User, label: "Profil", path: "/profile" },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-card border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
@@ -35,12 +38,20 @@ export const MobileNav = () => {
               )}
               <Icon
                 className={`w-5 h-5 relative z-10 ${
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  item.isHighlight
+                    ? "text-primary animate-pulse"
+                    : isActive
+                    ? "text-primary"
+                    : "text-muted-foreground"
                 }`}
               />
               <span
                 className={`text-[10px] sm:text-xs relative z-10 truncate max-w-[4.5rem] sm:max-w-none text-center ${
-                  isActive ? "text-primary font-medium" : "text-muted-foreground"
+                  item.isHighlight
+                    ? "text-primary font-bold"
+                    : isActive
+                    ? "text-primary font-medium"
+                    : "text-muted-foreground"
                 }`}
                 title={item.label}
               >

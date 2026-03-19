@@ -610,8 +610,8 @@ export default function Profile() {
                 </h3>
               </div>
 
-              {/* Table */}
-              <div className="overflow-x-auto">
+              {/* Desktop view: Table (Hidden on mobile) */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-white/5">
@@ -689,8 +689,8 @@ export default function Profile() {
                               size="sm"
                               onClick={() => navigate(`/dashboard?analysisId=${session.id}`)}
                             >
-                              Voir
-                              <ChevronRight className="w-4 h-4" />
+                              <span className="hidden sm:inline">Voir</span>
+                              <ChevronRight className="w-4 h-4 ml-1" />
                             </Button>
                           </td>
                         </motion.tr>
@@ -698,6 +698,64 @@ export default function Profile() {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile view: Cards (Hidden on desktop) */}
+              <div className="md:hidden space-y-4">
+                {loadingSessions ? (
+                  <div className="py-8 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+                    <p className="text-sm text-muted-foreground">Chargement...</p>
+                  </div>
+                ) : sessions.length === 0 ? (
+                  <div className="py-8 text-center text-muted-foreground text-sm">
+                    Aucune session pour le moment
+                  </div>
+                ) : (
+                  sessions.map((session, index) => (
+                    <motion.div
+                      key={session.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 + index * 0.05 }}
+                      className="p-4 rounded-xl bg-secondary/20 border border-white/5 space-y-3"
+                      onClick={() => navigate(`/dashboard?analysisId=${session.id}`)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">
+                            {format(new Date(session.date), "d MMM yyyy", { locale: fr })}
+                          </div>
+                          <div className="font-bold text-foreground line-clamp-1">
+                            {session.filename || "Session"}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            session.score >= 80 ? "bg-success/20 text-success" : 
+                            session.score >= 70 ? "bg-primary/20 text-primary" : 
+                            "bg-warning/20 text-warning"
+                          }`}>
+                            {session.score}/100
+                          </div>
+                          <div className="text-[10px] font-black text-muted-foreground opacity-50 uppercase">
+                            Grade {session.grade}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs pt-2 border-t border-white/5">
+                        <div className="flex gap-4">
+                          <span className="text-muted-foreground">
+                            Virages: <span className="text-foreground font-medium">{session.corner_count}</span>
+                          </span>
+                        </div>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1">
+                          Détails <ChevronRight className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
               </div>
             </div>
           </motion.div>

@@ -104,16 +104,15 @@ export default function Index() {
           animate={{ opacity: 1, y: 0 }}
           className="fixed top-0 left-0 right-0 z-50 bg-green-500/90 backdrop-blur-sm border-b border-green-400"
         >
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-white" />
-              <div className="text-center">
-                <h3 className="text-white font-bold">Abonnement activé avec succès !</h3>
-                <p className="text-white/80 text-sm">Session: {sessionId}</p>
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+                <h3 className="text-white font-bold text-sm sm:text-base text-center">Abonnement activé !</h3>
               </div>
-              <Link to="/dashboard">
-                <Button variant="outline" size="sm" className="bg-white/10 text-white border-white/30 hover:bg-white/20">
-                  Accéder au tableau de bord
+              <Link to="/dashboard" className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="w-full bg-white/10 text-white border-white/30 hover:bg-white/20 h-8 text-xs">
+                  Aller au Dashboard
                 </Button>
               </Link>
             </div>
@@ -127,10 +126,10 @@ export default function Index() {
           animate={{ opacity: 1, y: 0 }}
           className="fixed top-0 left-0 right-0 z-50 bg-orange-500/90 backdrop-blur-sm border-b border-orange-400"
         >
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-center gap-3">
-              <XCircle className="w-5 h-5 text-white" />
-              <p className="text-white font-medium">Paiement annulé. Vous pouvez réessayer quand vous voulez.</p>
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-center gap-3 text-center">
+              <XCircle className="w-5 h-5 text-white shrink-0" />
+              <p className="text-white font-medium text-xs sm:text-sm">Paiement annulé. Vous pouvez réessayer plus tard.</p>
             </div>
           </div>
         </motion.div>
@@ -366,16 +365,8 @@ export default function Index() {
       {/* Footer */}
       <footer className="py-8 border-t border-white/5">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <Link to="/" className="flex items-center gap-2 group transition-opacity hover:opacity-90">
-              <div className="w-8 h-8 rounded gradient-primary flex items-center justify-center group-hover:scale-110 group-hover:shadow-orange-500/50 transition-transform duration-200">
-                <Zap className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="font-display font-bold text-foreground group-hover:text-primary/90 transition-colors">
-                APEX<span className="text-primary">AI</span>
-              </span>
-            </Link>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
+          <div className="flex flex-col items-center justify-between gap-6">
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground order-2 md:order-1">
               <Link to="/pricing" className="hover:text-primary transition-colors duration-200">
                 Tarifs
               </Link>
@@ -386,8 +377,18 @@ export default function Index() {
                 Mentions légales
               </Link>
             </div>
-            <div className="text-sm text-muted-foreground">
-              © 2026 APEX AI. Tous droits réservés.
+            
+            <Link to="/" className="flex items-center gap-2 group transition-opacity hover:opacity-90 order-1 md:order-2">
+              <div className="w-8 h-8 rounded gradient-primary flex items-center justify-center group-hover:scale-110 group-hover:shadow-orange-500/50 transition-transform duration-200">
+                <Zap className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <span className="font-display font-bold text-foreground group-hover:text-primary/90 transition-colors">
+                APEX<span className="text-primary">AI</span>
+              </span>
+            </Link>
+
+            <div className="text-sm text-muted-foreground order-3">
+              © 2026 APEX AI.
             </div>
           </div>
         </div>

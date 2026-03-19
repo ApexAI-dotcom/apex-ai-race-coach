@@ -97,11 +97,11 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
 
   const wrapperClass = embedded ? "space-y-6" : "";
   const sectionClass = embedded
-    ? "mb-8 rounded-lg border border-white/5 bg-secondary/50 p-4"
-    : "glass-card p-6 mb-8";
+    ? "mb-6 md:mb-8 rounded-lg border border-white/5 bg-secondary/50 p-3 md:p-4"
+    : "glass-card p-4 md:p-6 mb-6 md:mb-8";
   const sectionClassNoMb = embedded
-    ? "rounded-lg border border-white/5 bg-secondary/50 p-4"
-    : "glass-card p-6";
+    ? "rounded-lg border border-white/5 bg-secondary/50 p-3 md:p-4"
+    : "glass-card p-4 md:p-6";
   const titleClass = embedded
     ? "text-lg font-semibold text-foreground mb-4"
     : "text-xl font-bold text-foreground mb-4";
@@ -133,7 +133,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
               <p className="text-sm text-[#8b949e] -mt-2">
                 Sélectionnez les tours à superposer sur les graphiques. Le point vert indique le meilleur tour.
               </p>
-              <div className="flex flex-wrap gap-2 items-center">
+              <div className="flex flex-wrap gap-1.5 md:gap-2 items-center">
                 {analysis.lap_times?.map((time, idx) => {
                   const lapNum = idx + 1;
                   const isSelected = selectedLapNumbers.includes(lapNum);
@@ -142,7 +142,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
                     <Badge
                       key={lapNum}
                       variant={isSelected ? "default" : "outline"}
-                      className={`cursor-pointer transition-all hover:scale-105 active:scale-95 py-1.5 px-3 flex items-center gap-1.5 ${
+                      className={`cursor-pointer transition-all hover:scale-105 active:scale-95 py-1 px-2 md:py-1.5 md:px-3 flex items-center gap-1 md:gap-1.5 ${
                         isSelected
                           ? "bg-primary text-white border-transparent"
                           : "bg-transparent border-white/10 text-muted-foreground hover:border-[#ff6b35]/50"

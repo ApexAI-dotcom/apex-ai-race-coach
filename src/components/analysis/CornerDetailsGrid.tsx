@@ -20,7 +20,7 @@ export function CornerDetailsGrid({ corners, variant = "racing" }: CornerDetails
   const metaClass = "text-muted-foreground text-xs";
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
       {corners.map((c) => {
         const gradeColor = GRADE_COLORS[c.grade] ?? "#8b949e";
         const isLeft = c.corner_type === "left";
