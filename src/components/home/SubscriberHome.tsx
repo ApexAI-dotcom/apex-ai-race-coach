@@ -62,7 +62,7 @@ export default function SubscriberHome() {
     const loadData = async () => {
       try {
         const data = await getAllAnalyses(user?.id);
-        setAnalyses(data.reverse()); // Chronological for the chart
+        setAnalyses(data); // Newest first
         setObjectives(getObjectives(user?.id));
       } finally {
         setLoading(false);
@@ -73,7 +73,7 @@ export default function SubscriberHome() {
 
   // Chart data: last 7 sessions
   const chartData = useMemo(() => {
-    return analyses.slice(-7).map((a, i) => ({
+    return [...analyses].reverse().slice(-7).map((a, i) => ({
       name: `S${i + 1}`,
       score: a.score,
       fullDate: new Date(a.date).toLocaleDateString(),
@@ -97,7 +97,7 @@ export default function SubscriberHome() {
     return diff > 0 ? diff.toFixed(1) : null;
   }, [analyses]);
 
-  const latestAnalysis = analyses[analyses.length -1];
+  const latestAnalysis = analyses[0];
 
   const handleEditObjective = (obj: UserObjective) => {
     setEditingObjective(obj);
@@ -276,11 +276,10 @@ export default function SubscriberHome() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="target">Valeur cible ({editingObjective?.unit})</Label>
-                  <Input
-                    id="target"
-                    type="number"
-                    variant="filled"
-                    value={tempValue}
+                    <Input
+                      id="target"
+                      type="number"
+                      value={tempValue}
                     onChange={(e) => setTempValue(e.target.value)}
                     placeholder="Ex: 85"
                     className="text-lg h-12 bg-secondary/20 border-white/10"

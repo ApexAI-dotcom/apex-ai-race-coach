@@ -205,30 +205,25 @@
     animation: pulse-neon 4s ease-in-out infinite;
   }
 
-  .animate-shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-
   .animate-shimmer::after {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
+    left: -150%;
     width: 60%;
     height: 100%;
     background: linear-gradient(
       to right,
       transparent,
-      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.4),
       transparent
     );
     transform: skewX(-25deg);
     pointer-events: none;
   }
 
-  .active-shimmer:active::after {
-    animation: shimmer 5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  .active-shimmer::after {
+    animation: shimmer-effect 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
   @keyframes pulse-neon {
@@ -242,7 +237,7 @@
     }
   }
 
-  @keyframes shimmer {
+  @keyframes shimmer-effect {
     0% { left: -150%; }
     100% { left: 250%; }
   }
@@ -263,15 +258,6 @@
     }
     to {
       box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.8);
-    }
-  }
-
-  @keyframes shimmer {
-    0% {
-      left: -100%;
-    }
-    30%, 100% {
-      left: 200%;
     }
   }
 }
