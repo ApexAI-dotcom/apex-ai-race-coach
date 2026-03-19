@@ -59,7 +59,7 @@ export const Navbar = () => {
                 to={item.path}
                 className={`text-sm font-medium transition-all ${
                   (item as any).isHero
-                    ? "gradient-primary text-primary-foreground px-4 py-1.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100"
+                    ? "gradient-primary text-primary-foreground px-4 py-1.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100 animate-shimmer"
                     : location.pathname === item.path
                       ? "text-primary"
                       : "text-muted-foreground hover:text-primary hover:underline underline-offset-4"
@@ -167,7 +167,7 @@ export const Navbar = () => {
                         onClick={() => setIsOpen(false)}
                         className={`flex items-center justify-between p-4 rounded-2xl transition-all active:scale-95 ${
                           (item as any).isHero
-                            ? "gradient-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
+                            ? "gradient-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 animate-shimmer"
                             : location.pathname === item.path
                               ? "bg-primary/10 text-primary border border-primary/20"
                               : "bg-secondary/20 text-muted-foreground hover:bg-secondary/40 border border-transparent"

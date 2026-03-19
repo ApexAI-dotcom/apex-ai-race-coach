@@ -192,6 +192,28 @@
     animation: glow 2s ease-in-out infinite alternate;
   }
 
+  .animate-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .animate-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    transform: skewX(-20deg);
+    animation: shimmer 3s infinite;
+  }
+
   @keyframes float {
     0%,
     100% {
@@ -208,6 +230,15 @@
     }
     to {
       box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.8);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      left: -100%;
+    }
+    30%, 100% {
+      left: 200%;
     }
   }
 }
