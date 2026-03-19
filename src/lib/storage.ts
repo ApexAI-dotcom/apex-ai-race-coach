@@ -29,6 +29,7 @@ export interface AnalysisSummary {
   filename?: string;
   circuit_name?: string;
   session_name?: string;
+  session_type?: string;
 }
 
 interface StoredAnalysis {
@@ -133,7 +134,10 @@ async function rowToAnalysisResult(row: any, userId: string): Promise<AnalysisRe
     coaching_advice: row.coaching_advice ?? [],
     plots,
     statistics: row.statistics ?? {},
-    session_conditions: row.session_conditions,
+    session_conditions: row.session_conditions || {
+      session_name: row.session_name,
+      circuit_name: row.circuit_name
+    },
     plot_data: row.plot_data,
   };
 }
@@ -153,6 +157,7 @@ export async function saveAnalysis(result: AnalysisResult, userId?: string | nul
   // ─── Supabase path ───
   if (supaUserId) {
     const analysisId = result.analysis_id || generateAnalysisId();
+    const defaultName = `Session du ${new Date().toLocaleDateString("fr-FR")}`;
 
     // 1. Upload plot images to Storage bucket
     let plotKeys: string[] = [];
@@ -170,15 +175,18 @@ export async function saveAnalysis(result: AnalysisResult, userId?: string | nul
       lap_time: result.lap_time,
       best_lap_time: result.best_lap_time,
       corners_detected: result.corners_detected,
-      circuit_name: result.session_conditions?.circuit_name,
-      session_name: result.session_conditions?.session_name,
+      circuit_name: result.session_conditions?.circuit_name || null,
+      session_name: result.session_conditions?.session_name || defaultName,
       session_type: "practice",
       corner_analysis: result.corner_analysis,
       coaching_advice: result.coaching_advice,
       plot_data: result.plot_data,
       performance_score: result.performance_score,
       statistics: result.statistics,
-      session_conditions: result.session_conditions,
+      session_conditions: {
+        ...result.session_conditions,
+        session_name: result.session_conditions?.session_name || defaultName
+      },
       lap_times: result.lap_times,
       plot_keys: plotKeys,
     });
@@ -198,7 +206,8 @@ export async function saveAnalysis(result: AnalysisResult, userId?: string | nul
         lap_time: result.lap_time,
         grade: result.performance_score?.grade ?? "C",
         circuit_name: result.session_conditions?.circuit_name || undefined,
-        session_name: result.session_conditions?.session_name || undefined,
+        session_name: result.session_conditions?.session_name || defaultName,
+        session_type: "practice",
       };
       cache.unshift(summary);
       localStorage.setItem(cacheKey, JSON.stringify(cache.slice(0, 50)));
@@ -237,7 +246,7 @@ export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSu
   if (supaUserId) {
     const { data, error } = await supabase
       .from("analyses")
-      .select("id, created_at, score, grade, lap_time, corners_detected, circuit_name, session_name")
+      .select("id, created_at, score, grade, lap_time, corners_detected, circuit_name, session_name, session_type")
       .eq("user_id", supaUserId)
       .order("created_at", { ascending: false });
 
@@ -260,6 +269,7 @@ export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSu
       grade: row.grade,
       circuit_name: row.circuit_name || undefined,
       session_name: row.session_name || undefined,
+      session_type: row.session_type || "practice",
     }));
 
     // Update the lightweight cache
@@ -291,7 +301,8 @@ export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSu
         lap_time: r.lap_time,
         grade: r.performance_score.grade,
         circuit_name: r.session_conditions?.circuit_name || undefined,
-        session_name: r.session_conditions?.session_name || undefined,
+        session_name: r.session_conditions?.session_name || `Session du ${new Date(stored.timestamp).toLocaleDateString("fr-FR")}`,
+        session_type: (r as any).session_type || "practice",
       });
     } catch {}
   }
@@ -392,13 +403,79 @@ export async function deleteAnalysis(id: string, userId?: string | null): Promis
   } catch { return false; }
 }
 
-/**
- * Export analysis as JSON Blob.
- */
 export async function exportAnalysisAsJSON(id: string, userId?: string | null): Promise<Blob> {
   const analysis = await getAnalysisById(id, userId);
   if (!analysis) throw new Error(`Analyse non trouvée: ${id}`);
   return new Blob([JSON.stringify(analysis, null, 2)], { type: "application/json" });
+}
+
+/**
+ * Update analysis metadata (name, type, folder).
+ */
+export async function updateAnalysis(
+  id: string,
+  updates: { session_name?: string; session_type?: string; folder_id?: string | null },
+  userId?: string | null
+): Promise<boolean> {
+  if (!id || !id.trim()) return false;
+
+  const supaUserId = await getSupabaseUserId();
+
+  // ─── Supabase path ───
+  if (supaUserId) {
+    const { error } = await supabase
+      .from("analyses")
+      .update({
+        session_name: updates.session_name,
+        session_type: updates.session_type,
+        folder_id: updates.folder_id,
+        // Update JSONB too if it exists
+        session_conditions: updates.session_name ? { session_name: updates.session_name } : undefined
+      })
+      .eq("id", id)
+      .eq("user_id", supaUserId);
+
+    if (error) {
+      console.error("[Supabase] updateAnalysis failed:", error.message);
+      return false;
+    }
+
+    // Update cache
+    try {
+      const cacheKey = `apex_cache_${supaUserId}`;
+      const cache = JSON.parse(localStorage.getItem(cacheKey) || "[]") as AnalysisSummary[];
+      const idx = cache.findIndex(a => a.id === id);
+      if (idx !== -1) {
+        if (updates.session_name) cache[idx].session_name = updates.session_name;
+        if (updates.session_type) cache[idx].session_type = updates.session_type;
+        localStorage.setItem(cacheKey, JSON.stringify(cache));
+      }
+    } catch {}
+
+    return true;
+  }
+
+  // ─── Guest fallback ───
+  if (!isLocalStorageAvailable()) return false;
+  const suffix = getStorageSuffix(userId);
+  try {
+    const key = getItemKey(suffix, id);
+    const raw = localStorage.getItem(key);
+    if (!raw) return false;
+    const stored = JSON.parse(raw) as StoredAnalysis;
+    
+    if (updates.session_name) {
+      stored.result.session_conditions = {
+        ...stored.result.session_conditions,
+        session_name: updates.session_name,
+        track_condition: stored.result.session_conditions?.track_condition || "dry"
+      };
+    }
+    if (updates.session_type) (stored.result as any).session_type = updates.session_type;
+    
+    localStorage.setItem(key, JSON.stringify(stored));
+    return true;
+  } catch { return false; }
 }
 
 /**
@@ -738,6 +815,7 @@ export default {
   getAllAnalyses,
   getAnalysisById,
   deleteAnalysis,
+  updateAnalysis,
   exportAnalysisAsJSON,
   downloadAnalysis,
   getAnalysesCount,

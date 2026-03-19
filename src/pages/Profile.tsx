@@ -619,7 +619,7 @@ export default function Profile() {
                         Date
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                        Circuit
+                        Session / Circuit
                       </th>
                       <th className="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
                         Tours
@@ -661,8 +661,22 @@ export default function Profile() {
                           <td className="px-4 py-4 text-sm text-muted-foreground">
                             {format(new Date(session.date), "d MMM yyyy", { locale: fr })}
                           </td>
-                          <td className="px-4 py-4 text-sm font-medium text-foreground">
-                            {session.filename || "Session de course"}
+                          <td className="px-4 py-4">
+                            <div className="text-sm font-medium text-foreground">
+                              {session.session_name || `Session du ${new Date(session.date).toLocaleDateString("fr-FR")}`}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="text-[10px] text-muted-foreground uppercase tracking-tighter">
+                                {session.circuit_name || "Circuit inconnu"}
+                              </div>
+                              <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold ${
+                                session.session_type === 'race' ? 'bg-red-500/20 text-red-300' : 
+                                session.session_type === 'qualifying' ? 'bg-blue-500/20 text-blue-300' : 
+                                'bg-white/5 text-muted-foreground'
+                              }`}>
+                                {session.session_type || "Practice"}
+                              </span>
+                            </div>
                           </td>
                           <td className="px-4 py-4 text-sm text-center text-muted-foreground">
                             {session.corner_count}
@@ -727,7 +741,17 @@ export default function Profile() {
                             {format(new Date(session.date), "d MMM yyyy", { locale: fr })}
                           </div>
                           <div className="font-bold text-foreground line-clamp-1">
-                            {session.filename || "Session"}
+                            {session.session_name || `Session du ${new Date(session.date).toLocaleDateString("fr-FR")}`}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                             <span className="text-[10px] text-muted-foreground uppercase">{session.circuit_name || "Circuit"}</span>
+                             <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold ${
+                                session.session_type === 'race' ? 'bg-red-500/20 text-red-300' : 
+                                session.session_type === 'qualifying' ? 'bg-blue-500/20 text-blue-300' : 
+                                'bg-white/5 text-muted-foreground'
+                              }`}>
+                                {session.session_type || "Practice"}
+                             </span>
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1">
