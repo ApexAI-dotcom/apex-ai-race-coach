@@ -9,10 +9,7 @@ export const MobileNav = () => {
   const { isAuthenticated } = useAuth();
   const { plan, isLoading } = useSubscription();
   
-  // Stabilize the label: if authenticated and loading, assume they might be pro if they were before
-  // or just show "Abonnement" if logged in to avoid flickering from "Tarifs" to "Abonnement"
-  const isSubscriber = isAuthenticated && plan !== "free";
-  const displayLabel = (isAuthenticated) ? "Abonnement" : "Tarifs";
+  const displayLabel = "Plans";
 
   const navItems = [
     { icon: Home, label: "Accueil", path: "/" },

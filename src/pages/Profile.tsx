@@ -364,7 +364,7 @@ export default function Profile() {
                   ) : (
                     <>
                       <ExternalLink className="w-4 h-4" />
-                      Gérer l'abonnement
+                      Gérer les plans
                     </>
                   )}
                 </Button>
@@ -455,10 +455,10 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Abonnement */}
+            {/* Plans */}
             <div className="glass-card p-6">
               <h3 className="font-display font-semibold text-lg text-foreground mb-4">
-                Abonnement
+                Plans
               </h3>
               {subscriptionLoading ? (
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -491,7 +491,7 @@ export default function Profile() {
                       <Button variant="hero" size="sm" asChild className="w-full gap-2">
                         <Link to="/pricing">
                           <Zap className="w-4 h-4" />
-                          Passer à un plan payant
+                          Choisir un plan payant
                         </Link>
                       </Button>
                     ) : (
@@ -522,7 +522,7 @@ export default function Profile() {
                         ) : (
                           <ExternalLink className="w-4 h-4" />
                         )}
-                        Gérer mon abonnement
+                        Gérer mes plans
                       </Button>
                     )}
                   </div>
