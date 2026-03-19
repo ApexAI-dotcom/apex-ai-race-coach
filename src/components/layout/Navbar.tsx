@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Zap, LogOut, User, ChevronRight } from "lucide-react";
+import { Menu, X, Zap, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,7 +18,6 @@ const guestNavItems = [
 const subscriberNavItems = [
   { name: "Accueil", path: "/" },
   { name: "Tableau de bord", path: "/dashboard" },
-  { name: "Analyser", path: "/upload", isHero: true },
   { name: "Plans", path: "/pricing" },
 ];
 
@@ -27,12 +26,6 @@ export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, user, signOut, loading } = useAuth();
-  const [shimmering, setShimmering] = useState(false);
-
-  const triggerShimmer = () => {
-    setShimmering(true);
-    setTimeout(() => setShimmering(false), 2500);
-  };
 
   const navItems = isAuthenticated ? subscriberNavItems : guestNavItems;
 
@@ -64,13 +57,10 @@ export const Navbar = () => {
                 key={item.path + item.name}
                 to={item.path}
                 className={`text-sm font-medium transition-all ${
-                  (item as any).isHero
-                    ? `gradient-primary text-primary-foreground px-4 py-1.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100 animate-pulse-neon animate-shimmer ${shimmering ? "active-shimmer" : ""}`
-                    : location.pathname === item.path
-                      ? "text-primary"
-                      : "text-muted-foreground hover:text-primary hover:underline underline-offset-4"
+                  location.pathname === item.path
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-primary hover:underline underline-offset-4"
                 }`}
-                onClick={(item as any).isHero ? triggerShimmer : undefined}
               >
                 {item.name}
               </Link>
@@ -135,114 +125,69 @@ export const Navbar = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] md:hidden"
+            className="fixed inset-0 z-[60] md:hidden bg-background/80 backdrop-blur-sm"
           >
-            {/* Backdrop */}
-            <div 
-              className="absolute inset-0 bg-background/60 backdrop-blur-md"
-              onClick={() => setIsOpen(false)}
-            />
-            
-            {/* Menu Content */}
             <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute top-0 right-0 bottom-0 w-[80%] max-w-sm bg-background border-l border-white/10 shadow-2xl flex flex-col"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="fixed inset-y-0 right-0 w-full max-w-sm bg-background border-l border-white/5 shadow-2xl p-6 pt-20"
             >
-              <div className="flex items-center justify-between p-6 border-b border-white/5">
-                <span className="font-display font-bold text-xl">Menu</span>
-                <button 
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 rounded-full bg-secondary/50 text-foreground"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                {/* Navigation Section */}
-                <div>
-                  <h4 className="text-[10px] font-black tracking-[0.2em] text-muted-foreground uppercase mb-4">Navigation</h4>
-                  <div className="space-y-2">
-                    {navItems.map((item) => (
-                      <Link
-                        key={item.path+item.name}
-                        to={item.path}
-                        className={`flex items-center justify-between p-4 rounded-2xl transition-all active:scale-95 ${
-                          (item as any).isHero
-                            ? `gradient-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 animate-pulse-neon animate-shimmer ${shimmering ? "active-shimmer" : ""}`
-                            : location.pathname === item.path
-                              ? "bg-primary/10 text-primary border border-primary/20"
-                              : "bg-secondary/20 text-muted-foreground hover:bg-secondary/40 border border-transparent"
-                        }`}
-                        onClick={() => {
-                          setIsOpen(false);
-                          if ((item as any).isHero) triggerShimmer();
-                        }}
-                      >
-                        <span className="font-medium">{item.name}</span>
-                        {(item as any).isHero ? <Zap className="w-4 h-4" /> : <ChevronRight className="w-4 h-4 opacity-50" />}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Account Section */}
-                <div>
-                  <h4 className="text-[10px] font-black tracking-[0.2em] text-muted-foreground uppercase mb-4">Compte</h4>
-                  <div className="space-y-2">
-                    {loading ? (
-                      <div className="w-full h-12 animate-pulse bg-secondary rounded-2xl" />
-                    ) : isAuthenticated ? (
-                      <>
-                        <Link 
-                          to="/profile" 
-                          onClick={() => setIsOpen(false)}
-                          className={`flex items-center gap-4 p-4 rounded-2xl bg-secondary/20 border border-transparent ${location.pathname === "/profile" ? "border-primary/20 bg-primary/5 text-primary" : "text-foreground"}`}
-                        >
-                          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground font-bold shadow-sm">
-                            {(user?.user_metadata?.avatar_url as string) ? (
-                              <img src={user.user_metadata.avatar_url as string} className="w-full h-full object-cover rounded-xl" />
-                            ) : (
-                              <User className="w-5 h-5" />
-                            )}
-                          </div>
-                          <div className="flex-1 overflow-hidden">
-                            <div className="font-bold truncate">{user?.user_metadata?.full_name || user?.email?.split("@")[0]}</div>
-                            <div className="text-[10px] text-muted-foreground truncate">{user?.email}</div>
-                          </div>
-                        </Link>
-                        
-                        <div className="px-2"><SubscriptionBadge /></div>
-
-                        <Button 
-                          variant="ghost" 
-                          className="w-full justify-start gap-3 h-12 rounded-2xl text-muted-foreground" 
-                          onClick={() => { setIsOpen(false); handleSignOut(); }}
-                        >
-                          <LogOut className="w-4 h-4" />
-                          Déconnexion
-                        </Button>
-                      </>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-3">
-                        <Link to="/login" onClick={() => setIsOpen(false)} className="flex-1">
-                          <Button variant="outline" className="w-full h-12 rounded-2xl border-white/10 bg-secondary/20">Connexion</Button>
-                        </Link>
-                        <Link to="/login" onClick={() => setIsOpen(false)} className="flex-1">
-                          <Button variant="hero" className="w-full h-12 rounded-2xl">Rejoindre</Button>
-                        </Link>
+              <div className="space-y-6">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.path + item.name}
+                    to={item.path}
+                    className="block text-xl font-display font-medium text-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+                
+                <div className="pt-6 border-t border-white/5 space-y-4">
+                  {isAuthenticated ? (
+                    <>
+                      <div className="flex items-center gap-3 mb-6 p-3 bg-white/5 rounded-xl border border-white/5">
+                        <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center text-primary-foreground font-bold">
+                          {(user?.user_metadata?.avatar_url as string) ? (
+                            <img src={user.user_metadata.avatar_url as string} className="w-full h-full object-cover rounded-lg" />
+                          ) : (
+                            <User className="w-5 h-5" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-bold">{user?.user_metadata?.full_name || user?.email?.split("@")[0]}</div>
+                          <div className="text-xs text-muted-foreground">{user?.email}</div>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+                      
+                      <div className="mb-4">
+                        <SubscriptionBadge />
+                      </div>
 
-              {/* Footer info */}
-              <div className="p-8 text-center border-t border-white/5">
-                <p className="text-[10px] text-muted-foreground">© 2026 APEX AI — Propulsé par l'IA</p>
+                      <Link to="/profile" onClick={() => setIsOpen(false)}>
+                        <Button variant="ghost" className="w-full justify-start gap-2">
+                          <User className="w-4 h-4" />
+                          Mon Profil
+                        </Button>
+                      </Link>
+                      <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => { setIsOpen(false); handleSignOut(); }}>
+                        <LogOut className="w-4 h-4" />
+                        Déconnexion
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/login" onClick={() => setIsOpen(false)}>
+                        <Button variant="ghost" className="w-full">Connexion</Button>
+                      </Link>
+                      <Link to="/login" onClick={() => setIsOpen(false)}>
+                        <Button variant="hero" className="w-full">Inscription</Button>
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
             </motion.div>
           </motion.div>
