@@ -244,10 +244,8 @@
     pointer-events: none;
   }
 
-  .hover-shimmer:hover::after,
-  .active-shimmer:active::after,
-  .shimmer-once::after {
-    animation: shimmer 1.5s ease-out forwards;
+  .active-shimmer:active::after {
+    animation: shimmer 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
   @keyframes pulse-neon {

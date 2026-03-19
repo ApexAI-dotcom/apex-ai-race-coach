@@ -35,7 +35,7 @@ export const MobileNav = () => {
               to={item.path}
               className={`relative flex flex-col items-center gap-1 py-2 px-4 transition-all active:scale-95 ${
                 item.isHighlight 
-                  ? "animate-pulse-neon animate-shimmer hover-shimmer active-shimmer shimmer-once rounded-xl mt-[-4px] pt-[6px]" 
+                  ? "animate-pulse-neon animate-shimmer active-shimmer rounded-xl mt-[-4px] pt-[6px]" 
                   : ""
               }`}
             >
