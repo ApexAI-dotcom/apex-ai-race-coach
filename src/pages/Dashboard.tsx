@@ -488,10 +488,13 @@ export default function Dashboard() {
     return 0;
   }, [featuredAnalysis]);
 
-  const featuredScore = featuredAnalysis ? Math.round(getDisplayScore(featuredAnalysis.performance_score)) : latestAnalysis.score;
-  const featuredGrade = featuredAnalysis?.performance_score?.grade || latestAnalysis.grade;
-  const featuredSessionName = (featuredAnalysis as any)?.session_conditions?.session_name;
-  const featuredPlotData = (featuredAnalysis as any)?.plot_data;
+  const featuredScore = featuredAnalysis 
+    ? Math.round(getDisplayScore(featuredAnalysis.performance_score)) 
+    : (latestAnalysis?.score || 0);
+    
+  const featuredGrade = featuredAnalysis?.performance_score?.grade || latestAnalysis?.grade || "C";
+  const featuredSessionName = featuredAnalysis?.session_conditions?.session_name || latestAnalysis?.session_name;
+  const featuredPlotData = featuredAnalysis?.plot_data;
 
   return (
     <Layout>
@@ -544,7 +547,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-end">
                 <div>
                   <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
-                    {featuredAnalysis.session_conditions?.session_name || featuredAnalysis.session_conditions?.circuit_name || featuredAnalysis.analysis_id || "Session"}
+                    {featuredSessionName || featuredAnalysis?.session_conditions?.circuit_name || latestAnalysis?.circuit_name || "Session"}
                   </h3>
                   <p className="text-muted-foreground text-sm md:text-lg mb-6 uppercase tracking-widest flex items-center gap-2">
                     {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> {(featuredAnalysis.session_type || "practice").toUpperCase()}
@@ -552,11 +555,15 @@ export default function Dashboard() {
 
                   <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 md:mb-8 max-w-2xl">
                     <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
-                      <div className="text-sm sm:text-xl font-bold text-foreground">{featuredAnalysis.lap_time.toFixed(2)}s</div>
+                      <div className="text-sm sm:text-xl font-bold text-foreground">
+                        {(featuredAnalysis?.lap_time || latestAnalysis?.lap_time || 0).toFixed(2)}s
+                      </div>
                       <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">Best Lap</div>
                     </div>
                     <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
-                      <div className="text-sm sm:text-xl font-bold text-foreground">{featuredAnalysis.corners_detected}</div>
+                      <div className="text-sm sm:text-xl font-bold text-foreground">
+                        {featuredAnalysis?.corners_detected || latestAnalysis?.corner_count || 0}
+                      </div>
                       <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">Corners</div>
                     </div>
                     <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
