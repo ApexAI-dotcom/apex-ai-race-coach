@@ -33,6 +33,8 @@ import {
   type AnalysisSummary, 
   type UserObjective 
 } from "@/lib/storage";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import { 
   Dialog, 
   DialogContent, 
@@ -43,7 +45,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 
 export default function SubscriberHome() {
   const navigate = useNavigate();
