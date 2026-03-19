@@ -27,8 +27,8 @@ import {
   Trophy,
   MapPin,
   ChevronRight,
-  Target,
-  Plus
+  Plus,
+  Edit2
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -68,6 +68,7 @@ import {
   renameFolder,
   deleteFolder,
   moveAnalysisToFolder,
+  updateAnalysis,
   migrateLocalStorageToSupabase,
   migrateGuestAnalyses,
   type AnalysisSummary,
@@ -127,6 +128,10 @@ export default function Dashboard() {
   const [moveAnalysisId, setMoveAnalysisId] = useState<string | null>(null);
   const [moveTargetFolderId, setMoveTargetFolderId] = useState<string>("root");
   const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editSessionId, setEditSessionId] = useState<string | null>(null);
+  const [editSessionName, setEditSessionName] = useState("");
+  const [editSessionType, setEditSessionType] = useState("practice");
 
   // Featured: latest analysis full data
   const [featuredAnalysis, setFeaturedAnalysis] = useState<AnalysisResult | null>(null);
@@ -201,6 +206,29 @@ export default function Dashboard() {
       toast.success("Analyse déplacée");
       setIsMoveDialogOpen(false);
       setMoveAnalysisId(null);
+    }
+  };
+
+  const handleEditClick = (analysis: AnalysisSummary) => {
+    setEditSessionId(analysis.id);
+    setEditSessionName(analysis.session_name || `Session du ${new Date(analysis.date).toLocaleDateString("fr-FR")}`);
+    setEditSessionType(analysis.session_type || "practice");
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveSessionEdit = async () => {
+    if (editSessionId) {
+      const success = await updateAnalysis(editSessionId, { 
+        session_name: editSessionName, 
+        session_type: editSessionType 
+      }, user?.id);
+      if (success) {
+        await loadData();
+        setIsEditDialogOpen(false);
+        toast.success("Session mise à jour");
+      } else {
+        toast.error("Erreur lors de la mise à jour");
+      }
     }
   };
 
@@ -506,7 +534,7 @@ export default function Dashboard() {
                     {featuredAnalysis.session_conditions?.session_name || featuredAnalysis.session_conditions?.circuit_name || featuredAnalysis.analysis_id || "Session"}
                   </h3>
                   <p className="text-muted-foreground text-sm md:text-lg mb-6 uppercase tracking-widest flex items-center gap-2">
-                    {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> PRACTICE
+                    {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> {((featuredAnalysis as any).session_type || "practice").toUpperCase()}
                   </p>
 
                   <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 md:mb-8 max-w-2xl">
@@ -674,10 +702,20 @@ export default function Dashboard() {
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-bold text-foreground text-lg">{formatDate(analysis.date).split(" à")[0]}</div>
-                    <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">{analysis.session_name || analysis.circuit_name || "Session"}</div>
-                    <Badge variant="outline" className="mt-2 text-[9px] uppercase border-white/10 bg-white/5">
-                      {folders.find(f => f.analysisIds.includes(analysis.id))?.name || "Racine"}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <div className="text-xs text-muted-foreground">{analysis.session_name || analysis.circuit_name || "Session"}</div>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={(e) => { e.stopPropagation(); handleEditClick(analysis); }}>
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <div className="flex gap-2 mt-1">
+                      <Badge variant="outline" className="text-[8px] uppercase border-white/10 bg-white/5 py-0 px-1.5">
+                        {analysis.session_type || "Practice"}
+                      </Badge>
+                      <Badge variant="outline" className="text-[8px] uppercase border-white/10 bg-white/5 py-0 px-1.5">
+                        {folders.find(f => f.analysisIds.includes(analysis.id))?.name || "Racine"}
+                      </Badge>
+                    </div>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-black text-primary leading-none mb-1">{analysis.score}/100</div>
@@ -715,7 +753,28 @@ export default function Dashboard() {
                     <TableRow key={analysis.id} className="hover:bg-white/5 border-white/5 transition-colors group">
                       <TableCell className="py-5">
                         <div className="font-bold text-foreground">{formatDate(analysis.date)}</div>
-                        <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">{analysis.session_name || analysis.circuit_name || "Session"} — Practice</div>
+                        <div className="flex items-center gap-2 group/name">
+                          <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                            {analysis.session_name || analysis.circuit_name || "Session"}
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 opacity-0 group-hover/name:opacity-100 transition-opacity"
+                            onClick={(e) => { e.stopPropagation(); handleEditClick(analysis); }}
+                          >
+                            <Edit2 className="w-3 h-3 text-muted-foreground hover:text-primary" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`text-[10px] uppercase border-white/10 ${
+                          analysis.session_type === 'race' ? 'bg-red-500/20 text-red-300' : 
+                          analysis.session_type === 'qualifying' ? 'bg-blue-500/20 text-blue-300' : 
+                          'bg-white/5 text-muted-foreground'
+                        }`}>
+                          {analysis.session_type || "Practice"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-[10px] uppercase border-white/10 bg-white/5">
@@ -866,6 +925,44 @@ export default function Dashboard() {
             <DialogFooter>
               <Button variant="ghost" onClick={() => setDeleteDialogOpen(false)}>Annuler</Button>
               <Button variant="destructive" onClick={handleDeleteConfirm}>Supprimer</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ═══ EDIT SESSION DIALOG ═══ */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="glass-card">
+            <DialogHeader>
+              <DialogTitle>Renommer la session</DialogTitle>
+              <DialogDescription>Modifiez le nom et le type de votre analyse.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Nom de la session</label>
+                <input 
+                  className="flex h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  value={editSessionName}
+                  onChange={(e) => setEditSessionName(e.target.value)}
+                  placeholder="Ex: GP Adria Practice 1"
+                />
+              </div>
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Type de session</label>
+                <Select value={editSessionType} onValueChange={setEditSessionType}>
+                  <SelectTrigger className="bg-white/5 border-white/10">
+                    <SelectValue placeholder="Type..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0a0a0a] border-white/10">
+                    <SelectItem value="practice">Practice</SelectItem>
+                    <SelectItem value="qualifying">Qualif</SelectItem>
+                    <SelectItem value="race">Course</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setIsEditDialogOpen(false)}>Annuler</Button>
+              <Button variant="hero" onClick={handleSaveSessionEdit}>Enregistrer</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
