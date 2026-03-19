@@ -68,6 +68,11 @@ export function useSubscription() {
   const [isLoading, setIsLoading] = useState(true);
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const tokenRef = useRef(session?.access_token);
+  tokenRef.current = session?.access_token;
+
+  const hasFetchedRef = useRef(false);
+
   const fetchSubscription = useCallback(async () => {
     if (!user?.id) {
       setTier("rookie");
@@ -79,7 +84,7 @@ export function useSubscription() {
       return;
     }
 
-    const token = session?.access_token;
+    const token = tokenRef.current;
     const url = `${API_BASE_URL}/api/user/subscription`;
 
     setIsLoading(true);
@@ -118,22 +123,27 @@ export function useSubscription() {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, session?.access_token]);
+  }, [user?.id]); // Removed session?.access_token — use tokenRef instead
 
   useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
     fetchSubscription();
   }, [fetchSubscription]);
 
   // Après paiement : ?session_id= présent → polling 2s pendant 10s, nettoyer l’URL quand tier change
+  const sessionId = searchParams.get("session_id");
+  const fetchRef = useRef(fetchSubscription);
+  fetchRef.current = fetchSubscription;
+
   useEffect(() => {
-    const sessionId = searchParams.get("session_id");
     if (!sessionId || !user?.id) return;
 
     let elapsed = 0;
 
     const poll = () => {
       elapsed += POLL_INTERVAL_MS;
-      fetchSubscription().then(() => {});
+      fetchRef.current().then(() => {});
       if (elapsed >= POLL_MAX_DURATION_MS) {
         if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
         const next = new URLSearchParams(searchParams);
@@ -149,7 +159,7 @@ export function useSubscription() {
     return () => {
       if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
     };
-  }, [searchParams.get("session_id"), user?.id, fetchSubscription]);
+  }, [sessionId, user?.id]);
 
   // Quand le tier passe de rookie à autre chose, nettoyer session_id de l’URL
   const prevTierRef = useRef<SubscriptionTier>("rookie");

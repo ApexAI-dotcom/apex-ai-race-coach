@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
+import { uploadAvatar } from "@/lib/supabase-storage";
 
 const STORAGE_KEY = "apexai_settings";
 
@@ -142,24 +143,18 @@ export default function Parametres() {
       toast.error("Choisissez une image (JPG, PNG, WebP).");
       return;
     }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("L'image doit faire moins de 2 MB.");
+      return;
+    }
     setUploadingAvatar(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${user.id}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (uploadError) {
-        const baseUrl = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
-        toast.info("Stockage non configuré : utilisez une URL d'avatar ci-dessous.");
-        setUploadingAvatar(false);
-        return;
-      }
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-      setAvatarUrl(urlData.publicUrl);
+      const publicUrl = await uploadAvatar(user.id, file);
+      setAvatarUrl(publicUrl);
       toast.success("Photo téléversée.");
-    } catch {
-      toast.error("Échec du téléversement.");
+    } catch (err) {
+      console.error("Avatar upload error:", err);
+      toast.error(err instanceof Error ? err.message : "Échec du téléversement.");
     } finally {
       setUploadingAvatar(false);
       e.target.value = "";

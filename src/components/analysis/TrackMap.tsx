@@ -34,10 +34,12 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
   const PAD = padding ?? DEFAULT_PAD;
 
   const { points, width, height, trackPolyline, refPolyline } = useMemo(() => {
-    // 1. Diagnostics (as requested by user)
-    console.log("TrackMap: Render Start. Corners count:", corners.length, "Laps count:", laps?.length);
+    // 1. Diagnostics
+    console.log("TrackMap: Render Start. Corners:", corners.length, "Laps:", laps?.length);
     if (laps && laps.length > 0) {
-      console.log("TrackMap: Sample Lap 0 point:", laps[0].lat?.[0], laps[0].lon?.[0]);
+      const lap = laps[0];
+      const validPts = lap.lat?.filter((v: any) => v != null && v !== 0).length ?? 0;
+      console.log("TrackMap: Lap 0 — keys:", Object.keys(lap), "lat[] length:", lap.lat?.length, "valid (non-null) pts:", validPts, "first valid:", lap.lat?.find((v: any) => v != null && v !== 0));
     }
 
     // 2. Gather all points to find the real geographic center
