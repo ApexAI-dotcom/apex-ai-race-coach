@@ -475,6 +475,19 @@ export default function Dashboard() {
   }
 
   const latestAnalysis = analyses[0];
+
+  const featuredBestLapIdx = useMemo(() => {
+    if (!featuredAnalysis?.plot_data?.trajectory_2d?.laps) return 0;
+    const laps = featuredAnalysis.plot_data.trajectory_2d.laps;
+    const bestIdx = laps.findIndex((l: any) => l.is_best);
+    if (bestIdx !== -1) return bestIdx;
+    if (featuredAnalysis.lap_times?.length > 0) {
+      const minTime = Math.min(...featuredAnalysis.lap_times);
+      return featuredAnalysis.lap_times.indexOf(minTime);
+    }
+    return 0;
+  }, [featuredAnalysis]);
+
   const featuredScore = featuredAnalysis ? Math.round(getDisplayScore(featuredAnalysis.performance_score)) : latestAnalysis.score;
   const featuredGrade = featuredAnalysis?.performance_score?.grade || latestAnalysis.grade;
   const featuredSessionName = (featuredAnalysis as any)?.session_conditions?.session_name;
@@ -571,11 +584,8 @@ export default function Dashboard() {
                   <TrackMap
                     corners={featuredAnalysis.plot_data?.trajectory_2d?.corners || []}
                     laps={
-                      featuredAnalysis.plot_data?.trajectory_2d?.laps
-                        ? [
-                            featuredAnalysis.plot_data.trajectory_2d.laps.find((l: any) => l.is_best) || 
-                            featuredAnalysis.plot_data.trajectory_2d.laps[0]
-                          ].filter(Boolean)
+                      featuredAnalysis.plot_data?.trajectory_2d?.laps && featuredAnalysis.plot_data.trajectory_2d.laps.length > 0
+                        ? [featuredAnalysis.plot_data.trajectory_2d.laps[featuredBestLapIdx] || featuredAnalysis.plot_data.trajectory_2d.laps[0]]
                         : undefined
                     }
                     transparent
