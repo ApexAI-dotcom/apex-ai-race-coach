@@ -477,11 +477,11 @@ export default function Dashboard() {
 
         {/* ═══ FEATURED CARD ═══ */}
         {featuredAnalysis && !currentFolderId && (
-          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mb-12">
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mb-8 md:mb-12">
             <div 
-              className="rounded-2xl p-8 border-2 border-primary/40 bg-primary/5 relative overflow-hidden group shadow-2xl shadow-primary/5"
+              className="rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-primary/40 bg-primary/5 relative overflow-hidden group shadow-2xl shadow-primary/5"
             >
-              <div className="absolute top-8 right-8 text-7xl font-display font-bold text-primary opacity-20 group-hover:opacity-30 transition-opacity z-10">
+              <div className="absolute top-4 right-4 md:top-8 md:right-8 text-5xl md:text-7xl font-display font-bold text-primary opacity-20 group-hover:opacity-30 transition-opacity z-10">
                 {featuredScore}
               </div>
               
@@ -489,41 +489,46 @@ export default function Dashboard() {
                 SESSION LA PLUS RÉCENTE
               </Badge>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-end">
                 <div>
-                  <h3 className="text-3xl font-bold text-foreground mb-1">
+                  <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
                     {featuredAnalysis.session_conditions?.session_name || featuredAnalysis.session_conditions?.circuit_name || featuredAnalysis.analysis_id || "Session"}
                   </h3>
-                  <p className="text-muted-foreground text-lg mb-8 uppercase tracking-widest flex items-center gap-2">
+                  <p className="text-muted-foreground text-sm md:text-lg mb-6 uppercase tracking-widest flex items-center gap-2">
                     {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> PRACTICE
                   </p>
 
-                  <div className="grid grid-cols-3 gap-4 mb-8 max-w-2xl">
-                    <div className="bg-secondary/40 p-4 rounded-xl">
-                      <div className="text-xl font-bold text-foreground">{featuredAnalysis.lap_time.toFixed(2)}s</div>
-                      <div className="text-[10px] text-muted-foreground uppercase mt-1 letter-spacing-wider">Best Lap</div>
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 md:mb-8 max-w-2xl">
+                    <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
+                      <div className="text-sm sm:text-xl font-bold text-foreground">{featuredAnalysis.lap_time.toFixed(2)}s</div>
+                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">Best Lap</div>
                     </div>
-                    <div className="bg-secondary/40 p-4 rounded-xl">
-                      <div className="text-xl font-bold text-foreground">{featuredAnalysis.corners_detected}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase mt-1">Corners</div>
+                    <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
+                      <div className="text-sm sm:text-xl font-bold text-foreground">{featuredAnalysis.corners_detected}</div>
+                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">Corners</div>
                     </div>
-                    <div className="bg-secondary/40 p-4 rounded-xl">
-                      <div className="text-xl font-bold text-green-500">+1.2s</div>
-                      <div className="text-[10px] text-muted-foreground uppercase mt-1 font-bold">Gain AI</div>
+                    <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
+                      <div className="text-sm sm:text-xl font-bold text-green-500">+1.2s</div>
+                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 font-bold tracking-wider">Gain AI</div>
                     </div>
                   </div>
 
-                  <div className="flex gap-4 max-w-2xl">
+                  <div className="flex flex-col sm:flex-row gap-3 md:gap-4 max-w-2xl">
                     <Button variant="hero" className="flex-1 h-12 shadow-lg shadow-primary/20" onClick={() => handleViewAnalysis(featuredAnalysis.analysis_id)}>
-                      <Eye className="w-4 h-4 mr-2" />Voir l'analyse complète
+                      <Eye className="w-4 h-4 mr-2" />Découvrir
                     </Button>
-                    <Button variant="heroOutline" className="flex-1 h-12" onClick={() => handleCompareAdd(featuredAnalysis.analysis_id)}>
-                      <GitCompareArrows className="w-4 h-4 mr-2" />Comparer
-                    </Button>
+                    <div className="flex gap-2 flex-1">
+                      <Button variant="heroOutline" className="flex-1 h-12" onClick={() => handleCompareAdd(featuredAnalysis.analysis_id)}>
+                        <GitCompareArrows className="w-4 h-4 mr-2" />Comparer
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-12 w-12 border border-white/10" onClick={() => handleDeleteClick(featuredAnalysis.analysis_id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
-                <div className="h-64 bg-secondary/10 rounded-2xl border border-white/5 p-2 relative overflow-hidden group-hover:border-primary/20 transition-colors">
+                <div className="h-40 sm:h-48 md:h-64 bg-secondary/10 rounded-2xl border border-white/5 p-2 relative overflow-hidden group-hover:border-primary/20 transition-colors">
                   <TrackMap
                     corners={featuredAnalysis.plot_data?.trajectory_2d?.corners || []}
                     laps={
@@ -549,18 +554,18 @@ export default function Dashboard() {
         )}
 
         {/* ═══ STATS MINI CARDS ═══ */}
-        <div className="grid grid-cols-3 gap-4 mb-12 opacity-70 group hover:opacity-100 transition-opacity">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12 opacity-70 group hover:opacity-100 transition-opacity">
           <div className="bg-secondary/20 p-4 rounded-xl border border-white/5 text-center">
             <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Analyses totales</div>
-            <div className="text-3xl font-bold text-foreground">{statistics.total}</div>
+            <div className="text-xl md:text-3xl font-bold text-foreground">{statistics.total}</div>
           </div>
           <div className="bg-secondary/20 p-4 rounded-xl border border-white/5 text-center">
             <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Score moyen</div>
-            <div className="text-3xl font-bold text-foreground">{statistics.averageScore}/100</div>
+            <div className="text-xl md:text-3xl font-bold text-foreground">{statistics.averageScore}/100</div>
           </div>
           <div className="bg-secondary/20 p-4 rounded-xl border border-white/5 text-center">
             <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Meilleur score</div>
-            <div className="text-3xl font-bold text-foreground text-primary">{statistics.bestScore}/100</div>
+            <div className="text-xl md:text-3xl font-bold text-foreground text-primary">{statistics.bestScore}/100</div>
           </div>
         </div>
 
@@ -612,9 +617,9 @@ export default function Dashboard() {
         {/* ═══ COMPARATOR SLOT-BASED ═══ */}
         <div className="mb-12">
           <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground mb-6">Comparateur</h2>
-          <div className="flex flex-col md:flex-row items-center gap-1">
-            <div className={`flex-1 w-full h-16 rounded-2xl border-2 flex items-center justify-between px-6 transition-all ${compareSlot1 ? "border-primary bg-primary/5 shadow-inner" : "border-dashed border-white/10 bg-secondary/10"}`}>
-               <span className={compareSlot1 ? "font-bold text-foreground" : "text-muted-foreground italic text-sm"}>
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-1">
+            <div className={`flex-1 w-full h-14 md:h-16 rounded-2xl border-2 flex items-center justify-between px-4 md:px-6 transition-all ${compareSlot1 ? "border-primary bg-primary/5 shadow-inner" : "border-dashed border-white/10 bg-secondary/10"}`}>
+               <span className={compareSlot1 ? "font-bold text-foreground text-sm md:text-base truncate pr-2" : "text-muted-foreground italic text-xs md:text-sm"}>
                   {compareSlot1 ? (
                     (() => {
                       const a = analyses.find(x => x.id === compareSlot1);
@@ -622,15 +627,15 @@ export default function Dashboard() {
                     })()
                   ) : "Choisir une analyse (cliquez ⇆)"}
                </span>
-               {compareSlot1 && <Button variant="ghost" size="icon" onClick={() => setCompareSlot1("")}><X className="w-4 h-4" /></Button>}
+               {compareSlot1 && <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setCompareSlot1("")}><X className="w-4 h-4" /></Button>}
             </div>
             
-            <div className="px-4 py-2 flex items-center justify-center">
-              <span className="text-xl font-black text-primary italic">VS</span>
+            <div className="flex items-center justify-center py-1 md:px-4">
+              <span className="text-lg md:text-xl font-black text-primary italic">VS</span>
             </div>
-
-            <div className={`flex-1 w-full h-16 rounded-2xl border-2 flex items-center justify-between px-6 transition-all ${compareSlot2 ? "border-primary bg-primary/5 shadow-inner" : "border-dashed border-white/10 bg-secondary/10"}`}>
-               <span className={compareSlot2 ? "font-bold text-foreground" : "text-muted-foreground italic text-sm"}>
+ 
+            <div className={`flex-1 w-full h-14 md:h-16 rounded-2xl border-2 flex items-center justify-between px-4 md:px-6 transition-all ${compareSlot2 ? "border-primary bg-primary/5 shadow-inner" : "border-dashed border-white/10 bg-secondary/10"}`}>
+               <span className={compareSlot2 ? "font-bold text-foreground text-sm md:text-base truncate pr-2" : "text-muted-foreground italic text-xs md:text-sm"}>
                   {compareSlot2 ? (
                     (() => {
                       const a = analyses.find(x => x.id === compareSlot2);
@@ -638,10 +643,10 @@ export default function Dashboard() {
                     })()
                   ) : "Deuxième analyse..."}
                </span>
-               {compareSlot2 && <Button variant="ghost" size="icon" onClick={() => setCompareSlot2("")}><X className="w-4 h-4" /></Button>}
+               {compareSlot2 && <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setCompareSlot2("")}><X className="w-4 h-4" /></Button>}
             </div>
             
-            <Button variant="hero" className="w-full md:w-40 h-16 md:ml-4 rounded-2xl font-bold shadow-xl shadow-primary/10" disabled={!compareSlot1 || !compareSlot2} onClick={() => setShowCompare(true)}>
+            <Button variant="hero" className="w-full md:w-40 h-14 md:h-16 md:ml-4 rounded-2xl font-bold shadow-xl shadow-primary/10 mt-2 md:mt-0" disabled={!compareSlot1 || !compareSlot2} onClick={() => setShowCompare(true)}>
               COMPARER
             </Button>
           </div>
@@ -650,49 +655,83 @@ export default function Dashboard() {
         {/* ═══ ALL ANALYSES TABLE ═══ */}
         <div>
           <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground mb-6">Toutes les analyses</h2>
-          <Card className="glass-card overflow-hidden">
-            <Table>
-              <TableHeader className="bg-secondary/30">
-                <TableRow className="border-white/5 hover:bg-transparent">
-                  <TableHead className="py-5">Session</TableHead>
-                  <TableHead>Dossier</TableHead>
-                  <TableHead>Performance</TableHead>
-                  <TableHead>Temps</TableHead>
-                  <TableHead className="text-right pr-6">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visibleAnalyses.map(analysis => (
-                  <TableRow key={analysis.id} className="hover:bg-white/5 border-white/5 transition-colors group">
-                    <TableCell className="py-5">
-                      <div className="font-bold text-foreground">{formatDate(analysis.date)}</div>
-                      <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">{analysis.session_name || analysis.circuit_name || "Session"} — Practice</div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-[10px] uppercase border-white/10 bg-white/5">
-                        {folders.find(f => f.analysisIds.includes(analysis.id))?.name || "Racine"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                         <span className="font-black text-lg text-primary">{analysis.score}</span>
-                         <Badge className={`${getGradeColor(analysis.grade)} border-none text-[10px]`}>{analysis.grade}</Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-foreground font-bold">{analysis.lap_time.toFixed(2)}s</TableCell>
-                    <TableCell className="text-right pr-6">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="icon" title="Voir" className="h-10 w-10 hover:bg-primary/20 hover:text-primary" onClick={() => handleViewAnalysis(analysis.id)}><Eye className="w-5 h-5" /></Button>
-                        <Button variant="ghost" size="icon" title="Comparer" className="h-10 w-10 hover:bg-primary/20 hover:text-primary" onClick={() => handleCompareAdd(analysis.id)}><GitCompareArrows className="w-5 h-5" /></Button>
-                        <Button variant="ghost" size="icon" title="Changer de dossier" className="h-10 w-10 hover:bg-primary/20 hover:text-primary" onClick={() => handleMoveAnalysisRequest(analysis.id)}><FolderInput className="w-5 h-5" /></Button>
-                        <Button variant="ghost" size="icon" title="Supprimer" className="h-10 w-10 hover:bg-red-500/20 hover:text-red-500" onClick={() => handleDeleteClick(analysis.id)}><Trash2 className="w-5 h-5" /></Button>
-                      </div>
-                    </TableCell>
+          
+          {/* Mobile view: Cards (Hidden on desktop) */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {visibleAnalyses.map(analysis => (
+              <Card key={analysis.id} className="glass-card p-4 flex flex-col gap-4 border-white/5 hover:border-primary/50 transition-all" onClick={() => handleViewAnalysis(analysis.id)}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-bold text-foreground text-lg">{formatDate(analysis.date).split(" à")[0]}</div>
+                    <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">{analysis.session_name || analysis.circuit_name || "Session"}</div>
+                    <Badge variant="outline" className="mt-2 text-[9px] uppercase border-white/10 bg-white/5">
+                      {folders.find(f => f.analysisIds.includes(analysis.id))?.name || "Racine"}
+                    </Badge>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-black text-primary leading-none mb-1">{analysis.score}/100</div>
+                    <Badge className={`${getGradeColor(analysis.grade)} border-none text-[10px]`}>{analysis.grade}</Badge>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                  <div className="font-mono text-foreground font-bold text-sm">Best: {analysis.lap_time.toFixed(2)}s</div>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/20 hover:text-primary" onClick={(e) => { e.stopPropagation(); handleCompareAdd(analysis.id); }}><GitCompareArrows className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/20 hover:text-primary" onClick={(e) => { e.stopPropagation(); handleMoveAnalysisRequest(analysis.id); }}><FolderInput className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-red-500/20 hover:text-red-500" onClick={(e) => { e.stopPropagation(); handleDeleteClick(analysis.id); }}><Trash2 className="w-4 h-4" /></Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Desktop view: Table (Hidden on mobile) */}
+          <div className="hidden md:block">
+            <Card className="glass-card overflow-hidden">
+              <Table>
+                <TableHeader className="bg-secondary/30">
+                  <TableRow className="border-white/5 hover:bg-transparent">
+                    <TableHead className="py-5">Session</TableHead>
+                    <TableHead>Dossier</TableHead>
+                    <TableHead>Performance</TableHead>
+                    <TableHead>Temps</TableHead>
+                    <TableHead className="text-right pr-6">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+                </TableHeader>
+                <TableBody>
+                  {visibleAnalyses.map(analysis => (
+                    <TableRow key={analysis.id} className="hover:bg-white/5 border-white/5 transition-colors group">
+                      <TableCell className="py-5">
+                        <div className="font-bold text-foreground">{formatDate(analysis.date)}</div>
+                        <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">{analysis.session_name || analysis.circuit_name || "Session"} — Practice</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px] uppercase border-white/10 bg-white/5">
+                          {folders.find(f => f.analysisIds.includes(analysis.id))?.name || "Racine"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                           <span className="font-black text-lg text-primary">{analysis.score}</span>
+                           <Badge className={`${getGradeColor(analysis.grade)} border-none text-[10px]`}>{analysis.grade}</Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-foreground font-bold">{analysis.lap_time.toFixed(2)}s</TableCell>
+                      <TableCell className="text-right pr-6">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="icon" title="Voir" className="h-10 w-10 hover:bg-primary/20 hover:text-primary" onClick={() => handleViewAnalysis(analysis.id)}><Eye className="w-5 h-5" /></Button>
+                          <Button variant="ghost" size="icon" title="Comparer" className="h-10 w-10 hover:bg-primary/20 hover:text-primary" onClick={() => handleCompareAdd(analysis.id)}><GitCompareArrows className="w-5 h-5" /></Button>
+                          <Button variant="ghost" size="icon" title="Changer de dossier" className="h-10 w-10 hover:bg-primary/20 hover:text-primary" onClick={() => handleMoveAnalysisRequest(analysis.id)}><FolderInput className="w-5 h-5" /></Button>
+                          <Button variant="ghost" size="icon" title="Supprimer" className="h-10 w-10 hover:bg-red-500/20 hover:text-red-500" onClick={() => handleDeleteClick(analysis.id)}><Trash2 className="w-5 h-5" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
         </div>
 
         {/* ═══ DETAIL OVERLAY ═══ */}
@@ -705,23 +744,23 @@ export default function Dashboard() {
               className="fixed inset-0 z-[100] bg-background flex flex-col md:flex-row shadow-2xl overflow-hidden"
             >
               <div className="w-full h-full flex flex-col overflow-y-auto custom-scrollbar bg-background">
-                <div className="sticky top-0 z-10 p-6 flex items-center justify-between border-b border-white/5 bg-background/80 backdrop-blur-xl">
-                  <div className="flex items-center gap-4">
+                <div className="sticky top-0 z-10 p-4 md:p-6 flex items-center justify-between border-b border-white/5 bg-background/80 backdrop-blur-xl">
+                  <div className="flex items-center gap-2 md:gap-4">
                     <Button variant="ghost" size="icon" className="hover:bg-white/5" onClick={handleCloseOverlay}><ArrowLeft className="w-6 h-6" /></Button>
                     <div>
-                      <h2 className="text-2xl font-bold text-foreground">Détails de l'analyse</h2>
-                      <p className="text-sm text-muted-foreground uppercase tracking-widest">{selectedAnalysis.session_conditions?.session_name || selectedAnalysis.session_conditions?.circuit_name || selectedAnalysis.analysis_id || "Session"}</p>
+                      <h2 className="text-xl md:text-2xl font-bold text-foreground">Détails</h2>
+                      <p className="text-[10px] md:text-sm text-muted-foreground uppercase tracking-widest truncate max-w-[150px] md:max-w-none">{selectedAnalysis.session_conditions?.session_name || selectedAnalysis.session_conditions?.circuit_name || selectedAnalysis.analysis_id || "Session"}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Badge className={`${getGradeColor(selectedAnalysis.performance_score.grade)} border-none py-1.5 px-4 text-sm font-black`}>
+                  <div className="flex items-center gap-2 md:gap-4">
+                    <Badge className={`${getGradeColor(selectedAnalysis.performance_score.grade)} border-none py-1 px-2 md:py-1.5 md:px-4 text-[10px] md:text-sm font-black`}>
                       {selectedAnalysis.performance_score.grade} ({getDisplayScore(selectedAnalysis.performance_score)})
                     </Badge>
-                    <Button variant="hero" onClick={() => window.print()}><FileDown className="w-4 h-4 mr-2" /> PDF</Button>
+                    <Button variant="outline" size="sm" className="hidden sm:flex" onClick={() => window.print()}><FileDown className="w-4 h-4 mr-2" /> PDF</Button>
                   </div>
                 </div>
 
-                <div className="p-8 pb-32 max-w-7xl mx-auto w-full">
+                <div className="p-4 md:p-8 pb-32 max-w-7xl mx-auto w-full">
                    <AnalysisDashboardContent analysis={mapApiResultToResponse(selectedAnalysis)} />
                 </div>
               </div>
@@ -738,16 +777,16 @@ export default function Dashboard() {
               exit={{ opacity: 0, y: "100%" }}
               className="fixed inset-0 z-[110] bg-background flex flex-col overflow-hidden"
             >
-              <div className="p-6 flex items-center justify-between bg-secondary/50 border-b border-white/5 backdrop-blur-xl">
-                <div className="flex items-center gap-4 text-foreground">
-                  <GitCompareArrows className="w-6 h-6 text-primary" />
-                  <h2 className="text-2xl font-bold">Comparaison Side-by-Side</h2>
+              <div className="p-4 md:p-6 flex items-center justify-between bg-secondary/50 border-b border-white/5 backdrop-blur-xl">
+                <div className="flex items-center gap-3 md:gap-4 text-foreground">
+                  <GitCompareArrows className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+                  <h2 className="text-xl md:text-2xl font-bold">Comparaison</h2>
                 </div>
-                <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full border border-white/10" onClick={() => setShowCompare(false)}><X className="w-6 h-6" /></Button>
+                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-full border border-white/10" onClick={() => setShowCompare(false)}><X className="w-5 h-5 md:w-6 md:h-6" /></Button>
               </div>
 
-              <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-                <div className="flex-1 overflow-y-auto p-4 md:p-8 border-r border-white/5 custom-scrollbar bg-background">
+              <div className="flex-1 flex flex-col md:flex-row overflow-x-hidden overflow-y-auto">
+                <div className="flex-1 w-full p-4 md:p-8 border-b md:border-b-0 md:border-r border-white/5 bg-background">
                    <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20 flex justify-between items-center">
                       <div>
                         <span className="text-[10px] uppercase font-bold text-primary block mb-1">Session A</span>

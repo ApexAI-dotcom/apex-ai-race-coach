@@ -104,12 +104,18 @@ export default function Login() {
           <Card className="glass-card border-white/10">
             <CardHeader className="text-center">
               <CardTitle className="font-display text-2xl font-bold text-foreground">
-                {view === 'sign_in' ? 'Connexion' : 'Mot de passe oublié'}
+                {view === 'forgot_password' 
+                  ? 'Mot de passe oublié' 
+                  : isSignUp 
+                    ? "Créer un compte" 
+                    : 'Connexion'}
               </CardTitle>
               <CardDescription className="text-muted-foreground">
-                {view === 'sign_in'
-                  ? 'Connectez-vous à votre compte APEX AI'
-                  : 'Indique ton email pour recevoir un lien de réinitialisation.'}
+                {view === 'forgot_password'
+                  ? 'Indique ton email pour recevoir un lien de réinitialisation.'
+                  : isSignUp
+                    ? 'Inscrivez-vous pour commencer vos analyses'
+                    : 'Connectez-vous à votre compte APEX AI'}
               </CardDescription>
             </CardHeader>
             <CardContent>
