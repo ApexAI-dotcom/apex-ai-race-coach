@@ -45,7 +45,7 @@ export const MobileNav = () => {
               <Icon
                 className={`w-5 h-5 relative z-10 ${
                   item.isHighlight
-                    ? "text-primary"
+                    ? "text-primary animate-pulse"
                     : isActive
                     ? "text-primary"
                     : "text-muted-foreground"
