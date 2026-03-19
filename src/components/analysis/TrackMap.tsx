@@ -189,21 +189,27 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
   if (points.length === 0 && !trackPolyline) return null;
 
   return (
-    <div className={`w-full relative ${transparent ? "" : "glass-card p-4"} flex justify-center items-center ${className}`} aria-label="Track map">
+    <div className={`w-full relative ${transparent ? "" : "glass-card p-4"} flex justify-center items-center overflow-hidden ${className}`} aria-label="Track map">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="w-full h-auto max-h-[600px] drop-shadow-2xl overflow-hidden"
+        className={hideLabels ? "w-full h-full max-h-full object-contain" : "w-full h-auto max-h-[600px] drop-shadow-2xl overflow-visible"}
         style={{ aspectRatio: `${width} / ${height}` }}
       >
         {trackPolyline && (
-          <>
-            <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth={hideLabels ? "12" : "30"} strokeLinecap="round" strokeLinejoin="round" opacity={0.15} style={{ filter: "blur(8px)" }} />
-            <polyline points={trackPolyline} fill="none" className="stroke-secondary-foreground/20" strokeWidth={hideLabels ? "8" : "24"} strokeLinecap="round" strokeLinejoin="round" />
-            <polyline points={trackPolyline} fill="none" className="stroke-border" strokeWidth={hideLabels ? "10" : "26"} strokeLinecap="round" strokeLinejoin="round" opacity={0.5} strokeDasharray="10 10" />
-            <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth={hideLabels ? "2" : "3"} strokeLinecap="round" strokeLinejoin="round" />
-          </>
+          hideLabels ? (
+            /* Mini mode: clean, thin red line only */
+            <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+          ) : (
+            /* Full mode: glow + road + dashes + main line */
+            <>
+              <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth="30" strokeLinecap="round" strokeLinejoin="round" opacity={0.15} style={{ filter: "blur(8px)" }} />
+              <polyline points={trackPolyline} fill="none" className="stroke-secondary-foreground/20" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" />
+              <polyline points={trackPolyline} fill="none" className="stroke-border" strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" opacity={0.5} strokeDasharray="10 10" />
+              <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </>
+          )
         )}
-        {refPolyline && (
+        {refPolyline && !hideLabels && (
           <polyline points={refPolyline} fill="none" stroke="#38bdf8" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" strokeLinejoin="round" opacity={0.8} />
         )}
         {!hideLabels && points.map((p) => {

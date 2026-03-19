@@ -468,7 +468,7 @@ export default function Dashboard() {
             <div 
               className="rounded-2xl p-8 border-2 border-primary/40 bg-primary/5 relative overflow-hidden group shadow-2xl shadow-primary/5"
             >
-              <div className="absolute top-8 right-8 text-7xl font-display font-bold text-primary opacity-20 group-hover:opacity-30 transition-opacity">
+              <div className="absolute top-8 right-8 text-7xl font-display font-bold text-primary opacity-20 group-hover:opacity-30 transition-opacity z-10">
                 {featuredScore}
               </div>
               
@@ -510,7 +510,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="h-64 bg-secondary/10 rounded-2xl border border-white/5 p-4 relative group-hover:border-primary/20 transition-colors">
+                <div className="h-64 bg-secondary/10 rounded-2xl border border-white/5 p-2 relative overflow-hidden group-hover:border-primary/20 transition-colors">
                   <TrackMap
                     corners={featuredAnalysis.plot_data?.trajectory_2d?.corners || []}
                     laps={
@@ -522,11 +522,11 @@ export default function Dashboard() {
                         : undefined
                     }
                     transparent
-                    padding={80}
+                    padding={60}
                     className="h-full"
                     hideLabels={true}
                   />
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/90 to-transparent flex items-end justify-center pb-3 pointer-events-none">
+                  <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-background/80 to-transparent flex items-end justify-center pb-2 pointer-events-none">
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em] opacity-50">Aperçu du tracé</span>
                   </div>
                 </div>
