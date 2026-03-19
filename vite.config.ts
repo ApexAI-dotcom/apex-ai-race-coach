@@ -11,6 +11,11 @@ export default defineConfig({
       overlay: false,
     },
   },
+  base: "/",
+  build: {
+    emptyOutDir: true,
+    sourcemap: false,
+  },
   plugins: [react()],
   resolve: {
     alias: {
