@@ -214,6 +214,58 @@
     animation: shimmer 3s infinite;
   }
 
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  .animate-pulse-neon {
+    animation: pulse-neon 4s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .animate-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(255, 255, 255, 0.6),
+      transparent
+    );
+    transform: skewX(-25deg);
+    pointer-events: none;
+  }
+
+  .hover-shimmer:hover::after,
+  .active-shimmer:active::after,
+  .shimmer-once::after {
+    animation: shimmer 1.5s ease-out forwards;
+  }
+
+  @keyframes pulse-neon {
+    0%, 100% {
+      opacity: 1;
+      filter: drop-shadow(0 0 5px hsl(var(--primary) / 0.4));
+    }
+    50% {
+      opacity: 0.8;
+      filter: drop-shadow(0 0 15px hsl(var(--primary) / 0.9));
+    }
+  }
+
+  @keyframes shimmer {
+    0% { left: -150%; }
+    100% { left: 250%; }
+  }
+
   @keyframes float {
     0%,
     100% {
