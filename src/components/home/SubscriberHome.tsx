@@ -66,12 +66,12 @@ export default function SubscriberHome() {
     }));
   }, [analyses]);
 
-  // Color logic for bars (orange to green)
+  // Color logic for bars — red theme matching the web app
   const getBarColor = (score: number) => {
-    if (score >= 85) return "#22c55e"; // Green
-    if (score >= 70) return "#f59e0b"; // Orange/Amber
-    if (score >= 50) return "#fbbf24"; // Pale Orange
-    return "#ef4444"; // Red
+    if (score >= 85) return "#ff4444"; // Bright red
+    if (score >= 70) return "#e63946"; // Primary red
+    if (score >= 50) return "#cc2936"; // Darker red
+    return "#991b1b"; // Deep red
   };
 
   // Quick insights logic
