@@ -40,7 +40,8 @@ export const BREAKDOWN_MAX = {
  * Valeur de score à afficher : overall_score uniquement.
  * Si incohérence avec sum(breakdown) > 0.5, log warning et utilise la somme en fallback.
  */
-export function getDisplayScore(ps: PerformanceScore): number {
+export function getDisplayScore(ps: PerformanceScore | null | undefined): number {
+  if (!ps) return 0;
   const b = ps.breakdown;
   const sum =
     (b?.apex_precision ?? 0) +
@@ -48,7 +49,7 @@ export function getDisplayScore(ps: PerformanceScore): number {
     (b?.apex_speed ?? 0) +
     (b?.sector_times ?? 0);
   const overall = ps.overall_score ?? 0;
-  if (Math.abs(sum - overall) > 0.5) {
+  if (Math.abs(sum - overall) > 0.5 && sum > 0) {
     console.warn(
       "[ApexAI] Score inconsistency: overall_score",
       overall,
