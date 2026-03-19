@@ -98,6 +98,11 @@ export default function SubscriberHome() {
   }, [analyses]);
 
   const latestAnalysis = analyses[0];
+  const bestScore = useMemo(() => (analyses.length > 0 ? Math.max(...analyses.map(a => a.score)) : 0), [analyses]);
+  const bestLapTime = useMemo(() => {
+    const validTimes = analyses.map(a => a.lap_time).filter(t => t > 0);
+    return validTimes.length > 0 ? Math.min(...validTimes) : 0;
+  }, [analyses]);
 
   const handleEditObjective = (obj: UserObjective) => {
     setEditingObjective(obj);
@@ -214,8 +219,8 @@ export default function SubscriberHome() {
         <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">Mes Objectifs</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {objectives.map((obj) => {
-            const current = obj.id === "score" ? (latestAnalysis?.score || 0) : 
-                            obj.id === "laptime" ? (latestAnalysis?.lap_time || 0) : obj.currentValue;
+            const current = obj.id === "score" ? bestScore : 
+                            obj.id === "laptime" ? bestLapTime : obj.currentValue;
             
             // Progress calculation: for laptime, lower is better. 
             // If current <= target, progress is 100%.
