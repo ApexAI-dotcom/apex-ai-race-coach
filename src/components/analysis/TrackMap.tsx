@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import type { TrajectoryCorner, CornerMargin, TrajectoryLap } from "@/types/analysis";
-import { GRADE_COLORS } from "./utils";
 
 interface TrackMapProps {
   corners: TrajectoryCorner[];
@@ -35,24 +34,33 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
   const PAD = padding ?? DEFAULT_PAD;
 
   const { points, width, height, trackPolyline, refPolyline } = useMemo(() => {
-    // 1. Gather all points to find the real geographic center
+    // 1. Diagnostics (as requested by user)
+    console.log("TrackMap: Render Start. Corners count:", corners.length, "Laps count:", laps?.length);
+    if (laps && laps.length > 0) {
+      console.log("TrackMap: Sample Lap 0 point:", laps[0].lat?.[0], laps[0].lon?.[0]);
+    }
+
+    // 2. Gather all points to find the real geographic center
     let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
     
     const updateBoundsFromCoords = (lats: number[], lons: number[]) => {
       let hasValid = false;
       for (let i = 0; i < lats.length; i++) {
-        if (lats[i] === 0 && lons[i] === 0) continue; 
-        minLat = Math.min(minLat, lats[i]);
-        maxLat = Math.max(maxLat, lats[i]);
-        minLon = Math.min(minLon, lons[i]);
-        maxLon = Math.max(maxLon, lons[i]);
+        const lat = lats[i];
+        const lon = lons[i];
+        if (!lat || !lon || (lat === 0 && lon === 0)) continue; 
+        if (!isFinite(lat) || !isFinite(lon)) continue;
+
+        minLat = Math.min(minLat, lat);
+        maxLat = Math.max(maxLat, lat);
+        minLon = Math.min(minLon, lon);
+        maxLon = Math.max(maxLon, lon);
         hasValid = true;
       }
       return hasValid;
     };
 
     let hasData = false;
-    // Always check laps for bounds
     if (laps && laps.length > 0) {
       for (const lap of laps) {
         if (lap.lat && lap.lon) {
@@ -61,10 +69,11 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
       }
     }
 
-    // AND always check corners for bounds to ensure the map covers everything
     if (corners && corners.length > 0) {
       for (const c of corners) {
-        if (c.lat === 0 && c.lon === 0) continue;
+        if (!c.lat || !c.lon || (c.lat === 0 && c.lon === 0)) continue;
+        if (!isFinite(c.lat) || !isFinite(c.lon)) continue;
+
         minLat = Math.min(minLat, c.lat);
         maxLat = Math.max(maxLat, c.lat);
         minLon = Math.min(minLon, c.lon);
@@ -74,10 +83,13 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     }
 
     if (!hasData) {
+      console.warn("TrackMap: No valid data points found for bounds calculation.");
       return { points: [], width: W, height: H, trackPolyline: null, refPolyline: null };
     }
 
-    // 2. Centered Bounds Logic (Crucial for avoiding diagonal noise)
+    console.log("TrackMap: Raw Bounds:", { minLat, maxLat, minLon, maxLon });
+
+    // 3. Centered Bounds Logic (Crucial for avoiding diagonal noise)
     const midLat = (minLat + maxLat) / 2;
     const midLon = (minLon + maxLon) / 2;
     const initialLonScale = Math.cos((midLat * Math.PI) / 180);
@@ -98,17 +110,28 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
       maxLon: midLon + (lonSpan / initialLonScale) / 2,
     };
 
+    console.log("TrackMap: Final Projection Bounds:", finalBounds, "Scale ScaleFactor:", { latSpan, lonSpan });
+
     const availableW = W - PAD * 2;
     const availableH = H - PAD * 2;
     const scale = Math.min(availableW / lonSpan, availableH / latSpan);
     const offsetX = PAD + (availableW - lonSpan * scale) / 2;
     const offsetY = PAD + (availableH - latSpan * scale) / 2;
     
+    console.log("TrackMap: Scale Applied:", scale, "Offsets:", { offsetX, offsetY });
+
     const projectPoint = (lt: number, ln: number) => 
       project(lt, ln, finalBounds, scale, offsetX, offsetY, initialLonScale);
 
-    // 3. Projections
-    const sortedLaps = [...(laps ?? [])].sort((a, b) => (b.lat?.length || 0) - (a.lat?.length || 0));
+    // 4. Projections
+    // Sort laps to find the most representative (best lap or longest)
+    const sortedLaps = [...(laps ?? [])].sort((a, b) => {
+      // Prioritize is_best if present
+      if (a.is_best) return -1;
+      if (b.is_best) return 1;
+      return (b.lat?.length || 0) - (a.lat?.length || 0);
+    });
+    
     const lap0 = sortedLaps[0];
     const lapRef = sortedLaps[1];
 
@@ -120,17 +143,18 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     let trackPolyline: string | null = null;
     let refPolyline: string | null = null;
 
-    if (lap0 && lap0.lat?.length > 10) {
+    if (lap0 && lap0.lat?.length > 1) {
       const n = Math.min(lap0.lat.length, lap0.lon.length);
-      const trackPoints = Array.from({ length: n }, (_, i) =>
-        projectPoint(lap0.lat[i], lap0.lon[i])
-      ).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`);
-      // Only close the loop if points look like a circuit (start near end)
-      // but for now just joining them is fine.
+      const trackPoints = Array.from({ length: n }, (_, i) => {
+        const [x, y] = projectPoint(lap0.lat[i], lap0.lon[i]);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      });
+      // Diagnostic for the first 5 points
+      console.log("TrackMap: Sample Projected Points (Lap 0):", trackPoints.slice(0, 5));
       trackPolyline = trackPoints.join(" ");
     }
     
-    if (lapRef && lapRef.lat?.length > 10) {
+    if (lapRef && lapRef.lat?.length > 1) {
       const n = Math.min(lapRef.lat.length, lapRef.lon.length);
       const refPoints = Array.from({ length: n }, (_, i) =>
         projectPoint(lapRef.lat[i], lapRef.lon[i])
@@ -140,7 +164,6 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
 
     if (!trackPolyline && pts.length > 1) {
       const fallbackPoints = pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`);
-      if (fallbackPoints.length > 2) fallbackPoints.push(fallbackPoints[0]);
       trackPolyline = fallbackPoints.join(" ");
     }
 

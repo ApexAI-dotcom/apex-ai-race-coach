@@ -69,8 +69,9 @@ export interface TrajectoryCorner {
   apex_speed: number;
 }
 
-/** Points GPS d'un tour pour tracer le circuit (trajectory_2d.laps) */
 export interface TrajectoryLap {
+  lap_number?: number;
+  is_best?: boolean;
   lat: number[];
   lon: number[];
   speed_kmh?: number[];
