@@ -48,7 +48,10 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
       for (let i = 0; i < lats.length; i++) {
         const lat = lats[i];
         const lon = lons[i];
-        if (!lat || !lon || (lat === 0 && lon === 0)) continue; 
+        // Robust coordinate check: ignore 0, null, NaN, and extreme outliers
+        if (lat === undefined || lon === undefined || lat === null || lon === null) continue;
+        if (lat === 0 && lon === 0) continue;
+        if (Math.abs(lat) < 0.01 && Math.abs(lon) < 0.01) continue; // Likely a GPS glitch near (0,0)
         if (!isFinite(lat) || !isFinite(lon)) continue;
 
         minLat = Math.min(minLat, lat);
@@ -145,20 +148,27 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
 
     if (lap0 && lap0.lat?.length > 1) {
       const n = Math.min(lap0.lat.length, lap0.lon.length);
-      const trackPoints = Array.from({ length: n }, (_, i) => {
-        const [x, y] = projectPoint(lap0.lat[i], lap0.lon[i]);
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      });
-      // Diagnostic for the first 5 points
-      console.log("TrackMap: Sample Projected Points (Lap 0):", trackPoints.slice(0, 5));
+      const trackPoints: string[] = [];
+      for (let i = 0; i < n; i++) {
+        const lt = lap0.lat[i];
+        const ln = lap0.lon[i];
+        if (!lt || !ln || (Math.abs(lt) < 0.01 && Math.abs(ln) < 0.01)) continue;
+        const [x, y] = projectPoint(lt, ln);
+        trackPoints.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
       trackPolyline = trackPoints.join(" ");
     }
     
     if (lapRef && lapRef.lat?.length > 1) {
       const n = Math.min(lapRef.lat.length, lapRef.lon.length);
-      const refPoints = Array.from({ length: n }, (_, i) =>
-        projectPoint(lapRef.lat[i], lapRef.lon[i])
-      ).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`);
+      const refPoints: string[] = [];
+      for (let i = 0; i < n; i++) {
+        const lt = lapRef.lat[i];
+        const ln = lapRef.lon[i];
+        if (!lt || !ln || (Math.abs(lt) < 0.01 && Math.abs(ln) < 0.01)) continue;
+        const [x, y] = projectPoint(lt, ln);
+        refPoints.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
       refPolyline = refPoints.join(" ");
     }
 
