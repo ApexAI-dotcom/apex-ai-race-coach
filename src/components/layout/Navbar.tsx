@@ -1,24 +1,43 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Zap, LogOut, User } from "lucide-react";
+import { 
+  Home, 
+  LayoutDashboard, 
+  Zap, 
+  LogOut, 
+  User, 
+  Menu,
+  CreditCard,
+  PlusCircle,
+  Settings
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger,
+  SheetDescription 
+} from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { ADMIN_EMAIL } from "@/constants";
+import { cn } from "@/lib/utils";
 
 const guestNavItems = [
-  { name: "Accueil", path: "/" },
-  { name: "Tableau de bord", path: "/dashboard" },
-  { name: "Télécharger", path: "/upload" },
-  { name: "Plans", path: "/pricing" },
+  { name: "Accueil", path: "/", icon: Home },
+  { name: "Tableau de bord", path: "/dashboard", icon: LayoutDashboard },
+  { name: "Télécharger", path: "/upload", icon: PlusCircle },
+  { name: "Plans", path: "/pricing", icon: CreditCard },
 ];
 
 const subscriberNavItems = [
-  { name: "Accueil", path: "/" },
-  { name: "Tableau de bord", path: "/dashboard" },
-  { name: "Plans", path: "/pricing" },
+  { name: "Accueil", path: "/", icon: Home },
+  { name: "Tableau de bord", path: "/dashboard", icon: LayoutDashboard },
+  { name: "Analyser", path: "/upload", icon: PlusCircle, isHero: true },
+  { name: "Plans", path: "/pricing", icon: CreditCard },
 ];
 
 export const Navbar = () => {
@@ -37,30 +56,29 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-white/5">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0d1117] border-b border-white/5 h-16 flex items-center shadow-lg">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" replace className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer no-underline">
-            <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 group-hover:shadow-primary/50 transition-transform duration-200 cursor-pointer">
+            <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform duration-200">
               <Zap className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-display font-bold text-xl text-foreground group-hover:text-primary/90 transition-colors">
+            <span className="font-display font-bold text-lg text-foreground">
               APEX<span className="text-primary">AI</span>
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             {navItems.map((item) => (
               <Link
                 key={item.path + item.name}
                 to={item.path}
-                className={`text-sm font-medium transition-all ${
-                  location.pathname === item.path
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-primary hover:underline underline-offset-4"
-                }`}
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-primary",
+                  location.pathname === item.path ? "text-primary" : "text-muted-foreground"
+                )}
               >
                 {item.name}
               </Link>
@@ -70,33 +88,30 @@ export const Navbar = () => {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             {loading ? (
-              <div className="w-8 h-8 animate-pulse bg-secondary rounded" />
+              <div className="w-8 h-8 animate-pulse bg-secondary rounded-lg" />
             ) : isAuthenticated ? (
               <>
                 {user?.email === ADMIN_EMAIL && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-600 text-white border border-red-500 shadow-sm">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">
                     Admin
                   </span>
                 )}
                 <SubscriptionBadge />
                 <Link to="/profile">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    {(user?.user_metadata?.avatar_url as string) ? (
-                      <Avatar className="w-6 h-6 rounded-lg">
-                        <AvatarImage src={user.user_metadata.avatar_url as string} alt="" className="object-cover" />
-                        <AvatarFallback className="rounded-lg text-xs">
-                          {(user?.user_metadata?.full_name || user?.email || "U").toString().slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <User className="w-4 h-4" />
-                    )}
-                    {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
+                  <Button variant="ghost" size="sm" className="gap-2 h-9">
+                    <Avatar className="w-6 h-6 rounded-md">
+                      <AvatarImage src={(user?.user_metadata?.avatar_url as string) || ""} alt="" className="object-cover" />
+                      <AvatarFallback className="rounded-md text-[10px] bg-secondary">
+                        {(user?.user_metadata?.full_name || user?.email || "U").toString().slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="max-w-[100px] truncate">
+                      {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
+                    </span>
                   </Button>
                 </Link>
-                <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
+                <Button variant="ghost" size="icon" onClick={handleSignOut} className="h-9 w-9 text-muted-foreground hover:text-red-500 transition-colors">
                   <LogOut className="w-4 h-4" />
-                  Déconnexion
                 </Button>
               </>
             ) : (
@@ -105,99 +120,105 @@ export const Navbar = () => {
                   <Button variant="ghost" size="sm">Connexion</Button>
                 </Link>
                 <Link to="/login">
-                  <Button variant="hero" size="sm">Inscription</Button>
+                  <Button variant="hero" size="sm" className="px-6">Inscription</Button>
                 </Link>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-foreground">
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-      </div>
+          {/* Mobile Menu Trigger using Sheet */}
+          <div className="md:hidden">
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-foreground">
+                  <Menu className="w-6 h-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] bg-[#0d1117] border-white/10 p-0 flex flex-col shadow-2xl">
+                <SheetHeader className="p-6 border-b border-white/5 text-left">
+                  <SheetTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-primary" />
+                    <span className="font-display font-bold">APEX AI</span>
+                  </SheetTitle>
+                  <SheetDescription className="text-xs text-muted-foreground">
+                    Navigation Pilote
+                  </SheetDescription>
+                </SheetHeader>
 
-      <AnimatePresence>
-        {isOpen && (
-          <div className="fixed inset-0 z-[60] md:hidden">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setIsOpen(false)}
-            />
-            
-            {/* Menu Content - Explicitly SOLID Background */}
-            <motion.div
-              initial={{ opacity: 0, x: "100%" }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute inset-y-0 right-0 w-full max-w-[280px] bg-[#0d1117] border-l border-white/10 shadow-2xl p-6 pt-20 flex flex-col"
-            >
-              <div className="space-y-6">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.path + item.name}
-                    to={item.path}
-                    className="block text-xl font-display font-medium text-foreground hover:text-primary transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-                
-                <div className="pt-6 border-t border-white/5 space-y-4">
+                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+                  {navItems.map((item) => (
+                    <Link
+                      key={item.path + item.name}
+                      to={item.path}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 p-4 rounded-xl transition-all active:scale-[0.98]",
+                        location.pathname === item.path
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "hover:bg-white/5 text-muted-foreground"
+                      )}
+                    >
+                      <item.icon className={cn("w-5 h-5", location.pathname === item.path ? "text-primary" : "text-muted-foreground")} />
+                      <span className="font-medium">{item.name}</span>
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="p-6 border-t border-white/5 bg-white/2 space-y-4">
                   {isAuthenticated ? (
-                    <>
-                      <div className="flex items-center gap-3 mb-6 p-3 bg-white/5 rounded-xl border border-white/5">
-                        <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center text-primary-foreground font-bold">
-                          {(user?.user_metadata?.avatar_url as string) ? (
-                            <img src={user.user_metadata.avatar_url as string} className="w-full h-full object-cover rounded-lg" />
-                          ) : (
-                            <User className="w-5 h-5" />
-                          )}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                        <Avatar className="w-10 h-10 rounded-lg">
+                          <AvatarImage src={(user?.user_metadata?.avatar_url as string) || ""} alt="" className="object-cover" />
+                          <AvatarFallback className="rounded-lg text-sm bg-secondary">
+                            {(user?.user_metadata?.full_name || user?.email || "U").toString().slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 overflow-hidden">
+                          <div className="font-bold truncate text-foreground">{user?.user_metadata?.full_name || user?.email?.split("@")[0]}</div>
+                          <div className="text-[10px] text-muted-foreground truncate">{user?.email}</div>
                         </div>
-                        <div>
-                          <div className="font-bold">{user?.user_metadata?.full_name || user?.email?.split("@")[0]}</div>
-                          <div className="text-xs text-muted-foreground">{user?.email}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="mb-4">
-                        <SubscriptionBadge />
                       </div>
 
-                      <Link to="/profile" onClick={() => setIsOpen(false)}>
-                        <Button variant="ghost" className="w-full justify-start gap-2">
-                          <User className="w-4 h-4" />
-                          Mon Profil
+                      <div className="px-1"><SubscriptionBadge /></div>
+                      
+                      <div className="grid grid-cols-1 gap-2">
+                        <Link to="/profile" onClick={() => setIsOpen(false)}>
+                          <Button variant="secondary" className="w-full justify-start gap-3 h-11 rounded-xl">
+                            <User className="w-4 h-4" />
+                            Mon Profil
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="ghost" 
+                          className="w-full justify-start gap-3 h-11 rounded-xl text-muted-foreground hover:text-red-500" 
+                          onClick={() => { setIsOpen(false); handleSignOut(); }}
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Déconnexion
                         </Button>
-                      </Link>
-                      <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => { setIsOpen(false); handleSignOut(); }}>
-                        <LogOut className="w-4 h-4" />
-                        Déconnexion
-                      </Button>
-                    </>
+                      </div>
+                    </div>
                   ) : (
-                    <>
+                    <div className="grid grid-cols-1 gap-3">
                       <Link to="/login" onClick={() => setIsOpen(false)}>
-                        <Button variant="ghost" className="w-full">Connexion</Button>
+                        <Button variant="outline" className="w-full h-11 rounded-xl border-white/10">Connexion</Button>
                       </Link>
                       <Link to="/login" onClick={() => setIsOpen(false)}>
-                        <Button variant="hero" className="w-full">Inscription</Button>
+                        <Button variant="hero" className="w-full h-11 rounded-xl">Inscription</Button>
                       </Link>
-                    </>
+                    </div>
                   )}
                 </div>
-              </div>
-            </motion.div>
+                
+                <div className="p-4 text-center">
+                  <p className="text-[10px] text-muted-foreground">© 2026 APEX AI</p>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      </div>
     </nav>
   );
 };
