@@ -33,18 +33,19 @@ import {
   type AnalysisSummary, 
   type UserObjective 
 } from "@/lib/storage";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SubscriberHome() {
   const navigate = useNavigate();
@@ -261,35 +262,44 @@ export default function SubscriberHome() {
         </div>
       </div>
 
-      {/* Objective Edit Dialog */}
-      <Dialog open={!!editingObjective} onOpenChange={(open) => !open && setEditingObjective(null)}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Modifier l'objectif</DialogTitle>
-            <DialogDescription>
-              Définis ta nouvelle cible pour {editingObjective?.label.toLowerCase()}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="target">Valeur cible ({editingObjective?.unit})</Label>
-              <Input
-                id="target"
-                type="number"
-                value={tempValue}
-                onChange={(e) => setTempValue(e.target.value)}
-                placeholder="Ex: 85"
-                className="text-lg h-12"
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveObjective()}
-              />
+      {/* Objective Edit Drawer — Better for Mobile */}
+      <Drawer open={!!editingObjective} onOpenChange={(open) => !open && setEditingObjective(null)}>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-sm">
+            <DrawerHeader>
+              <DrawerTitle>Modifier l'objectif</DrawerTitle>
+              <DrawerDescription>
+                Définis ta nouvelle cible pour {editingObjective?.label.toLowerCase()}
+              </DrawerDescription>
+            </DrawerHeader>
+            <div className="p-4 pb-0">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="target">Valeur cible ({editingObjective?.unit})</Label>
+                  <Input
+                    id="target"
+                    type="number"
+                    variant="filled"
+                    value={tempValue}
+                    onChange={(e) => setTempValue(e.target.value)}
+                    placeholder="Ex: 85"
+                    className="text-lg h-12 bg-secondary/20 border-white/10"
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveObjective()}
+                  />
+                </div>
+              </div>
             </div>
+            <DrawerFooter className="pt-8">
+              <Button variant="hero" className="h-12 text-lg font-bold" onClick={handleSaveObjective}>
+                Sauvegarder
+              </Button>
+              <DrawerClose asChild>
+                <Button variant="outline" className="h-12">Annuler</Button>
+              </DrawerClose>
+            </DrawerFooter>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingObjective(null)}>Annuler</Button>
-            <Button variant="hero" onClick={handleSaveObjective}>Sauvegarder</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
