@@ -63,6 +63,14 @@ export default function Login() {
       setError(error.message)
       return
     }
+    
+    if (isSignUp) {
+      setSuccess("Un email de confirmation t'a été envoyé ! Vérifie ta boîte mail (et tes spams) pour activer ton compte. Tu pourras ensuite te connecter.")
+      setSubmitLoading(false)
+      // On ne redirige pas, on laisse l'utilisateur lire le message
+      return
+    }
+
     const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
     navigate(from, { replace: true })
   }

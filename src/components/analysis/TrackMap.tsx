@@ -131,9 +131,17 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     // 4. Projections
     // Sort laps to find the most representative (best lap or longest)
     const sortedLaps = [...(laps ?? [])].sort((a, b) => {
-      // Prioritize is_best if present
+      // 1. Prioritize explicitly marked 'best' lap
       if (a.is_best) return -1;
       if (b.is_best) return 1;
+      
+      // 2. Deprioritize Lap 1 (out-lap) if other laps exist
+      const aIsT1 = a.lap_number === 1;
+      const bIsT1 = b.lap_number === 1;
+      if (aIsT1 && !bIsT1 && (laps?.length || 0) > 1) return 1;
+      if (!aIsT1 && bIsT1 && (laps?.length || 0) > 1) return -1;
+      
+      // 3. Fallback to lap with most GPS points
       return (b.lat?.length || 0) - (a.lat?.length || 0);
     });
     
