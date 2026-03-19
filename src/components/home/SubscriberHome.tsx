@@ -33,7 +33,17 @@ import {
   type AnalysisSummary, 
   type UserObjective 
 } from "@/lib/storage";
-import { useAuth } from "@/hooks/useAuth";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function SubscriberHome() {
   const navigate = useNavigate();
@@ -41,6 +51,8 @@ export default function SubscriberHome() {
   const [analyses, setAnalyses] = useState<AnalysisSummary[]>([]);
   const [objectives, setObjectives] = useState<UserObjective[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingObjective, setEditingObjective] = useState<UserObjective | null>(null);
+  const [tempValue, setTempValue] = useState("");
 
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Pilote";
 
@@ -85,31 +97,35 @@ export default function SubscriberHome() {
 
   const latestAnalysis = analyses[analyses.length -1];
 
-  const handleEditObjective = (id: string) => {
-    // Basic prompt for now, could be a dialog
-    const newVal = prompt("Nouvel objectif ?");
-    if (newVal && !isNaN(Number(newVal))) {
-      const updated = objectives.map(obj => 
-        obj.id === id ? { ...obj, targetValue: Number(newVal) } : obj
-      );
-      setObjectives(updated);
-      saveObjectives(updated, user?.id);
-    }
+  const handleEditObjective = (obj: UserObjective) => {
+    setEditingObjective(obj);
+    setTempValue(obj.targetValue.toString());
+  };
+
+  const handleSaveObjective = () => {
+    if (!editingObjective || isNaN(Number(tempValue))) return;
+    
+    const updated = objectives.map(obj => 
+      obj.id === editingObjective.id ? { ...obj, targetValue: Number(tempValue) } : obj
+    );
+    setObjectives(updated);
+    saveObjectives(updated, user?.id);
+    setEditingObjective(null);
+    toast.success("Objectif mis à jour");
   };
 
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><Zap className="animate-pulse text-primary w-12 h-12" /></div>;
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-center bg-secondary/10 p-4 rounded-2xl border border-white/5">
         <div>
-          <h1 className="text-4xl font-display font-bold text-foreground">Salut {firstName}</h1>
-          <p className="text-muted-foreground mt-1">Prêt pour ta prochaine session ?</p>
+          <h1 className="text-2xl font-display font-bold text-foreground">Salut {firstName}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Tes performances en un coup d'œil</p>
         </div>
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
-          <MoreHorizontal className="w-5 h-5" />
-        </Button>
+        <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold shadow-lg shadow-primary/20">
+          {firstName.charAt(0)}
+        </div>
       </div>
 
       {/* Progression Chart */}
@@ -212,8 +228,8 @@ export default function SubscriberHome() {
               <Card key={obj.id} className="glass-card p-5">
                 <div className="flex justify-between items-center mb-4">
                   <span className="font-bold text-lg text-foreground">{obj.label} {obj.targetValue}{obj.unit}</span>
-                  <Button variant="ghost" size="sm" className="text-primary text-xs h-auto p-0 hover:bg-transparent" onClick={() => handleEditObjective(obj.id)}>
-                    Modifier l'objectif
+                  <Button variant="ghost" size="sm" className="text-primary text-xs h-9 px-3 rounded-lg hover:bg-primary/10 transition-colors" onClick={() => handleEditObjective(obj)}>
+                    Modifier
                   </Button>
                 </div>
                 <Progress value={Math.min(100, progress)} className="h-2 bg-secondary" />
@@ -243,6 +259,36 @@ export default function SubscriberHome() {
           </Card>
         </div>
       </div>
+
+      {/* Objective Edit Dialog */}
+      <Dialog open={!!editingObjective} onOpenChange={(open) => !open && setEditingObjective(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Modifier l'objectif</DialogTitle>
+            <DialogDescription>
+              Définis ta nouvelle cible pour {editingObjective?.label.toLowerCase()}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="target">Valeur cible ({editingObjective?.unit})</Label>
+              <Input
+                id="target"
+                type="number"
+                value={tempValue}
+                onChange={(e) => setTempValue(e.target.value)}
+                placeholder="Ex: 85"
+                className="text-lg h-12"
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveObjective()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingObjective(null)}>Annuler</Button>
+            <Button variant="hero" onClick={handleSaveObjective}>Sauvegarder</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
