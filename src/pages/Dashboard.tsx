@@ -27,7 +27,8 @@ import {
   Trophy,
   MapPin,
   ChevronRight,
-  Plus,
+  Target,
+  Plus
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -459,17 +460,27 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="font-display text-4xl font-bold text-foreground">Tableau de bord</h1>
-              <p className="text-muted-foreground mt-1">Gère et compare tes sessions</p>
+              <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">Tableau de bord</h1>
+              <p className="text-muted-foreground mt-1 text-sm md:text-base">Gère et compare tes sessions</p>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="bg-secondary/50 border-white/10" onClick={() => exportDashboardPDFUltra(analyses)}>
-                <FileDown className="w-4 h-4 mr-2" />Rapport PDF
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Button 
+                variant="outline" 
+                className="flex-1 sm:flex-none bg-secondary/50 border-white/10 h-11 px-4 sm:px-6" 
+                onClick={() => exportDashboardPDFUltra(analyses)}
+              >
+                <FileDown className="w-4 h-4 mr-2" />
+                <span className="sm:inline">Rapport <span className="hidden sm:inline">PDF</span></span>
               </Button>
-              <Button variant="hero" onClick={() => navigate("/upload")}>
-                + Nouvelle analyse
+              <Button 
+                variant="hero" 
+                className="flex-1 sm:flex-none h-11 px-4 sm:px-6 shadow-lg shadow-primary/20" 
+                onClick={() => navigate("/upload")}
+              >
+                <Plus className="w-5 h-5 mr-1" />
+                <span>Nouveau</span><span className="hidden sm:inline ml-1">Analyse</span>
               </Button>
             </div>
           </div>
