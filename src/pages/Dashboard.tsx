@@ -136,6 +136,18 @@ export default function Dashboard() {
   // Featured: latest analysis full data
   const [featuredAnalysis, setFeaturedAnalysis] = useState<AnalysisResult | null>(null);
 
+  const featuredBestLapIdx = useMemo(() => {
+    if (!featuredAnalysis?.plot_data?.trajectory_2d?.laps) return 0;
+    const laps = featuredAnalysis.plot_data.trajectory_2d.laps;
+    const bestIdx = laps.findIndex((l: any) => l.is_best);
+    if (bestIdx !== -1) return bestIdx;
+    if (featuredAnalysis.lap_times?.length > 0) {
+      const minTime = Math.min(...featuredAnalysis.lap_times);
+      return featuredAnalysis.lap_times.indexOf(minTime);
+    }
+    return 0;
+  }, [featuredAnalysis]);
+
   // Load data
   const loadData = useCallback(async () => {
     try {
@@ -476,17 +488,6 @@ export default function Dashboard() {
 
   const latestAnalysis = analyses[0];
 
-  const featuredBestLapIdx = useMemo(() => {
-    if (!featuredAnalysis?.plot_data?.trajectory_2d?.laps) return 0;
-    const laps = featuredAnalysis.plot_data.trajectory_2d.laps;
-    const bestIdx = laps.findIndex((l: any) => l.is_best);
-    if (bestIdx !== -1) return bestIdx;
-    if (featuredAnalysis.lap_times?.length > 0) {
-      const minTime = Math.min(...featuredAnalysis.lap_times);
-      return featuredAnalysis.lap_times.indexOf(minTime);
-    }
-    return 0;
-  }, [featuredAnalysis]);
 
   const featuredScore = featuredAnalysis 
     ? Math.round(getDisplayScore(featuredAnalysis.performance_score)) 
