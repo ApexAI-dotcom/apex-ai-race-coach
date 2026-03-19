@@ -67,6 +67,8 @@ import {
   renameFolder,
   deleteFolder,
   moveAnalysisToFolder,
+  migrateLocalStorageToSupabase,
+  migrateGuestAnalyses,
   type AnalysisSummary,
   type AnalysisFolder
 } from "@/lib/storage";
@@ -133,6 +135,17 @@ export default function Dashboard() {
     try {
       setLoading(true);
       const uid = user?.id ?? undefined;
+
+      // One-shot migration: localStorage → Supabase
+      if (uid) {
+        try {
+          await migrateLocalStorageToSupabase(uid);
+          await migrateGuestAnalyses();
+        } catch (migErr) {
+          console.warn("[Dashboard] Migration skipped:", migErr);
+        }
+      }
+
       const [allAnalyses, allFolders] = await Promise.all([
         getAllAnalyses(uid),
         getAllFolders(uid),

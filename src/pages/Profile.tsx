@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,10 @@ import {
   ExternalLink,
   Zap,
   Target,
+  Camera,
 } from "lucide-react";
+import { uploadAvatar } from "@/lib/supabase-storage";
+import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageMeta } from "@/components/seo/PageMeta";
@@ -66,6 +69,38 @@ export default function Profile() {
   });
   const [error, setError] = useState<string | null>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | undefined>(undefined);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize avatar URL from user metadata
+  useEffect(() => {
+    if (user) {
+      setCurrentAvatarUrl(user.user_metadata?.avatar_url as string | undefined);
+    }
+  }, [user]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setError("L'image doit faire moins de 2 MB");
+      return;
+    }
+    try {
+      setUploadingAvatar(true);
+      setError(null);
+      const publicUrl = await uploadAvatar(user.id, file);
+      // Update Supabase user metadata with the avatar URL
+      await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+      setCurrentAvatarUrl(publicUrl);
+    } catch (err) {
+      console.error("Avatar upload error:", err);
+      setError(err instanceof Error ? err.message : "Erreur lors de l'upload de l'avatar");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   // Charger les sessions depuis le storage local
   useEffect(() => {
@@ -170,7 +205,7 @@ export default function Profile() {
   }
 
   const displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Utilisateur";
-  const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
+  const avatarUrl = currentAvatarUrl || (user.user_metadata?.avatar_url as string | undefined);
 
   const getInitials = () => {
     if (user.user_metadata?.full_name) {
@@ -235,14 +270,30 @@ export default function Profile() {
         >
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             {/* Avatar */}
-            <Avatar className="w-20 h-20 rounded-2xl border-2 border-primary/20">
-              {avatarUrl ? (
-                <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" />
-              ) : null}
-              <AvatarFallback className="rounded-2xl gradient-primary text-3xl font-bold text-primary-foreground">
-                {getInitials()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+              <Avatar className="w-20 h-20 rounded-2xl border-2 border-primary/20 group-hover:border-primary/50 transition-colors">
+                {avatarUrl ? (
+                  <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" />
+                ) : null}
+                <AvatarFallback className="rounded-2xl gradient-primary text-3xl font-bold text-primary-foreground">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {uploadingAvatar ? (
+                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                ) : (
+                  <Camera className="w-6 h-6 text-white" />
+                )}
+              </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
+            </div>
 
             {/* Info */}
             <div className="flex-1">

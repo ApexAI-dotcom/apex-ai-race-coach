@@ -1,9 +1,17 @@
 /**
- * Apex AI - Local Storage System
- * Système de stockage local pour les résultats d'analyse
- * Utilise localStorage du navigateur pour persister les analyses
+ * Apex AI — Storage System
+ * Hybrid: Supabase (authenticated users) + localStorage (guests)
+ *
+ * All public functions keep the same async signatures as before,
+ * so every consumer (Dashboard, CSVUploader, Profile, etc.) works unchanged.
  */
 
+import { supabase } from "./supabase";
+import {
+  uploadPlotImages,
+  getPlotSignedUrls,
+  deletePlotImages,
+} from "./supabase-storage";
 import type { AnalysisResult } from "./api";
 
 // ============================================================================
@@ -36,425 +44,459 @@ interface StoredAnalysis {
 const STORAGE_INDEX_PREFIX = "apex_analyses_index_";
 const STORAGE_ITEM_PREFIX = "apex_analysis_";
 const STORAGE_GUEST = "guest";
-const MAX_STORED_ANALYSES = 20; // Limite d'analyses dans localStorage
+const MAX_STORED_ANALYSES = 20;
+const MIGRATION_KEY_PREFIX = "apex_migrated_";
 
 // ============================================================================
-// UTILITIES
+// INTERNAL HELPERS — localStorage (Guest fallback)
 // ============================================================================
 
-/**
- * Suffix de clé localStorage : user id ou "guest" si non connecté
- */
 function getStorageSuffix(userId: string | null | undefined): string {
-  return (userId && typeof userId === "string" && userId.trim()) ? userId.trim() : STORAGE_GUEST;
+  return userId && typeof userId === "string" && userId.trim()
+    ? userId.trim()
+    : STORAGE_GUEST;
 }
+function getIndexKey(s: string) { return `${STORAGE_INDEX_PREFIX}${s}`; }
+function getItemKey(s: string, id: string) { return `${STORAGE_ITEM_PREFIX}${s}_${id}`; }
 
-function getIndexKey(suffix: string): string {
-  return `${STORAGE_INDEX_PREFIX}${suffix}`;
-}
-
-function getItemKey(suffix: string, id: string): string {
-  return `${STORAGE_ITEM_PREFIX}${suffix}_${id}`;
-}
-
-/**
- * Génère un ID unique pour une analyse
- */
 function generateAnalysisId(): string {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 9);
-  return `${timestamp}_${random}`;
+  return `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 
-/**
- * Récupère l'index des analyses depuis localStorage (pour un utilisateur donné)
- */
-function getAnalysesIndex(suffix: string): string[] {
-  try {
-    const indexJson = localStorage.getItem(getIndexKey(suffix));
-    if (!indexJson) return [];
-    return JSON.parse(indexJson) as string[];
-  } catch (error) {
-    console.error("Error reading analyses index:", error);
-    return [];
-  }
-}
-
-/**
- * Sauvegarde l'index des analyses dans localStorage
- */
-function saveAnalysesIndex(index: string[], suffix: string): void {
-  try {
-    localStorage.setItem(getIndexKey(suffix), JSON.stringify(index));
-  } catch (error) {
-    console.error("Error saving analyses index:", error);
-  }
-}
-
-/**
- * Nettoie les anciennes analyses si on dépasse la limite
- */
-function cleanupOldAnalyses(suffix: string): void {
-  try {
-    const index = getAnalysesIndex(suffix);
-
-    if (index.length <= MAX_STORED_ANALYSES) {
-      return;
-    }
-
-    const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
-    const analysesWithTimestamps = index.map((id) => {
-      const stored = localStorage.getItem(prefix + id);
-      if (!stored) return { id, timestamp: 0 };
-
-      try {
-        const data = JSON.parse(stored) as StoredAnalysis;
-        return { id, timestamp: data.timestamp };
-      } catch {
-        return { id, timestamp: 0 };
-      }
-    });
-
-    analysesWithTimestamps.sort((a, b) => a.timestamp - b.timestamp);
-
-    const toRemove = analysesWithTimestamps.slice(0, index.length - MAX_STORED_ANALYSES);
-
-    for (const item of toRemove) {
-      localStorage.removeItem(prefix + item.id);
-    }
-
-    const newIndex = analysesWithTimestamps
-      .slice(index.length - MAX_STORED_ANALYSES)
-      .map((item) => item.id);
-
-    saveAnalysesIndex(newIndex, suffix);
-  } catch (error) {
-    console.error("Error cleaning up old analyses:", error);
-  }
-}
-
-/**
- * Vérifie si localStorage est disponible
- */
 function isLocalStorageAvailable(): boolean {
   try {
-    const test = "__localStorage_test__";
-    localStorage.setItem(test, test);
-    localStorage.removeItem(test);
+    const t = "__ls_test__";
+    localStorage.setItem(t, t);
+    localStorage.removeItem(t);
     return true;
-  } catch {
-    return false;
-  }
+  } catch { return false; }
+}
+
+function getAnalysesIndexLS(suffix: string): string[] {
+  try {
+    const raw = localStorage.getItem(getIndexKey(suffix));
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveAnalysesIndexLS(index: string[], suffix: string): void {
+  try { localStorage.setItem(getIndexKey(suffix), JSON.stringify(index)); } catch {}
+}
+
+function cleanupOldAnalysesLS(suffix: string): void {
+  try {
+    const index = getAnalysesIndexLS(suffix);
+    if (index.length <= MAX_STORED_ANALYSES) return;
+    const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
+    const items = index.map((id) => {
+      const s = localStorage.getItem(prefix + id);
+      if (!s) return { id, timestamp: 0 };
+      try { return { id, timestamp: (JSON.parse(s) as StoredAnalysis).timestamp }; }
+      catch { return { id, timestamp: 0 }; }
+    });
+    items.sort((a, b) => a.timestamp - b.timestamp);
+    const toRemove = items.slice(0, items.length - MAX_STORED_ANALYSES);
+    for (const item of toRemove) localStorage.removeItem(prefix + item.id);
+    saveAnalysesIndexLS(items.slice(items.length - MAX_STORED_ANALYSES).map((i) => i.id), suffix);
+  } catch {}
 }
 
 // ============================================================================
-// STORAGE FUNCTIONS
+// INTERNAL HELPERS — Supabase
+// ============================================================================
+
+async function getSupabaseUserId(): Promise<string | null> {
+  const { data } = await supabase.auth.getUser();
+  return data.user?.id ?? null;
+}
+
+/**
+ * Reconstruct a full AnalysisResult from the Supabase row + signed image URLs.
+ */
+async function rowToAnalysisResult(row: any, userId: string): Promise<AnalysisResult> {
+  // Get signed URLs for images
+  let plots: Record<string, string> = {};
+  if (row.plot_keys && row.plot_keys.length > 0) {
+    plots = await getPlotSignedUrls(userId, row.id, row.plot_keys);
+  }
+
+  return {
+    success: true,
+    analysis_id: row.id,
+    timestamp: row.created_at,
+    corners_detected: row.corners_detected ?? 0,
+    lap_time: row.lap_time ?? 0,
+    best_lap_time: row.best_lap_time,
+    lap_times: row.lap_times,
+    performance_score: row.performance_score ?? { overall_score: 0, grade: "C", breakdown: {} },
+    corner_analysis: row.corner_analysis ?? [],
+    coaching_advice: row.coaching_advice ?? [],
+    plots,
+    statistics: row.statistics ?? {},
+    session_conditions: row.session_conditions,
+    plot_data: row.plot_data,
+  };
+}
+
+// ============================================================================
+// PUBLIC API — Analyses
 // ============================================================================
 
 /**
- * Sauvegarde un résultat d'analyse (isolé par compte : analyses_${userId} ou guest)
- *
- * @param result - Résultat de l'analyse à sauvegarder
- * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
- * @returns ID unique de l'analyse sauvegardée
+ * Save an analysis result.
+ * - Authenticated user → Supabase DB + Storage
+ * - Guest → localStorage
  */
 export async function saveAnalysis(result: AnalysisResult, userId?: string | null): Promise<string> {
-  if (!isLocalStorageAvailable()) {
-    throw new Error("localStorage n'est pas disponible dans ce navigateur");
-  }
+  const supaUserId = await getSupabaseUserId();
 
-  const suffix = getStorageSuffix(userId);
-
-  try {
+  // ─── Supabase path ───
+  if (supaUserId) {
     const analysisId = result.analysis_id || generateAnalysisId();
-    const timestamp = Date.now();
 
-    const stored: StoredAnalysis = {
-      id: analysisId,
-      timestamp,
-      result: {
-        ...result,
-        analysis_id: analysisId,
-      },
-    };
-
-    const storageKey = getItemKey(suffix, analysisId);
-    localStorage.setItem(storageKey, JSON.stringify(stored));
-
-    const index = getAnalysesIndex(suffix);
-    if (!index.includes(analysisId)) {
-      index.push(analysisId);
-      saveAnalysesIndex(index, suffix);
+    // 1. Upload plot images to Storage bucket
+    let plotKeys: string[] = [];
+    if (result.plots && typeof result.plots === "object") {
+      plotKeys = await uploadPlotImages(supaUserId, analysisId, result.plots as Record<string, string>);
     }
 
-    cleanupOldAnalyses(suffix);
+    // 2. Insert row into analyses table
+    const { error } = await supabase.from("analyses").upsert({
+      id: analysisId,
+      user_id: supaUserId,
+      created_at: new Date().toISOString(),
+      score: Math.round(result.performance_score?.overall_score ?? 0),
+      grade: result.performance_score?.grade ?? "C",
+      lap_time: result.lap_time,
+      best_lap_time: result.best_lap_time,
+      corners_detected: result.corners_detected,
+      circuit_name: result.session_conditions?.circuit_name,
+      session_name: result.session_conditions?.session_name,
+      session_type: "practice",
+      corner_analysis: result.corner_analysis,
+      coaching_advice: result.coaching_advice,
+      plot_data: result.plot_data,
+      performance_score: result.performance_score,
+      statistics: result.statistics,
+      session_conditions: result.session_conditions,
+      lap_times: result.lap_times,
+      plot_keys: plotKeys,
+    });
+
+    if (error) throw new Error(`Supabase save failed: ${error.message}`);
+
+    // 3. Also cache lightweight metadata in localStorage for fast reads
+    try {
+      const cacheKey = `apex_cache_${supaUserId}`;
+      const cache = JSON.parse(localStorage.getItem(cacheKey) || "[]") as AnalysisSummary[];
+      const summary: AnalysisSummary = {
+        id: analysisId,
+        date: new Date().toISOString(),
+        timestamp: Date.now(),
+        score: Math.round(result.performance_score?.overall_score ?? 0),
+        corner_count: result.corners_detected,
+        lap_time: result.lap_time,
+        grade: result.performance_score?.grade ?? "C",
+        circuit_name: result.session_conditions?.circuit_name || undefined,
+        session_name: result.session_conditions?.session_name || undefined,
+      };
+      cache.unshift(summary);
+      localStorage.setItem(cacheKey, JSON.stringify(cache.slice(0, 50)));
+    } catch {}
 
     return analysisId;
-  } catch (error) {
-    console.error("Error saving analysis:", error);
-    throw new Error(
-      `Erreur lors de la sauvegarde: ${error instanceof Error ? error.message : "Erreur inconnue"}`
-    );
   }
+
+  // ─── Guest fallback (localStorage) ───
+  if (!isLocalStorageAvailable()) throw new Error("localStorage non disponible");
+
+  const suffix = getStorageSuffix(userId);
+  const analysisId = result.analysis_id || generateAnalysisId();
+  const stored: StoredAnalysis = {
+    id: analysisId,
+    timestamp: Date.now(),
+    result: { ...result, analysis_id: analysisId },
+  };
+  localStorage.setItem(getItemKey(suffix, analysisId), JSON.stringify(stored));
+  const index = getAnalysesIndexLS(suffix);
+  if (!index.includes(analysisId)) {
+    index.push(analysisId);
+    saveAnalysesIndexLS(index, suffix);
+  }
+  cleanupOldAnalysesLS(suffix);
+  return analysisId;
 }
 
 /**
- * Récupère toutes les analyses sauvegardées pour l'utilisateur courant (résumés)
- *
- * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
- * @returns Tableau des résumés d'analyses, trié par date (plus récent en premier)
+ * Get all analysis summaries (lightweight list).
  */
 export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSummary[]> {
-  if (!isLocalStorageAvailable()) {
-    return [];
-  }
+  const supaUserId = await getSupabaseUserId();
 
-  const suffix = getStorageSuffix(userId);
+  // ─── Supabase path ───
+  if (supaUserId) {
+    const { data, error } = await supabase
+      .from("analyses")
+      .select("id, created_at, score, grade, lap_time, corners_detected, circuit_name, session_name")
+      .eq("user_id", supaUserId)
+      .order("created_at", { ascending: false });
 
-  try {
-    const index = getAnalysesIndex(suffix);
-    const summaries: AnalysisSummary[] = [];
-    const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
-
-    for (const id of index) {
+    if (error) {
+      console.error("[Supabase] getAllAnalyses failed:", error.message);
+      // Fallback to cache
       try {
-        const storedJson = localStorage.getItem(prefix + id);
-        if (!storedJson) continue;
-
-        const stored = JSON.parse(storedJson) as StoredAnalysis;
-        const result = stored.result;
-
-        summaries.push({
-          id: stored.id,
-          date: new Date(stored.timestamp).toISOString(),
-          timestamp: stored.timestamp,
-          score: Math.round(result.performance_score.overall_score),
-          corner_count: result.corners_detected,
-          lap_time: result.lap_time,
-          grade: result.performance_score.grade,
-          filename: result.analysis_id ? `${result.analysis_id}.json` : undefined,
-          circuit_name: result.session_conditions?.circuit_name || undefined,
-          session_name: result.session_conditions?.session_name || undefined,
-        });
-      } catch (error) {
-        console.warn(`Error reading analysis ${id}:`, error);
-      }
+        const cache = JSON.parse(localStorage.getItem(`apex_cache_${supaUserId}`) || "[]");
+        return cache as AnalysisSummary[];
+      } catch { return []; }
     }
 
-    summaries.sort((a, b) => b.timestamp - a.timestamp);
+    const summaries: AnalysisSummary[] = (data || []).map((row: any) => ({
+      id: row.id,
+      date: row.created_at,
+      timestamp: new Date(row.created_at).getTime(),
+      score: row.score,
+      corner_count: row.corners_detected ?? 0,
+      lap_time: row.lap_time ?? 0,
+      grade: row.grade,
+      circuit_name: row.circuit_name || undefined,
+      session_name: row.session_name || undefined,
+    }));
+
+    // Update the lightweight cache
+    try {
+      localStorage.setItem(`apex_cache_${supaUserId}`, JSON.stringify(summaries.slice(0, 50)));
+    } catch {}
 
     return summaries;
-  } catch (error) {
-    console.error("Error getting all analyses:", error);
-    return [];
   }
+
+  // ─── Guest fallback ───
+  if (!isLocalStorageAvailable()) return [];
+  const suffix = getStorageSuffix(userId);
+  const index = getAnalysesIndexLS(suffix);
+  const summaries: AnalysisSummary[] = [];
+  const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
+  for (const id of index) {
+    try {
+      const raw = localStorage.getItem(prefix + id);
+      if (!raw) continue;
+      const stored = JSON.parse(raw) as StoredAnalysis;
+      const r = stored.result;
+      summaries.push({
+        id: stored.id,
+        date: new Date(stored.timestamp).toISOString(),
+        timestamp: stored.timestamp,
+        score: Math.round(r.performance_score.overall_score),
+        corner_count: r.corners_detected,
+        lap_time: r.lap_time,
+        grade: r.performance_score.grade,
+        circuit_name: r.session_conditions?.circuit_name || undefined,
+        session_name: r.session_conditions?.session_name || undefined,
+      });
+    } catch {}
+  }
+  summaries.sort((a, b) => b.timestamp - a.timestamp);
+  return summaries;
 }
 
 /**
- * Récupère une analyse complète par son ID (pour l'utilisateur courant)
- *
- * @param id - ID de l'analyse
- * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
- * @returns Résultat complet de l'analyse ou null si non trouvé
+ * Get a full analysis by ID.
  */
 export async function getAnalysisById(id: string, userId?: string | null): Promise<AnalysisResult | null> {
-  if (!isLocalStorageAvailable()) {
-    return null;
-  }
+  if (!id || !id.trim()) return null;
 
-  if (!id || id.trim() === "") {
-    return null;
-  }
+  const supaUserId = await getSupabaseUserId();
 
-  const suffix = getStorageSuffix(userId);
+  // ─── Supabase path ───
+  if (supaUserId) {
+    const { data, error } = await supabase
+      .from("analyses")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", supaUserId)
+      .single();
 
-  try {
-    const storageKey = getItemKey(suffix, id);
-    const storedJson = localStorage.getItem(storageKey);
-
-    if (!storedJson) {
+    if (error || !data) {
+      console.warn("[Supabase] getAnalysisById failed:", error?.message);
       return null;
     }
 
-    const stored = JSON.parse(storedJson) as StoredAnalysis;
-    return stored.result;
-  } catch (error) {
-    console.error(`Error getting analysis ${id}:`, error);
-    return null;
+    return rowToAnalysisResult(data, supaUserId);
   }
+
+  // ─── Guest fallback ───
+  if (!isLocalStorageAvailable()) return null;
+  const suffix = getStorageSuffix(userId);
+  try {
+    const raw = localStorage.getItem(getItemKey(suffix, id));
+    if (!raw) return null;
+    return (JSON.parse(raw) as StoredAnalysis).result;
+  } catch { return null; }
 }
 
 /**
- * Supprime une analyse (pour l'utilisateur courant)
- *
- * @param id - ID de l'analyse à supprimer
- * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
- * @returns true si la suppression a réussi, false sinon
+ * Delete an analysis.
  */
 export async function deleteAnalysis(id: string, userId?: string | null): Promise<boolean> {
-  if (!isLocalStorageAvailable()) {
-    return false;
-  }
+  if (!id || !id.trim()) return false;
 
-  if (!id || id.trim() === "") {
-    return false;
-  }
+  const supaUserId = await getSupabaseUserId();
 
-  const suffix = getStorageSuffix(userId);
+  // ─── Supabase path ───
+  if (supaUserId) {
+    // Get plot_keys before deleting the row
+    const { data: row } = await supabase
+      .from("analyses")
+      .select("plot_keys")
+      .eq("id", id)
+      .eq("user_id", supaUserId)
+      .single();
 
-  try {
-    const storageKey = getItemKey(suffix, id);
+    // Delete images from bucket
+    if (row?.plot_keys?.length > 0) {
+      await deletePlotImages(supaUserId, id, row.plot_keys);
+    }
 
-    if (!localStorage.getItem(storageKey)) {
+    // Delete row
+    const { error } = await supabase
+      .from("analyses")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", supaUserId);
+
+    if (error) {
+      console.error("[Supabase] deleteAnalysis failed:", error.message);
       return false;
     }
 
-    localStorage.removeItem(storageKey);
-
-    const index = getAnalysesIndex(suffix);
-    const newIndex = index.filter((analysisId) => analysisId !== id);
-    saveAnalysesIndex(newIndex, suffix);
+    // Remove from cache
+    try {
+      const cacheKey = `apex_cache_${supaUserId}`;
+      const cache = JSON.parse(localStorage.getItem(cacheKey) || "[]") as AnalysisSummary[];
+      localStorage.setItem(cacheKey, JSON.stringify(cache.filter((a) => a.id !== id)));
+    } catch {}
 
     return true;
-  } catch (error) {
-    console.error(`Error deleting analysis ${id}:`, error);
-    return false;
   }
+
+  // ─── Guest fallback ───
+  if (!isLocalStorageAvailable()) return false;
+  const suffix = getStorageSuffix(userId);
+  try {
+    const key = getItemKey(suffix, id);
+    if (!localStorage.getItem(key)) return false;
+    localStorage.removeItem(key);
+    const index = getAnalysesIndexLS(suffix);
+    saveAnalysesIndexLS(index.filter((x) => x !== id), suffix);
+    return true;
+  } catch { return false; }
 }
 
 /**
- * Exporte une analyse en tant que Blob JSON téléchargeable
- *
- * @param id - ID de l'analyse à exporter
- * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
- * @returns Blob contenant le JSON de l'analyse
+ * Export analysis as JSON Blob.
  */
 export async function exportAnalysisAsJSON(id: string, userId?: string | null): Promise<Blob> {
   const analysis = await getAnalysisById(id, userId);
-
-  if (!analysis) {
-    throw new Error(`Analyse non trouvée: ${id}`);
-  }
-
-  try {
-    const jsonString = JSON.stringify(analysis, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    return blob;
-  } catch (error) {
-    console.error(`Error exporting analysis ${id}:`, error);
-    throw new Error(
-      `Erreur lors de l'export: ${error instanceof Error ? error.message : "Erreur inconnue"}`
-    );
-  }
+  if (!analysis) throw new Error(`Analyse non trouvée: ${id}`);
+  return new Blob([JSON.stringify(analysis, null, 2)], { type: "application/json" });
 }
 
 /**
- * Télécharge une analyse en tant que fichier JSON
- *
- * @param id - ID de l'analyse à télécharger
- * @param filename - Nom du fichier (optionnel, par défaut: apex-analysis-{id}.json)
- * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
+ * Download analysis as JSON file.
  */
 export async function downloadAnalysis(id: string, filename?: string, userId?: string | null): Promise<void> {
-  try {
-    const blob = await exportAnalysisAsJSON(id, userId);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename || `apex-analysis-${id}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error(`Error downloading analysis ${id}:`, error);
-    throw error;
-  }
+  const blob = await exportAnalysisAsJSON(id, userId);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename || `apex-analysis-${id}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /**
- * Récupère le nombre d'analyses sauvegardées pour l'utilisateur courant
- *
- * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
- * @returns Nombre d'analyses dans le stockage
+ * Get count of stored analyses.
  */
 export async function getAnalysesCount(userId?: string | null): Promise<number> {
-  if (!isLocalStorageAvailable()) {
-    return 0;
+  const supaUserId = await getSupabaseUserId();
+
+  if (supaUserId) {
+    const { count, error } = await supabase
+      .from("analyses")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", supaUserId);
+
+    if (!error && count !== null) return count;
   }
 
-  const suffix = getStorageSuffix(userId);
-
-  try {
-    const index = getAnalysesIndex(suffix);
-    return index.length;
-  } catch (error) {
-    console.error("Error getting analyses count:", error);
-    return 0;
-  }
+  if (!isLocalStorageAvailable()) return 0;
+  return getAnalysesIndexLS(getStorageSuffix(userId)).length;
 }
 
 /**
- * Vide toutes les analyses sauvegardées pour l'utilisateur courant (pas le localStorage global)
- *
- * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
- * @returns Nombre d'analyses supprimées
+ * Clear all analyses.
  */
 export async function clearAllAnalyses(userId?: string | null): Promise<number> {
-  if (!isLocalStorageAvailable()) {
-    return 0;
-  }
+  const supaUserId = await getSupabaseUserId();
 
-  const suffix = getStorageSuffix(userId);
+  if (supaUserId) {
+    // Get all analyses to delete their images
+    const { data } = await supabase
+      .from("analyses")
+      .select("id, plot_keys")
+      .eq("user_id", supaUserId);
 
-  try {
-    const index = getAnalysesIndex(suffix);
-    let deletedCount = 0;
-    const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
-
-    for (const id of index) {
-      try {
-        localStorage.removeItem(prefix + id);
-        deletedCount++;
-      } catch (error) {
-        console.warn(`Error deleting analysis ${id}:`, error);
+    if (data && data.length > 0) {
+      for (const row of data) {
+        if (row.plot_keys?.length > 0) {
+          await deletePlotImages(supaUserId, row.id, row.plot_keys);
+        }
       }
+      await supabase.from("analyses").delete().eq("user_id", supaUserId);
     }
 
-    localStorage.removeItem(getIndexKey(suffix));
-
-    return deletedCount;
-  } catch (error) {
-    console.error("Error clearing all analyses:", error);
-    return 0;
+    try { localStorage.removeItem(`apex_cache_${supaUserId}`); } catch {}
+    return data?.length ?? 0;
   }
+
+  if (!isLocalStorageAvailable()) return 0;
+  const suffix = getStorageSuffix(userId);
+  const index = getAnalysesIndexLS(suffix);
+  let count = 0;
+  const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
+  for (const id of index) {
+    try { localStorage.removeItem(prefix + id); count++; } catch {}
+  }
+  localStorage.removeItem(getIndexKey(suffix));
+  return count;
 }
 
 /**
- * Vérifie si une analyse existe pour l'utilisateur courant
- *
- * @param id - ID de l'analyse
- * @param userId - ID de l'utilisateur connecté (null/undefined = guest)
- * @returns true si l'analyse existe, false sinon
+ * Check if an analysis exists.
  */
 export async function analysisExists(id: string, userId?: string | null): Promise<boolean> {
-  if (!isLocalStorageAvailable() || !id || id.trim() === "") {
-    return false;
+  if (!id || !id.trim()) return false;
+
+  const supaUserId = await getSupabaseUserId();
+
+  if (supaUserId) {
+    const { count } = await supabase
+      .from("analyses")
+      .select("id", { count: "exact", head: true })
+      .eq("id", id)
+      .eq("user_id", supaUserId);
+
+    return (count ?? 0) > 0;
   }
 
-  const suffix = getStorageSuffix(userId);
-
-  try {
-    const storageKey = getItemKey(suffix, id);
-    return localStorage.getItem(storageKey) !== null;
-  } catch (error) {
-    console.error(`Error checking if analysis ${id} exists:`, error);
-    return false;
-  }
+  if (!isLocalStorageAvailable()) return false;
+  return localStorage.getItem(getItemKey(getStorageSuffix(userId), id)) !== null;
 }
 
 // ============================================================================
-// FOLDERS
+// FOLDERS — Supabase for auth users, localStorage for guests
 // ============================================================================
 
 export interface AnalysisFolder {
@@ -466,21 +508,41 @@ export interface AnalysisFolder {
 }
 
 const FOLDERS_KEY_PREFIX = "apex_folders_";
-
-function getFoldersKey(userId: string | null | undefined): string {
+function getFoldersKeyLS(userId: string | null | undefined) {
   return `${FOLDERS_KEY_PREFIX}${getStorageSuffix(userId)}`;
 }
 
 export function getAllFolders(userId?: string | null): AnalysisFolder[] {
+  // Sync function — uses localStorage cache. Supabase sync happens via hooks.
   try {
-    const raw = localStorage.getItem(getFoldersKey(userId));
-    if (!raw) return [];
-    return JSON.parse(raw) as AnalysisFolder[];
+    const raw = localStorage.getItem(getFoldersKeyLS(userId));
+    return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
 
 export function saveFolders(folders: AnalysisFolder[], userId?: string | null): void {
-  localStorage.setItem(getFoldersKey(userId), JSON.stringify(folders));
+  localStorage.setItem(getFoldersKeyLS(userId), JSON.stringify(folders));
+
+  // Also sync to Supabase in background (fire-and-forget)
+  syncFoldersToSupabase(folders).catch(() => {});
+}
+
+async function syncFoldersToSupabase(folders: AnalysisFolder[]): Promise<void> {
+  const supaUserId = await getSupabaseUserId();
+  if (!supaUserId) return;
+
+  // Upsert all folders
+  const rows = folders.map((f) => ({
+    id: f.id,
+    user_id: supaUserId,
+    name: f.name,
+    parent_id: f.parentId,
+    created_at: new Date(f.createdAt).toISOString(),
+  }));
+
+  if (rows.length > 0) {
+    await supabase.from("folders").upsert(rows);
+  }
 }
 
 export function createFolder(name: string, parentId: string | null, userId?: string | null): AnalysisFolder {
@@ -505,33 +567,46 @@ export function renameFolder(folderId: string, newName: string, userId?: string 
 
 export function deleteFolder(folderId: string, userId?: string | null): void {
   let folders = getAllFolders(userId);
-  // Remove this folder + children recursively
   const toRemove = new Set<string>();
-  const collectChildren = (id: string) => {
+  const collect = (id: string) => {
     toRemove.add(id);
-    folders.filter((f) => f.parentId === id).forEach((f) => collectChildren(f.id));
+    folders.filter((f) => f.parentId === id).forEach((f) => collect(f.id));
   };
-  collectChildren(folderId);
+  collect(folderId);
   folders = folders.filter((f) => !toRemove.has(f.id));
   saveFolders(folders, userId);
+
+  // Also delete from Supabase
+  (async () => {
+    const supaUserId = await getSupabaseUserId();
+    if (supaUserId) {
+      for (const id of toRemove) {
+        await supabase.from("folders").delete().eq("id", id).eq("user_id", supaUserId);
+      }
+    }
+  })().catch(() => {});
 }
 
 export function moveAnalysisToFolder(analysisId: string, folderId: string | null, userId?: string | null): void {
   const folders = getAllFolders(userId);
-  // Remove from all folders first
-  for (const f of folders) {
-    f.analysisIds = f.analysisIds.filter((id) => id !== analysisId);
-  }
-  // Add to target folder
+  for (const f of folders) f.analysisIds = f.analysisIds.filter((id) => id !== analysisId);
   if (folderId) {
     const target = folders.find((f) => f.id === folderId);
     if (target) target.analysisIds.push(analysisId);
   }
   saveFolders(folders, userId);
+
+  // Also update the analysis row in Supabase
+  (async () => {
+    const supaUserId = await getSupabaseUserId();
+    if (supaUserId) {
+      await supabase.from("analyses").update({ folder_id: folderId }).eq("id", analysisId).eq("user_id", supaUserId);
+    }
+  })().catch(() => {});
 }
 
 // ============================================================================
-// OBJECTIVES (for subscriber home)
+// OBJECTIVES
 // ============================================================================
 
 export interface UserObjective {
@@ -560,7 +635,102 @@ export function saveObjectives(objectives: UserObjective[], userId?: string | nu
 }
 
 // ============================================================================
-// EXPORTS
+// MIGRATION — One-shot localStorage → Supabase
+// ============================================================================
+
+/**
+ * Migrate all analyses from localStorage to Supabase.
+ * Called once on first Dashboard load for authenticated users.
+ */
+export async function migrateLocalStorageToSupabase(userId: string): Promise<number> {
+  const migrationKey = `${MIGRATION_KEY_PREFIX}${userId}`;
+
+  // Already migrated?
+  if (localStorage.getItem(migrationKey) === "done") return 0;
+
+  const suffix = getStorageSuffix(userId);
+  const index = getAnalysesIndexLS(suffix);
+  if (index.length === 0) {
+    localStorage.setItem(migrationKey, "done");
+    return 0;
+  }
+
+  console.log(`[Migration] Starting migration of ${index.length} analyses to Supabase...`);
+  let migrated = 0;
+  const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
+
+  for (const id of index) {
+    try {
+      const raw = localStorage.getItem(prefix + id);
+      if (!raw) continue;
+
+      const stored = JSON.parse(raw) as StoredAnalysis;
+
+      // Check if already in Supabase
+      const { count } = await supabase
+        .from("analyses")
+        .select("id", { count: "exact", head: true })
+        .eq("id", stored.id);
+
+      if ((count ?? 0) > 0) {
+        // Already exists, skip upload but remove from localStorage
+        localStorage.removeItem(prefix + id);
+        migrated++;
+        continue;
+      }
+
+      // Save to Supabase via our own function
+      await saveAnalysis(stored.result, userId);
+
+      // Remove from localStorage
+      localStorage.removeItem(prefix + id);
+      migrated++;
+      console.log(`[Migration] Migrated analysis ${stored.id}`);
+    } catch (err) {
+      console.warn(`[Migration] Failed to migrate analysis ${id}:`, err);
+    }
+  }
+
+  // Clean up localStorage index
+  localStorage.removeItem(getIndexKey(suffix));
+  localStorage.setItem(migrationKey, "done");
+
+  console.log(`[Migration] Done! Migrated ${migrated}/${index.length} analyses.`);
+  return migrated;
+}
+
+// Also try migrating "guest" analyses if the user was previously a guest
+export async function migrateGuestAnalyses(): Promise<number> {
+  const supaUserId = await getSupabaseUserId();
+  if (!supaUserId) return 0;
+
+  const guestIndex = getAnalysesIndexLS(STORAGE_GUEST);
+  if (guestIndex.length === 0) return 0;
+
+  console.log(`[Migration] Found ${guestIndex.length} guest analyses to migrate...`);
+  let migrated = 0;
+  const prefix = `${STORAGE_ITEM_PREFIX}${STORAGE_GUEST}_`;
+
+  for (const id of guestIndex) {
+    try {
+      const raw = localStorage.getItem(prefix + id);
+      if (!raw) continue;
+      const stored = JSON.parse(raw) as StoredAnalysis;
+      await saveAnalysis(stored.result, supaUserId);
+      localStorage.removeItem(prefix + id);
+      migrated++;
+    } catch (err) {
+      console.warn(`[Migration] Failed to migrate guest analysis ${id}:`, err);
+    }
+  }
+
+  localStorage.removeItem(getIndexKey(STORAGE_GUEST));
+  console.log(`[Migration] Migrated ${migrated} guest analyses.`);
+  return migrated;
+}
+
+// ============================================================================
+// DEFAULT EXPORT (backwards compatibility)
 // ============================================================================
 
 export default {
@@ -581,5 +751,6 @@ export default {
   moveAnalysisToFolder,
   getObjectives,
   saveObjectives,
+  migrateLocalStorageToSupabase,
+  migrateGuestAnalyses,
 };
-
