@@ -522,7 +522,7 @@ export default function Dashboard() {
                         : undefined
                     }
                     transparent
-                    padding={40}
+                    padding={80}
                     className="h-full"
                     hideLabels={true}
                   />

@@ -192,15 +192,15 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     <div className={`w-full relative ${transparent ? "" : "glass-card p-4"} flex justify-center items-center ${className}`} aria-label="Track map">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="w-full h-auto max-h-[600px] drop-shadow-2xl overflow-visible"
+        className="w-full h-auto max-h-[600px] drop-shadow-2xl overflow-hidden"
         style={{ aspectRatio: `${width} / ${height}` }}
       >
         {trackPolyline && (
           <>
-            <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth="30" strokeLinecap="round" strokeLinejoin="round" opacity={0.15} style={{ filter: "blur(8px)" }} />
-            <polyline points={trackPolyline} fill="none" className="stroke-secondary-foreground/20" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" />
-            <polyline points={trackPolyline} fill="none" className="stroke-border" strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" opacity={0.5} strokeDasharray="10 10" />
-            <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth={hideLabels ? "12" : "30"} strokeLinecap="round" strokeLinejoin="round" opacity={0.15} style={{ filter: "blur(8px)" }} />
+            <polyline points={trackPolyline} fill="none" className="stroke-secondary-foreground/20" strokeWidth={hideLabels ? "8" : "24"} strokeLinecap="round" strokeLinejoin="round" />
+            <polyline points={trackPolyline} fill="none" className="stroke-border" strokeWidth={hideLabels ? "10" : "26"} strokeLinecap="round" strokeLinejoin="round" opacity={0.5} strokeDasharray="10 10" />
+            <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth={hideLabels ? "2" : "3"} strokeLinecap="round" strokeLinejoin="round" />
           </>
         )}
         {refPolyline && (
