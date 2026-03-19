@@ -534,7 +534,7 @@ export default function Dashboard() {
                     {featuredAnalysis.session_conditions?.session_name || featuredAnalysis.session_conditions?.circuit_name || featuredAnalysis.analysis_id || "Session"}
                   </h3>
                   <p className="text-muted-foreground text-sm md:text-lg mb-6 uppercase tracking-widest flex items-center gap-2">
-                    {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> {((featuredAnalysis as any).session_type || "practice").toUpperCase()}
+                    {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> {(featuredAnalysis.session_type || "practice").toUpperCase()}
                   </p>
 
                   <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 md:mb-8 max-w-2xl">

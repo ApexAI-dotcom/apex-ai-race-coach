@@ -224,6 +224,7 @@ export interface AnalysisResult {
   plots: PlotUrls;
   statistics: Statistics;
   session_conditions?: SessionConditions | null;
+  session_type?: string;
   plot_data?: PlotData;
 }
 
