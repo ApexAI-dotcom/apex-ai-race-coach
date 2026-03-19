@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "sonner";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useUser, useAuth } from "@/hooks/useAuth";
@@ -91,12 +92,11 @@ export default function Profile() {
       setUploadingAvatar(true);
       setError(null);
       const publicUrl = await uploadAvatar(user.id, file);
-      // Update Supabase user metadata with the avatar URL
-      await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
       setCurrentAvatarUrl(publicUrl);
+      toast.success("Photo mise à jour !");
     } catch (err) {
       console.error("Avatar upload error:", err);
-      setError(err instanceof Error ? err.message : "Erreur lors de l'upload de l'avatar");
+      setError(err instanceof Error ? err.message : "Erreur lors de l'upload");
     } finally {
       setUploadingAvatar(false);
     }

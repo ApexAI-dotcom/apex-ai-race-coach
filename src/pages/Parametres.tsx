@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Settings, Save, Sun, Moon, User, ImagePlus, Loader2 } from "lucide-react";
+import { Settings, Save, Sun, Moon, User, ImagePlus, Loader2, Camera } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
@@ -105,20 +105,18 @@ export default function Parametres() {
     if (!user) return;
     setSavingProfile(true);
     const full_name = displayName.trim() || null;
-    const avatar_url = avatarUrl.trim() || null;
     try {
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
           full_name,
-          avatar_url,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
       if (profileError) throw profileError;
-      // Garder auth user_metadata en sync pour l'affichage ailleurs
+      // Garder auth user_metadata en sync pour le nom
       const { error: authError } = await supabase.auth.updateUser({
-        data: { full_name, avatar_url },
+        data: { full_name },
       });
       if (authError) throw authError;
       const nomPilote = full_name || settings.nomPilote;
@@ -151,7 +149,7 @@ export default function Parametres() {
     try {
       const publicUrl = await uploadAvatar(user.id, file);
       setAvatarUrl(publicUrl);
-      toast.success("Photo téléversée.");
+      toast.success("Photo mise à jour !");
     } catch (err) {
       console.error("Avatar upload error:", err);
       toast.error(err instanceof Error ? err.message : "Échec du téléversement.");
@@ -193,14 +191,30 @@ export default function Parametres() {
               </div>
               <div className="flex flex-col sm:flex-row gap-6">
                 <div className="flex flex-col items-center gap-3">
-                  <Avatar className="w-24 h-24 rounded-2xl border-2 border-primary/20">
-                    {avatarUrl ? (
-                      <AvatarImage src={avatarUrl} alt="Avatar" className="object-cover" />
-                    ) : null}
-                    <AvatarFallback className="rounded-2xl gradient-primary text-2xl text-primary-foreground">
-                      {(displayName || user.email || "U").slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div 
+                    className="relative group cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Avatar className="w-24 h-24 rounded-2xl border-2 border-primary/20 group-hover:border-primary/50 transition-colors shadow-lg">
+                      {avatarUrl ? (
+                        <AvatarImage src={avatarUrl} alt="Avatar" className="object-cover" />
+                      ) : null}
+                      <AvatarFallback className="rounded-2xl gradient-primary text-2xl text-primary-foreground font-bold">
+                        {(displayName || user.email || "U").slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="absolute inset-0 rounded-2xl bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
+                      {uploadingAvatar ? (
+                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                      ) : (
+                        <>
+                          <Camera className="w-6 h-6 text-white mb-1" />
+                          <span className="text-[10px] text-white font-medium uppercase tracking-wider">Changer</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -232,16 +246,6 @@ export default function Parametres() {
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder={user.email?.split("@")[0] || "moreauy58"}
-                      className="mt-2 w-full p-4 border-2 rounded-xl focus-visible:ring-4 focus-visible:ring-primary/20"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Ou URL de la photo de profil</Label>
-                    <Input
-                      type="url"
-                      value={avatarUrl}
-                      onChange={(e) => setAvatarUrl(e.target.value)}
-                      placeholder="https://..."
                       className="mt-2 w-full p-4 border-2 rounded-xl focus-visible:ring-4 focus-visible:ring-primary/20"
                     />
                   </div>
