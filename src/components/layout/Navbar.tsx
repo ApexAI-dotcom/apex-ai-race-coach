@@ -131,7 +131,7 @@ export const Navbar = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="fixed inset-y-0 right-0 w-full max-w-sm bg-background border-l border-white/5 shadow-2xl p-6 pt-20"
+              className="fixed inset-y-0 right-0 w-full max-w-sm bg-slate-950/95 backdrop-blur-xl border-l border-white/10 shadow-2xl p-6 pt-20"
             >
               <div className="space-y-6">
                 {navItems.map((item) => (
