@@ -114,29 +114,55 @@ export async function deletePlotImages(
 
 /**
  * Upload a user avatar.
- * @returns Public URL of the uploaded avatar
+ * Automates:
+ * 1. Storage upload (bucket "avatars", path "{userId}/avatar.jpg")
+ * 2. Auth metadata update (avatar_url)
+ * 3. Profiles table update (avatar_url)
+ * @returns Public URL of the uploaded avatar (with cache busting)
  */
 export async function uploadAvatar(
   userId: string,
   file: File
 ): Promise<string> {
-  const ext = file.name.split(".").pop() || "jpg";
-  const path = `${userId}/avatar.${ext}`;
+  // Always use avatar.jpg to avoid multiple files per user
+  const path = `${userId}/avatar.jpg`;
 
-  const { error } = await supabase.storage
+  // 1. Storage Upload
+  const { error: uploadError } = await supabase.storage
     .from(AVATARS_BUCKET)
     .upload(path, file, {
-      contentType: file.type,
+      contentType: "image/jpeg",
       upsert: true,
     });
 
-  if (error) throw new Error(`Avatar upload failed: ${error.message}`);
+  if (uploadError) throw new Error(`Avatar upload failed: ${uploadError.message}`);
 
-  const { data } = supabase.storage
+  // 2. Get Public URL + Cache Busting
+  const { data: { publicUrl } } = supabase.storage
     .from(AVATARS_BUCKET)
     .getPublicUrl(path);
+    
+  const finalUrl = `${publicUrl}?t=${Date.now()}`;
 
-  return data.publicUrl;
+  // 3. Update Auth Metadata
+  const { error: authError } = await supabase.auth.updateUser({
+    data: { avatar_url: finalUrl }
+  });
+  if (authError) console.warn("[Supabase] Failed to update auth metadata:", authError.message);
+
+  // 4. Update Profiles Table
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ avatar_url: finalUrl, updated_at: new Date().toISOString() })
+    .eq("id", userId);
+    
+  if (profileError) {
+    // If profiles table update fails, it might be because the row doesn't exist yet
+    // Try to insert if it's a "no rows affected" situation (though .update doesn't error on 0 rows)
+    console.warn("[Supabase] Failed to update profiles table:", profileError.message);
+  }
+
+  return finalUrl;
 }
 
 /**

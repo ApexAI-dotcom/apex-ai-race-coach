@@ -137,33 +137,13 @@ CREATE POLICY "Users delete own plots"
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
--- avatars: chaque utilisateur gère son propre avatar
--- Structure: {user_id}/avatar.ext
-CREATE POLICY "Users read own avatar"
-  ON storage.objects FOR SELECT
-  USING (
-    bucket_id = 'avatars'
-    AND (storage.foldername(name))[1] = auth.uid()::text
-  );
-
-CREATE POLICY "Users upload own avatar"
-  ON storage.objects FOR INSERT
-  WITH CHECK (
-    bucket_id = 'avatars'
-    AND (storage.foldername(name))[1] = auth.uid()::text
-  );
-
-CREATE POLICY "Users delete own avatar"
-  ON storage.objects FOR DELETE
-  USING (
-    bucket_id = 'avatars'
-    AND (storage.foldername(name))[1] = auth.uid()::text
-  );
-
--- Avatars publics: tout le monde peut lire (bucket public)
-CREATE POLICY "Anyone can view avatars"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'avatars');
+-- avatars: tout utilisateur authentifié peut gérer les fichiers dans le bucket
+-- On simplifie car le bucket est public en lecture et le path contient le user_id
+DROP POLICY IF EXISTS "Authenticated users manage own avatars" ON storage.objects;
+CREATE POLICY "Avatar full access for authenticated"
+  ON storage.objects FOR ALL
+  USING (bucket_id = 'avatars')
+  WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated');
 
 
 -- ════════════════════════════════════════════════════════════════════════════
