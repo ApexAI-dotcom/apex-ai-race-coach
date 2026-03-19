@@ -138,6 +138,7 @@ async function rowToAnalysisResult(row: any, userId: string): Promise<AnalysisRe
       session_name: row.session_name,
       circuit_name: row.circuit_name
     },
+    session_type: row.session_type || "practice",
     plot_data: row.plot_data,
   };
 }
