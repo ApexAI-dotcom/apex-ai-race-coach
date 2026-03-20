@@ -27,12 +27,6 @@ export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, user, signOut, loading } = useAuth();
-  const [shimmering, setShimmering] = useState(false);
-
-  const triggerShimmer = () => {
-    setShimmering(true);
-    setTimeout(() => setShimmering(false), 2500);
-  };
 
   const navItems = isAuthenticated ? subscriberNavItems : guestNavItems;
 
@@ -65,12 +59,11 @@ export const Navbar = () => {
                 to={item.path}
                 className={`text-sm font-medium transition-all ${
                   (item as any).isHero
-                    ? `gradient-primary text-primary-foreground px-4 py-1.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100 animate-pulse-neon animate-shimmer ${shimmering ? "active-shimmer" : ""}`
+                    ? "gradient-primary text-primary-foreground px-4 py-1.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100 animate-pulse-neon animate-shimmer active-shimmer"
                     : location.pathname === item.path
                       ? "text-primary"
                       : "text-muted-foreground hover:text-primary hover:underline underline-offset-4"
                 }`}
-                onClick={(item as any).isHero ? triggerShimmer : undefined}
               >
                 {item.name}
               </Link>
@@ -169,19 +162,16 @@ export const Navbar = () => {
                   <div className="space-y-2">
                     {navItems.map((item) => (
                       <Link
-                        key={item.path+item.name}
+                        key={item.path + item.name}
                         to={item.path}
+                        onClick={() => setIsOpen(false)}
                         className={`flex items-center justify-between p-4 rounded-2xl transition-all active:scale-95 ${
                           (item as any).isHero
-                            ? `gradient-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 animate-pulse-neon animate-shimmer ${shimmering ? "active-shimmer" : ""}`
+                            ? "gradient-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 animate-pulse-neon active-shimmer"
                             : location.pathname === item.path
                               ? "bg-primary/10 text-primary border border-primary/20"
                               : "bg-secondary/20 text-muted-foreground hover:bg-secondary/40 border border-transparent"
                         }`}
-                        onClick={() => {
-                          setIsOpen(false);
-                          if ((item as any).isHero) triggerShimmer();
-                        }}
                       >
                         <span className="font-medium">{item.name}</span>
                         {(item as any).isHero ? <Zap className="w-4 h-4" /> : <ChevronRight className="w-4 h-4 opacity-50" />}
