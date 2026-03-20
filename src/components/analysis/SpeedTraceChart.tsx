@@ -11,12 +11,17 @@ import {
   Legend,
 } from "recharts";
 import type { SpeedTraceData } from "@/types/analysis";
-import { downsample, downsamplePair } from "./utils";
+import { downsample } from "./utils";
+import { BlurOverlay } from "../ui/BlurOverlay";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
 
 interface SpeedTraceChartProps {
   data: SpeedTraceData;
   selectedLaps: number[];
   bestLapNumber?: number;
+  variant?: "points" | "line";
+  circuitName?: string | null;
 }
 
 const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
@@ -30,7 +35,6 @@ function buildSeries(
   const selectedLaps = laps.filter(l => selectedLapNumbers.includes(l.lap_number));
   if (selectedLaps.length === 0) return { series: [], sectors, activeLaps: [] };
 
-  // Use the first selected lap as the distance reference
   const referenceLap = selectedLaps[0];
   const dist = referenceLap.distance_m;
   const len = dist.length;
@@ -42,8 +46,6 @@ function buildSeries(
     const point: any = { distance_m: Math.round(d * 10) / 10 };
     
     selectedLaps.forEach(lap => {
-      // Linear interpolation or simple nearest neighbor for speed
-      // Since distance arrays might differ slightly in length/sampling
       const idx = Math.min(
         Math.round((i / (distOut.length - 1 || 1)) * (lap.distance_m.length - 1)),
         lap.distance_m.length - 1
@@ -57,7 +59,19 @@ function buildSeries(
   return { series, sectors, activeLaps: selectedLaps };
 }
 
-export function SpeedTraceChart({ data, selectedLaps, bestLapNumber }: SpeedTraceChartProps) {
+export function SpeedTraceChart({
+  data,
+  bestLapNumber,
+  selectedLaps,
+  variant = "line",
+  circuitName = null,
+}: SpeedTraceChartProps) {
+  const navigate = useNavigate();
+  const { isChartVisible, getCtaDetails } = useSubscription();
+
+  const visible = isChartVisible("speed_trace", circuitName);
+  const cta = getCtaDetails(circuitName);
+
   const { series, sectors, activeLaps } = useMemo(
     () => buildSeries(data.laps, data.sectors ?? [], selectedLaps, 100),
     [data.laps, data.sectors, selectedLaps]
@@ -66,63 +80,70 @@ export function SpeedTraceChart({ data, selectedLaps, bestLapNumber }: SpeedTrac
   if (series.length === 0) return null;
 
   return (
-    <div className="h-[320px] w-full" aria-label="Speed trace by distance">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={series}
-          margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          {sectors?.map((s, i) => (
-            <ReferenceArea
-              key={s.name}
-              x1={s.start_m}
-              x2={s.end_m}
-              fill={i === 0 ? "#3b82f6" : i === 1 ? "#22c55e" : "#f97316"}
-              fillOpacity={0.1}
-            />
-          ))}
-          <XAxis
-            dataKey="distance_m"
-            stroke="hsl(var(--border))"
-            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-            tickFormatter={(v) => `${v}m`}
-            domain={["dataMin", "dataMax"]}
-          />
-          <YAxis
-            stroke="hsl(var(--border))"
-            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-            tickFormatter={(v) => `${v}`}
-            label={{ value: "km/h", angle: -90, position: "insideLeft", fill: "hsl(var(--muted-foreground))" }}
-          />
-          <Tooltip
-            contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))", borderRadius: "8px" }}
-            itemStyle={{ color: "hsl(var(--foreground))" }}
-            labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-            formatter={(value: number, name: string) => [value, name]}
-            labelFormatter={(label) => `Distance: ${label} m`}
-          />
-          <Legend />
-          
-          {activeLaps.map((lap, idx) => {
-            const isBest = lap.lap_number === bestLapNumber;
-            const color = LAP_COLORS[idx % LAP_COLORS.length];
-            return (
-              <Line
-                key={lap.lap_number}
-                type="monotone"
-                dataKey={`speed_lap_${lap.lap_number}`}
-                stroke={color}
-                strokeWidth={isBest ? 3 : 1.5}
-                strokeDasharray={isBest ? "" : "3 3"}
-                dot={false}
-                name={`Tour ${lap.lap_number} ${isBest ? "(Best)" : ""}`}
-                animationDuration={300}
+    <BlurOverlay
+      isLocked={!visible}
+      ctaTitle={cta.title}
+      ctaButtonText={cta.buttonText}
+      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/auth" : "/pricing")}
+    >
+      <div className="h-[320px] w-full" aria-label="Speed trace by distance">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={series}
+            margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            {sectors?.map((s, i) => (
+              <ReferenceArea
+                key={s.name}
+                x1={s.start_m}
+                x2={s.end_m}
+                fill={i === 0 ? "#3b82f6" : i === 1 ? "#22c55e" : "#f97316"}
+                fillOpacity={0.1}
               />
-            );
-          })}
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+            ))}
+            <XAxis
+              dataKey="distance_m"
+              stroke="hsl(var(--border))"
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+              tickFormatter={(v) => `${v}m`}
+              domain={["dataMin", "dataMax"]}
+            />
+            <YAxis
+              stroke="hsl(var(--border))"
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+              tickFormatter={(v) => `${v}`}
+              label={{ value: "km/h", angle: -90, position: "insideLeft", fill: "hsl(var(--muted-foreground))" }}
+            />
+            <Tooltip
+              contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))", borderRadius: "8px" }}
+              itemStyle={{ color: "hsl(var(--foreground))" }}
+              labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+              formatter={(value: number, name: string) => [value, name]}
+              labelFormatter={(label) => `Distance: ${label} m`}
+            />
+            <Legend />
+            
+            {activeLaps.map((lap, idx) => {
+              const isBest = lap.lap_number === bestLapNumber;
+              const color = LAP_COLORS[idx % LAP_COLORS.length];
+              return (
+                <Line
+                  key={lap.lap_number}
+                  type="monotone"
+                  dataKey={`speed_lap_${lap.lap_number}`}
+                  stroke={color}
+                  strokeWidth={isBest ? 3 : 1.5}
+                  strokeDasharray={isBest ? "" : "3 3"}
+                  dot={false}
+                  name={`Tour ${lap.lap_number} ${isBest ? "(Best)" : ""}`}
+                  animationDuration={300}
+                />
+              );
+            })}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </BlurOverlay>
   );
 }

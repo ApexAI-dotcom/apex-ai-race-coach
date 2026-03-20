@@ -22,6 +22,17 @@ import {
   Brain,
   BarChart3,
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell
+} from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +88,21 @@ const ANALYSIS_STEPS = [
   { icon: Target,    message: "Génération des graphiques…",         duration: 1500 },
 ];
 
+function mapApiResultToResponse(result: AnalysisResult | null): any {
+  if (!result) return null;
+  return {
+    ...result,
+    performance_score: {
+      ...result.performance_score,
+      breakdown: result.performance_score.breakdown || {},
+      percentile: result.performance_score.percentile || 0
+    },
+    best_lap_time: result.best_lap_time || result.lap_time || 0,
+    lap_times: result.lap_times || [result.lap_time],
+    statistics: result.statistics || {}
+  };
+}
+
 // ─── Composant ────────────────────────────────────────────────────────────────
 
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
@@ -92,10 +118,13 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       : false;
   const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
   const isFreeAtLimit =
-    isAuthenticated && !isPaidTier && freeLimit;
-  if (typeof window !== "undefined") {
-    console.log("[CSVUploader] TIER:", tier, "STATUS:", status, "COUNT:", limits?.analyses_used, "/", limits?.analyses_per_month, "isFreeAtLimit:", isFreeAtLimit);
-  }
+    isAuthenticated && !isPaidTier && limits?.analyses_per_month != null && (limits.analyses_used >= limits.analyses_per_month);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      console.log("[CSVUploader] TIER:", tier, "STATUS:", status, "COUNT:", limits?.analyses_used, "/", limits?.analyses_per_month, "isFreeAtLimit:", isFreeAtLimit);
+    }
+  }, [tier, status, limits, isFreeAtLimit]);
 
   // États upload
   const [isDragging, setIsDragging] = useState(false);
@@ -127,6 +156,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [modalTitle, setModalTitle] = useState<string>("");
   const [expandedCorner, setExpandedCorner] = useState<number | null>(null);
+  const [showCircuitLockModal, setShowCircuitLockModal] = useState(false);
 
   // Fermeture modal par ESC
   useEffect(() => {
@@ -344,6 +374,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         trackTemperature === "" || trackTemperature == null
           ? undefined
           : Number(trackTemperature);
+
       const analysisResult = await uploadAndAnalyzeCSV(file, {
         lapFilter: undefined, // Analysis operates on full session now
         track_condition: trackCondition,
@@ -351,6 +382,17 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         session_name: sessionName,
         accessToken: session?.access_token ?? undefined,
       });
+
+      // 2. Circuit check for Rookie
+      if (tier === "rookie" && limits?.allowed_circuit && analysisResult.session_conditions?.circuit_name) {
+        if (analysisResult.session_conditions.circuit_name !== limits.allowed_circuit) {
+          // If different circuit, we still save it but it will be blurred in results
+          toast({
+            title: "Circuit restreint",
+            description: `En tant que Rookie, vous ne pouvez analyser que le circuit ${limits.allowed_circuit}. Cette analyse sera floutée.`,
+          });
+        }
+      }
 
       // Auto-save (clé storage = user courant ou guest)
       let analysisId: string | null = null;
@@ -416,18 +458,36 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       animate={{ opacity: 1, y: 0 }}
       className="glass-card p-8"
     >
-      {/* Compteur analyses sauvegardées (masqué si non connecté) */}
-      {isAuthenticated && analysesCount > 0 && (
+      {/* Compteur d'analyses (Rookie/Visitor) */}
+      {(isAuthenticated || canUploadFree) && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 flex items-center justify-center gap-2 text-sm text-muted-foreground"
+          className="mb-4 flex flex-col items-center justify-center gap-1 text-sm text-muted-foreground"
         >
-          <Database className="w-4 h-4" />
-          <span>
-            {analysesCount} analyse{analysesCount > 1 ? "s" : ""} sauvegardée
-            {analysesCount > 1 ? "s" : ""}
-          </span>
+          {tier === "rookie" && limits && (
+            <div className="flex flex-col items-center gap-2 w-full max-w-xs mb-2">
+              <div className="flex justify-between w-full text-xs">
+                <span>Analyses ce mois</span>
+                <span className="font-bold text-primary">
+                  {limits.analyses_used}/{limits.analyses_per_month}
+                </span>
+              </div>
+              <Progress value={(limits.analyses_used / (limits.analyses_per_month || 1)) * 100} className="h-1" />
+              {limits.analyses_per_month != null && (limits.analyses_per_month - limits.analyses_used) > 0 && (
+                <span className="text-[10px] italic">
+                  {limits.analyses_per_month - limits.analyses_used} analyse{limits.analyses_per_month - limits.analyses_used > 1 ? 's' : ''} restante{limits.analyses_per_month - limits.analyses_used > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          )}
+          
+          <div className="flex items-center gap-2">
+            <Database className="w-4 h-4" />
+            <span>
+              {analysesCount} analyse{analysesCount > 1 ? "s" : ""} sauvegardée{analysesCount > 1 ? "s" : ""} total
+            </span>
+          </div>
         </motion.div>
       )}
 
