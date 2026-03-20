@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
+import { Badge } from "@/components/ui/badge";
 import { ADMIN_EMAIL } from "@/constants";
 import { cn } from "@/lib/utils";
 
@@ -61,8 +62,8 @@ export const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" replace className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer no-underline">
-            <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform duration-200">
-              <Zap className="w-5 h-5 text-primary-foreground" />
+            <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform duration-200 animate-pulse-neon">
+              <Zap className="w-5 h-5 text-primary-foreground animate-pulse" />
             </div>
             <span className="font-display font-bold text-lg text-foreground uppercase tracking-tight">
               Apex<span className="text-primary">AI</span>
@@ -77,10 +78,11 @@ export const Navbar = () => {
                 to={item.path}
                 className={cn(
                   "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2",
-                  location.pathname === item.path ? "text-primary" : "text-muted-foreground"
+                  location.pathname === item.path ? "text-primary" : "text-muted-foreground",
+                  (item as any).isHero && "animate-shimmer gradient-primary px-3 py-1 rounded-full text-white font-bold shadow-lg shadow-primary/20"
                 )}
               >
-                <item.icon className="w-4 h-4" />
+                <item.icon className={cn("w-4 h-4", (item as any).isHero && "animate-pulse")} />
                 {item.name}
               </Link>
             ))}
