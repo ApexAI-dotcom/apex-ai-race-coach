@@ -66,6 +66,7 @@ const PLANS = [
     ],
     icon: Trophy,
     popular: false,
+    comingSoon: true,
   },
 ] as const;
 
@@ -126,6 +127,11 @@ export default function PricingPage() {
   }, [canceled, setSearchParams]);
 
   const handleSubscribe = async (planId: string) => {
+    if (planId === "team") {
+      setError("L'offre Team arrive bientôt.");
+      return;
+    }
+
     const priceId = getPriceId(planId, period);
     const token = session?.access_token;
     if (!priceId || !user?.id || !token) {
@@ -234,18 +240,22 @@ export default function PricingPage() {
               const Icon = planItem.icon;
               const priceId = getPriceId(planItem.id, period);
 
-              const buttonDisabled =
-                isRookie ||
-                isCurrent ||
-                isLower ||
-                (loadingPriceId !== null && priceId !== null && loadingPriceId === priceId);
+              const isComingSoon = (planItem as any).comingSoon;
 
               let buttonLabel: string;
-              if (loadingPriceId === priceId) buttonLabel = "Redirection...";
+              if (isComingSoon) buttonLabel = "Bientôt disponible";
+              else if (loadingPriceId === priceId) buttonLabel = "Redirection...";
               else if (isRookie) buttonLabel = "Gratuit";
               else if (isCurrent) buttonLabel = "Plan actuel";
               else if (isLower) buttonLabel = "Inclus";
               else buttonLabel = "S'abonner";
+
+              const buttonDisabled =
+                isComingSoon ||
+                isRookie ||
+                isCurrent ||
+                isLower ||
+                (loadingPriceId !== null && priceId !== null && loadingPriceId === priceId);
 
               return (
                 <div
@@ -298,13 +308,15 @@ export default function PricingPage() {
                       onClick={() => canSubscribe && handleSubscribe(planItem.id)}
                       disabled={buttonDisabled}
                       className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-                        isRookie
-                          ? "bg-secondary text-muted-foreground cursor-not-allowed"
-                          : isCurrent || isLower
+                        isComingSoon
+                          ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5"
+                          : isRookie
                             ? "bg-secondary text-muted-foreground cursor-not-allowed"
-                            : planItem.popular
-                              ? "gradient-primary text-primary-foreground hover:opacity-90"
-                              : "gradient-primary text-primary-foreground hover:opacity-90 border border-primary/50"
+                            : isCurrent || isLower
+                              ? "bg-secondary text-muted-foreground cursor-not-allowed"
+                              : planItem.popular
+                                ? "gradient-primary text-primary-foreground hover:opacity-90"
+                                : "gradient-primary text-primary-foreground hover:opacity-90 border border-primary/50"
                       }`}
                     >
                       {isRookie ? (
