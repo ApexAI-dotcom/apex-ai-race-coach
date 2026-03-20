@@ -10,7 +10,6 @@ interface CoachingAdviceProps {
 }
 
 export function CoachingAdvice({ advice, fastestLapNumber }: CoachingAdviceProps) {
-  console.log("[CoachingAdvice] Rendering with advice:", advice);
   if (!advice || advice.length === 0) return null;
 
   return (
