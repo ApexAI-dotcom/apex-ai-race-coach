@@ -1,5 +1,8 @@
 import type { AnalysisResponse } from "@/types/analysis";
 import { GRADE_COLORS } from "./utils";
+import { BlurOverlay } from "../ui/BlurOverlay";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
 
 interface MetricsHeaderProps {
   analysis: AnalysisResponse;
@@ -8,6 +11,16 @@ interface MetricsHeaderProps {
 }
 
 export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderProps) {
+  const navigate = useNavigate();
+  const { isChartVisible, getCtaDetails } = useSubscription();
+  const circuitName = analysis.session_conditions?.circuit_name;
+  const cta = getCtaDetails(circuitName);
+  
+  // Track map is always visible, let's assume "vitesse_moyenne" and "score" follow speed_trace/others logic
+  const isScoreVisible = isChartVisible("performance_score", circuitName);
+  const isAvgSpeedVisible = isChartVisible("avg_speed", circuitName);
+  const isCornersVisible = isChartVisible("corners", circuitName);
+
   const score = analysis.performance_score;
   const grade = score?.grade ?? "—";
   const overall = score?.overall_score != null ? Math.round(score.overall_score) : "—";
@@ -33,10 +46,12 @@ export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderPro
   const isApp = variant === "app";
   const cardClass = isApp
     ? "rounded-lg border border-white/5 bg-secondary/50 p-4"
-    : "glass-card p-4";
+    : "glass-card p-4 h-full";
   const labelClass = "text-muted-foreground text-xs font-medium uppercase tracking-wide mb-1";
   const valueClass = "text-2xl font-bold text-foreground";
   const metaClass = "text-muted-foreground text-sm";
+
+  const handleCta = () => navigate(cta.buttonText.includes("compte") ? "/auth" : "/pricing");
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -48,40 +63,52 @@ export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderPro
         <div className={metaClass} style={{ color: '#4ade80' }}>Tour #{bestLapNum}</div>
       </div>
 
-      <div className={cardClass}>
-        <div className={labelClass}>Score global</div>
-        <div className="text-2xl font-bold" style={{ color: gradeColor }}>
-          {overall}/100
-        </div>
-        <span
-          className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-semibold"
-          style={{ backgroundColor: `${gradeColor}30`, color: gradeColor }}
-        >
-          {grade}
-        </span>
-      </div>
-
-      <div className={cardClass}>
-        <div className={labelClass}>Vitesse moyenne</div>
-        <div className={valueClass}>
-          {avgSpeed != null ? `${Math.round(avgSpeed)} km/h` : "—"}
-        </div>
-      </div>
-
-      <div className={cardClass}>
-        <div className={labelClass}>Virages</div>
-        <div className={valueClass}>{corners}</div>
-        <div className={`${metaClass} flex flex-wrap gap-1 mt-1`}>
-          {Object.entries(gradeCounts).map(([g, n]) => (
+      <div className="h-full">
+        <BlurOverlay isLocked={!isScoreVisible} ctaTitle="" ctaButtonText="Débloquer" onCtaClick={handleCta}>
+          <div className={cardClass}>
+            <div className={labelClass}>Score global</div>
+            <div className="text-2xl font-bold" style={{ color: gradeColor }}>
+              {overall}/100
+            </div>
             <span
-              key={g}
-              className="px-1.5 py-0.5 rounded text-xs"
-              style={{ backgroundColor: `${GRADE_COLORS[g] ?? "#8b949e"}30`, color: GRADE_COLORS[g] ?? "#8b949e" }}
+              className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-semibold"
+              style={{ backgroundColor: `${gradeColor}30`, color: gradeColor }}
             >
-              {g}:{n}
+              {grade}
             </span>
-          ))}
-        </div>
+          </div>
+        </BlurOverlay>
+      </div>
+
+      <div className="h-full">
+        <BlurOverlay isLocked={!isAvgSpeedVisible} ctaTitle="" ctaButtonText="Débloquer" onCtaClick={handleCta}>
+          <div className={cardClass}>
+            <div className={labelClass}>Vitesse moyenne</div>
+            <div className={valueClass}>
+              {avgSpeed != null ? `${Math.round(avgSpeed)} km/h` : "—"}
+            </div>
+          </div>
+        </BlurOverlay>
+      </div>
+
+      <div className="h-full">
+        <BlurOverlay isLocked={!isCornersVisible} ctaTitle="" ctaButtonText="Débloquer" onCtaClick={handleCta}>
+          <div className={cardClass}>
+            <div className={labelClass}>Virages</div>
+            <div className={valueClass}>{corners}</div>
+            <div className={`${metaClass} flex flex-wrap gap-1 mt-1`}>
+              {Object.entries(gradeCounts).map(([g, n]) => (
+                <span
+                  key={g}
+                  className="px-1.5 py-0.5 rounded text-xs"
+                  style={{ backgroundColor: `${GRADE_COLORS[g] ?? "#8b949e"}30`, color: GRADE_COLORS[g] ?? "#8b949e" }}
+                >
+                  {g}:{n}
+                </span>
+              ))}
+            </div>
+          </div>
+        </BlurOverlay>
       </div>
     </div>
   );

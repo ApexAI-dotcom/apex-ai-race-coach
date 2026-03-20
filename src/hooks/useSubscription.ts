@@ -23,7 +23,7 @@ function getCachedTier(): SubscriptionTier {
   return "rookie";
 }
 
-export type SubscriptionTier = "rookie" | "racer" | "team";
+export type SubscriptionTier = "visitor" | "rookie" | "racer" | "team";
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing" | null;
 
 export interface SubscriptionLimits {
@@ -36,6 +36,9 @@ export interface SubscriptionLimits {
   max_members: number;
   max_circuits: number | null;
   max_cars: number | null;
+  allowed_circuit: string | null;
+  // Visual permissions
+  visible_charts: string[]; // ['track_map', 'speed_trace', ...]
 }
 
 export type BillingPeriod = "monthly" | "annual" | null;
@@ -49,18 +52,22 @@ export interface SubscriptionResponse {
 }
 
 /** Plan pour compatibilité affichage (free/pro/team) */
-export type SubscriptionPlan = "free" | "pro" | "team";
+export type SubscriptionPlan = "visitor" | "free" | "pro" | "team";
 
 function tierToPlan(tier: SubscriptionTier): SubscriptionPlan {
   if (tier === "racer") return "pro";
   if (tier === "team") return "team";
+  if (tier === "visitor") return "visitor";
   return "free";
 }
 
 export function useSubscription() {
-  const { user, session } = useAuth();
+  const { user, session, isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tier, setTier] = useState<SubscriptionTier>(getCachedTier);
+  const [tier, setTier] = useState<SubscriptionTier>(() => {
+    const cached = getCachedTier();
+    return (cached as SubscriptionTier) || "visitor";
+  });
   const [status, setStatus] = useState<SubscriptionStatus>(null);
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>(null);
   const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | null>(null);
@@ -74,12 +81,21 @@ export function useSubscription() {
   const hasFetchedRef = useRef(false);
 
   const fetchSubscription = useCallback(async () => {
-    if (!user?.id) {
-      setTier("rookie");
-      setStatus(null);
-      setBillingPeriod(null);
-      setSubscriptionEndDate(null);
-      setLimits(null);
+    if (!isAuthenticated) {
+      setTier("visitor");
+      setLimits({
+        tier: "visitor",
+        analyses_per_month: 1,
+        analyses_used: 0, // Sera géré par localStorage ou API session
+        can_export_csv: false,
+        can_export_pdf: false,
+        can_compare: false,
+        max_members: 0,
+        max_circuits: null,
+        max_cars: null,
+        allowed_circuit: null,
+        visible_charts: ["track_map"],
+      });
       setIsLoading(false);
       return;
     }
@@ -87,60 +103,103 @@ export function useSubscription() {
     const token = tokenRef.current;
     const url = `${API_BASE_URL}/api/user/subscription`;
 
-    setIsLoading(true);
     try {
       const res = await fetch(url, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) {
-        setTier("rookie");
-        setStatus(null);
-        setBillingPeriod(null);
-        setSubscriptionEndDate(null);
-        setLimits(null);
-        return;
+        throw new Error("Failed to fetch subscription");
       }
       const data: SubscriptionResponse = await res.json();
-      setTier(data.tier ?? "rookie");
+      
+      // Update limits based on tier if backend doesn't provide visible_charts yet
+      const processedTier = data.tier || "rookie";
+      
+      // Frontend-side circuit logic: if allowed_circuit is null, find the first analysis
+      let allowedCircuit = data.limits?.allowed_circuit;
+      if (processedTier === "rookie" && !allowedCircuit && isAuthenticated) {
+        try {
+          // Import dynamic to avoid circular dependency if any
+          const { getAllAnalyses } = await import("@/lib/storage");
+          const analyses = await getAllAnalyses(user?.id);
+          if (analyses.length > 0) {
+            // The first circuit ever analyzed becomes the allowed one
+            const firstWithCircuit = [...analyses].reverse().find(a => a.circuit_name);
+            allowedCircuit = firstWithCircuit?.circuit_name || null;
+          }
+        } catch (e) {
+          console.warn("Failed to determine allowed circuit from storage", e);
+        }
+      }
+
+      const processedLimits: SubscriptionLimits = {
+        ...data.limits,
+        tier: processedTier,
+        allowed_circuit: allowedCircuit,
+        visible_charts: data.limits?.visible_charts || (
+          processedTier === "racer" || processedTier === "team" 
+            ? ["track_map", "speed_trace", "throttle_brake", "delta_time", "apex_margin", "radar"]
+            : ["track_map", "speed_trace"] // Rookie can see 1 chart (speed_trace) + track_map
+        )
+      };
+
+      setTier(processedTier);
       setStatus(data.status ?? null);
       setBillingPeriod(data.billing_period ?? null);
       setSubscriptionEndDate(data.subscription_end_date ?? null);
-      setLimits(data.limits ?? null);
+      setLimits(processedLimits);
+
       try {
         localStorage.setItem(
           SUBSCRIPTION_STORAGE_KEY,
-          JSON.stringify({ ...data, _ts: Date.now() })
+          JSON.stringify({ ...data, limits: processedLimits, _ts: Date.now() })
         );
       } catch {
         // ignore
       }
     } catch {
+      // Fallback for Rookie
+      let allowedCircuit = null;
+      if (isAuthenticated) {
+        try {
+          const { getAllAnalyses } = await import("@/lib/storage");
+          const analyses = await getAllAnalyses(user?.id);
+          const firstWithCircuit = [...analyses].reverse().find(a => a.circuit_name);
+          allowedCircuit = firstWithCircuit?.circuit_name || null;
+        } catch {}
+      }
+
       setTier("rookie");
-      setStatus(null);
-      setBillingPeriod(null);
-      setSubscriptionEndDate(null);
-      setLimits(null);
+      setLimits({
+        tier: "rookie",
+        analyses_per_month: 3,
+        analyses_used: 0,
+        can_export_csv: false,
+        can_export_pdf: false,
+        can_compare: false,
+        max_members: 0,
+        max_circuits: 1,
+        max_cars: null,
+        allowed_circuit: allowedCircuit,
+        visible_charts: ["track_map", "speed_trace"],
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]); // Removed session?.access_token — use tokenRef instead
+  }, [isAuthenticated, user?.id]);
 
   useEffect(() => {
-    if (hasFetchedRef.current) return;
-    hasFetchedRef.current = true;
     fetchSubscription();
   }, [fetchSubscription]);
 
-  // Après paiement : ?session_id= présent → polling 2s pendant 10s, nettoyer l’URL quand tier change
+  // Rest of the effect for session_id polling...
   const sessionId = searchParams.get("session_id");
   const fetchRef = useRef(fetchSubscription);
   fetchRef.current = fetchSubscription;
 
   useEffect(() => {
     if (!sessionId || !user?.id) return;
-
     let elapsed = 0;
-
     const poll = () => {
       elapsed += POLL_INTERVAL_MS;
       fetchRef.current().then(() => {});
@@ -154,26 +213,53 @@ export function useSubscription() {
       }
       pollTimeoutRef.current = setTimeout(poll, POLL_INTERVAL_MS);
     };
-
     pollTimeoutRef.current = setTimeout(poll, POLL_INTERVAL_MS);
     return () => {
       if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
     };
   }, [sessionId, user?.id]);
 
-  // Quand le tier passe de rookie à autre chose, nettoyer session_id de l’URL
-  const prevTierRef = useRef<SubscriptionTier>("rookie");
-  useEffect(() => {
-    if (prevTierRef.current === "rookie" && tier !== "rookie" && searchParams.has("session_id")) {
-      const next = new URLSearchParams(searchParams);
-      next.delete("session_id");
-      next.delete("success");
-      setSearchParams(next, { replace: true });
-    }
-    prevTierRef.current = tier;
-  }, [tier, searchParams, setSearchParams]);
-
   const plan = tierToPlan(tier);
+
+  const isChartVisible = (chartId: string, circuitName?: string | null) => {
+    if (tier === "racer" || tier === "team") return true;
+    
+    // Circuit restriction for Rookie
+    if (tier === "rookie" && circuitName && limits?.allowed_circuit && circuitName !== limits.allowed_circuit) {
+      if (chartId !== "track_map") return false; // Show only track map for wrong circuit
+    }
+
+    if (chartId === "track_map") return true;
+    
+    // Alias for metrics
+    if (chartId === "performance_score" || chartId === "avg_speed" || chartId === "corners") {
+      return limits?.visible_charts?.includes("speed_trace") ?? false;
+    }
+
+    return limits?.visible_charts?.includes(chartId) ?? false;
+  };
+
+  const getCtaDetails = (circuitName?: string | null) => {
+    if (tier === "visitor") {
+      return {
+        title: "Crée ton compte pour voir tes résultats complets",
+        buttonText: "Créer un compte",
+      };
+    }
+    
+    if (tier === "rookie" && circuitName && limits?.allowed_circuit && circuitName !== limits.allowed_circuit) {
+      return {
+        title: `Passe à Racer pour analyser d'autres circuits (Circuit actuel: ${limits.allowed_circuit})`,
+        buttonText: "Passer à Racer",
+      };
+    }
+
+    return {
+      title: "Passe à Racer pour débloquer toutes tes analyses",
+      buttonText: "Débloquer avec Racer",
+    };
+  };
+
   return {
     tier,
     status,
@@ -182,5 +268,9 @@ export function useSubscription() {
     limits,
     isLoading,
     plan,
+    isChartVisible,
+    getCtaDetails,
+    isAuthenticated,
+    fetchSubscription,
   };
 }

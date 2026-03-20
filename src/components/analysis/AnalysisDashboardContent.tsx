@@ -195,6 +195,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
                 data={plotData.speed_trace}
                 selectedLaps={selectedLapNumbers}
                 bestLapNumber={bestLapNumber}
+                circuitName={analysis.session_conditions?.circuit_name}
               />
             </section>
           )}
@@ -211,6 +212,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
               <TimeDeltaLapsChart
                 data={plotData.time_delta_laps}
                 selectedLaps={selectedLapNumbers}
+                circuitName={analysis.session_conditions?.circuit_name}
               />
             </section>
           )}
@@ -225,7 +227,10 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
                     Aperçu global de vos compétences. Un grand polygone régulier indique un pilotage complet et maîtrisé.
                   </p>
                 </div>
-                <PerformanceRadar data={plotData.performance_radar} />
+                <PerformanceRadar 
+                  data={plotData.performance_radar} 
+                  circuitName={analysis.session_conditions?.circuit_name}
+                />
               </section>
             )}
           </div>
@@ -244,7 +249,10 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
                   Écart en km/h entre la vitesse théorique et votre vitesse réelle. Une barre plus petite = plus proche de la limite.
                 </p>
               </div>
-              <ApexMarginChart data={plotData.apex_margin.corners} />
+              <ApexMarginChart 
+                data={plotData.apex_margin.corners} 
+                circuitName={analysis.session_conditions?.circuit_name}
+              />
             </section>
           )}
 
@@ -260,6 +268,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
               <ThrottleBrakeChart
                 data={plotData.throttle_brake}
                 selectedLaps={selectedLapNumbers}
+                circuitName={analysis.session_conditions?.circuit_name}
               />
             </section>
           ) : (
