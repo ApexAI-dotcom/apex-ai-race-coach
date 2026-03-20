@@ -102,6 +102,16 @@ export interface AnalysisPerformanceScore {
   percentile: number;
 }
 
+export interface CoachingAdvice {
+  priority: number;
+  category: string;
+  message: string;
+  explanation: string;
+  corner?: number;
+  impact_seconds: number;
+  difficulty: string;
+}
+
 export interface AnalysisResponse {
   success: boolean;
   analysis_id: string;
@@ -111,7 +121,7 @@ export interface AnalysisResponse {
   lap_times: number[];
   performance_score: AnalysisPerformanceScore;
   corner_analysis: unknown[];
-  coaching_advice: unknown[];
+  coaching_advice: CoachingAdvice[];
   plots: Record<string, string>;
   plot_data?: PlotData;
   statistics: unknown;

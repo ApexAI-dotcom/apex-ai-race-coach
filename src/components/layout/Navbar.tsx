@@ -9,7 +9,7 @@ import {
   Menu,
   CreditCard,
   PlusCircle,
-  Settings
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -56,7 +56,7 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0d1117] border-b border-white/5 h-16 flex items-center shadow-lg">
+    <nav className="sticky top-0 left-0 right-0 z-50 bg-[#0d1117]/95 backdrop-blur-md border-b border-white/5 h-16 flex items-center shadow-lg">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -64,8 +64,8 @@ export const Navbar = () => {
             <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform duration-200">
               <Zap className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-display font-bold text-lg text-foreground">
-              APEX<span className="text-primary">AI</span>
+            <span className="font-display font-bold text-lg text-foreground uppercase tracking-tight">
+              Apex<span className="text-primary">AI</span>
             </span>
           </Link>
 
@@ -76,10 +76,11 @@ export const Navbar = () => {
                 key={item.path + item.name}
                 to={item.path}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
+                  "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2",
                   location.pathname === item.path ? "text-primary" : "text-muted-foreground"
                 )}
               >
+                <item.icon className="w-4 h-4" />
                 {item.name}
               </Link>
             ))}
@@ -98,19 +99,19 @@ export const Navbar = () => {
                 )}
                 <SubscriptionBadge />
                 <Link to="/profile">
-                  <Button variant="ghost" size="sm" className="gap-2 h-9">
-                    <Avatar className="w-6 h-6 rounded-md">
+                  <Button variant="ghost" size="sm" className="gap-2 h-9 p-1 pr-3 rounded-full hover:bg-white/5">
+                    <Avatar className="w-7 h-7">
                       <AvatarImage src={(user?.user_metadata?.avatar_url as string) || ""} alt="" className="object-cover" />
-                      <AvatarFallback className="rounded-md text-[10px] bg-secondary">
+                      <AvatarFallback className="text-[10px] bg-secondary">
                         {(user?.user_metadata?.full_name || user?.email || "U").toString().slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="max-w-[100px] truncate">
+                    <span className="text-xs font-semibold truncate max-w-[80px]">
                       {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
                     </span>
                   </Button>
                 </Link>
-                <Button variant="ghost" size="icon" onClick={handleSignOut} className="h-9 w-9 text-muted-foreground hover:text-red-500 transition-colors">
+                <Button variant="ghost" size="icon" onClick={handleSignOut} className="h-8 w-8 text-muted-foreground hover:text-red-500">
                   <LogOut className="w-4 h-4" />
                 </Button>
               </>
@@ -120,7 +121,7 @@ export const Navbar = () => {
                   <Button variant="ghost" size="sm">Connexion</Button>
                 </Link>
                 <Link to="/login">
-                  <Button variant="hero" size="sm" className="px-6">Inscription</Button>
+                  <Button variant="hero" size="sm" className="px-4">Inscription</Button>
                 </Link>
               </>
             )}
@@ -130,89 +131,100 @@ export const Navbar = () => {
           <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-foreground">
+                <Button variant="ghost" size="icon" className="text-foreground hover:bg-white/5">
                   <Menu className="w-6 h-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] bg-[#0d1117] border-white/10 p-0 flex flex-col shadow-2xl">
-                <SheetHeader className="p-6 border-b border-white/5 text-left">
-                  <SheetTitle className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-primary" />
-                    <span className="font-display font-bold">APEX AI</span>
-                  </SheetTitle>
-                  <SheetDescription className="text-xs text-muted-foreground">
-                    Navigation Pilote
-                  </SheetDescription>
-                </SheetHeader>
+              <SheetContent side="right" className="w-[85%] max-w-[320px] bg-[#0d1117] border-white/5 p-0 flex flex-col shadow-2xl overflow-hidden">
+                <div className="flex flex-col h-full bg-[#0d1117]">
+                  <SheetHeader className="p-6 border-b border-white/5 text-left bg-[#0d1117]">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
+                        <Zap className="w-4 h-4 text-primary-foreground" />
+                      </div>
+                      <SheetTitle className="font-display font-bold text-xl">APEX AI</SheetTitle>
+                    </div>
+                    <SheetDescription className="text-xs text-[#8b949e]">
+                      Ton Ingénieur de Course Virtuel
+                    </SheetDescription>
+                  </SheetHeader>
 
-                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.path + item.name}
-                      to={item.path}
-                      onClick={() => setIsOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 p-4 rounded-xl transition-all active:scale-[0.98]",
-                        location.pathname === item.path
-                          ? "bg-primary/10 text-primary border border-primary/20"
-                          : "hover:bg-white/5 text-muted-foreground"
-                      )}
-                    >
-                      <item.icon className={cn("w-5 h-5", location.pathname === item.path ? "text-primary" : "text-muted-foreground")} />
-                      <span className="font-medium">{item.name}</span>
-                    </Link>
-                  ))}
-                </div>
+                  <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1 bg-[#0d1117]">
+                    {navItems.map((item) => (
+                      <Link
+                        key={item.path + item.name}
+                        to={item.path}
+                        onClick={() => setIsOpen(false)}
+                        className={cn(
+                          "flex items-center gap-4 p-4 rounded-xl transition-all duration-200",
+                          location.pathname === item.path
+                            ? "bg-primary/10 text-primary font-bold shadow-sm"
+                            : "hover:bg-white/5 text-[#e6edf3]"
+                        )}
+                      >
+                        <item.icon className={cn("w-5 h-5", location.pathname === item.path ? "text-primary" : "opacity-60")} />
+                        <span className="text-base">{item.name}</span>
+                      </Link>
+                    ))}
+                  </div>
 
-                <div className="p-6 border-t border-white/5 bg-white/2 space-y-4">
-                  {isAuthenticated ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                        <Avatar className="w-10 h-10 rounded-lg">
-                          <AvatarImage src={(user?.user_metadata?.avatar_url as string) || ""} alt="" className="object-cover" />
-                          <AvatarFallback className="rounded-lg text-sm bg-secondary">
-                            {(user?.user_metadata?.full_name || user?.email || "U").toString().slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 overflow-hidden">
-                          <div className="font-bold truncate text-foreground">{user?.user_metadata?.full_name || user?.email?.split("@")[0]}</div>
-                          <div className="text-[10px] text-muted-foreground truncate">{user?.email}</div>
+                  <div className="p-6 border-t border-white/5 mt-auto bg-[#0d1117]">
+                    {isAuthenticated ? (
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
+                          <Avatar className="w-12 h-12 rounded-xl ring-2 ring-primary/20">
+                            <AvatarImage src={(user?.user_metadata?.avatar_url as string) || ""} alt="" className="object-cover" />
+                            <AvatarFallback className="rounded-xl text-lg bg-secondary">
+                              {(user?.user_metadata?.full_name || user?.email || "U").toString().slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-[#e6edf3] truncate text-lg">
+                              {user?.user_metadata?.full_name || user?.email?.split("@")[0]}
+                            </div>
+                            <div className="text-xs text-[#8b949e] truncate">{user?.email}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center px-1">
+                          <SubscriptionBadge />
+                          <Badge variant="outline" className="text-[10px] opacity-40 uppercase tracking-widest border-white/5">
+                            ID: {user?.id.slice(0, 8)}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 gap-2">
+                          <Link to="/profile" onClick={() => setIsOpen(false)} className="w-full">
+                            <Button variant="secondary" className="w-full justify-start gap-4 h-12 rounded-xl font-semibold border border-white/5">
+                              <User className="w-5 h-5 text-primary" />
+                              Mon Profil
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="ghost" 
+                            className="w-full justify-start gap-4 h-12 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-colors" 
+                            onClick={() => { setIsOpen(false); handleSignOut(); }}
+                          >
+                            <LogOut className="w-5 h-5" />
+                            Déconnexion
+                          </Button>
                         </div>
                       </div>
-
-                      <div className="px-1"><SubscriptionBadge /></div>
-                      
-                      <div className="grid grid-cols-1 gap-2">
-                        <Link to="/profile" onClick={() => setIsOpen(false)}>
-                          <Button variant="secondary" className="w-full justify-start gap-3 h-11 rounded-xl">
-                            <User className="w-4 h-4" />
-                            Mon Profil
-                          </Button>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-3">
+                        <Link to="/login" onClick={() => setIsOpen(false)}>
+                          <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5">Connexion</Button>
                         </Link>
-                        <Button 
-                          variant="ghost" 
-                          className="w-full justify-start gap-3 h-11 rounded-xl text-muted-foreground hover:text-red-500" 
-                          onClick={() => { setIsOpen(false); handleSignOut(); }}
-                        >
-                          <LogOut className="w-4 h-4" />
-                          Déconnexion
-                        </Button>
+                        <Link to="/login" onClick={() => setIsOpen(false)}>
+                          <Button variant="hero" className="w-full h-12 rounded-xl shadow-lg shadow-primary/20">Inscription</Button>
+                        </Link>
                       </div>
+                    )}
+                    
+                    <div className="mt-8 pt-6 border-t border-white/5 text-center">
+                      <p className="text-[10px] text-[#8b949e] uppercase tracking-[0.2em] font-medium">© 2026 APEX AI • Version 1.1</p>
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-3">
-                      <Link to="/login" onClick={() => setIsOpen(false)}>
-                        <Button variant="outline" className="w-full h-11 rounded-xl border-white/10">Connexion</Button>
-                      </Link>
-                      <Link to="/login" onClick={() => setIsOpen(false)}>
-                        <Button variant="hero" className="w-full h-11 rounded-xl">Inscription</Button>
-                      </Link>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="p-4 text-center">
-                  <p className="text-[10px] text-muted-foreground">© 2026 APEX AI</p>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>

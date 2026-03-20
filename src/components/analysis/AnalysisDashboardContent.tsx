@@ -7,6 +7,7 @@ import { PerformanceRadar } from "./PerformanceRadar";
 import { TrackMap } from "./TrackMap";
 import { ApexMarginChart } from "./ApexMarginChart";
 import { CornerDetailsGrid } from "./CornerDetailsGrid";
+import { CoachingAdvice } from "./CoachingAdvice";
 import { Badge } from "@/components/ui/badge";
 import { Check, Trophy } from "lucide-react";
 
@@ -159,6 +160,12 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
               </div>
             </div>
           </section>
+          
+          {/* ═══ 0. CONSEILS DE COACHING ═══ */}
+          <CoachingAdvice 
+            advice={analysis.coaching_advice} 
+            fastestLapNumber={bestLapNumber} 
+          />
 
           {/* ═══ 0. CARTE DU CIRCUIT — Meilleur tour ═══ */}
           {plotData.trajectory_2d?.corners?.length > 0 && (
