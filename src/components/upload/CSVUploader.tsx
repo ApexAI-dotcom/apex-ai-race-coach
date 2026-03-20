@@ -47,8 +47,8 @@ import {
 import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { mapApiResultToResponse } from "@/hooks/useAnalysis";
 import { AnalysisDashboardContent } from "@/components/analysis/AnalysisDashboardContent";
+import { CoachingAdvice } from "@/components/analysis/CoachingAdvice";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 
@@ -696,48 +696,10 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
             </div>
 
             {/* Conseils de coaching */}
-            {result.coaching_advice?.length > 0 && (
-              <Card className="glass-card border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-primary" />
-                    Conseils de Coaching (Top {result.coaching_advice.length})
-                  </CardTitle>
-                  <CardDescription>
-                    Conseils prioritaires pour améliorer votre performance — Basé sur le meilleur tour{result.statistics.fastest_lap_number ? ` (Tour ${result.statistics.fastest_lap_number})` : ""}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {result.coaching_advice.map((advice, index) => (
-                      <div key={index} className="p-4 rounded-lg bg-secondary/50 border border-white/5">
-                        <div className="flex items-start justify-between mb-2 flex-wrap gap-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="outline" className="text-xs">Priorité {advice.priority}</Badge>
-                            <Badge variant="outline" className="text-xs capitalize">{advice.category}</Badge>
-                            {advice.corner && (
-                              <Badge variant="outline" className="text-xs">Virage {advice.corner}</Badge>
-                            )}
-                          </div>
-                          {advice.impact_seconds > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                              Gain potentiel : {advice.impact_seconds.toFixed(2)}s
-                            </span>
-                          )}
-                        </div>
-                        <p className="font-semibold text-foreground mb-1">{advice.message}</p>
-                        <p className="text-sm text-muted-foreground">{advice.explanation}</p>
-                        <div className="mt-2">
-                          <Badge variant="secondary" className="text-xs">
-                            Difficulté : {advice.difficulty}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <CoachingAdvice 
+              advice={result.coaching_advice} 
+              fastestLapNumber={result.statistics.fastest_lap_number} 
+            />
 
             {/* Analyse des virages — tableau (SUPPRIMÉ au profit du composant Recharts/CornerDetailsGrid) */}
 
