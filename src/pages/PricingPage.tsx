@@ -237,7 +237,7 @@ export default function PricingPage() {
               const isRookie = planItem.id === "rookie";
               const isCurrent = isCurrentPlan(planItem.id, currentPlan, !!user);
               const isLower = !isRookie && isLowerPlan(planItem.id, currentPlanId);
-              const canSubscribe = !isRookie && isUpgrade(planItem.id, currentPlanId);
+              const canSubscribe = isRookie ? !user : isUpgrade(planItem.id, currentPlanId);
               const Icon = planItem.icon;
               const priceId = getPriceId(planItem.id, period);
 
