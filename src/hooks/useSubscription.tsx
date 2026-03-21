@@ -50,7 +50,19 @@ function getCachedData(): Partial<SubscriptionResponse> & { _ts?: number } {
   try {
     const raw = localStorage.getItem(SUBSCRIPTION_STORAGE_KEY);
     if (!raw) return {};
-    return JSON.parse(raw);
+    const data = JSON.parse(raw);
+    
+    // Monthly reset check for cache to prevent flickering of old data
+    if (data._ts && data.limits) {
+      const cachedDate = new Date(data._ts);
+      const now = new Date();
+      if (cachedDate.getMonth() !== now.getMonth() || cachedDate.getFullYear() !== now.getFullYear()) {
+        // Month changed, reset analyses_used in the cached object we return
+        data.limits.analyses_used = 0;
+      }
+    }
+    
+    return data;
   } catch {
     return {};
   }
