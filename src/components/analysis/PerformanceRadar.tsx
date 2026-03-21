@@ -50,7 +50,7 @@ export function PerformanceRadar({ data, circuitName = null }: PerformanceRadarP
     >
       <div className="h-[260px] w-full" aria-label="Performance radar">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={chartData} margin={{ top: 16, right: 16, left: 16, bottom: 16 }}>
+          <RadarChart data={chartData} margin={{ top: 32, right: 32, left: 32, bottom: 32 }}>
             <PolarGrid stroke="hsl(var(--border))" />
             <PolarAngleAxis dataKey="subject" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
             <PolarRadiusAxis

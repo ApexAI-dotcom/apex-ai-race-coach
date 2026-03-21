@@ -117,17 +117,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       ? limits.analyses_used >= limits.analyses_per_month
       : false;
   const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
-  const isFreeAtLimit =
-    isAuthenticated && !isPaidTier && limits?.analyses_per_month != null && (limits.analyses_used >= limits.analyses_per_month);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      console.log("[CSVUploader] TIER:", tier, "STATUS:", status, "COUNT:", limits?.analyses_used, "/", limits?.analyses_per_month, "isFreeAtLimit:", isFreeAtLimit);
-    }
-  }, [tier, status, limits, isFreeAtLimit]);
-
-  // États upload
-  const [isDragging, setIsDragging] = useState(false);
   const [localAnalysesUsed, setLocalAnalysesUsed] = useState<number | null>(null);
 
   useEffect(() => {
@@ -135,6 +124,14 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       setLocalAnalysesUsed(limits.analyses_used);
     }
   }, [limits?.analyses_used]);
+
+  const isFreeAtLimit =
+    isAuthenticated && 
+    !isPaidTier && 
+    limits?.analyses_per_month != null && 
+    ((localAnalysesUsed ?? limits.analyses_used ?? 0) >= limits.analyses_per_month);
+
+  const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [laps, setLaps] = useState<LapInfo[] | null>(null);
   const [lapsLoading, setLapsLoading] = useState(false);
