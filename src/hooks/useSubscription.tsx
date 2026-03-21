@@ -133,17 +133,31 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const processedTier = data.tier || "rookie";
       
       let allowedCircuit = data.limits?.allowed_circuit;
-      if (processedTier === "rookie" && !allowedCircuit) {
+      let realAnalysesUsed = data.limits?.analyses_used || 0;
+      
+      if (processedTier === "rookie") {
         try {
           const { getAllAnalyses } = await import("@/lib/storage");
           const analyses = await getAllAnalyses(user?.id);
-          const firstWithCircuit = [...analyses].reverse().find(a => a.circuit_name);
-          allowedCircuit = firstWithCircuit?.circuit_name || null;
+          
+          if (!allowedCircuit) {
+            const firstWithCircuit = [...analyses].reverse().find((a: any) => a.circuit_name);
+            allowedCircuit = firstWithCircuit?.circuit_name || null;
+          }
+          
+          // Calculer le vrai nombre d'analyses pour ce mois pour les "rookies"
+          const now = new Date();
+          const thisMonthAnalyses = analyses.filter((a: any) => {
+            const d = new Date(a.date || a.timestamp);
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+          });
+          realAnalysesUsed = thisMonthAnalyses.length;
         } catch {}
       }
 
       const processedLimits: SubscriptionLimits = {
         ...data.limits,
+        analyses_used: realAnalysesUsed,
         tier: processedTier,
         allowed_circuit: allowedCircuit,
         visible_charts: data.limits?.visible_charts || (
