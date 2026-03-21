@@ -42,10 +42,38 @@ export function AnalysisDashboardContent({
   const plotData = analysis.plot_data;
   const hasPlotData = !!plotData;
 
-  const bestLapNumber = providedBestLap || 1;
-  const bestTrackLapIndex = providedBestTrackLapIndex ?? 0;
+  // Best lap computation
+  const bestLapNumber = useMemo(() => {
+    if (providedBestLap) return providedBestLap;
+    if (!analysis.lap_times || analysis.lap_times.length === 0) return 1;
+    const minTime = Math.min(...analysis.lap_times);
+    return analysis.lap_times.indexOf(minTime) + 1;
+  }, [analysis.lap_times, providedBestLap]);
 
-  const [localSelectedLaps, setLocalSelectedLaps] = useState<number[]>(providedSelectedLaps || [bestLapNumber]);
+  // Find the best lap index for TrackMap — use the lap with the most GPS points (non-cut)
+  const bestTrackLapIndex = useMemo(() => {
+    if (providedBestTrackLapIndex !== undefined) return providedBestTrackLapIndex;
+    if (!plotData?.trajectory_2d?.laps?.length) return 0;
+    const laps = plotData.trajectory_2d.laps;
+    // Prefer the best lap number if it has enough GPS points
+    const bestIdx = bestLapNumber - 1;
+    if (bestIdx >= 0 && bestIdx < laps.length && laps[bestIdx]?.lat?.length > 50) {
+      return bestIdx;
+    }
+    // Otherwise find the lap with the most points
+    let maxPoints = 0;
+    let maxIdx = 0;
+    laps.forEach((lap: any, idx: number) => {
+      const pts = lap?.lat?.length ?? 0;
+      if (pts > maxPoints) {
+        maxPoints = pts;
+        maxIdx = idx;
+      }
+    });
+    return maxIdx;
+  }, [plotData?.trajectory_2d?.laps, bestLapNumber, providedBestTrackLapIndex]);
+
+  const [localSelectedLaps, setLocalSelectedLaps] = useState<number[]>(() => providedSelectedLaps || [bestLapNumber]);
 
   const toggleLap = (lapNum: number) => {
     if (providedToggleLap) {
