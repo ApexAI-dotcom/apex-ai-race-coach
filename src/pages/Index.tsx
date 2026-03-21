@@ -74,7 +74,7 @@ const faqs = [
   {
     question: "ApexAI fonctionne avec quels boîtiers de télémétrie ?",
     answer:
-      "Nous supportons tous les boîtiers générant des données télémétrie standard, notamment les MyChron 4 et 5 (AiM), Alfano, RaceBox, et les applications mobiles de chronométrage GPS.",
+      "Compatible avec AiM MyChron 5 et MyChron 6 (export CSV via Race Studio). D'autres formats à venir",
   },
   {
     question: "Comment lire un fichier CSV de données karting ?",
