@@ -14,7 +14,7 @@ function ScrollToTop() {
   return null;
 }
 import { AuthProvider } from "@/hooks/useAuth";
-import { SubscriptionProvider } from "@/hooks/useSubscription";
+import { SubscriptionProvider } from "@/hooks/useSubscription.tsx";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -85,14 +85,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/analysis/:analysisId"
-              element={
-                <ProtectedRoute>
-                  <AnalysisResultPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/analysis/:analysisId" element={<AnalysisResultPage />} />
             <Route
               path="/parametres"
               element={

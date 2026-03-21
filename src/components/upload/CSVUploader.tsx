@@ -57,7 +57,7 @@ import {
 } from "@/lib/api";
 import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { AnalysisDashboardContent } from "@/components/analysis/AnalysisDashboardContent";
 import { CoachingAdvice } from "@/components/analysis/CoachingAdvice";
 import { toast } from "@/hooks/use-toast";

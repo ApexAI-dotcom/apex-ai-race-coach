@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import type { RadarData } from "@/types/analysis";
 import { BlurOverlay } from "../ui/BlurOverlay";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useNavigate } from "react-router-dom";
 
 interface PerformanceRadarProps {

@@ -6,7 +6,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useUser, useAuth } from "@/hooks/useAuth";
 import { useSubscriptionLegacy } from "@/hooks/useSubscriptionLegacy";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { createPortalSession } from "@/lib/api";
 import { format } from "date-fns";
