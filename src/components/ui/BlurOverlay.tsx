@@ -24,7 +24,7 @@ export const BlurOverlay: React.FC<BlurOverlayProps> = ({
       </div>
       
       {isLocked && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] rounded-xl z-10 p-6 text-center animate-in fade-in duration-500">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-md rounded-xl z-10 p-4 min-h-max text-center animate-in fade-in duration-500">
           <div className="bg-red-600/20 p-3 rounded-full mb-4 border border-red-500/50">
             <Lock className="w-8 h-8 text-red-500" />
           </div>
