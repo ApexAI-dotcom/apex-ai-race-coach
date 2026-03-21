@@ -33,7 +33,7 @@ const PLANS = [
       { text: "Tracé + 1 graphique", included: true },
       { text: "Score global /100", included: true },
       { text: "2 conseils de coaching", included: true },
-      { text: "Comparaison sessions", included: false },
+      { text: "Comparaison sessions", included: true },
     ],
     icon: Flag,
     popular: false,
