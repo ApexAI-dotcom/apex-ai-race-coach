@@ -897,8 +897,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 <div className="flex flex-col items-center">
                   <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center mb-4">
                     <Upload className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <p className="text-lg font-medium text-foreground mb-1">
+                  </div>      <p className="text-lg font-medium text-foreground mb-1">
                     Glissez votre fichier CSV ici
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">ou cliquez pour sélectionner</p>
@@ -1032,8 +1031,11 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 <Button
                   variant="hero"
                   size="lg"
-                  onClick={handleAnalyze}
-                  disabled={isAnalyzing || isFreeAtLimit}
+                  onClick={() => {
+                    if (isFreeAtLimit) setShowLimitReachedModal(true);
+                    else handleAnalyze();
+                  }}
+                  disabled={isAnalyzing}
                   className="min-w-[200px]"
                 >
                   {isAnalyzing ? (
@@ -1041,6 +1043,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Analyse en cours…
                     </>
+                  ) : isFreeAtLimit ? (
+                    "Passer à Racer"
                   ) : (
                     "Analyser le fichier"
                   )}

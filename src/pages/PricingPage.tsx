@@ -235,7 +235,7 @@ export default function PricingPage() {
             {PLANS.map((planItem) => {
               const price = period === "annual" ? planItem.annualPrice : planItem.monthlyPrice;
               const isRookie = planItem.id === "rookie";
-              const isCurrent = isCurrentPlan(planItem.id, currentPlan);
+              const isCurrent = isCurrentPlan(planItem.id, currentPlan, !!user);
               const isLower = !isRookie && isLowerPlan(planItem.id, currentPlanId);
               const canSubscribe = !isRookie && isUpgrade(planItem.id, currentPlanId);
               const Icon = planItem.icon;
@@ -245,7 +245,7 @@ export default function PricingPage() {
 
               let buttonLabel: string;
               if (isComingSoon) buttonLabel = "Bientôt disponible";
-              else if (loadingPriceId === priceId) buttonLabel = "Redirection...";
+              else if (loadingPriceId !== null && loadingPriceId === priceId) buttonLabel = "Redirection...";
               else if (!user && isRookie) buttonLabel = "Inscris-toi";
               else if (isRookie) buttonLabel = "Gratuit";
               else if (isCurrent) buttonLabel = "Plan actuel";
@@ -323,7 +323,7 @@ export default function PricingPage() {
                     >
                       {(isRookie && !!user) ? (
                         "Gratuit"
-                      ) : loadingPriceId !== null && loadingPriceId === priceId ? (
+                      ) : (loadingPriceId !== null && loadingPriceId === priceId) ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
                           Redirection...
