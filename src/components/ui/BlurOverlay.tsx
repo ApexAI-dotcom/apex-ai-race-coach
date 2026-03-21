@@ -18,7 +18,7 @@ export const BlurOverlay: React.FC<BlurOverlayProps> = ({
   children,
 }) => {
   return (
-    <div className="relative w-full group">
+    <div className="relative w-full overflow-hidden rounded-xl group">
       <div className={isLocked ? "blur-md pointer-events-none select-none" : ""}>
         {children}
       </div>

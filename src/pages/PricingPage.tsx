@@ -96,7 +96,8 @@ function getPriceId(planId: string, period: BillingPeriod): PriceKey | null {
 }
 
 /** Map subscription plan (free/pro/team) to plan id (rookie/racer/team) for "Plan actuel" */
-function isCurrentPlan(planId: string, currentPlan: string | undefined): boolean {
+function isCurrentPlan(planId: string, currentPlan: string | undefined, hasUser: boolean = true): boolean {
+  if (!hasUser) return false;
   if (!currentPlan) return planId === "rookie";
   if (currentPlan === "free") return planId === "rookie";
   if (currentPlan === "pro") return planId === "racer";
@@ -135,7 +136,7 @@ export default function PricingPage() {
     const priceId = getPriceId(planId, period);
     const token = session?.access_token;
     if (!priceId || !user?.id || !token) {
-      if (!user) window.location.href = "/login?redirect=/pricing";
+      if (!user) window.location.href = "/login?mode=register";
       return;
     }
     setError(null);
@@ -245,6 +246,7 @@ export default function PricingPage() {
               let buttonLabel: string;
               if (isComingSoon) buttonLabel = "Bientôt disponible";
               else if (loadingPriceId === priceId) buttonLabel = "Redirection...";
+              else if (!user && isRookie) buttonLabel = "Inscris-toi";
               else if (isRookie) buttonLabel = "Gratuit";
               else if (isCurrent) buttonLabel = "Plan actuel";
               else if (isLower) buttonLabel = "Inclus";
@@ -252,7 +254,7 @@ export default function PricingPage() {
 
               const buttonDisabled =
                 isComingSoon ||
-                isRookie ||
+                (isRookie && !!user) ||
                 isCurrent ||
                 isLower ||
                 (loadingPriceId !== null && priceId !== null && loadingPriceId === priceId);
@@ -310,7 +312,7 @@ export default function PricingPage() {
                       className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
                         isComingSoon
                           ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5"
-                          : isRookie
+                          : (isRookie && !!user)
                             ? "bg-secondary text-muted-foreground cursor-not-allowed"
                             : isCurrent || isLower
                               ? "bg-secondary text-muted-foreground cursor-not-allowed"
@@ -319,7 +321,7 @@ export default function PricingPage() {
                                 : "gradient-primary text-primary-foreground hover:opacity-90 border border-primary/50"
                       }`}
                     >
-                      {isRookie ? (
+                      {(isRookie && !!user) ? (
                         "Gratuit"
                       ) : loadingPriceId !== null && loadingPriceId === priceId ? (
                         <>

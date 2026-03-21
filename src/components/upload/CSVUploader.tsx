@@ -128,6 +128,13 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
   // États upload
   const [isDragging, setIsDragging] = useState(false);
+  const [localAnalysesUsed, setLocalAnalysesUsed] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (limits?.analyses_used !== undefined) {
+      setLocalAnalysesUsed(limits.analyses_used);
+    }
+  }, [limits?.analyses_used]);
   const [file, setFile] = useState<File | null>(null);
   const [laps, setLaps] = useState<LapInfo[] | null>(null);
   const [lapsLoading, setLapsLoading] = useState(false);
@@ -405,6 +412,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         setAnalysesCount(count);
         // Rafraîchir l'abonnement pour mettre à jour les limites du Rookie
         if (tier === "rookie") {
+          setLocalAnalysesUsed(prev => (prev ?? (limits?.analyses_used ?? 0)) + 1);
           await fetchSubscription();
         }
       } catch (saveErr) {
@@ -474,13 +482,13 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               <div className="flex justify-between w-full text-xs">
                 <span>Analyses ce mois</span>
                 <span className="font-bold text-primary">
-                  {limits.analyses_used}/{limits.analyses_per_month}
+                  {(localAnalysesUsed ?? limits.analyses_used)}/{limits.analyses_per_month}
                 </span>
               </div>
-              <Progress value={(limits.analyses_used / (limits.analyses_per_month || 1)) * 100} className="h-1" />
-              {limits.analyses_per_month != null && (limits.analyses_per_month - limits.analyses_used) > 0 && (
+              <Progress value={((localAnalysesUsed ?? limits.analyses_used) / (limits.analyses_per_month || 1)) * 100} className="h-1" />
+              {limits.analyses_per_month != null && (limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used)) > 0 && (
                 <span className="text-[10px] italic">
-                  {limits.analyses_per_month - limits.analyses_used} analyse{limits.analyses_per_month - limits.analyses_used > 1 ? 's' : ''} restante{limits.analyses_per_month - limits.analyses_used > 1 ? 's' : ''}
+                  {limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used)} analyse{limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used) > 1 ? 's' : ''} restante{limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used) > 1 ? 's' : ''}
                 </span>
               )}
             </div>
@@ -758,12 +766,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 </CardContent>
               </Card>
             </div>
-
-            {/* Conseils de coaching */}
-            <CoachingAdvice 
-              advice={result.coaching_advice} 
-              fastestLapNumber={result.statistics.fastest_lap_number} 
-            />
 
             {/* Analyse des virages — tableau (SUPPRIMÉ au profit du composant Recharts/CornerDetailsGrid) */}
 
