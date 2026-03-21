@@ -73,7 +73,7 @@ export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null }: T
       isLocked={!visible}
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
-      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/auth" : "/pricing")}
+      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
     >
       <div className="h-[260px] w-full" aria-label="Time delta by distance">
         <ResponsiveContainer width="100%" height="100%">

@@ -181,7 +181,7 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null }: T
       isLocked={!visible}
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
-      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/auth" : "/pricing")}
+      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
     >
       {renderContent()}
     </BlurOverlay>
