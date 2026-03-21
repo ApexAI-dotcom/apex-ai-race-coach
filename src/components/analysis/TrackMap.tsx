@@ -9,6 +9,7 @@ interface TrackMapProps {
   className?: string;
   padding?: number;
   hideLabels?: boolean;
+  onCornerClick?: (cornerLabel: string) => void;
 }
 
 const W = 800;
@@ -29,7 +30,7 @@ function project(
   return [x, y] as const;
 }
 
-export function TrackMap({ corners, margins = [], laps, transparent = false, className = "", padding, hideLabels = false }: TrackMapProps) {
+export function TrackMap({ corners, margins = [], laps, transparent = false, className = "", padding, hideLabels = false, onCornerClick }: TrackMapProps) {
   const [hoverId, setHoverId] = useState<number | null>(null);
   const PAD = padding ?? DEFAULT_PAD;
 
@@ -226,7 +227,14 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
           const margin = marginByLabel[p.label];
           const isHover = hoverId === p.id;
           return (
-            <g key={p.id} onMouseEnter={() => setHoverId(p.id)} onMouseLeave={() => setHoverId(null)} className="cursor-pointer" style={{ transition: "all 0.2s ease" }}>
+            <g
+              key={p.id}
+              onClick={() => onCornerClick?.(p.label)}
+              onMouseEnter={() => setHoverId(p.id)}
+              onMouseLeave={() => setHoverId(null)}
+              className="cursor-pointer"
+              style={{ transition: "all 0.2s ease" }}
+            >
               <circle cx={p.x} cy={p.y} r={isHover ? 6 : 4} fill="#ffffff" className="pointer-events-none" />
               <circle cx={p.x} cy={p.y - 20} r={isHover ? 14 : 12} fill="#000000" stroke={isHover ? "#ff6b35" : "#ffffff"} strokeWidth={isHover ? 3 : 2} />
               <text x={p.x} y={p.y - 16} textAnchor="middle" fill="#ffffff" fontSize={isHover ? "12" : "10"} fontWeight="bold" className="font-display select-none pointer-events-none">
