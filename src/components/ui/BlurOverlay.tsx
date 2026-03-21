@@ -8,6 +8,7 @@ interface BlurOverlayProps {
   ctaButtonText: string;
   onCtaClick?: () => void;
   children: React.ReactNode;
+  hideButton?: boolean;
 }
 
 export const BlurOverlay: React.FC<BlurOverlayProps> = ({
@@ -16,6 +17,7 @@ export const BlurOverlay: React.FC<BlurOverlayProps> = ({
   ctaButtonText,
   onCtaClick,
   children,
+  hideButton = false,
 }) => {
   return (
     <div className="relative w-full overflow-hidden rounded-xl group">
@@ -29,15 +31,19 @@ export const BlurOverlay: React.FC<BlurOverlayProps> = ({
             <Lock className="w-8 h-8 text-red-500" />
           </div>
           <h3 className="text-xl font-bold text-white mb-2">{ctaTitle}</h3>
-          <p className="text-gray-300 text-sm mb-6 max-w-[250px]">
-            Débloquez toutes les analyses et visualisez vos performances complètes.
-          </p>
-          <Button 
-            onClick={onCtaClick}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-6 px-8 rounded-full shadow-lg shadow-red-900/40 transform transition hover:scale-105 active:scale-95"
-          >
-            {ctaButtonText}
-          </Button>
+          {!hideButton && (
+            <>
+              <p className="text-gray-300 text-sm mb-6 max-w-[250px]">
+                Débloquez toutes les analyses et visualisez vos performances complètes.
+              </p>
+              <Button 
+                onClick={onCtaClick}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-6 px-8 rounded-full shadow-lg shadow-red-900/40 transform transition hover:scale-105 active:scale-95"
+              >
+                {ctaButtonText}
+              </Button>
+            </>
+          )}
         </div>
       )}
     </div>

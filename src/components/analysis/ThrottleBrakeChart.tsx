@@ -23,11 +23,12 @@ interface ThrottleBrakeChartProps {
   data: ThrottleBrakeData;
   selectedLaps: number[];
   circuitName?: string | null;
+  hideCta?: boolean;
 }
 
-const LAP_COLORS = ["#f97316", "#3b82f6", "#22c5e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
+const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
 
-export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null }: ThrottleBrakeChartProps) {
+export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hideCta = false }: ThrottleBrakeChartProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
   const visible = isChartVisible("throttle_brake", circuitName);
@@ -182,6 +183,7 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null }: T
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
       onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
+      hideButton={hideCta}
     >
       {renderContent()}
     </BlurOverlay>

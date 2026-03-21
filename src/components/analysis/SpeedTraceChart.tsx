@@ -22,6 +22,7 @@ interface SpeedTraceChartProps {
   bestLapNumber?: number;
   variant?: "points" | "line";
   circuitName?: string | null;
+  hideCta?: boolean;
 }
 
 const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
@@ -65,6 +66,7 @@ export function SpeedTraceChart({
   selectedLaps,
   variant = "line",
   circuitName = null,
+  hideCta = false,
 }: SpeedTraceChartProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
@@ -85,6 +87,7 @@ export function SpeedTraceChart({
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
       onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
+      hideButton={hideCta}
     >
       <div className="h-[320px] w-full" aria-label="Speed trace by distance">
         <ResponsiveContainer width="100%" height="100%">

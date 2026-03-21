@@ -10,9 +10,10 @@ interface CoachingAdviceProps {
   advice: CoachingAdviceType[];
   fastestLapNumber?: number;
   isLocked?: boolean;
+  hideCta?: boolean;
 }
 
-export function CoachingAdvice({ advice, fastestLapNumber, isLocked }: CoachingAdviceProps) {
+export function CoachingAdvice({ advice, fastestLapNumber, isLocked, hideCta = false }: CoachingAdviceProps) {
   const navigate = useNavigate();
   if (!advice || advice.length === 0) return null;
 
@@ -66,21 +67,23 @@ export function CoachingAdvice({ advice, fastestLapNumber, isLocked }: CoachingA
         
         {isLocked && advice.length > 2 && (
           <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 z-10 bg-gradient-to-t from-background/90 via-background/50 to-transparent">
-            <div className="flex flex-col items-center max-w-sm text-center">
-              <div className="bg-red-600/20 p-2 rounded-full mb-3 border border-red-500/50 backdrop-blur-sm">
-                <Lock className="w-5 h-5 text-red-500" />
+            {!hideCta && (
+              <div className="flex flex-col items-center max-w-sm text-center">
+                <div className="bg-red-600/20 p-2 rounded-full mb-3 border border-red-500/50 backdrop-blur-sm">
+                  <Lock className="w-5 h-5 text-red-500" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Débloquez tous les conseils</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Créez un compte gratuitement pour révéler tous les conseils de coaching personnalisés.
+                </p>
+                <Button 
+                  onClick={() => navigate("/login?mode=register")}
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-full w-full"
+                >
+                  Créer un compte
+                </Button>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Débloquez tous les conseils</h3>
-              <p className="text-gray-300 text-sm mb-4">
-                Créez un compte gratuitement pour révéler tous les conseils de coaching personnalisés.
-              </p>
-              <Button 
-                onClick={() => navigate("/login?mode=register")}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-full w-full"
-              >
-                Créer un compte
-              </Button>
-            </div>
+            )}
           </div>
         )}
       </CardContent>
