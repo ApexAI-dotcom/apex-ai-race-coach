@@ -178,6 +178,17 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
                 corners={plotData.trajectory_2d.corners}
                 margins={plotData.apex_margin?.corners}
                 laps={plotData.trajectory_2d.laps ? [plotData.trajectory_2d.laps[bestTrackLapIndex]] : undefined}
+                onCornerClick={(label) => {
+                  const el = document.getElementById(`corner-${label}`);
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Visual feedback
+                    el.classList.add('ring-2', 'ring-primary', 'ring-offset-2', 'ring-offset-background');
+                    setTimeout(() => {
+                      el.classList.remove('ring-2', 'ring-primary', 'ring-offset-2', 'ring-offset-background');
+                    }, 2000);
+                  }
+                }}
               />
             </section>
           )}
