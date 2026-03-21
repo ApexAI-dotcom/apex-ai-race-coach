@@ -1,7 +1,7 @@
 import type { AnalysisResponse } from "@/types/analysis";
 import { GRADE_COLORS } from "./utils";
 import { BlurOverlay } from "../ui/BlurOverlay";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useNavigate } from "react-router-dom";
 
 interface MetricsHeaderProps {

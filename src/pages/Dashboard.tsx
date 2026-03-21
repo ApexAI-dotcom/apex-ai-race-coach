@@ -76,7 +76,7 @@ import {
 } from "@/lib/storage";
 import { getDisplayScore, type AnalysisResult, type CornerAnalysis, type CoachingAdvice } from "@/lib/api";
 import { useSubscriptionLegacy } from "@/hooks/useSubscriptionLegacy";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useAuth } from "@/hooks/useAuth";
 import { mapApiResultToResponse } from "@/hooks/useAnalysis";
 import { AnalysisDashboardContent } from "@/components/analysis/AnalysisDashboardContent";

@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { useAuth } from "@/hooks/useAuth";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { createCheckoutSession } from "@/lib/api";
 import {
   Check,

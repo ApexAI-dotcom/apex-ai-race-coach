@@ -1,6 +1,6 @@
 import { Flag, Car, Trophy } from "lucide-react";
-import { useSubscription } from "@/hooks/useSubscription";
-import type { SubscriptionTier } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
+import type { SubscriptionTier } from "@/hooks/useSubscription.tsx";
 
 const TIER_CONFIG: Record<
   SubscriptionTier,

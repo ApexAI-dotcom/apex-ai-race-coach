@@ -13,7 +13,7 @@ import {
 import type { SpeedTraceData } from "@/types/analysis";
 import { downsample } from "./utils";
 import { BlurOverlay } from "../ui/BlurOverlay";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useNavigate } from "react-router-dom";
 
 interface SpeedTraceChartProps {

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Check, Zap, Info, MapPin, Gauge, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { SpeedTraceChart } from "./SpeedTraceChart";
 import { PerformanceRadar } from "./PerformanceRadar";
 import { ApexMarginChart } from "./ApexMarginChart";

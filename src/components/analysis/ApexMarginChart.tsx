@@ -11,7 +11,7 @@ import {
 import type { CornerMargin } from "@/types/analysis";
 import { STATUS_COLORS } from "./utils";
 import { BlurOverlay } from "../ui/BlurOverlay";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useNavigate } from "react-router-dom";
 
 function statusFromMargin(margin_kmh: number): "optimal" | "good" | "warning" {

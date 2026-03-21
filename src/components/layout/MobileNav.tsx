@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, BarChart3, Zap, User, Tag } from "lucide-react";
 import { motion } from "framer-motion";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useAuth } from "@/hooks/useAuth";
 
 export const MobileNav = () => {

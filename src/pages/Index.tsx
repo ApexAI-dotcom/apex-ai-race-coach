@@ -5,9 +5,15 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
 import SubscriberHome from "@/components/home/SubscriberHome";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import heroImage from "@/assets/hero-racing.jpg";
 
 const stats = [
@@ -46,6 +52,49 @@ const testimonials = [
     role: "Championne régionale",
     quote: "L'analyse des apex est incroyablement précise. Ça change tout.",
     avatar: "MD",
+  },
+];
+
+const faqs = [
+  {
+    question: "C'est quoi ApexAI ?",
+    answer:
+      "ApexAI est la première plateforme d'analyse karting par intelligence artificielle. Nous transformons vos données de télémétrie en conseils concrets pour améliorer vos temps au tour instantanément.",
+  },
+  {
+    question: "Comment analyser mes données MyChron ?",
+    answer:
+      "C'est très simple : exportez votre fichier au format CSV depuis votre logiciel MyChron, importez-le sur ApexAI, et notre IA scanne chaque virage pour détecter vos erreurs de trajectoire et de freinage.",
+  },
+  {
+    question: "Comment améliorer mes temps en karting ?",
+    answer:
+      "La clé pour gagner des secondes est la précision de la trajectoire kart. ApexAI analyse vos apex, votre vitesse d'entrée et votre réaccélération pour vous donner un plan d'action précis virage par virage.",
+  },
+  {
+    question: "ApexAI fonctionne avec quels boîtiers de télémétrie ?",
+    answer:
+      "Nous supportons tous les boîtiers générant des données télémétrie standard, notamment les MyChron 4 et 5 (AiM), Alfano, RaceBox, et les applications mobiles de chronométrage GPS.",
+  },
+  {
+    question: "Comment lire un fichier CSV de données karting ?",
+    answer:
+      "Pas besoin d'être un ingénieur ! ApexAI lit vos fichiers CSV bruts et les traduit en graphiques simples : tracé de piste, zones de freinage et courbes de vitesse, avec un score de performance clair.",
+  },
+  {
+    question: "Combien de temps je peux gagner avec l'analyse IA ?",
+    answer:
+      "Nos utilisateurs constatent un gain moyen de 1,2 seconde dès la première session. En optimisant votre pilotage karting avec nos conseils, vous pouvez rapidement descendre sous vos records personnels.",
+  },
+  {
+    question: "Est-ce que c'est adapté aux débutants ?",
+    answer:
+      "Absolument. Contrairement aux logiciels complexes, ApexAI est conçu pour être intuitif. C'est l'outil idéal pour apprendre les bases de la trajectoire et progresser sans passer des heures à étudier des graphiques.",
+  },
+  {
+    question: "Comment fonctionne le score /100 ?",
+    answer:
+      "Le score global évalue votre régularité, votre précision aux apex et l'efficacité de votre freinage. C'est un indicateur simple pour suivre votre progression et comparer vos performances à chaque session karting.",
   },
 ];
 
@@ -358,6 +407,46 @@ export default function Index() {
                 </Button>
               </Link>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20 border-t border-white/5">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
+              Questions <span className="text-gradient-primary">Fréquentes</span>
+            </h2>
+            <p className="text-muted-foreground">
+              Tout ce que vous devez savoir sur l'analyse de données et le pilotage karting.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="glass-card p-6 md:p-8"
+          >
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`} className="border-white/5">
+                  <AccordionTrigger className="text-left text-foreground hover:text-primary transition-colors py-4">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </motion.div>
         </div>
       </section>
