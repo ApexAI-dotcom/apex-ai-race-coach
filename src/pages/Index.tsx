@@ -187,13 +187,13 @@ export default function Index() {
               transition={{ delay: 0.4 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <Link to="/upload" className="group">
+              <Link to={isAuthenticated ? "/upload" : "/pricing"} className="group">
                 <Button variant="hero" size="xl" className="group hover:bg-orange-500 hover:scale-105 hover:shadow-lg shadow-md transition-all duration-300">
                   {isAuthenticated ? getCtaLabel(tier, subLoading) : "Commencer — 3 analyses"}
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
-              <Link to="/dashboard" className="group">
+              <Link to={isAuthenticated ? "/dashboard" : "/upload"} className="group">
                 <Button variant="heroOutline" size="lg" className="group hover:scale-105 hover:shadow-lg transition-all duration-300">
                   Voir une démo
                 </Button>

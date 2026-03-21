@@ -21,7 +21,7 @@ export function CoachingAdvice({ advice, fastestLapNumber, isLocked }: CoachingA
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Zap className="w-5 h-5 text-primary" />
-          Conseils de Coaching (Top {advice.length})
+          Conseils de Coaching
         </CardTitle>
         <CardDescription>
           Conseils prioritaires pour améliorer votre performance — Basé sur le meilleur tour
