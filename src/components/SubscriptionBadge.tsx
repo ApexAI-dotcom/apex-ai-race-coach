@@ -6,6 +6,11 @@ const TIER_CONFIG: Record<
   SubscriptionTier,
   { Icon: typeof Flag; label: string; className: string }
 > = {
+  visitor: {
+    Icon: Flag,
+    label: "Visiteur",
+    className: "bg-slate-800 text-slate-400 border-slate-700",
+  },
   rookie: {
     Icon: Flag,
     label: "Rookie",
