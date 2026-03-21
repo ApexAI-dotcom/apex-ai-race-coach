@@ -10,6 +10,7 @@ import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { CoachingAdvice } from "./CoachingAdvice";
 import { Badge } from "@/components/ui/badge";
 import { Check, Trophy } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface AnalysisDashboardContentProps {
   analysis: AnalysisResponse;
@@ -53,6 +54,7 @@ function BestLapBadge({ lapNumber }: { lapNumber: number }) {
 }
 
 export function AnalysisDashboardContent({ analysis, embedded = false }: AnalysisDashboardContentProps) {
+  const { isChartVisible } = useSubscription();
   const plotData = analysis.plot_data;
   const hasPlotData = !!plotData;
 
@@ -164,7 +166,8 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
           {/* ═══ 0. CONSEILS DE COACHING ═══ */}
           <CoachingAdvice 
             advice={analysis.coaching_advice} 
-            fastestLapNumber={bestLapNumber} 
+            fastestLapNumber={bestLapNumber}
+            isLocked={!isChartVisible("coaching_advice", analysis.session_conditions?.circuit_name)}
           />
 
           {/* ═══ 0. CARTE DU CIRCUIT — Meilleur tour ═══ */}

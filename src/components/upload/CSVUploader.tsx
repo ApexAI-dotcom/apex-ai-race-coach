@@ -108,7 +108,7 @@ function mapApiResultToResponse(result: AnalysisResult | null): any {
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const navigate = useNavigate();
   const { user, session, isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
-  const { tier, status, limits } = useSubscription();
+  const { tier, status, limits, fetchSubscription } = useSubscription();
   const canUpload = isAuthenticated || canUploadFree;
   const storageUserId = user?.id ?? undefined;
 
@@ -403,6 +403,10 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         setTimeout(() => setSaveSuccess(null), 5000);
         const count = await getAnalysesCount(storageUserId);
         setAnalysesCount(count);
+        // Rafraîchir l'abonnement pour mettre à jour les limites du Rookie
+        if (tier === "rookie") {
+          await fetchSubscription();
+        }
       } catch (saveErr) {
         console.warn("Auto-save failed:", saveErr);
         // Non bloquant — le bouton "Sauvegarder" restera disponible

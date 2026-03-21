@@ -53,7 +53,7 @@ export function ApexMarginChart({ data, circuitName = null }: ApexMarginChartPro
       isLocked={!visible}
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
-      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/auth" : "/pricing")}
+      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
     >
       <div className="h-[260px] w-full" aria-label="Apex margin by corner">
         <ResponsiveContainer width="100%" height="100%">

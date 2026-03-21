@@ -84,7 +84,7 @@ export function SpeedTraceChart({
       isLocked={!visible}
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
-      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/auth" : "/pricing")}
+      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
     >
       <div className="h-[320px] w-full" aria-label="Speed trace by distance">
         <ResponsiveContainer width="100%" height="100%">
