@@ -139,7 +139,7 @@ export function useSubscription() {
         visible_charts: data.limits?.visible_charts || (
           processedTier === "racer" || processedTier === "team" 
             ? ["track_map", "speed_trace", "throttle_brake", "delta_time", "apex_margin", "radar"]
-            : ["track_map", "speed_trace"] // Rookie can see 1 chart (speed_trace) + track_map
+            : ["track_map", "speed_trace", "coaching_advice"] // Rookie can see 1 chart (speed_trace) + track_map + coaching
         )
       };
 
@@ -181,7 +181,7 @@ export function useSubscription() {
         max_circuits: 1,
         max_cars: null,
         allowed_circuit: allowedCircuit,
-        visible_charts: ["track_map", "speed_trace"],
+        visible_charts: ["track_map", "speed_trace", "coaching_advice"],
       });
     } finally {
       setIsLoading(false);
