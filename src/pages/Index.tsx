@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowRight, Zap, Target, Timer, TrendingUp, Star, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowRight, Zap, Target, Timer, TrendingUp, Star, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -412,19 +412,27 @@ export default function Index() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 border-t border-white/5">
-        <div className="container mx-auto px-4 max-w-3xl">
+      <section className="py-24 border-t border-white/5 relative overflow-hidden">
+        {/* Abstract background blur */}
+        <div className="absolute top-1/2 left-0 w-64 h-64 bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 -px-32 pointer-events-none" />
+        
+        <div className="container mx-auto px-4 max-w-4xl relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
-            <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-white/5 mb-6">
+              <HelpCircle className="w-4 h-4 text-primary" />
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Support & SEO</span>
+            </div>
+            
+            <h2 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-6">
               Questions <span className="text-gradient-primary">Fréquentes</span>
             </h2>
-            <p className="text-muted-foreground">
-              Tout ce que vous devez savoir sur l'analyse de données et le pilotage karting.
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Tout ce que vous devez savoir sur l'analyse de données IA et l'amélioration de votre pilotage karting.
             </p>
           </motion.div>
 
@@ -433,20 +441,39 @@ export default function Index() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="glass-card p-6 md:p-8"
+            className="glass-card-hover p-8 md:p-12 relative overflow-hidden group border-white/10"
           >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+            
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border-white/5">
-                  <AccordionTrigger className="text-left text-foreground hover:text-primary transition-colors py-4">
-                    {faq.question}
+                <AccordionItem key={index} value={`item-${index}`} className="border-white/5 last:border-0">
+                  <AccordionTrigger className="text-left text-lg font-bold text-foreground hover:text-primary transition-all py-6 group/trigger no-underline hover:no-underline [&[data-state=open]>div>div]:bg-primary [&[data-state=open]>div>div]:text-white">
+                    <div className="flex items-center gap-6">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-secondary border border-white/5 flex items-center justify-center text-primary text-sm font-black transition-all duration-300 shadow-lg">
+                        {index + 1}
+                      </div>
+                      <span className="font-display">{faq.question}</span>
+                    </div>
                   </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                  <AccordionContent className="text-muted-foreground leading-relaxed pl-16 pb-8 text-base md:text-lg max-w-3xl">
                     {faq.answer}
                   </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+            className="mt-12 text-center"
+          >
+            <p className="text-muted-foreground text-sm">
+              Une autre question ? <a href="mailto:contact@apexai.racing" className="text-primary hover:underline font-bold">Contactez notre support</a>
+            </p>
           </motion.div>
         </div>
       </section>
