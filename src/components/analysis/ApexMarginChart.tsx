@@ -23,9 +23,10 @@ function statusFromMargin(margin_kmh: number): "optimal" | "good" | "warning" {
 interface ApexMarginChartProps {
   data: CornerMargin[];
   circuitName?: string | null;
+  hideCta?: boolean;
 }
 
-export function ApexMarginChart({ data, circuitName = null }: ApexMarginChartProps) {
+export function ApexMarginChart({ data, circuitName = null, hideCta = false }: ApexMarginChartProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
   const visible = isChartVisible("apex_margin", circuitName);
@@ -54,6 +55,7 @@ export function ApexMarginChart({ data, circuitName = null }: ApexMarginChartPro
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
       onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
+      hideButton={hideCta}
     >
       <div className="h-[260px] w-full" aria-label="Apex margin by corner">
         <ResponsiveContainer width="100%" height="100%">

@@ -104,32 +104,20 @@ function mapApiResultToResponse(result: AnalysisResult | null): any {
 }
 
 // ─── Composant ────────────────────────────────────────────────────────────────
-
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const navigate = useNavigate();
   const { user, session, isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
-  const { tier, status, limits, fetchSubscription } = useSubscription();
+  const { tier, status, limits, fetchSubscription, incrementAnalysesUsed } = useSubscription();
   const canUpload = isAuthenticated || canUploadFree;
   const storageUserId = user?.id ?? undefined;
 
-  const freeLimit =
-    limits?.analyses_per_month != null && typeof limits.analyses_used === "number"
-      ? limits.analyses_used >= limits.analyses_per_month
-      : false;
-  const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
-  const [localAnalysesUsed, setLocalAnalysesUsed] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (limits?.analyses_used !== undefined) {
-      setLocalAnalysesUsed(limits.analyses_used);
-    }
-  }, [limits?.analyses_used]);
-
-  const isFreeAtLimit =
-    isAuthenticated && 
+  const isPaidTier = tier === "racer" || tier === "team";
+  
+  // Bloqué si Rookie (ou visitor) & limite atteinte
+  const isFreeAtLimit = 
     !isPaidTier && 
     limits?.analyses_per_month != null && 
-    ((localAnalysesUsed ?? limits.analyses_used ?? 0) >= limits.analyses_per_month);
+    (limits.analyses_used >= limits.analyses_per_month);
 
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -409,7 +397,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         setAnalysesCount(count);
         // Rafraîchir l'abonnement pour mettre à jour les limites du Rookie
         if (tier === "rookie") {
-          setLocalAnalysesUsed(prev => (prev ?? (limits?.analyses_used ?? 0)) + 1);
+          incrementAnalysesUsed();
           await fetchSubscription();
         }
       } catch (saveErr) {
@@ -479,13 +467,13 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               <div className="flex justify-between w-full text-xs">
                 <span>Analyses ce mois</span>
                 <span className="font-bold text-primary">
-                  {(localAnalysesUsed ?? limits.analyses_used)}/{limits.analyses_per_month}
+                  {limits.analyses_used}/{limits.analyses_per_month}
                 </span>
               </div>
-              <Progress value={((localAnalysesUsed ?? limits.analyses_used) / (limits.analyses_per_month || 1)) * 100} className="h-1" />
-              {limits.analyses_per_month != null && (limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used)) > 0 && (
+              <Progress value={(limits.analyses_used / (limits.analyses_per_month || 1)) * 100} className="h-1" />
+              {limits.analyses_per_month != null && (limits.analyses_per_month - (limits.analyses_used)) > 0 && (
                 <span className="text-[10px] italic">
-                  {limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used)} analyse{limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used) > 1 ? 's' : ''} restante{limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used) > 1 ? 's' : ''}
+                  {limits.analyses_per_month - (limits.analyses_used)} analyse{limits.analyses_per_month - (limits.analyses_used) > 1 ? 's' : ''} restante{limits.analyses_per_month - (limits.analyses_used) > 1 ? 's' : ''}
                 </span>
               )}
             </div>

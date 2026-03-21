@@ -31,11 +31,12 @@ interface TimeDeltaLapsChartProps {
   data: TimeDeltaLapsData;
   selectedLaps: number[];
   circuitName?: string | null;
+  hideCta?: boolean;
 }
 
 const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
 
-export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null }: TimeDeltaLapsChartProps) {
+export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null, hideCta = false }: TimeDeltaLapsChartProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
   const visible = isChartVisible("delta_time", circuitName);
@@ -74,6 +75,7 @@ export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null }: T
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
       onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
+      hideButton={hideCta}
     >
       <div className="h-[260px] w-full" aria-label="Time delta by distance">
         <ResponsiveContainer width="100%" height="100%">

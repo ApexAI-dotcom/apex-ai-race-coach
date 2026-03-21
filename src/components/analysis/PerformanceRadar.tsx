@@ -16,9 +16,10 @@ import { useNavigate } from "react-router-dom";
 interface PerformanceRadarProps {
   data: RadarData;
   circuitName?: string | null;
+  hideCta?: boolean;
 }
 
-export function PerformanceRadar({ data, circuitName = null }: PerformanceRadarProps) {
+export function PerformanceRadar({ data, circuitName = null, hideCta = false }: PerformanceRadarProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
   const visible = isChartVisible("radar", circuitName);
@@ -47,6 +48,7 @@ export function PerformanceRadar({ data, circuitName = null }: PerformanceRadarP
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
       onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
+      hideButton={hideCta}
     >
       <div className="h-[260px] w-full" aria-label="Performance radar">
         <ResponsiveContainer width="100%" height="100%">

@@ -47,3 +47,11 @@ export const STATUS_COLORS: Record<string, string> = {
   good: "#3b82f6",
   warning: "#f97316",
 };
+
+export function enrichCornersWithCornerAnalysis(plotData: any, analysis: any) {
+  if (!plotData.apex_margin?.corners) return [];
+  return plotData.apex_margin.corners.map((c: any) => ({
+    ...c,
+    // Add fallback or derived fields if needed for the CornerDetailsGrid
+  }));
+}
