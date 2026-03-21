@@ -395,10 +395,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         setTimeout(() => setSaveSuccess(null), 5000);
         const count = await getAnalysesCount(storageUserId);
         setAnalysesCount(count);
-        // Rafraîchir l'abonnement pour mettre à jour les limites du Rookie
+        // L'abonnement est mis à jour localement pour ne pas écraser avec des données potentiellement asynchrones/stales
         if (tier === "rookie") {
           incrementAnalysesUsed();
-          await fetchSubscription();
         }
       } catch (saveErr) {
         console.warn("Auto-save failed:", saveErr);

@@ -1,0 +1,799 @@
+diff --git a/src/components/analysis/AnalysisDashboardContent.tsx b/src/components/analysis/AnalysisDashboardContent.tsx
+index 7d9f26d..4620fe0 100644
+--- a/src/components/analysis/AnalysisDashboardContent.tsx
++++ b/src/components/analysis/AnalysisDashboardContent.tsx
+@@ -1,104 +1,65 @@
+-import type { AnalysisResponse, CornerMargin, PlotData } from "@/types/analysis";
+-import { useState, useMemo } from "react";
++import React, { useState, useMemo } from "react";
++import { Check, Zap, Info, MapPin, Gauge, Trophy } from "lucide-react";
++import { Badge } from "@/components/ui/badge";
++import { useSubscription } from "@/hooks/useSubscription";
+ import { SpeedTraceChart } from "./SpeedTraceChart";
+-import { ThrottleBrakeChart } from "./ThrottleBrakeChart";
+-import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
+ import { PerformanceRadar } from "./PerformanceRadar";
+-import { TrackMap } from "./TrackMap";
+ import { ApexMarginChart } from "./ApexMarginChart";
++import { ThrottleBrakeChart } from "./ThrottleBrakeChart";
+ import { CornerDetailsGrid } from "./CornerDetailsGrid";
++import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
++import { TrackMap } from "./TrackMap";
+ import { CoachingAdvice } from "./CoachingAdvice";
+-import { Badge } from "@/components/ui/badge";
+-import { Check, Trophy } from "lucide-react";
+-import { useSubscription } from "@/hooks/useSubscription";
++import { enrichCornersWithCornerAnalysis } from "./utils";
++import type { AnalysisResponse as AnalysisResult } from "@/types/analysis";
+ 
+ interface AnalysisDashboardContentProps {
+-  analysis: AnalysisResponse;
++  analysis: AnalysisResult;
++  bestLapNumber?: number;
++  bestTrackLapIndex?: number;
++  selectedLapNumbers?: number[];
++  toggleLap?: (lapNumber: number) => void;
+   embedded?: boolean;
+ }
+ 
+-function enrichCornersWithCornerAnalysis(
+-  plotData: PlotData,
+-  analysis: AnalysisResponse
+-): CornerMargin[] {
+-  const corners = plotData.apex_margin?.corners ?? [];
+-  const cornerAnalysis = (analysis.corner_analysis ?? []) as Array<{
+-    apex_speed_real?: number;
+-    apex_speed_optimal?: number;
+-    time_lost?: number;
+-    grade?: string;
+-    entry_speed?: number;
+-    exit_speed?: number;
+-    label?: string;
+-  }>;
+-  if (corners.length === 0) return [];
+-  return corners.map((c, i) => ({
+-    ...c,
+-    apex_speed_real: c.apex_speed_real ?? cornerAnalysis[i]?.apex_speed_real ?? 0,
+-    apex_speed_optimal: c.apex_speed_optimal ?? cornerAnalysis[i]?.apex_speed_optimal ?? 0,
+-    time_lost: c.time_lost ?? cornerAnalysis[i]?.time_lost ?? 0,
+-    grade: (c.grade ?? cornerAnalysis[i]?.grade ?? "C") as CornerMargin["grade"],
+-    entry_speed: c.entry_speed ?? cornerAnalysis[i]?.entry_speed ?? 0,
+-    exit_speed: c.exit_speed ?? cornerAnalysis[i]?.exit_speed ?? 0,
+-  }));
+-}
+-
+-/** Small badge to indicate a section is based on the best lap */
+-function BestLapBadge({ lapNumber }: { lapNumber: number }) {
+-  return (
+-    <span className="inline-flex items-center gap-1 text-xs font-medium text-green-400 bg-green-500/10 border border-green-500/20 rounded-full px-2 py-0.5 ml-2">
+-      <Trophy className="w-3 h-3" />
+-      Meilleur tour (T{lapNumber})
+-    </span>
+-  );
+-}
+-
+-export function AnalysisDashboardContent({ analysis, embedded = false }: AnalysisDashboardContentProps) {
++const BestLapBadge = ({ lapNumber }: { lapNumber: number }) => (
++  <Badge variant="outline" className="ml-2 bg-green-500/10 text-green-500 border-green-500/20 text-[10px] py-0 px-1.5 h-5 flex items-center gap-1">
++    <Trophy className="w-2.5 h-2.5" />
++    Meilleur T{lapNumber}
++  </Badge>
++);
++
++export function AnalysisDashboardContent({
++  analysis,
++  bestLapNumber: providedBestLap,
++  bestTrackLapIndex: providedBestTrackLapIndex,
++  selectedLapNumbers: providedSelectedLaps,
++  toggleLap: providedToggleLap,
++  embedded = false,
++}: AnalysisDashboardContentProps) {
+   const { isChartVisible } = useSubscription();
++
+   const plotData = analysis.plot_data;
+   const hasPlotData = !!plotData;
+ 
+-  // Best lap computation
+-  const bestLapNumber = useMemo(() => {
+-    if (!analysis.lap_times || analysis.lap_times.length === 0) return 1;
+-    const minTime = Math.min(...analysis.lap_times);
+-    return analysis.lap_times.indexOf(minTime) + 1;
+-  }, [analysis.lap_times]);
++  const bestLapNumber = providedBestLap || 1;
++  const bestTrackLapIndex = providedBestTrackLapIndex ?? 0;
+ 
+-  // Global lap selector state — default to best lap
+-  const [selectedLapNumbers, setSelectedLapNumbers] = useState<number[]>(() => [bestLapNumber]);
++  const [localSelectedLaps, setLocalSelectedLaps] = useState<number[]>(providedSelectedLaps || [bestLapNumber]);
+ 
+   const toggleLap = (lapNum: number) => {
+-    setSelectedLapNumbers(prev =>
+-      prev.includes(lapNum)
+-        ? (prev.length > 1 ? prev.filter(n => n !== lapNum) : prev)
+-        : [...prev, lapNum].sort((a, b) => a - b)
+-    );
+-  };
+-
+-  // Find the best lap index for TrackMap — use the lap with the most GPS points (non-cut)
+-  const bestTrackLapIndex = useMemo(() => {
+-    if (!plotData?.trajectory_2d?.laps?.length) return 0;
+-    const laps = plotData.trajectory_2d.laps;
+-    // Prefer the best lap number if it has enough GPS points
+-    const bestIdx = bestLapNumber - 1;
+-    if (bestIdx >= 0 && bestIdx < laps.length && laps[bestIdx]?.lat?.length > 50) {
+-      return bestIdx;
++    if (providedToggleLap) {
++      providedToggleLap(lapNum);
++    } else {
++      setLocalSelectedLaps(prev => 
++        prev.includes(lapNum) ? prev.filter(l => l !== lapNum) : [...prev, lapNum]
++      );
+     }
+-    // Otherwise find the lap with the most points
+-    let maxPoints = 0;
+-    let maxIdx = 0;
+-    laps.forEach((lap, idx) => {
+-      const pts = lap?.lat?.length ?? 0;
+-      if (pts > maxPoints) {
+-        maxPoints = pts;
+-        maxIdx = idx;
+-      }
+-    });
+-    return maxIdx;
+-  }, [plotData?.trajectory_2d?.laps, bestLapNumber]);
++  };
+ 
+-  const wrapperClass = embedded ? "space-y-6" : "";
++  const selectedLapNumbers = providedSelectedLaps || localSelectedLaps;
++  
++  const wrapperClass = embedded ? "space-y-6" : "max-w-7xl mx-auto p-4 md:p-8 space-y-8";
+   const sectionClass = embedded
+     ? "mb-6 md:mb-8 rounded-lg border border-white/5 bg-secondary/50 p-3 md:p-4"
+     : "glass-card p-4 md:p-6 mb-6 md:mb-8";
+@@ -109,207 +70,171 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
+     ? "text-lg font-semibold text-foreground mb-4"
+     : "text-xl font-bold text-foreground mb-4";
+   const fallbackTextClass = "text-muted-foreground text-sm";
+-  const fallbackBlockClass = embedded
+-    ? "rounded-lg border border-white/5 bg-secondary/50 p-4"
+-    : "glass-card p-6";
+ 
+-  // Throttle/Brake : check real data
+   const hasThrottleBrake = plotData?.throttle_brake?.laps?.[0]?.throttle_pct?.some(
+     (v: number) => v > 10
+   ) ?? false;
+ 
+-
++  let ctaShown = false;
++  const circuitName = analysis.session_conditions?.circuit_name;
+ 
+   return (
+     <div className={wrapperClass}>
+       {hasPlotData ? (
+         <>
+-          {/* ═══ GLOBAL LAP SELECTOR ═══ */}
++          {/* LAPS SELECTION */}
+           <section className={sectionClass}>
+             <div className="flex flex-col gap-3">
+               <div className="flex items-center gap-2">
+                 <h2 className={`${titleClass} mb-0`}>Sélection des tours</h2>
+-                <span className="text-xs text-muted-foreground">
+-                  ({selectedLapNumbers.length} tour{selectedLapNumbers.length > 1 ? "s" : ""} sélectionné{selectedLapNumbers.length > 1 ? "s" : ""})
+-                </span>
+               </div>
+-              <p className="text-sm text-[#8b949e] -mt-2">
+-                Sélectionnez les tours à superposer sur les graphiques. Le point vert indique le meilleur tour.
+-              </p>
+-              <div className="flex flex-wrap gap-1.5 md:gap-2 items-center">
++              <div className="flex flex-wrap gap-1.5 md:gap-2">
+                 {analysis.lap_times?.map((time, idx) => {
+                   const lapNum = idx + 1;
+                   const isSelected = selectedLapNumbers.includes(lapNum);
+                   const isBest = lapNum === bestLapNumber;
+                   return (
+                     <Badge
+-                      key={lapNum}
++                      key={idx}
+                       variant={isSelected ? "default" : "outline"}
+-                      className={`cursor-pointer transition-all hover:scale-105 active:scale-95 py-1 px-2 md:py-1.5 md:px-3 flex items-center gap-1 md:gap-1.5 ${
+-                        isSelected
++                      className={`cursor-pointer gap-1.5 py-1.5 px-3 transition-all ${
++                        isSelected 
+                           ? "bg-primary text-white border-transparent"
+                           : "bg-transparent border-white/10 text-muted-foreground hover:border-[#ff6b35]/50"
+                       } ${isBest ? "ring-1 ring-green-500/50" : ""}`}
+                       onClick={() => toggleLap(lapNum)}
+                     >
+-                      {isSelected && <Check className="w-3 h-3" />}
+                       <span>T{lapNum}</span>
+                       <span className="text-[10px] opacity-60">({time.toFixed(2)}s)</span>
+-                      {isBest && <div className="w-1.5 h-1.5 rounded-full bg-green-500" title="Meilleur tour" />}
++                      {isBest && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
+                     </Badge>
+                   );
+                 })}
+               </div>
+             </div>
+           </section>
+-          
+-          {/* ═══ 0. CONSEILS DE COACHING ═══ */}
+-          <CoachingAdvice 
+-            advice={analysis.coaching_advice} 
+-            fastestLapNumber={bestLapNumber}
+-            isLocked={!isChartVisible("coaching_advice", analysis.session_conditions?.circuit_name)}
+-          />
+ 
+-          {/* ═══ 0. CARTE DU CIRCUIT — Meilleur tour ═══ */}
+-          {plotData.trajectory_2d?.corners?.length > 0 && (
+-            <section className={sectionClass}>
+-              <div className="flex items-center mb-4">
+-                <h2 className={`${titleClass} mb-0`}>Carte du Circuit</h2>
+-                <BestLapBadge lapNumber={bestLapNumber} />
+-              </div>
+-              <TrackMap
+-                corners={plotData.trajectory_2d.corners}
+-                margins={plotData.apex_margin?.corners}
+-                laps={plotData.trajectory_2d.laps ? [plotData.trajectory_2d.laps[bestTrackLapIndex]] : undefined}
+-                onCornerClick={(label) => {
+-                  const el = document.getElementById(`corner-${label}`);
+-                  if (el) {
+-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+-                    // Visual feedback
+-                    el.classList.add('ring-2', 'ring-primary', 'ring-offset-2', 'ring-offset-background');
+-                    setTimeout(() => {
+-                      el.classList.remove('ring-2', 'ring-primary', 'ring-offset-2', 'ring-offset-background');
+-                    }, 2000);
+-                  }
+-                }}
++          {/* COACHING ADVICE */}
++          {(() => {
++            const isLocked = !isChartVisible("coaching_advice", circuitName);
++            const currentHideCta = isLocked ? ctaShown : false;
++            if (isLocked) ctaShown = true;
++            return (
++              <CoachingAdvice 
++                advice={analysis.coaching_advice} 
++                fastestLapNumber={bestLapNumber}
++                isLocked={isLocked}
++                hideCta={currentHideCta}
+               />
+-            </section>
+-          )}
++            );
++          })()}
+ 
+-          {/* ═══ 1. TRACE DE VITESSE — Tours sélectionnés ═══ */}
+-          {plotData.speed_trace && (
++          {/* TRACK MAP */}
++          {plotData.trajectory_2d?.corners?.length > 0 && (
+             <section className={sectionClass}>
+-              <div className="flex flex-col mb-4">
+-                <h2 className={`${titleClass} mb-1`}>Trace de Vitesse</h2>
+-                <p className="text-sm text-[#8b949e]">
+-                  Comparez votre vitesse tout au long du tour pour les tours sélectionnés.
+-                </p>
+-              </div>
+-              <SpeedTraceChart
+-                data={plotData.speed_trace}
+-                selectedLaps={selectedLapNumbers}
+-                bestLapNumber={bestLapNumber}
+-                circuitName={analysis.session_conditions?.circuit_name}
+-              />
++               <h2 className={titleClass}>Carte du Circuit</h2>
++               <TrackMap
++                 corners={plotData.trajectory_2d.corners}
++                 margins={plotData.apex_margin?.corners}
++                 laps={plotData.trajectory_2d.laps ? [plotData.trajectory_2d.laps[bestTrackLapIndex]] : undefined}
++                 onCornerClick={() => {}}
++               />
+             </section>
+           )}
+ 
+-          {/* ═══ 1b. HEURE DELTA — Tours sélectionnés ═══ */}
+-          {plotData.time_delta_laps && plotData.time_delta_laps.laps?.length > 0 && (
+-            <section className={sectionClass}>
+-              <div className="flex flex-col mb-4">
+-                <h2 className={`${titleClass} mb-1`}>Delta Temps</h2>
+-                <p className="text-sm text-[#8b949e]">
+-                  Différence de temps par rapport au meilleur tour (T{plotData.time_delta_laps.best_lap_number}). Les valeurs positives indiquent des tours plus lents.
+-                </p>
+-              </div>
+-              <TimeDeltaLapsChart
+-                data={plotData.time_delta_laps}
+-                selectedLaps={selectedLapNumbers}
+-                circuitName={analysis.session_conditions?.circuit_name}
+-              />
+-            </section>
+-          )}
+-
+-          {/* ═══ 2. RADAR — Pas de changement ═══ */}
+-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+-            {plotData.performance_radar && (
+-              <section className={sectionClassNoMb}>
+-                <div className="flex flex-col mb-4">
+-                  <h2 className={`${titleClass} mb-1`}>Radar de Performance</h2>
+-                  <p className="text-sm text-[#8b949e]">
+-                    Aperçu global de vos compétences. Un grand polygone régulier indique un pilotage complet et maîtrisé.
+-                  </p>
+-                </div>
++          {/* SPEED TRACE */}
++          {plotData.speed_trace && (() => {
++            const isLocked = !isChartVisible("speed_trace", circuitName);
++            const currentHideCta = isLocked ? ctaShown : false;
++            if (isLocked) ctaShown = true;
++            return (
++              <section className={sectionClass}>
++                <h2 className={titleClass}>Trace de Vitesse</h2>
++                <SpeedTraceChart
++                  data={plotData.speed_trace}
++                  selectedLaps={selectedLapNumbers}
++                  bestLapNumber={bestLapNumber}
++                  circuitName={circuitName}
++                  hideCta={currentHideCta}
++                />
++              </section>
++            );
++          })()}
++
++          {/* TIME DELTA */}
++          {plotData.time_delta_laps && plotData.time_delta_laps.laps?.length > 0 && (() => {
++            const isLocked = !isChartVisible("delta_time", circuitName);
++            const currentHideCta = isLocked ? ctaShown : false;
++            if (isLocked) ctaShown = true;
++            return (
++              <section className={sectionClass}>
++                <h2 className={titleClass}>Delta Temps</h2>
++                <TimeDeltaLapsChart
++                  data={plotData.time_delta_laps}
++                  selectedLaps={selectedLapNumbers}
++                  circuitName={circuitName}
++                  hideCta={currentHideCta}
++                />
++              </section>
++            );
++          })()}
++
++          {/* RADAR */}
++          {plotData.performance_radar && (() => {
++            const isLocked = !isChartVisible("radar", circuitName);
++            const currentHideCta = isLocked ? ctaShown : false;
++            if (isLocked) ctaShown = true;
++            return (
++              <section className={sectionClass}>
++                <h2 className={titleClass}>Radar de Performance</h2>
+                 <PerformanceRadar 
+                   data={plotData.performance_radar} 
+-                  circuitName={analysis.session_conditions?.circuit_name}
++                  circuitName={circuitName}
++                  hideCta={currentHideCta}
+                 />
+               </section>
+-            )}
+-          </div>
+-
+-          {/* ═══ 3. MARGE À L'APEX — Tours sélectionnés ═══ */}
+-          {plotData.apex_margin?.corners?.length > 0 && (
+-            <section className={sectionClass}>
+-              <div className="flex flex-col mb-4">
+-                <div className="flex items-center">
+-                  <h2 className={`${titleClass} mb-0`}>Marge à l'Apex (Vitesse perdue)</h2>
+-                  {selectedLapNumbers.length === 1 && selectedLapNumbers[0] === bestLapNumber && (
+-                    <BestLapBadge lapNumber={bestLapNumber} />
+-                  )}
+-                </div>
+-                <p className="text-sm text-[#8b949e] mt-1">
+-                  Écart en km/h entre la vitesse théorique et votre vitesse réelle. Une barre plus petite = plus proche de la limite.
+-                </p>
+-              </div>
+-              <ApexMarginChart 
+-                data={plotData.apex_margin.corners} 
+-                circuitName={analysis.session_conditions?.circuit_name}
+-              />
+-            </section>
+-          )}
+-
+-          {/* ═══ 4. THROTTLE & BRAKE — Tours sélectionnés ═══ */}
+-          {hasThrottleBrake ? (
+-            <section className={sectionClass}>
+-              <div className="flex flex-col mb-4">
+-                <h2 className={`${titleClass} mb-1`}>Accélérateur & Frein</h2>
+-                <p className="text-sm text-[#8b949e]">
+-                  Visualisez vos points de freinage et vos remises de gaz pour les tours sélectionnés.
+-                </p>
+-              </div>
+-              <ThrottleBrakeChart
+-                data={plotData.throttle_brake}
+-                selectedLaps={selectedLapNumbers}
+-                circuitName={analysis.session_conditions?.circuit_name}
+-              />
+-            </section>
+-          ) : (
+-            <section className={sectionClass}>
+-              <h2 className={titleClass}>Throttle & Brake</h2>
+-              <p className={fallbackTextClass}>
+-                Données throttle/brake non disponibles pour ce format.
+-              </p>
+-            </section>
+-          )}
+-
+-
+-          {/* (Time Delta now handled by TimeDeltaLapsChart above) */}
+-
++            );
++          })()}
++
++          {/* APEX MARGIN */}
++          {plotData.apex_margin?.corners?.length > 0 && (() => {
++            const isLocked = !isChartVisible("apex_margin", circuitName);
++            const currentHideCta = isLocked ? ctaShown : false;
++            if (isLocked) ctaShown = true;
++            return (
++              <section className={sectionClass}>
++                <h2 className={titleClass}>Marge à l'Apex</h2>
++                <ApexMarginChart 
++                  data={plotData.apex_margin.corners} 
++                  circuitName={circuitName}
++                  hideCta={currentHideCta}
++                />
++              </section>
++            );
++          })()}
++
++          {/* THROTTLE & BRAKE */}
++          {hasThrottleBrake && (() => {
++            const isLocked = !isChartVisible("throttle_brake", circuitName);
++            const currentHideCta = isLocked ? ctaShown : false;
++            if (isLocked) ctaShown = true;
++            return (
++              <section className={sectionClass}>
++                <h2 className={titleClass}>Accélérateur & Frein</h2>
++                <ThrottleBrakeChart
++                  data={plotData.throttle_brake}
++                  selectedLaps={selectedLapNumbers}
++                  circuitName={circuitName}
++                  hideCta={currentHideCta}
++                />
++              </section>
++            );
++          })()}
+ 
+-          {/* ═══ 6. DÉTAILS DES VIRAGES — Meilleur tour ═══ */}
++          {/* CORNER DETAILS */}
+           {plotData.apex_margin?.corners?.length > 0 && (
+             <section className="mb-8">
+-              <div className="flex flex-col mb-4">
+-                <div className="flex items-center">
+-                  <h2 className={`${titleClass} mb-0`}>Détails des virages</h2>
+-                  <BestLapBadge lapNumber={bestLapNumber} />
+-                </div>
+-                <p className="text-sm text-[#8b949e] max-w-2xl mt-1">
+-                  Analyse granulaire. <strong>Grades :</strong> (A) Excellent, proche de la limite. (B) Bon, légère marge. (C) Moyen, perte de temps notable. (D) Critique, erreur ou freinage excessif.
+-                </p>
+-              </div>
++              <h2 className={titleClass}>Détails des virages</h2>
+               <CornerDetailsGrid
+                 corners={enrichCornersWithCornerAnalysis(plotData, analysis)}
+                 variant={embedded ? "app" : "racing"}
+@@ -319,21 +244,7 @@ export function AnalysisDashboardContent({ analysis, embedded = false }: Analysi
+         </>
+       ) : (
+         <section className="space-y-6">
+-          <p className={fallbackTextClass}>
+-            {analysis.plots && Object.keys(analysis.plots).length > 0
+-              ? "Données graphiques (fallback images base64)."
+-              : "Données graphiques non disponibles."}
+-          </p>
+-          {analysis.plots?.speed_trace && (
+-            <div className={fallbackBlockClass}>
+-              <h2 className={titleClass}>Speed Trace</h2>
+-              <img
+-                src={analysis.plots.speed_trace}
+-                alt="Speed trace"
+-                className="w-full h-auto rounded-lg"
+-              />
+-            </div>
+-          )}
++          <p className={fallbackTextClass}>Données graphiques non disponibles.</p>
+         </section>
+       )}
+     </div>
+diff --git a/src/components/upload/CSVUploader.tsx b/src/components/upload/CSVUploader.tsx
+index cf5c68b..901dcbe 100644
+--- a/src/components/upload/CSVUploader.tsx
++++ b/src/components/upload/CSVUploader.tsx
+@@ -104,32 +104,20 @@ function mapApiResultToResponse(result: AnalysisResult | null): any {
+ }
+ 
+ // ─── Composant ────────────────────────────────────────────────────────────────
+-
+ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
+   const navigate = useNavigate();
+   const { user, session, isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
+-  const { tier, status, limits, fetchSubscription } = useSubscription();
++  const { tier, status, limits, fetchSubscription, incrementAnalysesUsed } = useSubscription();
+   const canUpload = isAuthenticated || canUploadFree;
+   const storageUserId = user?.id ?? undefined;
+ 
+-  const freeLimit =
+-    limits?.analyses_per_month != null && typeof limits.analyses_used === "number"
+-      ? limits.analyses_used >= limits.analyses_per_month
+-      : false;
+-  const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
+-  const [localAnalysesUsed, setLocalAnalysesUsed] = useState<number | null>(null);
+-
+-  useEffect(() => {
+-    if (limits?.analyses_used !== undefined) {
+-      setLocalAnalysesUsed(limits.analyses_used);
+-    }
+-  }, [limits?.analyses_used]);
+-
+-  const isFreeAtLimit =
+-    isAuthenticated && 
++  const isPaidTier = tier === "racer" || tier === "team";
++  
++  // Bloqué si Rookie (ou visitor) & limite atteinte
++  const isFreeAtLimit = 
+     !isPaidTier && 
+     limits?.analyses_per_month != null && 
+-    ((localAnalysesUsed ?? limits.analyses_used ?? 0) >= limits.analyses_per_month);
++    (limits.analyses_used >= limits.analyses_per_month);
+ 
+   const [isDragging, setIsDragging] = useState(false);
+   const [file, setFile] = useState<File | null>(null);
+@@ -409,7 +397,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
+         setAnalysesCount(count);
+         // Rafraîchir l'abonnement pour mettre à jour les limites du Rookie
+         if (tier === "rookie") {
+-          setLocalAnalysesUsed(prev => (prev ?? (limits?.analyses_used ?? 0)) + 1);
++          incrementAnalysesUsed();
+           await fetchSubscription();
+         }
+       } catch (saveErr) {
+@@ -479,13 +467,13 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
+               <div className="flex justify-between w-full text-xs">
+                 <span>Analyses ce mois</span>
+                 <span className="font-bold text-primary">
+-                  {(localAnalysesUsed ?? limits.analyses_used)}/{limits.analyses_per_month}
++                  {limits.analyses_used}/{limits.analyses_per_month}
+                 </span>
+               </div>
+-              <Progress value={((localAnalysesUsed ?? limits.analyses_used) / (limits.analyses_per_month || 1)) * 100} className="h-1" />
+-              {limits.analyses_per_month != null && (limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used)) > 0 && (
++              <Progress value={(limits.analyses_used / (limits.analyses_per_month || 1)) * 100} className="h-1" />
++              {limits.analyses_per_month != null && (limits.analyses_per_month - (limits.analyses_used)) > 0 && (
+                 <span className="text-[10px] italic">
+-                  {limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used)} analyse{limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used) > 1 ? 's' : ''} restante{limits.analyses_per_month - (localAnalysesUsed ?? limits.analyses_used) > 1 ? 's' : ''}
++                  {limits.analyses_per_month - (limits.analyses_used)} analyse{limits.analyses_per_month - (limits.analyses_used) > 1 ? 's' : ''} restante{limits.analyses_per_month - (limits.analyses_used) > 1 ? 's' : ''}
+                 </span>
+               )}
+             </div>
+diff --git a/src/hooks/useSubscription.tsx b/src/hooks/useSubscription.tsx
+new file mode 100644
+index 0000000..c782b22
+--- /dev/null
++++ b/src/hooks/useSubscription.tsx
+@@ -0,0 +1,224 @@
++import React, { useState, useEffect, useCallback, useRef, createContext, useContext, useMemo } from "react";
++import { useSearchParams } from "react-router-dom";
++import { useAuth } from "@/hooks/useAuth";
++import { API_BASE_URL } from "@/lib/api";
++
++const POLL_INTERVAL_MS = 2000;
++const POLL_MAX_DURATION_MS = 10000;
++
++const SUBSCRIPTION_STORAGE_KEY = "apex_subscription_backend";
++const CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 min
++
++export type SubscriptionTier = "visitor" | "rookie" | "racer" | "team";
++export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing" | null;
++
++export interface SubscriptionLimits {
++  tier: SubscriptionTier;
++  analyses_per_month: number | null;
++  analyses_used: number;
++  can_export_csv: boolean;
++  can_export_pdf: boolean;
++  can_compare: boolean;
++  max_members: number;
++  max_circuits: number | null;
++  max_cars: number | null;
++  allowed_circuit: string | null;
++  visible_charts: string[];
++}
++
++export type BillingPeriod = "monthly" | "annual" | null;
++
++export interface SubscriptionResponse {
++  tier: SubscriptionTier;
++  status: SubscriptionStatus;
++  billing_period: BillingPeriod;
++  subscription_end_date: string | null;
++  limits: SubscriptionLimits;
++}
++
++export type SubscriptionPlan = "visitor" | "free" | "pro" | "team";
++
++function tierToPlan(tier: SubscriptionTier): SubscriptionPlan {
++  if (tier === "racer") return "pro";
++  if (tier === "team") return "team";
++  if (tier === "visitor") return "visitor";
++  return "free";
++}
++
++function getCachedData(): Partial<SubscriptionResponse> & { _ts?: number } {
++  if (typeof window === "undefined") return {};
++  try {
++    const raw = localStorage.getItem(SUBSCRIPTION_STORAGE_KEY);
++    if (!raw) return {};
++    return JSON.parse(raw);
++  } catch {
++    return {};
++  }
++}
++
++interface SubscriptionContextType {
++  tier: SubscriptionTier;
++  status: SubscriptionStatus;
++  billingPeriod: BillingPeriod;
++  subscriptionEndDate: string | null;
++  limits: SubscriptionLimits | null;
++  isLoading: boolean;
++  plan: SubscriptionPlan;
++  isChartVisible: (chartId: string, circuitName?: string | null) => boolean;
++  getCtaDetails: (circuitName?: string | null) => { title: string; buttonText: string };
++  isAuthenticated: boolean;
++  fetchSubscription: () => Promise<void>;
++  incrementAnalysesUsed: () => void;
++}
++
++const SubscriptionContext = createContext<SubscriptionContextType | null>(null);
++
++export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
++  const { user, session, isAuthenticated } = useAuth();
++  const [searchParams, setSearchParams] = useSearchParams();
++  
++  const [initialData] = useState(() => getCachedData());
++
++  const [tier, setTier] = useState<SubscriptionTier>(() => initialData.tier || "visitor");
++  const [status, setStatus] = useState<SubscriptionStatus>(initialData.status ?? null);
++  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>(initialData.billing_period ?? null);
++  const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | null>(initialData.subscription_end_date ?? null);
++  const [limits, setLimits] = useState<SubscriptionLimits | null>(initialData.limits ?? null);
++  const [isLoading, setIsLoading] = useState(!initialData.limits);
++  
++  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
++  const tokenRef = useRef(session?.access_token);
++  tokenRef.current = session?.access_token;
++
++  const fetchSubscription = useCallback(async () => {
++    if (!isAuthenticated) {
++      const visitorLimits: SubscriptionLimits = {
++        tier: "visitor",
++        analyses_per_month: 1,
++        analyses_used: 0,
++        can_export_csv: false,
++        can_export_pdf: false,
++        can_compare: false,
++        max_members: 0,
++        max_circuits: null,
++        max_cars: null,
++        allowed_circuit: null,
++        visible_charts: ["track_map"],
++      };
++      setTier("visitor");
++      setLimits(visitorLimits);
++      setIsLoading(false);
++      return;
++    }
++
++    try {
++      const res = await fetch(`${API_BASE_URL}/api/user/subscription`, {
++        headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {},
++      });
++      if (!res.ok) throw new Error("Failed to fetch subscription");
++      
++      const data: SubscriptionResponse = await res.json();
++      const processedTier = data.tier || "rookie";
++      
++      let allowedCircuit = data.limits?.allowed_circuit;
++      if (processedTier === "rookie" && !allowedCircuit) {
++        try {
++          const { getAllAnalyses } = await import("@/lib/storage");
++          const analyses = await getAllAnalyses(user?.id);
++          const firstWithCircuit = [...analyses].reverse().find(a => a.circuit_name);
++          allowedCircuit = firstWithCircuit?.circuit_name || null;
++        } catch {}
++      }
++
++      const processedLimits: SubscriptionLimits = {
++        ...data.limits,
++        tier: processedTier,
++        allowed_circuit: allowedCircuit,
++        visible_charts: data.limits?.visible_charts || (
++          processedTier === "racer" || processedTier === "team" 
++            ? ["track_map", "speed_trace", "throttle_brake", "delta_time", "apex_margin", "radar"]
++            : ["track_map", "speed_trace", "coaching_advice"]
++        )
++      };
++
++      setTier(processedTier);
++      setStatus(data.status ?? null);
++      setBillingPeriod(data.billing_period ?? null);
++      setSubscriptionEndDate(data.subscription_end_date ?? null);
++      setLimits(processedLimits);
++
++      localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, JSON.stringify({ ...data, limits: processedLimits, _ts: Date.now() }));
++    } catch {
++      // Fallback rookie
++      setTier("rookie");
++      setLimits(prev => prev || {
++        tier: "rookie",
++        analyses_per_month: 3,
++        analyses_used: 0,
++        can_export_csv: false,
++        can_export_pdf: false,
++        can_compare: false,
++        max_members: 0,
++        max_circuits: 1,
++        max_cars: null,
++        allowed_circuit: null,
++        visible_charts: ["track_map", "speed_trace", "coaching_advice"],
++      });
++    } finally {
++      setIsLoading(false);
++    }
++  }, [isAuthenticated, user?.id]);
++
++  useEffect(() => {
++    fetchSubscription();
++  }, [fetchSubscription]);
++
++  const incrementAnalysesUsed = useCallback(() => {
++    setLimits(prev => {
++      if (!prev) return prev;
++      const newLimits = { ...prev, analyses_used: prev.analyses_used + 1 };
++      try {
++        const cached = getCachedData();
++        localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, JSON.stringify({ ...cached, limits: newLimits, _ts: Date.now() }));
++      } catch {}
++      return newLimits;
++    });
++  }, []);
++
++  const isChartVisible = useCallback((chartId: string, circuitName?: string | null) => {
++    if (tier === "racer" || tier === "team") return true;
++    if (tier === "rookie" && circuitName && limits?.allowed_circuit && circuitName !== limits.allowed_circuit) {
++      if (chartId !== "track_map") return false;
++    }
++    if (chartId === "track_map") return true;
++    if (chartId === "performance_score" || chartId === "avg_speed" || chartId === "corners") {
++      return limits?.visible_charts?.includes("speed_trace") ?? false;
++    }
++    return limits?.visible_charts?.includes(chartId) ?? false;
++  }, [tier, limits]);
++
++  const getCtaDetails = useCallback((circuitName?: string | null) => {
++    if (tier === "visitor") {
++      return { title: "Crée ton compte pour voir tes résultats complets", buttonText: "Créer un compte" };
++    }
++    if (tier === "rookie" && circuitName && limits?.allowed_circuit && circuitName !== limits.allowed_circuit) {
++      return { title: `Passe à Racer pour analyser d'autres circuits (Circuit actuel: ${limits.allowed_circuit})`, buttonText: "Passer à Racer" };
++    }
++    return { title: "Passe à Racer pour débloquer toutes tes analyses", buttonText: "Débloquer avec Racer" };
++  }, [tier, limits]);
++
++  const plan = useMemo(() => tierToPlan(tier), [tier]);
++
++  const value = useMemo(() => ({
++    tier, status, billingPeriod, subscriptionEndDate, limits, isLoading, plan,
++    isChartVisible, getCtaDetails, isAuthenticated, fetchSubscription, incrementAnalysesUsed
++  }), [tier, status, billingPeriod, subscriptionEndDate, limits, isLoading, plan, isChartVisible, getCtaDetails, isAuthenticated, fetchSubscription, incrementAnalysesUsed]);
++
++  return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;
++};
++
++export const useSubscription = () => {
++  const context = useContext(SubscriptionContext);
++  if (!context) throw new Error("useSubscription must be used within a SubscriptionProvider");
++  return context;
++};
