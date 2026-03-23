@@ -448,10 +448,15 @@ export async function uploadAndAnalyzeCSV(
       try {
         const errorJson = await parseJSONResponse<{ detail?: ApiError } & ApiError>(response);
         const d = errorJson.detail ?? errorJson;
+        const isRateLimit = response.status === 429;
+        const defaultMsg = typeof d.error === 'string' && !d.message ? d.error : d.message;
+        
         errorData = {
           success: false,
-          error: d.error || "http_error",
-          message: d.message || `Erreur HTTP ${response.status}`,
+          error: isRateLimit ? "rate_limit" : (d.error || "http_error"),
+          message: isRateLimit 
+            ? "Limite de requêtes atteinte. Veuillez patienter un instant avant de réessayer." 
+            : (defaultMsg || `Erreur HTTP ${response.status}`),
           details: d.details,
         };
       } catch {
@@ -523,10 +528,15 @@ export async function parseLaps(file: File): Promise<ParseLapsResponse> {
   });
   if (!response.ok) {
     const err = (await parseJSONResponse<ApiError>(response).catch(() => ({ }))) as any;
+    const isRateLimit = response.status === 429;
+    const defaultMsg = typeof err.error === 'string' && !err.message ? err.error : err.message;
+
     throw {
       success: false,
-      error: err.error || "http_error",
-      message: err.message || `Erreur ${response.status}`,
+      error: isRateLimit ? "rate_limit" : (err.error || "http_error"),
+      message: isRateLimit 
+        ? "Limite de requêtes atteinte. Veuillez patienter un instant."
+        : (defaultMsg || `Erreur ${response.status}`),
     } as ApiError;
   }
   const data = await parseJSONResponse<ParseLapsResponse>(response);
