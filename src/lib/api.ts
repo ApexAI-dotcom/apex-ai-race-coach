@@ -332,7 +332,7 @@ function handleFetchError(error: unknown, context: string): ApiError {
       return {
         success: false,
         error: "timeout",
-        message: "La requête a expiré (timeout 30s). Le fichier est peut-être trop volumineux.",
+        message: "L'analyse a pris trop de temps (timeout adaptatif 30-120s). Le fichier est peut-être extrêmement volumineux ou le serveur est saturé.",
       };
     }
 
@@ -426,8 +426,14 @@ export async function uploadAndAnalyzeCSV(
     formData.append("session_name", options.session_name);
   }
 
-  // Créer controller avec timeout
-  const controller = createTimeoutController(API_TIMEOUT_MS);
+  // Créer controller avec timeout adaptatif
+  let timeoutMs = 30000;
+  if (file.size > 20 * 1024 * 1024) {
+    timeoutMs = 120000;
+  } else if (file.size > 5 * 1024 * 1024) {
+    timeoutMs = 60000;
+  }
+  const controller = createTimeoutController(timeoutMs);
 
   const headers: Record<string, string> = {};
   if (options?.accessToken) {
