@@ -740,6 +740,113 @@ export async function getAnalyses(
 }
 
 // ============================================================================
+// HOME — Tips, Insights, Reset
+// ============================================================================
+
+export interface HomeTip {
+  badge: string;
+  badge_color: string;
+  title: string;
+  body: string;
+}
+
+export interface HomeTipsResponse {
+  week: number;
+  tips: HomeTip[];
+}
+
+export interface HomeWeakPoint {
+  label: string;
+  corners: number[];
+}
+
+export interface HomeInsightsResponse {
+  insufficient_data: boolean;
+  time_gained: number | null;
+  weak_point: HomeWeakPoint | null;
+  best_score: number;
+  best_lap_time: number;
+  analyses_count: number;
+  baseline_score: number | null;
+  baseline_time: number | null;
+  reset_at: string | null;
+}
+
+export interface HomeResetResponse {
+  success: boolean;
+  baseline_score: number | null;
+  baseline_time: number | null;
+  reset_at: string;
+}
+
+/**
+ * Fetch weekly rotating driving tips (public, no auth).
+ */
+export async function fetchHomeTips(): Promise<HomeTipsResponse> {
+  const controller = createTimeoutController(10000);
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/home/tips`, {
+      method: "GET",
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP ${response.status}`);
+    }
+    return await parseJSONResponse<HomeTipsResponse>(response);
+  } catch (error) {
+    console.warn("[ApexAI] fetchHomeTips failed:", error);
+    // Return fallback
+    return {
+      week: 0,
+      tips: [
+        { badge: "Nouveau", badge_color: "blue", title: "Optimise tes freinages", body: "Un freinage progressif en 3 temps permet de gagner 0.3s par virage en moyenne." },
+        { badge: "Populaire", badge_color: "purple", title: "Le regard en sortie", body: "Regarde toujours la sortie du virage, pas l'apex. Ta trajectoire suivra ton regard." },
+      ],
+    };
+  }
+}
+
+/**
+ * Fetch personalized homepage insights (JWT required).
+ */
+export async function fetchHomeInsights(accessToken: string): Promise<HomeInsightsResponse> {
+  const controller = createTimeoutController(15000);
+  const response = await fetch(`${API_BASE_URL}/api/home/insights`, {
+    method: "GET",
+    signal: controller.signal,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<HomeInsightsResponse>(response);
+}
+
+/**
+ * Reset objectives baseline (JWT required).
+ */
+export async function resetHomeInsights(accessToken: string): Promise<HomeResetResponse> {
+  const controller = createTimeoutController(15000);
+  const response = await fetch(`${API_BASE_URL}/api/home/insights/reset`, {
+    method: "POST",
+    signal: controller.signal,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<HomeResetResponse>(response);
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -749,6 +856,9 @@ export default {
   getBackendHealth,
   checkBackendConnection,
   getAnalyses,
+  fetchHomeTips,
+  fetchHomeInsights,
+  resetHomeInsights,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,
   MAX_FILE_SIZE_BYTES,
