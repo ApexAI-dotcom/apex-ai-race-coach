@@ -51,6 +51,7 @@ import {
   checkBackendConnection,
   API_BASE_URL,
   getDisplayScore,
+  CSV_UPLOAD_HINT_SHORT,
   type AnalysisResult,
   type ApiError,
   type LapInfo,
@@ -885,11 +886,14 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     Glissez votre fichier CSV ici
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">ou cliquez pour sélectionner</p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {["MyChron5", "AiM", "RaceBox"].map((label) => (
+                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground mb-3">
+                    {["MyChron 5", "MyChron 6", "AiM", "RaceBox"].map((label) => (
                       <span key={label} className="px-2 py-1 rounded bg-secondary">{label}</span>
                     ))}
                   </div>
+                  <p className="text-xs text-muted-foreground/80 max-w-sm text-balance">
+                    {CSV_UPLOAD_HINT_SHORT}
+                  </p>
                 </div>
               )}
             </div>

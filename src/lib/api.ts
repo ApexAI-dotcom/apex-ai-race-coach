@@ -6,8 +6,9 @@
 // Configuration - unique source for API URL (VITE_API_URL en prod)
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const API_TIMEOUT_MS = 30000; // 30 secondes
-const MAX_FILE_SIZE_MB = 50;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+export const MAX_FILE_SIZE_MB = 50;
+export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+export const CSV_UPLOAD_HINT_SHORT = `Fichier CSV uniquement (max ${MAX_FILE_SIZE_MB} Mo). Compatible avec les exports MyChron 5 et 6 via Race Studio. Si le fichier est trop lourd, réduisez les canaux ou appliquez une décimation (ex. 1:10) dans Race Studio.`;
 
 // ============================================================================
 // TYPES
@@ -307,7 +308,7 @@ function validateCSVFile(file: File): { valid: boolean; error?: string } {
     const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
     return {
       valid: false,
-      error: `Fichier trop volumineux (${sizeMB}MB). Maximum: ${MAX_FILE_SIZE_MB}MB`,
+      error: `Fichier trop volumineux (${sizeMB} Mo). Maximum : ${MAX_FILE_SIZE_MB} Mo. Astuce : sous Race Studio, réduisez les canaux exportés ou appliquez une décimation (1:10) pour réduire la taille.`,
     };
   }
 
@@ -743,4 +744,7 @@ export default {
   checkBackendConnection,
   getAnalyses,
   API_BASE_URL,
+  MAX_FILE_SIZE_MB,
+  MAX_FILE_SIZE_BYTES,
+  CSV_UPLOAD_HINT_SHORT,
 };
