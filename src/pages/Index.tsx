@@ -186,7 +186,7 @@ export default function Index() {
 
       {/* Hero Section */}
       <section className={`relative min-h-screen flex items-center overflow-hidden ${success === 'true' || canceled === 'true' ? 'pt-20' : ''}`}>
-        {/* Background image - Lovable original */}
+        {/* Background image */}
         <div className="absolute inset-0">
           <img
             src={heroImage}
