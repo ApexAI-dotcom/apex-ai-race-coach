@@ -847,6 +847,115 @@ export async function resetHomeInsights(accessToken: string): Promise<HomeResetR
 }
 
 // ============================================================================
+// MON KART (MVP)
+// ============================================================================
+
+export interface KartProfile {
+  user_id: string;
+  engine_hours_current: number;
+  engine_sessions: number;
+  tires_sessions_current: number;
+  brakes_sessions_current: number;
+  battery_voltage_last: number | null;
+  battery_voltage_min_ever: number | null;
+  mon_kart_enabled: boolean;
+}
+
+export interface KartProfileResponse {
+  profile: KartProfile;
+  recent_sessions: any[]; // Tableau de log_sessions
+}
+
+export async function getKartProfile(accessToken: string): Promise<KartProfileResponse> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/profile`, {
+    method: "GET",
+    signal: controller.signal,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<KartProfileResponse>(response);
+}
+
+export async function updateKartProfile(accessToken: string, updates: Partial<KartProfile>): Promise<{ profile: KartProfile }> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/profile`, {
+    method: "PUT",
+    signal: controller.signal,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(updates),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<{ profile: KartProfile }>(response);
+}
+
+export async function resetKartComponent(accessToken: string, componentType: "engine" | "tires" | "brakes", notes?: string): Promise<{ profile: KartProfile }> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/component-reset`, {
+    method: "POST",
+    signal: controller.signal,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ component_type: componentType, notes }),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<{ profile: KartProfile }>(response);
+}
+
+export async function bulkImportKartSessions(accessToken: string, files: File[]): Promise<any> {
+  const formData = new FormData();
+  files.forEach((f) => formData.append("files", f));
+
+  const controller = createTimeoutController(60000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/bulk-import`, {
+    method: "POST",
+    signal: controller.signal,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: formData,
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
+export async function deleteKartSession(accessToken: string, sessionId: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/session/${sessionId}`, {
+    method: "DELETE",
+    signal: controller.signal,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -859,6 +968,11 @@ export default {
   fetchHomeTips,
   fetchHomeInsights,
   resetHomeInsights,
+  getKartProfile,
+  updateKartProfile,
+  resetKartComponent,
+  bulkImportKartSessions,
+  deleteKartSession,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,
   MAX_FILE_SIZE_BYTES,
