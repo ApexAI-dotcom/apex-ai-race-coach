@@ -28,6 +28,7 @@ import Legal from "./pages/Legal";
 import Parametres from "./pages/Parametres";
 import AnalysisResultPage from "./pages/AnalysisResultPage";
 import NotFound from "./pages/NotFound";
+import MonKart from "./pages/MonKart";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Parametres />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mon-kart"
+              element={
+                <ProtectedRoute>
+                  <MonKart />
                 </ProtectedRoute>
               }
             />
