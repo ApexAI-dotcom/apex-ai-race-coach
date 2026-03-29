@@ -70,9 +70,9 @@ export const WearGauge = ({
             strokeLinecap="round"
           />
         </svg>
-        <div className="absolute flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold font-display">{current.toFixed(1)}</span>
-          <span className="text-xs text-muted-foreground">/ {max} {unit}</span>
+        <div className="absolute flex flex-col items-center justify-center w-[70px] text-center">
+          <span className="text-2xl font-bold font-display leading-none">{current.toFixed(1)}</span>
+          <span className="text-[10px] text-muted-foreground leading-tight mt-1">/ {max} {unit}</span>
         </div>
       </div>
 
