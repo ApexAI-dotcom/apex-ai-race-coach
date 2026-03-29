@@ -152,12 +152,8 @@ export default function SubscriberHome() {
     return "#991b1b";
   };
 
-  // Objectives logic (unchanged from existing)
-  const bestScore = useMemo(() => (analyses.length > 0 ? Math.max(...analyses.map(a => a.score)) : 0), [analyses]);
-  const bestLapTime = useMemo(() => {
-    const validTimes = analyses.map(a => a.lap_time).filter(t => t > 0);
-    return validTimes.length > 0 ? Math.min(...validTimes) : 0;
-  }, [analyses]);
+  // Objectives logic (unchanged from existing except for baseline tracking)
+  // We compute bestScore and bestLapTime dynamically per objective inside the render loop now.
 
   const handleEditObjective = (obj: UserObjective) => {
     setEditingObjective(obj);
@@ -182,6 +178,16 @@ export default function SubscriberHome() {
     setResetting(true);
     try {
       await resetHomeInsights(accessToken);
+
+      // Reset local objectives baseline
+      const now = Date.now();
+      const updated = objectives.map(obj => ({
+        ...obj,
+        baselineTimestamp: now
+      }));
+      setObjectives(updated);
+      saveObjectives(updated, user?.id);
+
       toast.success("Objectifs réinitialisés");
       // Refresh insights immediately
       await loadInsights();
@@ -406,8 +412,16 @@ export default function SubscriberHome() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {objectives.map((obj) => {
-            const current = obj.id === "score" ? bestScore : 
-                            obj.id === "laptime" ? bestLapTime : obj.currentValue;
+            const relevantAnalyses = obj.baselineTimestamp 
+              ? analyses.filter(a => a.timestamp >= obj.baselineTimestamp!) 
+              : analyses;
+            
+            const objBestScore = relevantAnalyses.length > 0 ? Math.max(...relevantAnalyses.map(a => a.score)) : 0;
+            const validTimes = relevantAnalyses.map(a => a.lap_time).filter(t => t > 0);
+            const objBestLapTime = validTimes.length > 0 ? Math.min(...validTimes) : 0;
+
+            const current = obj.id === "score" ? objBestScore : 
+                            obj.id === "laptime" ? objBestLapTime : obj.currentValue;
             
             let progress = 0;
             if (obj.id === "laptime") {

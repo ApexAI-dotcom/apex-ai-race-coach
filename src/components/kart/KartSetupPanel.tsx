@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Settings, Save, Loader2, Info, Download, CheckCircle2 } from "lucide-react";
+import { Settings, Save, Loader2, Info, Download, CheckCircle2, Trash2, Check } from "lucide-react";
 import { KartProfile } from "@/lib/api";
 import { getSetupRecommendations } from "@/lib/kart-recommendations";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,9 +19,11 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
     sprocket_rear: setupJson?.sprocket_rear || "",
   });
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSetup({ ...setup, [e.target.name]: e.target.value });
+    if (confirmDelete) setConfirmDelete(false);
   };
 
   const handleSave = async () => {
@@ -60,7 +62,17 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
     const s = savedSetups.find(x => x.name === setupName);
     if (s) {
       setSetup({ ...s });
+      setConfirmDelete(false);
     }
+  };
+
+  const handleDelete = async () => {
+    setSaving(true);
+    const newSavedSetups = savedSetups.filter(s => s.name !== setup.name);
+    await onSave(setup, newSavedSetups);
+    setSetup(prev => ({ ...prev, name: "Nouveau Setup" }));
+    setConfirmDelete(false);
+    setSaving(false);
   };
 
   const recos = getSetupRecommendations(profile);
@@ -103,13 +115,31 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
         
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground uppercase">Nom (Profil pour sauvegarde)</label>
-          <Input 
-            name="name"
-            placeholder="ex: Sec CIK FIA"
-            value={setup.name}
-            onChange={handleChange}
-            className="bg-background border-border shadow-sm"
-          />
+          <div className="flex gap-2">
+            <Input 
+              name="name"
+              placeholder="ex: Sec CIK FIA"
+              value={setup.name}
+              onChange={handleChange}
+              className="bg-background border-border shadow-sm flex-1"
+            />
+            {savedSetups.some(s => s.name === setup.name) && (
+              <Button 
+                variant={confirmDelete ? "destructive" : "outline"} 
+                size="icon" 
+                onClick={() => {
+                  if (confirmDelete) handleDelete();
+                  else setConfirmDelete(true);
+                }} 
+                onBlur={() => setTimeout(() => setConfirmDelete(false), 200)}
+                className="w-10 h-10 shrink-0 border-border"
+                title="Supprimer ce setup"
+                disabled={saving}
+              >
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : (confirmDelete ? <Check className="w-4 h-4" /> : <Trash2 className="w-4 h-4 text-red-500" />)}
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
