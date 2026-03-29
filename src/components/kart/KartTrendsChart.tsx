@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format } from "date-fns";
 
 export function KartTrendsChart({ sessions }: { sessions: any[] }) {
@@ -17,25 +17,30 @@ export function KartTrendsChart({ sessions }: { sessions: any[] }) {
     }));
 
   return (
-    <Card className="glass-card border-white/5 bg-black/40">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg">Tendances (10 dernières sessions)</CardTitle>
+    <Card className="bg-card border-border shadow-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg text-foreground">Évolution sur les 10 dernières sessions</CardTitle>
+        <p className="text-muted-foreground text-sm mt-1">
+          Observez la corrélation entre vos performances en piste (G Latéral Max) et la sollicitation mécanique (RPM Max). 
+          Une chute de G avec des RPM constants peut indiquer une fin de vie des pneumatiques.
+        </p>
       </CardHeader>
       <CardContent>
-        <div className="h-48 w-full mt-4">
+        <div className="h-[250px] w-full mt-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-              <XAxis dataKey="name" stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
-              <YAxis yAxisId="left" stroke="#ef4444" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} tickFormatter={(v) => `${v/1000}k`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="opacity-10" vertical={false} />
+              <XAxis dataKey="name" stroke="currentColor" className="opacity-50" fontSize={10} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="left" stroke="#ef4444" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} tickFormatter={(v) => `${(v/1000).toFixed(1)}k`} />
               <YAxis yAxisId="right" orientation="right" stroke="#3b82f6" fontSize={10} tickLine={false} axisLine={false} domain={[0, 'auto']} />
               <Tooltip 
-                contentStyle={{ backgroundColor: "#111", border: "1px solid #ffffff20", borderRadius: "8px" }}
-                itemStyle={{ fontSize: "12px" }}
-                labelStyle={{ color: "#888", marginBottom: "4px" }}
+                contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", color: "hsl(var(--card-foreground))" }}
+                itemStyle={{ fontSize: "12px", color: "hsl(var(--foreground))" }}
+                labelStyle={{ color: "hsl(var(--muted-foreground))", marginBottom: "4px" }}
               />
-              <Line yAxisId="left" type="monotone" dataKey="rpm_max" name="RPM Max" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-              <Line yAxisId="right" type="monotone" dataKey="g_lateral_max" name="G-Lat Max" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+              <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
+              <Line yAxisId="left" type="monotone" dataKey="rpm_max" name="RPM Max (Moteur)" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+              <Line yAxisId="right" type="monotone" dataKey="g_lateral_max" name="G Latéral Max (Grip)" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>

@@ -874,6 +874,7 @@ export interface KartProfile {
   brakes_sessions_life?: number;
   
   setup_json?: any;
+  saved_setups?: any[];
 }
 
 export interface KartProfileResponse {
