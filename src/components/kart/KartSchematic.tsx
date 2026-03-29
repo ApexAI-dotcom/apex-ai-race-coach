@@ -41,71 +41,146 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
         <div className="w-1/2 h-3/4 bg-primary/5 blur-[80px] rounded-full" />
       </div>
 
-      {/* Kart Blueprint Schematic (Poussé et Lisible) */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-700 pointer-events-none">
-        <svg viewBox="0 0 400 600" className="w-[85%] h-full drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+      {/* Kart Blueprint Schematic (High-End Front-Angle / Semi-3/4) */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+        <svg viewBox="0 0 400 600" className="w-[90%] h-full drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]">
           <defs>
-             <linearGradient id="chassisGrad" x1="0" y1="0" x2="0" y2="1">
-               <stop offset="0%" stopColor="#aaa" stopOpacity="0.9" />
-               <stop offset="100%" stopColor="#fff" stopOpacity="0.3" />
+             <linearGradient id="podGrad" x1="0" y1="0" x2="1" y2="0">
+               <stop offset="0%" stopColor="#111" stopOpacity="0.8" />
+               <stop offset="50%" stopColor="#333" stopOpacity="0.8" />
+               <stop offset="100%" stopColor="#111" stopOpacity="0.8" />
              </linearGradient>
-             <linearGradient id="seatGrad" x1="0" y1="0" x2="0" y2="1">
+             <linearGradient id="nassauGrad" x1="0" y1="0" x2="0" y2="1">
+               <stop offset="0%" stopColor="#2a2a2a" />
+               <stop offset="100%" stopColor="#0a0a0a" />
+             </linearGradient>
+             <linearGradient id="tireGradFront" x1="0" y1="0" x2="0" y2="1">
+               <stop offset="0%" stopColor="#1f1f1f" />
+               <stop offset="100%" stopColor="#080808" />
+             </linearGradient>
+             <radialGradient id="seatGlow" cx="50%" cy="50%" r="50%">
                <stop offset="0%" stopColor="#444" />
-               <stop offset="100%" stopColor="#222" />
+               <stop offset="100%" stopColor="#111" />
+             </radialGradient>
+             <linearGradient id="tubes" x1="0" y1="0" x2="1" y2="1">
+               <stop offset="0%" stopColor="#888" />
+               <stop offset="50%" stopColor="#ccc" />
+               <stop offset="100%" stopColor="#555" />
              </linearGradient>
           </defs>
-          
-          {/* Main Frame / Tubes */}
-          <path d="M 160 120 L 240 120 Q 280 120 280 200 L 280 480 Q 280 520 260 520 L 140 520 Q 120 520 120 480 L 120 200 Q 120 120 160 120 Z" 
-                fill="none" stroke="url(#chassisGrad)" strokeWidth="8" strokeLinejoin="round" />
-          <path d="M 120 200 L 280 200 M 120 420 L 280 420" fill="none" stroke="url(#chassisGrad)" strokeWidth="6" />
 
-          {/* Front Bumper & Spoiler (Nassau) */}
-          <path d="M 120 120 C 100 80 140 40 200 40 C 260 40 300 80 280 120 Z" fill="#111" stroke="#555" strokeWidth="4" />
-          <path d="M 160 120 L 200 70 L 240 120 Z" fill="#222" stroke="rgba(255,255,255,0.2)" strokeWidth="2" />
-          <path d="M 100 80 L 300 80" stroke="#555" strokeWidth="4" />
-          
-          {/* Side Pods */}
-          <rect x="60" y="240" width="40" height="150" rx="15" fill="#111" stroke="#555" strokeWidth="4" />
-          <rect x="300" y="240" width="40" height="150" rx="15" fill="#111" stroke="#555" strokeWidth="4" />
-          
-          {/* Secondary support bars */}
-          <line x1="100" y1="280" x2="120" y2="280" stroke="#777" strokeWidth="4" />
-          <line x1="280" y1="280" x2="300" y2="280" stroke="#777" strokeWidth="4" />
+          {/* Center Floor Pan */}
+          <path d="M 150 200 L 250 200 L 230 460 L 170 460 Z" fill="rgba(255,255,255,0.02)" stroke="none" />
 
-          {/* Rear Axle */}
-          <line x1="80" y1="480" x2="320" y2="480" stroke="#888" strokeWidth="12" strokeLinecap="round" />
-          <line x1="80" y1="480" x2="320" y2="480" stroke="#333" strokeWidth="6" strokeLinecap="round" />
-          
-          {/* Seat */}
-          <path d="M 150 280 C 200 240 250 280 250 280 L 230 400 C 200 420 170 400 170 400 Z" fill="url(#seatGrad)" stroke="#666" strokeWidth="4" strokeLinejoin="round" />
-          <path d="M 165 295 C 200 265 235 295 235 295 L 220 380 C 200 395 180 380 180 380 Z" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3" />
-          
-          {/* Steering Wheel & Column */}
-          <circle cx="200" cy="220" r="25" fill="#111" stroke="#888" strokeWidth="6" />
-          <circle cx="200" cy="220" r="8" fill="#333" />
-          <line x1="200" y1="245" x2="200" y2="290" stroke="#777" strokeWidth="6" />
-          <line x1="160" y1="160" x2="200" y2="220" stroke="#444" strokeWidth="4" />
-          <line x1="240" y1="160" x2="200" y2="220" stroke="#444" strokeWidth="4" />
-          
-          {/* Engine Block */}
-          <rect x="235" y="300" width="55" height="80" rx="8" fill="#1a1a1a" stroke="#777" strokeWidth="4" />
-          <rect x="245" y="310" width="35" height="40" rx="4" fill="none" stroke="#555" strokeWidth="2" strokeDasharray="3 3" />
-          <path d="M 290 320 Q 320 320 320 360" fill="none" stroke="#555" strokeWidth="6" strokeLinecap="round" />
+          {/* Under-chassis tubes */}
+          <path d="M 160 180 L 140 440 M 240 180 L 260 440" fill="none" stroke="url(#tubes)" strokeWidth="6" strokeLinecap="round" />
+          <path d="M 120 220 L 280 220 M 130 380 L 270 380" fill="none" stroke="url(#tubes)" strokeWidth="5" strokeLinecap="round" />
 
-          {/* Battery Area */}
-          <rect x="130" y="320" width="30" height="40" rx="4" fill="#1a1a1a" stroke="#666" strokeWidth="4" />
-          <line x1="135" y1="330" x2="155" y2="330" stroke="#ff4444" strokeWidth="2" />
+          {/* Rear Axle Assembly */}
+          <rect x="70" y="160" width="260" height="8" rx="4" fill="#666" stroke="#222" strokeWidth="2" />
+          {/* Brake Disc (Rear Axle) */}
+          <ellipse cx="230" cy="164" rx="6" ry="18" fill="none" stroke="#aaa" strokeWidth="3" />
+          <ellipse cx="230" cy="164" rx="3" ry="12" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1" strokeDasharray="2 2" />
+          <path d="M 226 150 L 234 150 L 234 160 L 226 160 Z" fill="#b02a2a" /> {/* Caliper */}
+
+          {/* Engine Block (Right Side) */}
+          <g transform="translate(255, 230)">
+            <rect x="0" y="0" width="45" height="70" rx="6" fill="#151515" stroke="#555" strokeWidth="3" />
+            <path d="M 10 10 L 35 10 M 10 20 L 35 20 M 10 30 L 35 30" stroke="#444" strokeWidth="2" strokeLinecap="round" />
+            {/* Cylinder Head / Spark Plug area */}
+            <circle cx="22" cy="50" r="10" fill="#222" stroke="#666" strokeWidth="2" />
+            <circle cx="22" cy="50" r="3" fill="#dfdfdf" />
+            {/* Exhaust Pipe routing to the back */}
+            <path d="M 40 40 Q 60 40 60 0 Q 60 -40 30 -60" fill="none" stroke="#222" strokeWidth="14" strokeLinecap="round" />
+            <path d="M 40 40 Q 60 40 60 0 Q 60 -40 30 -60" fill="none" stroke="#888" strokeWidth="8" strokeLinecap="round" />
+            <path d="M 40 40 Q 60 40 60 0 Q 60 -40 30 -60" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" />
+          </g>
+
+          {/* Battery Area (Left Side under pod) */}
+          <rect x="135" y="240" width="25" height="35" rx="3" fill="#111" stroke="#444" strokeWidth="2" />
+          <line x1="140" y1="245" x2="155" y2="245" stroke="#ff3333" strokeWidth="2" strokeLinecap="round" />
+
+          {/* Rear Tires (Perspective => Drawn higher up, wide) */}
+          <g transform="translate(60, 130)">
+            {/* Left Rear Tire */}
+            <rect x="0" y="0" width="45" height="80" rx="8" fill="url(#tireGradFront)" stroke="#333" strokeWidth="2" />
+            <path d="M 5 10 L 40 10 M 5 40 L 40 40 M 5 70 L 40 70" stroke="#111" strokeWidth="1" opacity="0.5" />
+            {/* Rim */}
+            <rect x="42" y="20" width="3" height="40" fill="#555" />
+          </g>
+          <g transform="translate(295, 130)">
+            {/* Right Rear Tire */}
+            <rect x="0" y="0" width="45" height="80" rx="8" fill="url(#tireGradFront)" stroke="#333" strokeWidth="2" />
+            <path d="M 5 10 L 40 10 M 5 40 L 40 40 M 5 70 L 40 70" stroke="#111" strokeWidth="1" opacity="0.5" />
+            {/* Rim */}
+            <rect x="-3" y="20" width="3" height="40" fill="#555" />
+          </g>
+
+          {/* Side Pods (Carénages Latéraux) - Aerodynamic contours */}
+          <path d="M 70 230 C 50 250 50 380 75 420 C 100 420 115 390 125 350 C 130 310 120 230 105 230 Z" fill="url(#podGrad)" stroke="rgba(255,255,255,0.2)" strokeWidth="2" />
+          <path d="M 85 240 C 65 260 65 370 85 400" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
+
+          <path d="M 330 230 C 350 250 350 380 325 420 C 300 420 285 390 275 350 C 270 310 280 230 295 230 Z" fill="url(#podGrad)" stroke="rgba(255,255,255,0.2)" strokeWidth="2" />
+          <path d="M 315 240 C 335 260 335 370 315 400" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
+
+          {/* Seat (Siège Baquet) - Deep bucket illusion */}
+          <path d="M 155 260 C 150 160 250 160 245 260 C 240 320 230 350 200 350 C 170 350 160 320 155 260 Z" fill="url(#seatGlow)" stroke="#555" strokeWidth="3" />
+          {/* Seat Inner Cushion */}
+          <path d="M 165 260 C 160 190 240 190 235 260 C 230 300 220 330 200 330 C 180 330 170 300 165 260 Z" fill="#151515" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
+          
+          {/* Steering Column & Wheel */}
+          <line x1="200" y1="360" x2="200" y2="280" stroke="url(#tubes)" strokeWidth="8" strokeLinecap="round" />
+          {/* Wheel Frame */}
+          <ellipse cx="200" cy="275" rx="35" ry="15" fill="none" stroke="#222" strokeWidth="12" />
+          <ellipse cx="200" cy="275" rx="35" ry="15" fill="none" stroke="#777" strokeWidth="4" />
+          <ellipse cx="200" cy="275" rx="35" ry="15" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" strokeDasharray="5 15" />
+          {/* Dash / Mychron Screen on Wheel */}
+          <rect x="185" y="260" width="30" height="15" rx="2" fill="#000" stroke="#444" strokeWidth="2" />
+          <line x1="190" y1="267" x2="210" y2="267" stroke="#0f0" strokeWidth="1" className="opacity-70 animate-pulse" />
+
+          {/* Front Nassau Panel (Front Fairing Shield) */}
+          <path d="M 175 420 C 160 350 175 290 200 290 C 225 290 240 350 225 420 C 215 450 185 450 175 420 Z" fill="url(#nassauGrad)" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+          {/* Sponsor / Apex Logo placeholder line on Nassau */}
+          <path d="M 185 360 C 190 380 210 380 215 360" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
+          <polygon points="200,320 190,340 210,340" fill="#f00" opacity="0.6" />
+
+          {/* Front Spoiler (Aileron Avant) */}
+          <path d="M 110 440 C 150 490 250 490 290 440 C 295 440 295 470 260 490 C 220 510 180 510 140 490 C 105 470 105 440 110 440 Z" fill="#151515" stroke="rgba(255,255,255,0.2)" strokeWidth="2" />
+          {/* Front Bumper Tubing visible through aero */}
+          <path d="M 120 445 C 160 475 240 475 280 445" fill="none" stroke="url(#tubes)" strokeWidth="6" strokeLinecap="round" opacity="0.6" />
+
+          {/* Front Hubs & Tie Rods (Direction) */}
+          <line x1="200" y1="360" x2="110" y2="420" stroke="#777" strokeWidth="4" />
+          <line x1="200" y1="360" x2="290" y2="420" stroke="#777" strokeWidth="4" />
+          
+          {/* Front Brake Discs (Left & Right - visible on front axle) */}
+          <ellipse cx="106" cy="425" rx="4" ry="12" fill="none" stroke="#aaa" strokeWidth="2" />
+          <ellipse cx="294" cy="425" rx="4" ry="12" fill="none" stroke="#aaa" strokeWidth="2" />
+          <circle cx="106" cy="420" r="3" fill="#b02a2a" />
+          <circle cx="294" cy="420" r="3" fill="#b02a2a" />
+
+          {/* Front Tires (Perspective => Drawn lower down) */}
+          <g transform="translate(68, 395)">
+            {/* Left Front Tire (Slightly turned maybe? No, straight) */}
+            <rect x="0" y="0" width="35" height="65" rx="6" fill="url(#tireGradFront)" stroke="#333" strokeWidth="2" />
+            <path d="M 5 10 L 30 10 M 5 30 L 30 30 M 5 50 L 30 50" stroke="#111" strokeWidth="1" opacity="0.5" />
+            <rect x="33" y="15" width="2" height="35" fill="#555" />
+          </g>
+          <g transform="translate(297, 395)">
+            {/* Right Front Tire */}
+            <rect x="0" y="0" width="35" height="65" rx="6" fill="url(#tireGradFront)" stroke="#333" strokeWidth="2" />
+            <path d="M 5 10 L 30 10 M 5 30 L 30 30 M 5 50 L 30 50" stroke="#111" strokeWidth="1" opacity="0.5" />
+            <rect x="-2" y="15" width="2" height="35" fill="#555" />
+          </g>
         </svg>
       </div>
 
-      {/* --- HOTSPOTS (Badges V3 Scaled down ~15%) --- */}
+      {/* --- HOTSPOTS (Accurate to new aero chassis) --- */}
       
       {/* Engine Hotspot */}
       <Tooltip>
         <TooltipTrigger asChild>
-          {/* Reduced size: w-12 h-12 from w-16 h-16. Icon w-6 h-6 */}
-          <div onClick={() => setSelectedComp('engine')} className="absolute right-[20%] top-[55%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-110 hover:z-20">
+          <div onClick={() => setSelectedComp('engine')} className="absolute right-[18%] top-[45%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-110 hover:z-20">
             <div className={cn("w-12 h-12 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-xl transition-all duration-300", getStatusColor(profile.engine_hours_current, profile.engine_hours_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Flame className={cn("w-6 h-6", getStatusColor(profile.engine_hours_current, profile.engine_hours_life))} />
             </div>
@@ -121,8 +196,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Front Left Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          {/* Reduced size: w-10 h-14 from w-12 h-16 */}
-          <div onClick={() => setSelectedComp('tire_fl')} className="absolute left-[15%] top-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-110">
+          <div onClick={() => setSelectedComp('tire_fl')} className="absolute left-[12%] bottom-[25%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-110">
             <div className={cn("w-10 h-14 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Disc className={cn("w-5 h-5", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
@@ -137,7 +211,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Front Right Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_fr')} className="absolute right-[15%] top-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-110">
+          <div onClick={() => setSelectedComp('tire_fr')} className="absolute right-[12%] bottom-[25%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-110">
              <div className={cn("w-10 h-14 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Disc className={cn("w-5 h-5", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
@@ -152,7 +226,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Rear Left Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_rl')} className="absolute left-[12%] bottom-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-110">
+          <div onClick={() => setSelectedComp('tire_rl')} className="absolute left-[8%] top-[20%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-110">
              <div className={cn("w-12 h-16 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Disc className={cn("w-6 h-6", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
@@ -167,7 +241,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Rear Right Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_rr')} className="absolute right-[12%] bottom-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-110">
+          <div onClick={() => setSelectedComp('tire_rr')} className="absolute right-[8%] top-[20%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-110">
              <div className={cn("w-12 h-16 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Disc className={cn("w-6 h-6", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
@@ -182,8 +256,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Brakes Front (AV) */}
       <Tooltip>
         <TooltipTrigger asChild>
-          {/* Note: mapped to the same single brake lifecycle state per instructions */}
-          <div onClick={() => setSelectedComp('brakes_front')} className="absolute left-[35%] top-[25%] flex items-center justify-center group cursor-pointer transition-transform hover:scale-110 z-10">
+          <div onClick={() => setSelectedComp('brakes_front')} className="absolute left-[35%] bottom-[30%] flex items-center justify-center group cursor-pointer transition-transform hover:scale-110 z-10">
             <div className={cn("w-9 h-9 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-lg", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <span className={cn("font-bold text-[10px]", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life))}>AV</span>
             </div>
@@ -198,7 +271,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Brakes Rear (AR) */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('brakes_rear')} className="absolute left-[35%] bottom-[25%] flex items-center justify-center group cursor-pointer transition-transform hover:scale-110 z-10">
+          <div onClick={() => setSelectedComp('brakes_rear')} className="absolute left-[40%] top-[25%] flex items-center justify-center group cursor-pointer transition-transform hover:scale-110 z-10">
             <div className={cn("w-10 h-10 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-lg", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <AlertCircle className={cn("w-5 h-5", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life))} />
             </div>
@@ -213,7 +286,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Battery */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('battery')} className="absolute left-[30%] top-[45%] flex items-center justify-center transition-transform hover:scale-110 cursor-pointer z-10">
+          <div onClick={() => setSelectedComp('battery')} className="absolute left-[32%] top-[40%] flex items-center justify-center transition-transform hover:scale-110 cursor-pointer z-10">
             <div className={cn("w-8 h-8 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-md", getStatusColor(profile.battery_voltage_last, 12.5, true).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Battery className={cn("w-4 h-4", getStatusColor(profile.battery_voltage_last, 12.5, true))} />
             </div>
