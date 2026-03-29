@@ -52,27 +52,12 @@ export const WearGauge = ({
 
       <div className="relative flex items-center justify-center mb-6">
         <svg className="w-32 h-32 transform -rotate-90">
-          <circle
-            cx="64"
-            cy="64"
-            r={radius}
-            className="stroke-muted-foreground/20 fill-none"
-            strokeWidth="8"
-          />
-          <circle
-            cx="64"
-            cy="64"
-            r={radius}
-            className={cn("fill-none transition-all duration-1000 ease-in-out", getColor())}
-            strokeWidth="8"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-          />
+          <circle cx="64" cy="64" r={radius} className="stroke-muted-foreground/20 fill-none" strokeWidth="8" />
+          <circle cx="64" cy="64" r={radius} className={cn("fill-none transition-all duration-1000 ease-in-out", getColor())} strokeWidth="8" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" />
         </svg>
-        <div className="absolute flex flex-col items-center justify-center w-[70px] text-center">
+        <div className="absolute flex flex-col items-center justify-center w-[85px] text-center px-1">
           <span className="text-2xl font-bold font-display leading-none">{current.toFixed(1)}</span>
-          <span className="text-[10px] text-muted-foreground leading-tight mt-1">/ {max} {unit}</span>
+          <span className="text-[9px] text-muted-foreground mt-1 whitespace-nowrap overflow-visible">/ {max} {unit}</span>
         </div>
       </div>
 
