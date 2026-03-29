@@ -859,6 +859,7 @@ export interface KartProfile {
   battery_voltage_last: number | null;
   battery_voltage_min_ever: number | null;
   mon_kart_enabled: boolean;
+  driving_profile?: 'longevity' | 'performance' | 'balanced' | 'leisure';
   
   engine_model?: string | null;
   engine_preset?: string | null;
@@ -932,6 +933,24 @@ export async function resetKartComponent(accessToken: string, componentType: "en
     throw new Error((data?.detail as string) || `Erreur ${response.status}`);
   }
   return await parseJSONResponse<{ profile: KartProfile }>(response);
+}
+
+export async function addKartHistoryEntry(accessToken: string, componentType: string, notes: string, date?: string): Promise<{ entry: any }> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/history/add`, {
+    method: "POST",
+    signal: controller.signal,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ component_type: componentType, notes, date }),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse(response);
 }
 
 export async function bulkImportKartSessions(accessToken: string, files: File[]): Promise<any> {

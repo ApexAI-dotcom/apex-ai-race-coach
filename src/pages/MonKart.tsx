@@ -3,11 +3,12 @@ import { Wrench, UploadCloud, Trash2, Battery, Disc, Flame, Loader2 } from "luci
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link } from "react-router-dom";
-import api, { KartProfileResponse, KartProfile } from "@/lib/api";
+import api, { KartProfileResponse, KartProfile, addKartHistoryEntry } from "@/lib/api";
 import { AlertBanner } from "@/components/kart/AlertBanner";
 import { KartSchematic } from "@/components/kart/KartSchematic";
 import { WearGauge } from "@/components/kart/WearGauge";
@@ -17,6 +18,7 @@ import { KartMaintenanceLog } from "@/components/kart/KartMaintenanceLog";
 import { KartSetupPanel } from "@/components/kart/KartSetupPanel";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
+import { DrivingProfile } from "@/lib/kart-recommendations";
 
 export default function MonKart() {
   const { session } = useAuth();
@@ -155,18 +157,51 @@ export default function MonKart() {
     }
   };
 
+  const handleAddHistory = async (type: string, notes: string, date: string) => {
+    if (!session?.access_token) return;
+    try {
+      await addKartHistoryEntry(session.access_token, type, notes, date);
+      toast.success("Intervention ajoutée au journal.");
+      fetchProfile();
+    } catch (e: any) {
+      toast.error("Erreur d'ajout à l'historique : " + e.message);
+    }
+  };
+
   return (
     <Layout>
       <PageMeta title="Mon Kart | ApexAI" description="Suivi de l'usure de ton kart (cockpit interactif)." path="/kart" />
       <div className="container max-w-6xl mx-auto py-8 px-4 space-y-6">
-        <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-3xl font-display font-bold">Mon Kart (Cockpit)</h1>
-          <p className="text-muted-foreground mt-2">Vue détaillée et usure des composants</p>
-        </div>
-        <Button variant="outline" className="gap-2" onClick={() => handleUpdateCounter('engine_model', null as any)}>
-          <Wrench className="w-4 h-4" /> Relancer la configuration
-        </Button>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-3xl font-display font-bold">Mon Kart</h1>
+            <p className="text-muted-foreground mt-2">Vue détaillée, usure et recommandations</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-[200px]">
+              <Select 
+                value={prof?.driving_profile || "balanced"} 
+                onValueChange={(val) => handleUpdateCounter('driving_profile', val)}
+              >
+                <SelectTrigger className="bg-black/40 border-white/10">
+                  <SelectValue placeholder="Profil de pilotage" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="longevity">Longévité / Économie</SelectItem>
+                  <SelectItem value="balanced">Équilibré</SelectItem>
+                  <SelectItem value="performance">Performance Max</SelectItem>
+                  <SelectItem value="leisure">Loisir / Rodage</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button variant="outline" className="gap-2" onClick={() => handleUpdateCounter('engine_model', null as any)}>
+              <Wrench className="w-4 h-4" /> Relancer la config
+            </Button>
+          </div>
+      </div>
+
+      <div className="text-xs text-muted-foreground/80 mb-2 italic">
+        * Les recommandations affichées ci-dessous sont indicatives et s'adaptent au profil de pilotage sélectionné. La responsabilité finale des réglages t'appartient.
       </div>
 
       {prof && <AlertBanner profile={prof} recent_sessions={sessions} />}
@@ -174,7 +209,7 @@ export default function MonKart() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Left Column: Cockpit Schematic (Spans 4 columns) */}
-        <div className="lg:col-span-5 xl:col-span-4 flex items-center justify-center p-6 glass-card rounded-2xl border-white/5 order-1">
+        <div className="lg:col-span-5 xl:col-span-4 flex items-center justify-center p-4 glass-card rounded-2xl border-white/5 order-1 h-fit">
            {prof && <KartSchematic profile={prof} />}
         </div>
 
@@ -266,8 +301,8 @@ export default function MonKart() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <KartSetupPanel setupJson={prof?.setup_json} onSave={handleUpdateSetup} />
-            <KartMaintenanceLog history={history} />
+            <KartSetupPanel profile={prof} onSave={handleUpdateSetup} />
+            <KartMaintenanceLog history={history} onAddEntry={handleAddHistory} />
           </div>
 
           <div className="mt-6">
