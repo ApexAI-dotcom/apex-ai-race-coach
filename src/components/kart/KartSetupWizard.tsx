@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Wrench, CheckCircle2, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
+import { Wrench, CheckCircle2, ChevronRight, ChevronLeft, Loader2, ChevronsUpDown, Check } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import api, { KartProfile } from "@/lib/api";
 import { ENGINE_PRESETS, TIRE_PRESETS, BRAKE_PRESETS } from "@/constants/kart-presets";
@@ -17,6 +19,9 @@ interface KartSetupWizardProps {
 export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [openEngine, setOpenEngine] = useState(false);
+  const [openTires, setOpenTires] = useState(false);
+  const [openBrakes, setOpenBrakes] = useState(false);
   const [data, setData] = useState<Partial<KartProfile>>({
     engine_model: "",
     engine_hours_current: 0,
@@ -88,19 +93,38 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
                 <Label>Modèle du Moteur</Label>
-                <Select onValueChange={(val) => {
-                  const preset = ENGINE_PRESETS.find(p => p.name === val);
-                  updateData({ engine_model: val, engine_hours_life: preset ? preset.default_life : 15 });
-                }} value={data.engine_model || ""}>
-                  <SelectTrigger className="bg-black/20">
-                    <SelectValue placeholder="Choisir un modèle..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ENGINE_PRESETS.map(p => (
-                      <SelectItem key={p.id} value={p.name}>{p.name} ({p.category})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={openEngine} onOpenChange={setOpenEngine}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={openEngine} className="w-full justify-between bg-black/20 text-left font-normal border-white/10 hover:bg-black/40 hover:text-white">
+                      {data.engine_model ? data.engine_model : "Rechercher un modèle..."}
+                      <ChevronsUpDown className="w-4 h-4 ml-2 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-black/90 border-white/10 text-white">
+                    <Command>
+                      <CommandInput placeholder="Filtrer modèles..." />
+                      <CommandList>
+                        <CommandEmpty>Aucun modèle trouvé.</CommandEmpty>
+                        <CommandGroup>
+                          {ENGINE_PRESETS.map((p) => (
+                            <CommandItem
+                              key={p.id}
+                              value={p.name}
+                              onSelect={() => {
+                                updateData({ engine_model: p.name, engine_hours_life: p.default_life });
+                                setOpenEngine(false);
+                              }}
+                              className="text-white data-[selected=true]:bg-white/10 cursor-pointer"
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", data.engine_model === p.name ? "opacity-100" : "opacity-0")} />
+                              {p.name} <span className="ml-2 text-xs text-muted-foreground">({p.category})</span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="space-y-2">
                 <Label>Seuil de révision (heures)</Label>
@@ -129,19 +153,38 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
                 <Label>Modèle / Type de Pneus</Label>
-                <Select onValueChange={(val) => {
-                  const preset = TIRE_PRESETS.find(p => p.name === val);
-                  updateData({ tires_model: val, tires_sessions_life: preset ? preset.default_life : 50 });
-                }} value={data.tires_model || ""}>
-                  <SelectTrigger className="bg-black/20">
-                    <SelectValue placeholder="Choisir un train de pneus..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TIRE_PRESETS.map(p => (
-                      <SelectItem key={p.id} value={p.name}>{p.name} ({p.compound})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={openTires} onOpenChange={setOpenTires}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={openTires} className="w-full justify-between bg-black/20 text-left font-normal border-white/10 hover:bg-black/40 hover:text-white">
+                      {data.tires_model ? data.tires_model : "Rechercher un train de pneus..."}
+                      <ChevronsUpDown className="w-4 h-4 ml-2 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-black/90 border-white/10 text-white">
+                    <Command>
+                      <CommandInput placeholder="Filtrer pneus..." />
+                      <CommandList>
+                        <CommandEmpty>Aucun pneu trouvé.</CommandEmpty>
+                        <CommandGroup>
+                          {TIRE_PRESETS.map((p) => (
+                            <CommandItem
+                              key={p.id}
+                              value={p.name}
+                              onSelect={() => {
+                                updateData({ tires_model: p.name, tires_sessions_life: p.default_life });
+                                setOpenTires(false);
+                              }}
+                              className="text-white data-[selected=true]:bg-white/10 cursor-pointer"
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", data.tires_model === p.name ? "opacity-100" : "opacity-0")} />
+                              {p.name} <span className="ml-2 text-xs text-muted-foreground">({p.compound})</span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="space-y-2">
                 <Label>Durée de vie (Sessions)</Label>
@@ -168,19 +211,38 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
                 <Label>Système de Freinage</Label>
-                <Select onValueChange={(val) => {
-                  const preset = BRAKE_PRESETS.find(p => p.name === val);
-                  updateData({ brakes_model: val, brakes_sessions_life: preset ? preset.default_life : 100 });
-                }} value={data.brakes_model || ""}>
-                  <SelectTrigger className="bg-black/20">
-                    <SelectValue placeholder="Sélectionner le type de freins..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BRAKE_PRESETS.map(p => (
-                      <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={openBrakes} onOpenChange={setOpenBrakes}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={openBrakes} className="w-full justify-between bg-black/20 text-left font-normal border-white/10 hover:bg-black/40 hover:text-white">
+                      {data.brakes_model ? data.brakes_model : "Rechercher un système..."}
+                      <ChevronsUpDown className="w-4 h-4 ml-2 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-black/90 border-white/10 text-white">
+                    <Command>
+                      <CommandInput placeholder="Filtrer freins..." />
+                      <CommandList>
+                        <CommandEmpty>Aucun système trouvé.</CommandEmpty>
+                        <CommandGroup>
+                          {BRAKE_PRESETS.map((p) => (
+                            <CommandItem
+                              key={p.id}
+                              value={p.name}
+                              onSelect={() => {
+                                updateData({ brakes_model: p.name, brakes_sessions_life: p.default_life });
+                                setOpenBrakes(false);
+                              }}
+                              className="text-white data-[selected=true]:bg-white/10 cursor-pointer"
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", data.brakes_model === p.name ? "opacity-100" : "opacity-0")} />
+                              {p.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="space-y-2">
                 <Label>Seuil d'alerte plaquettes (Sessions)</Label>

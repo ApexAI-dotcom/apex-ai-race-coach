@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { KartProfile } from "@/lib/api";
 import { Battery, Disc, Flame, AlertCircle } from "lucide-react";
@@ -8,6 +10,8 @@ interface KartSchematicProps {
 }
 
 export const KartSchematic = ({ profile }: KartSchematicProps) => {
+  const [selectedComp, setSelectedComp] = useState<string | null>(null);
+
   const getStatusColor = (current: number | undefined, max: number | undefined, isVoltage = false) => {
     if (isVoltage) {
       if (!current) return "text-muted-foreground stroke-muted-foreground/50";
@@ -24,7 +28,8 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
   };
 
   return (
-    <div className="relative w-full max-w-lg mx-auto aspect-[3/4] flex items-center justify-center p-4">
+    <>
+      <div className="relative w-full max-w-lg mx-auto aspect-[3/4] flex items-center justify-center p-4">
       {/* Tron Grid Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl opacity-20">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:20px_20px] [transform:perspective(500px)_rotateX(60deg)_scale(2)_translateY(-50px)]" />
@@ -78,7 +83,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Engine Hotspot */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="absolute right-[20%] top-[55%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125 hover:z-20">
+          <div onClick={() => setSelectedComp('engine')} className="absolute right-[20%] top-[55%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125 hover:z-20">
             <div className={cn("w-16 h-16 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-2xl transition-all duration-300", getStatusColor(profile.engine_hours_current, profile.engine_hours_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Flame className={cn("w-8 h-8", getStatusColor(profile.engine_hours_current, profile.engine_hours_life))} />
             </div>
@@ -94,7 +99,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Front Left Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="absolute left-[15%] top-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
+          <div onClick={() => setSelectedComp('tire_fl')} className="absolute left-[15%] top-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
             <div className={cn("w-12 h-16 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Disc className={cn("w-6 h-6", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
@@ -109,7 +114,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Front Right Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="absolute right-[15%] top-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
+          <div onClick={() => setSelectedComp('tire_fr')} className="absolute right-[15%] top-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
              <div className={cn("w-12 h-16 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Disc className={cn("w-6 h-6", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
@@ -124,7 +129,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Rear Left Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="absolute left-[12%] bottom-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
+          <div onClick={() => setSelectedComp('tire_rl')} className="absolute left-[12%] bottom-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
              <div className={cn("w-14 h-20 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Disc className={cn("w-7 h-7", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
@@ -139,7 +144,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Rear Right Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="absolute right-[12%] bottom-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
+          <div onClick={() => setSelectedComp('tire_rr')} className="absolute right-[12%] bottom-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
              <div className={cn("w-14 h-20 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Disc className={cn("w-7 h-7", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
@@ -154,7 +159,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Brakes */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="absolute left-[35%] bottom-[25%] flex items-center justify-center group cursor-pointer transition-transform hover:scale-125 z-10">
+          <div onClick={() => setSelectedComp('brakes')} className="absolute left-[35%] bottom-[25%] flex items-center justify-center group cursor-pointer transition-transform hover:scale-125 z-10">
             <div className={cn("w-12 h-12 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <AlertCircle className={cn("w-6 h-6", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life))} />
             </div>
@@ -169,7 +174,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Battery */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="absolute left-[30%] top-[45%] flex items-center justify-center transition-transform hover:scale-125 cursor-pointer z-10">
+          <div onClick={() => setSelectedComp('battery')} className="absolute left-[30%] top-[45%] flex items-center justify-center transition-transform hover:scale-125 cursor-pointer z-10">
             <div className={cn("w-10 h-10 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-md", getStatusColor(profile.battery_voltage_last, 12.5, true).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Battery className={cn("w-5 h-5", getStatusColor(profile.battery_voltage_last, 12.5, true))} />
             </div>
@@ -181,6 +186,86 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
         </TooltipContent>
       </Tooltip>
       
-    </div>
+      </div>
+
+      <Dialog open={!!selectedComp} onOpenChange={(open) => !open && setSelectedComp(null)}>
+        <DialogContent className="bg-black/95 border-white/10 text-white sm:max-w-md backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-display text-primary flex items-center gap-2">
+              {selectedComp === 'engine' && <Flame className="w-5 h-5" />}
+              {selectedComp?.startsWith('tire') && <Disc className="w-5 h-5" />}
+              {selectedComp === 'brakes' && <AlertCircle className="w-5 h-5" />}
+              {selectedComp === 'battery' && <Battery className="w-5 h-5" />}
+              {selectedComp === 'engine' && "Vue Détaillée : Moteur"}
+              {selectedComp === 'tire_fl' && "Pneu Avant Gauche"}
+              {selectedComp === 'tire_fr' && "Pneu Avant Droit"}
+              {selectedComp === 'tire_rl' && "Pneu Arrière Gauche"}
+              {selectedComp === 'tire_rr' && "Pneu Arrière Droit"}
+              {selectedComp === 'brakes' && "Système de Freinage Arrière"}
+              {selectedComp === 'battery' && "État de la Batterie"}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {selectedComp === 'engine' && "La gestion rigoureuse des heures moteur prévient les casses et maintient des performances optimales."}
+              {selectedComp?.startsWith('tire') && "La dégradation des gommes influe drastiquement sur le grip mécanique et les chronos."}
+              {selectedComp === 'brakes' && "L'usure des plaquettes impacte directement la puissance et la répartition de freinage."}
+              {selectedComp === 'battery' && "Une tension faible peut causer des ratés d'allumage ou empêcher le démarrage."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {selectedComp === 'engine' && (
+              <div className="space-y-2 bg-white/5 p-4 rounded-lg border border-white/5">
+                <p><strong>Modèle :</strong> <span className="text-primary">{profile.engine_model || "Standard"}</span></p>
+                <div className="flex justify-between items-center mt-2">
+                  <span>Usure Actuelle :</span>
+                  <span className="font-mono text-lg">{profile.engine_hours_current?.toFixed(1) || 0} / {profile.engine_hours_life} h</span>
+                </div>
+                <div className="w-full bg-white/10 h-2 rounded-full mt-2 overflow-hidden">
+                  <div className={cn("h-full transition-all duration-500", (profile.engine_hours_current || 0) / (profile.engine_hours_life || 15) > 0.8 ? "bg-red-500" : "bg-primary")} style={{ width: `${Math.min(((profile.engine_hours_current || 0) / (profile.engine_hours_life || 15)) * 100, 100)}%` }} />
+                </div>
+              </div>
+            )}
+            
+            {selectedComp?.startsWith('tire') && (
+              <div className="space-y-2 bg-white/5 p-4 rounded-lg border border-white/5">
+                <p><strong>Train complet :</strong> <span className="text-primary">{profile.tires_model || "Standard"}</span></p>
+                <div className="flex justify-between items-center mt-2">
+                  <span>Sessions Roulées :</span>
+                  <span className="font-mono text-lg">{profile.tires_sessions_current || 0} / {profile.tires_sessions_life} sess.</span>
+                </div>
+                <div className="w-full bg-white/10 h-2 rounded-full mt-2 overflow-hidden">
+                  <div className={cn("h-full transition-all duration-500", (profile.tires_sessions_current || 0) / (profile.tires_sessions_life || 50) > 0.8 ? "bg-red-500" : "bg-primary")} style={{ width: `${Math.min(((profile.tires_sessions_current || 0) / (profile.tires_sessions_life || 50)) * 100, 100)}%` }} />
+                </div>
+              </div>
+            )}
+
+            {selectedComp === 'brakes' && (
+              <div className="space-y-2 bg-white/5 p-4 rounded-lg border border-white/5">
+                <p><strong>Système :</strong> <span className="text-primary">{profile.brakes_model || "Standard"}</span></p>
+                <div className="flex justify-between items-center mt-2">
+                  <span>Usure Plaquettes :</span>
+                  <span className="font-mono text-lg">{profile.brakes_sessions_current || 0} / {profile.brakes_sessions_life} sess.</span>
+                </div>
+                <div className="w-full bg-white/10 h-2 rounded-full mt-2 overflow-hidden">
+                  <div className={cn("h-full transition-all duration-500", (profile.brakes_sessions_current || 0) / (profile.brakes_sessions_life || 100) > 0.8 ? "bg-orange-500" : "bg-primary")} style={{ width: `${Math.min(((profile.brakes_sessions_current || 0) / (profile.brakes_sessions_life || 100)) * 100, 100)}%` }} />
+                </div>
+              </div>
+            )}
+
+            {selectedComp === 'battery' && (
+              <div className="space-y-2 bg-white/5 p-4 rounded-lg border border-white/5">
+                <div className="flex justify-between items-center mt-2">
+                  <span>Dernière Tension Relevée :</span>
+                  <span className={cn("font-mono text-lg font-bold", getStatusColor(profile.battery_voltage_last, 12.5, true).split(' ')[0])}>
+                    {profile.battery_voltage_last || "--"} V
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">Tension à vide minimale recommandée : 12.0V.</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
