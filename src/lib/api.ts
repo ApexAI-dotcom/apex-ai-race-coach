@@ -859,6 +859,20 @@ export interface KartProfile {
   battery_voltage_last: number | null;
   battery_voltage_min_ever: number | null;
   mon_kart_enabled: boolean;
+  
+  engine_model?: string | null;
+  engine_preset?: string | null;
+  engine_hours_life?: number;
+  
+  tires_model?: string | null;
+  tires_preset?: string | null;
+  tires_sessions_life?: number;
+  
+  brakes_model?: string | null;
+  brakes_preset?: string | null;
+  brakes_sessions_life?: number;
+  
+  setup_json?: any;
 }
 
 export interface KartProfileResponse {
