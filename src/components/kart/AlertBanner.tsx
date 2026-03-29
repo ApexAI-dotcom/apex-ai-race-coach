@@ -51,7 +51,7 @@ export const AlertBanner = ({ profile, recent_sessions = [] }: AlertBannerProps)
 
   if (alerts.length === 0) {
     return (
-      <div className="glass-card bg-green-500/10 border-green-500/20 px-6 py-4 flex items-center gap-4 rounded-xl mb-6">
+      <div className="bg-green-500/10 border border-green-500/20 px-6 py-4 flex items-center gap-4 rounded-xl mb-6 shadow-sm">
         <CheckCircle2 className="w-6 h-6 text-green-500" />
         <span className="text-green-500 font-medium">Tous les composants sont en bon état. Prêt pour la piste.</span>
       </div>
@@ -67,7 +67,7 @@ export const AlertBanner = ({ profile, recent_sessions = [] }: AlertBannerProps)
         <div 
           key={i} 
           className={cn(
-            "glass-card px-6 py-4 flex items-center gap-4 rounded-xl",
+            "px-6 py-4 flex items-center gap-4 rounded-xl border shadow-sm",
             alert.level === "critical" ? "bg-red-500/10 border-red-500/20" : "bg-orange-500/10 border-orange-500/20"
           )}
         >
@@ -85,20 +85,20 @@ export const AlertBanner = ({ profile, recent_sessions = [] }: AlertBannerProps)
         </div>
       ))}
 
-      <Accordion type="single" collapsible className="w-full mt-4 bg-black/20 border border-white/5 rounded-xl px-4">
+      <Accordion type="single" collapsible className="w-full mt-4 bg-muted border border-border rounded-xl px-4">
         <AccordionItem value="learn-more" className="border-b-0">
-          <AccordionTrigger className="text-sm font-medium hover:no-underline text-muted-foreground hover:text-white transition-colors">
+          <AccordionTrigger className="text-sm font-medium hover:no-underline text-muted-foreground hover:text-foreground transition-colors">
             Comprendre les métriques et limites (En savoir plus)
           </AccordionTrigger>
           <AccordionContent className="text-xs text-muted-foreground space-y-3 pb-4">
             <p>
-              <strong className="text-white">Moteur :</strong> L'usure dépend de ton utilisation (heures vs sessions). Un profil "Performance" repousse les alertes pour privilégier la recherche de chronos, tandis qu'un profil "Longévité" anticipe les alertes pour préserver ta mécanique.
+              <strong className="text-foreground">Moteur :</strong> L'usure dépend de ton utilisation (heures vs sessions). Un profil "Performance" repousse les alertes pour privilégier la recherche de chronos, tandis qu'un profil "Longévité" anticipe les alertes pour préserver ta mécanique.
             </p>
             <p>
-              <strong className="text-white">Pneus & Freins :</strong> Calculés en nombre de sessions. Une baisse d'adhérence ou de mordan est attendue au-delà de 80% d'usure standard.
+              <strong className="text-foreground">Pneus & Freins :</strong> Calculés en nombre de sessions. Une baisse d'adhérence ou de mordan est attendue au-delà de 80% d'usure standard.
             </p>
             <p>
-              <strong className="text-white">Batterie & Températures :</strong> Ces alertes "Live" se basent sur ta toute dernière session importée. Surveille particulièrement la température d'échappement (EGT) qui indique si ta carburation est trop pauvre (surchauffe, risque de serrage) ou trop riche.
+              <strong className="text-foreground">Batterie & Températures :</strong> Ces alertes "Live" se basent sur ta toute dernière session importée. Surveille particulièrement la température d'échappement (EGT) qui indique si ta carburation est trop pauvre (surchauffe, risque de serrage) ou trop riche.
             </p>
           </AccordionContent>
         </AccordionItem>

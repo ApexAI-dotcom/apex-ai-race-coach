@@ -74,7 +74,7 @@ export function KartMaintenanceLog({ history, onAddEntry }: { history: any[], on
 
   if (!history || history.length === 0) {
     return (
-      <Card className="glass-card border-white/5 bg-black/40">
+      <Card className="bg-card border-border shadow-sm">
         <CardHeader className="pb-0">
           {renderHeader()}
         </CardHeader>
@@ -104,15 +104,15 @@ export function KartMaintenanceLog({ history, onAddEntry }: { history: any[], on
   };
 
   return (
-    <Card className="glass-card border-white/5 bg-black/40 h-full flex flex-col">
+    <Card className="bg-card border-border shadow-sm h-full flex flex-col">
       <CardHeader className="pb-0">
         {renderHeader()}
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto max-h-[300px] pr-2 mt-4 custom-scrollbar">
         <div className="space-y-4">
           {history.map((log) => (
-            <div key={log.id} className="flex items-start gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-              <div className="p-2 rounded-full bg-black/50">
+            <div key={log.id} className="flex items-start gap-4 p-3 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors">
+              <div className="p-2 rounded-full bg-background border border-border shadow-sm">
                 {getIcon(log.component_type)}
               </div>
               <div className="flex-1">
@@ -123,7 +123,7 @@ export function KartMaintenanceLog({ history, onAddEntry }: { history: any[], on
                   </span>
                 </div>
                 {log.notes && (
-                  <p className="text-xs text-gray-400 mt-1">"{log.notes}"</p>
+                  <p className="text-xs text-muted-foreground mt-1">"{log.notes}"</p>
                 )}
                 {log.previous_hours !== null && log.previous_hours > 0 && (
                   <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">Moteur remis à zéro à {log.previous_hours.toFixed(1)}h</p>

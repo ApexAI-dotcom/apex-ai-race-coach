@@ -146,10 +146,38 @@ export default function MonKart() {
     }
   };
 
-  const handleUpdateSetup = async (setup: any) => {
+  const sessionsByDay = sessions.reduce((acc: any, sess: any) => {
+    const dateObj = new Date(sess.session_date || sess.created_at);
+    const dateStr = dateObj.toISOString().split('T')[0]; // yyyy-MM-dd
+    if (!acc[dateStr]) {
+      acc[dateStr] = {
+        date: dateStr,
+        sessionsCount: 0,
+        totalDuration: 0,
+        rpmMax: 0,
+        gLatMax: 0,
+        tempMax: 0,
+        circuit: sess.circuit_name || "Mixte",
+      };
+    }
+    acc[dateStr].sessionsCount += 1;
+    acc[dateStr].totalDuration += (sess.duration_hours || 0);
+    if (sess.rpm_max > acc[dateStr].rpmMax) acc[dateStr].rpmMax = sess.rpm_max;
+    if (sess.g_lateral_max > acc[dateStr].gLatMax) acc[dateStr].gLatMax = sess.g_lateral_max;
+    if (sess.exhaust_temp_max && sess.exhaust_temp_max > acc[dateStr].tempMax) acc[dateStr].tempMax = sess.exhaust_temp_max;
+    if (!acc[dateStr].circuit || acc[dateStr].circuit === "Mixte") acc[dateStr].circuit = sess.circuit_name;
+    return acc;
+  }, {});
+  
+  const dailyLogs = Object.values(sessionsByDay).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const handleUpdateSetup = async (setup: any, saved_setups?: any[]) => {
     if (!session?.access_token) return;
     try {
-      await api.updateKartProfile(session.access_token, { setup_json: setup });
+      const updates: any = { setup_json: setup };
+      if (saved_setups) updates.saved_setups = saved_setups;
+      
+      await api.updateKartProfile(session.access_token, updates);
       toast.success("Setup enregistré avec succès.");
       fetchProfile();
     } catch (e: any) {
@@ -209,8 +237,26 @@ export default function MonKart() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Left Column: Cockpit Schematic (Spans 4 columns) */}
-        <div className="lg:col-span-5 xl:col-span-4 flex items-center justify-center p-4 glass-card rounded-2xl border-white/5 order-1 h-fit">
-           {prof && <KartSchematic profile={prof} />}
+        <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 order-1 h-fit">
+          <div className="flex items-center justify-center p-4 bg-card border border-border shadow-sm rounded-2xl">
+            {prof && <KartSchematic profile={prof} />}
+          </div>
+          
+          <Card className="bg-card border-border shadow-sm">
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="text-sm">État Global</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="flex justify-between items-center text-xs">
+                 <span className="text-muted-foreground">Profil Actif</span>
+                 <span className="font-medium capitalize">{prof?.driving_profile === 'longevity' ? 'Longévité' : prof?.driving_profile === 'performance' ? 'Performance' : prof?.driving_profile === 'leisure' ? 'Loisir' : 'Équilibré'}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs mt-2">
+                 <span className="text-muted-foreground">Sessions Enregistrées</span>
+                 <span className="font-medium">{sessions.length} sessions</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right Column: Gauges & Actions (Spans 8 columns) */}
@@ -246,7 +292,7 @@ export default function MonKart() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <Card className="glass-card border-white/5 bg-black/40">
+             <Card className="bg-card border-border shadow-sm">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-lg">Ajustement Manuel (Moteur)</CardTitle>
                 </CardHeader>
@@ -257,7 +303,7 @@ export default function MonKart() {
                         step="0.1" 
                         defaultValue={prof?.engine_hours_current || 0} 
                         id="engine-hours-input"
-                        className="bg-black/20"
+                        className="bg-background border-border"
                       />
                       <Button 
                         variant="secondary"
@@ -272,7 +318,7 @@ export default function MonKart() {
                 </CardContent>
              </Card>
 
-             <Card className="glass-card border-white/5 bg-black/40">
+             <Card className="bg-card border-border shadow-sm">
                 <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <UploadCloud className="w-5 h-5 text-primary" />
@@ -286,7 +332,7 @@ export default function MonKart() {
                     accept=".csv" 
                     onChange={(e) => setFiles(e.target.files)} 
                     disabled={importing}
-                    className="bg-black/20"
+                    className="bg-background border-border"
                   />
                   <Button 
                     className="w-full" 
@@ -311,37 +357,40 @@ export default function MonKart() {
         </div>
       </div>
 
-      <Card className="glass-card border-white/5 bg-black/40">
+      <Card className="bg-card border-border shadow-sm">
         <CardHeader>
-          <CardTitle>Dernières Sessions Enregistrées</CardTitle>
+          <CardTitle>Historique des Journées de Roulage</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">Résumé agrégé de vos sorties en piste. Chaque ligne rassemble les sessions d'une même journée.</p>
         </CardHeader>
         <CardContent>
-          {sessions.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Aucune session enregistrée.</p>
+          {dailyLogs.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Aucune journée enregistrée.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead>
-                  <tr className="border-b border-white/10 text-muted-foreground">
+                  <tr className="border-b border-border text-muted-foreground">
                     <th className="pb-3 font-medium">Date</th>
                     <th className="pb-3 font-medium">Circuit</th>
-                    <th className="pb-3 font-medium">Durée</th>
-                    <th className="pb-3 font-medium">RPM Max</th>
-                    <th className="pb-3 font-medium">Action</th>
+                    <th className="pb-3 font-medium text-center">Sessions</th>
+                    <th className="pb-3 font-medium">Durée Cumulée</th>
+                    <th className="pb-3 font-medium text-right">RPM Max</th>
+                    <th className="pb-3 font-medium text-right">G Lat Max</th>
+                    <th className="pb-3 font-medium text-right">Temp Max</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {sessions.map((sess: any) => (
-                    <tr key={sess.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                      <td className="py-3">{new Date(sess.session_date || sess.created_at).toLocaleDateString()}</td>
-                      <td className="py-3">{sess.circuit_name || "-"}</td>
-                      <td className="py-3">{sess.duration_hours?.toFixed(2)} h</td>
-                      <td className="py-3">{sess.rpm_max ? `${Math.round(sess.rpm_max)} tr/min` : "-"}</td>
-                      <td className="py-3">
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-400 hover:bg-red-500/10" onClick={() => handleDeleteSession(sess.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                  {dailyLogs.map((log: any, i: number) => (
+                    <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
+                      <td className="py-3 font-medium">{new Date(log.date).toLocaleDateString()}</td>
+                      <td className="py-3">{log.circuit || "Inconnu"}</td>
+                      <td className="py-3 text-center">
+                        <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-semibold">{log.sessionsCount}</span>
                       </td>
+                      <td className="py-3 text-muted-foreground">{log.totalDuration.toFixed(2)} h</td>
+                      <td className="py-3 text-right">{log.rpmMax ? `${Math.round(log.rpmMax)} tr/min` : "-"}</td>
+                      <td className="py-3 text-right">{log.gLatMax ? `${log.gLatMax.toFixed(2)} G` : "-"}</td>
+                      <td className="py-3 text-right">{log.tempMax ? `${Math.round(log.tempMax)} °C` : "-"}</td>
                     </tr>
                   ))}
                 </tbody>
