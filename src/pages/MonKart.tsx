@@ -19,6 +19,7 @@ import { KartSetupPanel } from "@/components/kart/KartSetupPanel";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { DrivingProfile } from "@/lib/kart-recommendations";
+import { KartHealthStatus } from "@/components/kart/KartHealthStatus";
 
 export default function MonKart() {
   const { session } = useAuth();
@@ -242,21 +243,7 @@ export default function MonKart() {
             {prof && <KartSchematic profile={prof} />}
           </div>
           
-          <Card className="bg-card border-border shadow-sm">
-            <CardHeader className="py-3 px-4">
-              <CardTitle className="text-sm">État Global</CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <div className="flex justify-between items-center text-xs">
-                 <span className="text-muted-foreground">Profil Actif</span>
-                 <span className="font-medium capitalize">{prof?.driving_profile === 'longevity' ? 'Longévité' : prof?.driving_profile === 'performance' ? 'Performance' : prof?.driving_profile === 'leisure' ? 'Loisir' : 'Équilibré'}</span>
-              </div>
-              <div className="flex justify-between items-center text-xs mt-2">
-                 <span className="text-muted-foreground">Sessions Enregistrées</span>
-                 <span className="font-medium">{sessions.length} sessions</span>
-              </div>
-            </CardContent>
-          </Card>
+          {prof && <KartHealthStatus profile={prof} />}
         </div>
 
         {/* Right Column: Gauges & Actions (Spans 8 columns) */}
@@ -366,8 +353,8 @@ export default function MonKart() {
           {dailyLogs.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">Aucune journée enregistrée.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
+            <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+              <table className="w-full min-w-[600px] text-sm text-left whitespace-nowrap">
                 <thead>
                   <tr className="border-b border-border text-muted-foreground">
                     <th className="pb-3 font-medium">Date</th>

@@ -268,7 +268,7 @@ export default function PricingPage() {
               return (
                 <div
                   key={planItem.id}
-                  className={`relative glass-card overflow-hidden ${
+                  className={`relative glass-card overflow-hidden flex flex-col h-full ${
                     planItem.popular
                       ? "border-primary/30 shadow-lg shadow-primary/10 ring-1 ring-primary/20"
                       : ""
@@ -281,7 +281,7 @@ export default function PricingPage() {
                       </span>
                     </div>
                   )}
-                  <div className={`p-6 md:p-8 ${planItem.popular ? "pt-8" : ""}`}>
+                  <div className={`p-6 md:p-8 flex flex-col flex-1 ${planItem.popular ? "pt-8" : ""}`}>
                     <div className="flex items-center gap-2 mb-2">
                       <Icon className="w-6 h-6 text-primary" />
                       <h2 className="text-xl font-bold text-foreground">{planItem.name}</h2>
@@ -315,7 +315,7 @@ export default function PricingPage() {
                       type="button"
                       onClick={() => canSubscribe && handleSubscribe(planItem.id)}
                       disabled={buttonDisabled}
-                      className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+                      className={`w-full mt-auto py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
                         isComingSoon
                           ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5"
                           : (isRookie && !!user)

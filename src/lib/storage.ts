@@ -693,6 +693,7 @@ export interface UserObjective {
   targetValue: number;
   currentValue: number;
   unit: string;
+  baselineTimestamp?: number;
 }
 
 const OBJECTIVES_KEY_PREFIX = "apex_objectives_";
