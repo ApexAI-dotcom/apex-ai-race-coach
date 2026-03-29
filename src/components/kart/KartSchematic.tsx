@@ -30,7 +30,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
 
   return (
     <>
-      <div className="relative w-full max-w-lg mx-auto aspect-[2/3] flex items-center justify-center p-4">
+      <div className="relative w-full max-w-[350px] mx-auto aspect-[2/3] flex items-center justify-center p-0">
       {/* Tron Grid Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl opacity-20">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:20px_20px] [transform:perspective(500px)_rotateX(60deg)_scale(2)_translateY(-50px)]" />

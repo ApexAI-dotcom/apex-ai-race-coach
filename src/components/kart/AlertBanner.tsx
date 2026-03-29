@@ -1,6 +1,8 @@
 import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KartProfile } from "@/lib/api";
+import { getAlertThresholds } from "@/lib/kart-recommendations";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface AlertBannerProps {
   profile: KartProfile;
@@ -8,26 +10,27 @@ interface AlertBannerProps {
 }
 
 export const AlertBanner = ({ profile, recent_sessions = [] }: AlertBannerProps) => {
+  const { warnLimit, critLimit, maxEgt } = getAlertThresholds(profile.driving_profile);
   const alerts: { level: "critical" | "warning" | "ok"; message: string }[] = [];
 
   // Moteur
   if (profile.engine_hours_life && profile.engine_hours_current !== undefined) {
     const ratio = profile.engine_hours_current / profile.engine_hours_life;
-    if (ratio >= 0.95) alerts.push({ level: "critical", message: "Moteur : Révision haut-moteur imminente." });
-    else if (ratio >= 0.8) alerts.push({ level: "warning", message: "Moteur : Prévois une révision prochainement." });
+    if (ratio >= critLimit) alerts.push({ level: "critical", message: "Moteur : Révision haut-moteur imminente." });
+    else if (ratio >= warnLimit) alerts.push({ level: "warning", message: "Moteur : Prévois une révision prochainement." });
   }
 
   // Pneus
   if (profile.tires_sessions_life && profile.tires_sessions_current !== undefined) {
     const ratio = profile.tires_sessions_current / profile.tires_sessions_life;
-    if (ratio >= 0.95) alerts.push({ level: "critical", message: "Pneus : En fin de vie, prévoir un train neuf." });
-    else if (ratio >= 0.8) alerts.push({ level: "warning", message: "Pneus : Baisse d'adhérence probable." });
+    if (ratio >= critLimit) alerts.push({ level: "critical", message: "Pneus : En fin de vie, prévoir un train neuf." });
+    else if (ratio >= warnLimit) alerts.push({ level: "warning", message: "Pneus : Baisse d'adhérence probable." });
   }
 
   // Freins
   if (profile.brakes_sessions_life && profile.brakes_sessions_current !== undefined) {
     const ratio = profile.brakes_sessions_current / profile.brakes_sessions_life;
-    if (ratio >= 0.95) alerts.push({ level: "critical", message: "Freins : Contrôle les plaquettes urgemment." });
+    if (ratio >= critLimit) alerts.push({ level: "critical", message: "Freins : Contrôle les plaquettes urgemment." });
   }
 
   // Batterie (Profil global)
@@ -41,8 +44,8 @@ export const AlertBanner = ({ profile, recent_sessions = [] }: AlertBannerProps)
     if (lastSess.battery_voltage_min && lastSess.battery_voltage_min < 11.2) {
       alerts.push({ level: "critical", message: `Dernière session : Chute de tension critique à ${lastSess.battery_voltage_min}V. Recharge nécessaire.` });
     }
-    if (lastSess.exhaust_temp_max && lastSess.exhaust_temp_max > 600) {
-      alerts.push({ level: "warning", message: `Dernière session : Surchauffe échappement (EGT ${Math.round(lastSess.exhaust_temp_max)}°C > 600°C). Carburation trop pauvre ?` });
+    if (lastSess.exhaust_temp_max && lastSess.exhaust_temp_max > maxEgt) {
+      alerts.push({ level: "warning", message: `Dernière session : Surchauffe échappement (EGT ${Math.round(lastSess.exhaust_temp_max)}°C > ${maxEgt}°C). Carburation trop pauvre ?` });
     }
   }
 
@@ -81,6 +84,25 @@ export const AlertBanner = ({ profile, recent_sessions = [] }: AlertBannerProps)
           </span>
         </div>
       ))}
+
+      <Accordion type="single" collapsible className="w-full mt-4 bg-black/20 border border-white/5 rounded-xl px-4">
+        <AccordionItem value="learn-more" className="border-b-0">
+          <AccordionTrigger className="text-sm font-medium hover:no-underline text-muted-foreground hover:text-white transition-colors">
+            Comprendre les métriques et limites (En savoir plus)
+          </AccordionTrigger>
+          <AccordionContent className="text-xs text-muted-foreground space-y-3 pb-4">
+            <p>
+              <strong className="text-white">Moteur :</strong> L'usure dépend de ton utilisation (heures vs sessions). Un profil "Performance" repousse les alertes pour privilégier la recherche de chronos, tandis qu'un profil "Longévité" anticipe les alertes pour préserver ta mécanique.
+            </p>
+            <p>
+              <strong className="text-white">Pneus & Freins :</strong> Calculés en nombre de sessions. Une baisse d'adhérence ou de mordan est attendue au-delà de 80% d'usure standard.
+            </p>
+            <p>
+              <strong className="text-white">Batterie & Températures :</strong> Ces alertes "Live" se basent sur ta toute dernière session importée. Surveille particulièrement la température d'échappement (EGT) qui indique si ta carburation est trop pauvre (surchauffe, risque de serrage) ou trop riche.
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 };
