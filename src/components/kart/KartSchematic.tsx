@@ -41,18 +41,151 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
         <div className="w-1/2 h-3/4 bg-primary/5 blur-[80px] rounded-full" />
       </div>
 
-      {/* High-End 3D Render Kart */}
-      <div className="absolute inset-0 flex items-center justify-center p-8">
-        <img 
-          src="/kart-render.png" 
-          alt="Karting Chassis" 
-          className="w-full h-full object-contain filter drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]"
-        />
+      {/* High-End Vector Schematic (Blueprint Style) */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-4 opacity-80 backdrop-blur-sm">
+        <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet" className="w-full h-full drop-shadow-[0_0_20px_rgba(255,255,255,0.05)]">
+          <defs>
+            {/* Gradients to give volume without being photorealistic */}
+            <linearGradient id="tubeGlow" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.4)" />
+              <stop offset="50%" stopColor="rgba(255,255,255,0.1)" />
+              <stop offset="100%" stopColor="rgba(255,255,255,0.0)" />
+            </linearGradient>
+            
+            <linearGradient id="tireGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#222" />
+              <stop offset="100%" stopColor="#050505" />
+            </linearGradient>
+            
+            <linearGradient id="seatGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#333" />
+              <stop offset="100%" stopColor="#111" />
+            </linearGradient>
+
+            <pattern id="blueprintGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+            </pattern>
+          </defs>
+
+          {/* Grid Background within SVG */}
+          <rect width="800" height="600" fill="url(#blueprintGrid)" className="opacity-50" />
+          
+          {/* Floor / Ground Reflection */}
+          <ellipse cx="400" cy="450" rx="300" ry="100" fill="rgba(255,255,255,0.02)" filter="blur(20px)" />
+
+          <g transform="translate(0, 50)">
+            {/* Rear Axle Assembly */}
+            <path d="M 280 180 L 620 280" fill="none" stroke="#555" strokeWidth="10" strokeLinecap="round" />
+            {/* Brake Disc (Rear) */}
+            <g transform="translate(420, 222)">
+              <ellipse cx="0" cy="0" rx="15" ry="35" transform="rotate(-15)" fill="none" stroke="#888" strokeWidth="6" />
+              <ellipse cx="0" cy="0" rx="10" ry="25" transform="rotate(-15)" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeDasharray="2 4" />
+              <path d="M -15 -10 L -25 -5 L -20 15 L -10 10 Z" fill="#444" stroke="#777" strokeWidth="2" /> {/* Caliper */}
+            </g>
+
+            {/* Tires - Drawn in Z-order back to front */}
+            {/* Rear Right Tire */}
+            <g transform="translate(600, 240)">
+              <path d="M 0 -40 Q 30 -30 40 20 L 10 50 Q -20 40 -30 -10 Z" fill="url(#tireGrad)" stroke="#444" strokeWidth="3" strokeLinejoin="round" />
+              <ellipse cx="5" cy="5" rx="15" ry="35" transform="rotate(-15)" fill="none" stroke="#333" strokeWidth="2" />
+              <ellipse cx="-15" cy="-5" rx="8" ry="18" transform="rotate(-15)" fill="none" stroke="#777" strokeWidth="4" />
+            </g>
+
+            {/* Rear Left Tire */}
+            <g transform="translate(250, 140)">
+              <path d="M 0 -40 Q 30 -30 40 20 L 10 50 Q -20 40 -30 -10 Z" fill="url(#tireGrad)" stroke="#444" strokeWidth="3" strokeLinejoin="round" />
+              <ellipse cx="-15" cy="-5" rx="8" ry="18" transform="rotate(-15)" fill="none" stroke="#777" strokeWidth="4" />
+            </g>
+
+            {/* Central Tubing / Chassis */}
+            <g fill="none" stroke="url(#tubeGlow)" strokeWidth="12" strokeLinejoin="round" strokeLinecap="round">
+              {/* Main Rails */}
+              <path d="M 320 200 L 220 300 C 200 320 220 360 260 380 L 400 420 L 520 280 M 440 230 L 540 330 L 600 240" />
+              {/* Front Cross */}
+              <path d="M 260 380 L 460 440 L 540 330" />
+              {/* Floor Pan */}
+              <path d="M 300 280 L 260 380 L 420 420 L 440 290 Z" fill="rgba(255,255,255,0.02)" stroke="none" />
+            </g>
+            <g fill="none" stroke="#888" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round">
+              <path d="M 320 200 L 220 300 C 200 320 220 360 260 380 L 400 420 L 520 280" />
+            </g>
+
+            {/* Engine Silhouette */}
+            <g transform="translate(480, 240)">
+              {/* Engine Block */}
+              <rect x="-40" y="-40" width="80" height="70" rx="8" transform="rotate(-15)" fill="#111" stroke="#888" strokeWidth="4" />
+              <rect x="-30" y="-30" width="60" height="50" rx="4" transform="rotate(-15)" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeDasharray="3 3" />
+              {/* Exhaust Pipe */}
+              <path d="M 20 -20 C 60 -50 80 10 40 40 C 20 50 -10 60 -30 50" fill="none" stroke="#666" strokeWidth="12" strokeLinecap="round" />
+              <path d="M 20 -20 C 60 -50 80 10 40 40 C 20 50 -10 60 -30 50" fill="none" stroke="#444" strokeWidth="6" strokeLinecap="round" />
+            </g>
+
+            {/* Left Side Pod */}
+            <g transform="translate(240, 250)">
+              <path d="M -30 -20 L -60 40 C -70 60 -50 80 -10 90 L 80 120 C 100 125 100 100 80 70 L 40 -10 Z" fill="#111" stroke="#555" strokeWidth="5" strokeLinejoin="round" />
+              <path d="M -10 0 L -30 40 L 40 70 L 60 30 Z" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" />
+            </g>
+
+            {/* Right Side Pod */}
+            <g transform="translate(560, 360)">
+              <path d="M -40 -30 L -10 20 C 0 40 30 50 60 40 L 110 0 C 120 -20 100 -40 80 -40 L 0 -50 Z" fill="#111" stroke="#555" strokeWidth="5" strokeLinejoin="round" />
+            </g>
+
+            {/* Seat */}
+            <g transform="translate(380, 260)">
+              <path d="M -30 -60 C -10 -80 30 -60 40 -20 L 50 50 C 55 80 20 90 -10 70 L -40 30 C -60 10 -50 -30 -30 -60 Z" fill="url(#seatGrad)" stroke="#777" strokeWidth="6" strokeLinejoin="round" />
+              <path d="M -20 -40 C 0 -60 20 -40 30 -10 L 40 40 C 40 50 10 60 -10 40 L -30 10 C -40 -10 -30 -30 -20 -40 Z" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
+            </g>
+
+            {/* Battery */}
+            <g transform="translate(310, 310)">
+              <rect x="-20" y="-30" width="40" height="50" rx="4" transform="rotate(-15)" fill="#222" stroke="#666" strokeWidth="4" />
+              <line x1="-15" y1="-25" x2="15" y2="-15" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
+            </g>
+
+            {/* Steering Column & Wheel */}
+            <g transform="translate(380, 380)">
+              {/* Column */}
+              <line x1="0" y1="0" x2="-20" y2="-70" stroke="#777" strokeWidth="8" strokeLinecap="round" />
+              {/* Wheel */}
+              <path d="M -20 -70 C -50 -90 -40 -110 -10 -110 C 20 -110 30 -80 -20 -70" fill="none" stroke="#222" strokeWidth="12" />
+              <path d="M -20 -70 C -50 -90 -40 -110 -10 -110 C 20 -110 30 -80 -20 -70" fill="none" stroke="#888" strokeWidth="6" />
+              <circle cx="-15" cy="-90" r="10" fill="#111" stroke="#555" strokeWidth="2" />
+            </g>
+
+            {/* Front Bumper / Nassau Panel */}
+            <g transform="translate(430, 480)">
+              {/* Steering linkage / tie rods */}
+              <line x1="-50" y1="-60" x2="-120" y2="0" stroke="#666" strokeWidth="6" strokeLinecap="round" />
+              <line x1="10" y1="-40" x2="120" y2="-20" stroke="#666" strokeWidth="6" strokeLinecap="round" />
+              
+              {/* Nassau Panel */}
+              <path d="M -60 -100 C -20 -140 20 -120 40 -80 L 100 20 C 110 60 70 80 30 70 L -40 20 C -70 0 -80 -60 -60 -100 Z" fill="#111" stroke="#999" strokeWidth="5" strokeLinejoin="round" />
+              
+              {/* Bumper tubes */}
+              <path d="M -80 0 C -120 40 -60 100 0 100 C 60 100 120 60 120 0" fill="none" stroke="#555" strokeWidth="10" strokeLinecap="round" />
+            </g>
+
+            {/* Front Left Tire */}
+            <g transform="translate(260, 440)">
+               <path d="M 0 -40 Q 30 -30 40 20 L 10 50 Q -20 40 -30 -10 Z" fill="url(#tireGrad)" stroke="#444" strokeWidth="3" strokeLinejoin="round" />
+              <ellipse cx="5" cy="5" rx="15" ry="35" transform="rotate(-15)" fill="none" stroke="#333" strokeWidth="2" />
+              <ellipse cx="-15" cy="-5" rx="8" ry="18" transform="rotate(-15)" fill="none" stroke="#999" strokeWidth="4" />
+            </g>
+
+            {/* Front Right Tire */}
+            <g transform="translate(580, 460)">
+              <path d="M 0 -40 Q 30 -30 40 20 L 10 50 Q -20 40 -30 -10 Z" fill="url(#tireGrad)" stroke="#444" strokeWidth="3" strokeLinejoin="round" />
+              <ellipse cx="5" cy="5" rx="15" ry="35" transform="rotate(-15)" fill="none" stroke="#333" strokeWidth="2" />
+              <ellipse cx="-15" cy="-5" rx="8" ry="18" transform="rotate(-15)" fill="none" stroke="#999" strokeWidth="4" />
+            </g>
+          </g>
+        </svg>
       </div>
 
       {/* --- HUD BADGES --- */}
       {/* 
-        The dots are placed accurately over the render. 
+        The dots are placed accurately over the vector schematic. 
         Each dot connects via a CSS line to a floating frosted-glass badge.
       */}
 
@@ -63,104 +196,104 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       >
         <div className={cn("relative flex items-center", getStatusColor(profile.engine_hours_current, profile.engine_hours_life))} >
           {/* Dot */}
-           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+           <div className="w-4 h-4 rounded-full bg-current shadow-[0_0_15px_currentColor] z-10 group-hover:scale-150 transition-transform" />
           {/* Line */}
-          <div className="w-16 h-px bg-current opacity-40 ml-1 transition-all group-hover:w-20" />
+          <div className="w-16 h-px bg-current opacity-60 ml-1 transition-all group-hover:w-20" />
           {/* Box */}
-          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 ml-1">
-            <span className="font-bold text-xs text-white opacity-80 uppercase">Moteur</span>
-            <span className="ml-2 font-mono text-xs text-white">{profile.engine_hours_current?.toFixed(1) || 0}h</span>
+          <div className="whitespace-nowrap px-4 py-2 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-xl transition-transform group-hover:scale-105 ml-1">
+            <span className="font-bold text-sm text-white opacity-90 uppercase">Moteur</span>
+            <span className="ml-3 font-mono text-sm text-white">{profile.engine_hours_current?.toFixed(1) || 0}h</span>
           </div>
         </div>
       </div>
 
       {/* Front Left Tire (AVG) */}
       <div 
-        className="absolute left-[30%] top-[75%] group cursor-pointer z-10" 
+        className="absolute left-[33%] top-[77%] group cursor-pointer z-10" 
         onClick={() => setSelectedComp('tire_fl')}
       >
         <div className={cn("relative flex items-center flex-row-reverse", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} >
-           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
-          <div className="w-12 h-px bg-current opacity-40 mr-1 transition-all group-hover:w-16" />
-          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 mr-1 flex items-center gap-2">
-            <span className="font-bold text-xs text-white opacity-80">AVG</span>
-            <span className="font-mono text-xs text-white">{profile.tires_sessions_current || 0} sess.</span>
+           <div className="w-4 h-4 rounded-full bg-current shadow-[0_0_15px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          <div className="w-12 h-px bg-current opacity-60 mr-1 transition-all group-hover:w-16" />
+          <div className="whitespace-nowrap px-4 py-2 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-xl transition-transform group-hover:scale-105 mr-1 flex items-center gap-3">
+            <span className="font-bold text-sm text-white opacity-90">AVG</span>
+            <span className="font-mono text-sm text-white">{profile.tires_sessions_current || 0} sess.</span>
           </div>
         </div>
       </div>
 
       {/* Front Right Tire (AVD) */}
       <div 
-        className="absolute left-[80%] top-[70%] group cursor-pointer z-10" 
+        className="absolute left-[72%] top-[80%] group cursor-pointer z-10" 
         onClick={() => setSelectedComp('tire_fr')}
       >
         <div className={cn("relative flex items-center", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} >
-           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
-          <div className="w-12 h-px bg-current opacity-40 ml-1 transition-all group-hover:w-16" />
-          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 ml-1 flex items-center gap-2">
-            <span className="font-bold text-xs text-white opacity-80">AVD</span>
-            <span className="font-mono text-xs text-white">{profile.tires_sessions_current || 0} sess.</span>
+           <div className="w-4 h-4 rounded-full bg-current shadow-[0_0_15px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          <div className="w-12 h-px bg-current opacity-60 ml-1 transition-all group-hover:w-16" />
+          <div className="whitespace-nowrap px-4 py-2 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-xl transition-transform group-hover:scale-105 ml-1 flex items-center gap-3">
+            <span className="font-bold text-sm text-white opacity-90">AVD</span>
+            <span className="font-mono text-sm text-white">{profile.tires_sessions_current || 0} sess.</span>
           </div>
         </div>
       </div>
 
       {/* Rear Left Tire (ARG) */}
       <div 
-        className="absolute left-[20%] top-[25%] group cursor-pointer z-10" 
+        className="absolute left-[31%] top-[30%] group cursor-pointer z-10" 
         onClick={() => setSelectedComp('tire_rl')}
       >
         <div className={cn("relative flex items-center flex-row-reverse", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} >
-           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
-          <div className="w-16 h-px bg-current opacity-40 mr-1 transition-all group-hover:w-20" />
-          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 mr-1 flex items-center gap-2">
-            <span className="font-bold text-xs text-white opacity-80">ARG</span>
-            <span className="font-mono text-xs text-white">{profile.tires_sessions_current || 0} sess.</span>
+           <div className="w-4 h-4 rounded-full bg-current shadow-[0_0_15px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          <div className="w-16 h-px bg-current opacity-60 mr-1 transition-all group-hover:w-20" />
+          <div className="whitespace-nowrap px-4 py-2 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-xl transition-transform group-hover:scale-105 mr-1 flex items-center gap-3">
+            <span className="font-bold text-sm text-white opacity-90">ARG</span>
+            <span className="font-mono text-sm text-white">{profile.tires_sessions_current || 0} sess.</span>
           </div>
         </div>
       </div>
 
       {/* Rear Right Tire (ARD) */}
       <div 
-        className="absolute left-[75%] top-[25%] group cursor-pointer z-10" 
+        className="absolute left-[75%] top-[40%] group cursor-pointer z-10" 
         onClick={() => setSelectedComp('tire_rr')}
       >
         <div className={cn("relative flex items-center", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} >
-           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
-          <div className="w-16 h-px bg-current opacity-40 ml-1 transition-all group-hover:w-20" />
-          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 ml-1 flex items-center gap-2">
-            <span className="font-bold text-xs text-white opacity-80">ARD</span>
-            <span className="font-mono text-xs text-white">{profile.tires_sessions_current || 0} sess.</span>
+           <div className="w-4 h-4 rounded-full bg-current shadow-[0_0_15px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          <div className="w-16 h-px bg-current opacity-60 ml-1 transition-all group-hover:w-20" />
+          <div className="whitespace-nowrap px-4 py-2 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-xl transition-transform group-hover:scale-105 ml-1 flex items-center gap-3">
+            <span className="font-bold text-sm text-white opacity-90">ARD</span>
+            <span className="font-mono text-sm text-white">{profile.tires_sessions_current || 0} sess.</span>
           </div>
         </div>
       </div>
 
       {/* Brakes (Rear Axle) */}
       <div 
-        className="absolute left-[45%] top-[25%] group cursor-pointer z-10" 
+        className="absolute left-[52%] top-[40%] group cursor-pointer z-10" 
         onClick={() => setSelectedComp('brakes')}
       >
         <div className={cn("relative flex flex-col items-center", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life).replace("drop-shadow", ""))} >
-          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 mb-1 flex flex-col items-center gap-1">
-            <span className="font-bold text-[10px] text-white opacity-80 uppercase tracking-widest">Freins</span>
-            <span className="font-mono text-xs text-white">{profile.brakes_sessions_current || 0} sess.</span>
+          <div className="whitespace-nowrap px-4 py-2 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-xl transition-transform group-hover:scale-105 mb-1 flex flex-col items-center gap-1">
+            <span className="font-bold text-[11px] text-white opacity-90 uppercase tracking-widest">Freins</span>
+            <span className="font-mono text-sm text-white">{profile.brakes_sessions_current || 0} sess.</span>
           </div>
-          <div className="w-px h-8 bg-current opacity-40 mb-1 transition-all group-hover:h-12" />
-           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          <div className="w-px h-10 bg-current opacity-60 mb-1 transition-all group-hover:h-12" />
+           <div className="w-4 h-4 rounded-full bg-current shadow-[0_0_15px_currentColor] z-10 group-hover:scale-150 transition-transform" />
         </div>
       </div>
 
       {/* Battery */}
       <div 
-        className="absolute left-[38%] top-[55%] group cursor-pointer z-10" 
+        className="absolute left-[39%] top-[55%] group cursor-pointer z-10" 
         onClick={() => setSelectedComp('battery')}
       >
         <div className={cn("relative flex flex-col items-center", getStatusColor(profile.battery_voltage_last, 12.5, true))} >
-          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 mb-1 flex items-center gap-2">
-            <span className="font-bold text-[10px] text-white opacity-80 uppercase tracking-widest">Batterie</span>
-            <span className="font-mono text-xs text-white">{profile.battery_voltage_last || "--"}V</span>
+          <div className="whitespace-nowrap px-4 py-2 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-xl transition-transform group-hover:scale-105 mb-1 flex flex-col items-center gap-1">
+            <span className="font-bold text-[11px] text-white opacity-90 uppercase tracking-widest">Batterie</span>
+            <span className="font-mono text-sm text-white">{profile.battery_voltage_last || "--"}V</span>
           </div>
-          <div className="w-px h-6 bg-current opacity-40 mb-1 transition-all group-hover:h-10" />
-           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          <div className="w-px h-8 bg-current opacity-60 mb-1 transition-all group-hover:h-12" />
+           <div className="w-4 h-4 rounded-full bg-current shadow-[0_0_15px_currentColor] z-10 group-hover:scale-150 transition-transform" />
         </div>
       </div>
       
