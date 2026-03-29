@@ -878,6 +878,7 @@ export interface KartProfile {
 export interface KartProfileResponse {
   profile: KartProfile;
   recent_sessions: any[]; // Tableau de log_sessions
+  history?: any[]; // Tableau de kart_component_history
 }
 
 export async function getKartProfile(accessToken: string): Promise<KartProfileResponse> {

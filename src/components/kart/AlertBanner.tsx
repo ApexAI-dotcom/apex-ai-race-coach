@@ -4,9 +4,10 @@ import { KartProfile } from "@/lib/api";
 
 interface AlertBannerProps {
   profile: KartProfile;
+  recent_sessions?: any[];
 }
 
-export const AlertBanner = ({ profile }: AlertBannerProps) => {
+export const AlertBanner = ({ profile, recent_sessions = [] }: AlertBannerProps) => {
   const alerts: { level: "critical" | "warning" | "ok"; message: string }[] = [];
 
   // Moteur
@@ -29,9 +30,20 @@ export const AlertBanner = ({ profile }: AlertBannerProps) => {
     if (ratio >= 0.95) alerts.push({ level: "critical", message: "Freins : Contrôle les plaquettes urgemment." });
   }
 
-  // Batterie
+  // Batterie (Profil global)
   if (profile.battery_voltage_last !== null && profile.battery_voltage_last < 11.5) {
-    alerts.push({ level: "critical", message: "Batterie : Tension faible détéctée (" + profile.battery_voltage_last + "V)." });
+    alerts.push({ level: "critical", message: "Batterie : Tension globale faible détectée (" + profile.battery_voltage_last + "V)." });
+  }
+
+  // Live Alerts basées sur la dernière session
+  if (recent_sessions && recent_sessions.length > 0) {
+    const lastSess = recent_sessions[0];
+    if (lastSess.battery_voltage_min && lastSess.battery_voltage_min < 11.2) {
+      alerts.push({ level: "critical", message: `Dernière session : Chute de tension critique à ${lastSess.battery_voltage_min}V. Recharge nécessaire.` });
+    }
+    if (lastSess.exhaust_temp_max && lastSess.exhaust_temp_max > 600) {
+      alerts.push({ level: "warning", message: `Dernière session : Surchauffe échappement (EGT ${Math.round(lastSess.exhaust_temp_max)}°C > 600°C). Carburation trop pauvre ?` });
+    }
   }
 
   if (alerts.length === 0) {

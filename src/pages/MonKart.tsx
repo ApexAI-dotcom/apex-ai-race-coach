@@ -12,6 +12,9 @@ import { AlertBanner } from "@/components/kart/AlertBanner";
 import { KartSchematic } from "@/components/kart/KartSchematic";
 import { WearGauge } from "@/components/kart/WearGauge";
 import { KartSetupWizard } from "@/components/kart/KartSetupWizard";
+import { KartTrendsChart } from "@/components/kart/KartTrendsChart";
+import { KartMaintenanceLog } from "@/components/kart/KartMaintenanceLog";
+import { KartSetupPanel } from "@/components/kart/KartSetupPanel";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
 
@@ -79,6 +82,7 @@ export default function MonKart() {
 
   const prof = data?.profile;
   const sessions = data?.recent_sessions || [];
+  const history = data?.history || [];
 
   // Show Wizard if profile not fully configured
   if (prof && !prof.engine_model) {
@@ -129,14 +133,25 @@ export default function MonKart() {
     }
   };
   
-  const handleUpdateCounter = async (field: keyof KartProfile, value: number) => {
+  const handleUpdateCounter = async (field: keyof KartProfile, value: number | any) => {
     if (!session?.access_token) return;
     try {
       await api.updateKartProfile(session.access_token, { [field]: value });
-      toast.success("Compteur mis à jour.");
+      toast.success("Mise à jour effectuée.");
       fetchProfile();
     } catch (e: any) {
       toast.error("Erreur modification : " + e.message);
+    }
+  };
+
+  const handleUpdateSetup = async (setup: any) => {
+    if (!session?.access_token) return;
+    try {
+      await api.updateKartProfile(session.access_token, { setup_json: setup });
+      toast.success("Setup enregistré avec succès.");
+      fetchProfile();
+    } catch (e: any) {
+      toast.error("Erreur d'enregistrement du setup : " + e.message);
     }
   };
 
@@ -154,7 +169,7 @@ export default function MonKart() {
         </Button>
       </div>
 
-      {prof && <AlertBanner profile={prof} />}
+      {prof && <AlertBanner profile={prof} recent_sessions={sessions} />}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
@@ -248,6 +263,15 @@ export default function MonKart() {
                   </Button>
                 </CardContent>
               </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <KartSetupPanel setupJson={prof?.setup_json} onSave={handleUpdateSetup} />
+            <KartMaintenanceLog history={history} />
+          </div>
+
+          <div className="mt-6">
+            <KartTrendsChart sessions={sessions} />
           </div>
         </div>
       </div>
