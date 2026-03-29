@@ -41,190 +41,128 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
         <div className="w-1/2 h-3/4 bg-primary/5 blur-[80px] rounded-full" />
       </div>
 
-      {/* Kart 3/4 Front Schematic */}
-      {/* Modifying parent aspect ratio and standardizing SVG to avoid stretching */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-80 pointer-events-none">
-        <svg viewBox="0 0 400 600" preserveAspectRatio="xMidYMid meet" className="w-full max-w-[85%] h-full max-h-[85%] drop-shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-          <defs>
-             <linearGradient id="chassisGrad" x1="0" y1="0" x2="0" y2="1">
-               <stop offset="0%" stopColor="#888" stopOpacity="0.8" />
-               <stop offset="100%" stopColor="#fff" stopOpacity="0.2" />
-             </linearGradient>
-             <style>
-               {`
-                 .hud-grid { stroke: rgba(255,255,255,0.03); stroke-width: 1; stroke-dasharray: 4 4; }
-               `}
-             </style>
-          </defs>
-          
-          {/* Subtle HUD grid matching Kart perspective */}
-          <path d="M 50 100 L 350 150 M 40 250 L 360 300 M 30 400 L 370 450" className="hud-grid" />
-          <path d="M 100 50 L 80 550 M 200 60 L 200 560 M 300 70 L 320 570" className="hud-grid" />
-
-          {/* Tires (drawn behind chassis where needed) */}
-          <rect x="70" y="140" width="40" height="70" rx="10" transform="rotate(-15 90 175)" fill="#111" stroke="#333" strokeWidth="2" /> {/* RL */}
-          <rect x="300" y="160" width="40" height="70" rx="10" transform="rotate(-15 320 195)" fill="#111" stroke="#333" strokeWidth="2" /> {/* RR */}
-          <rect x="50" y="360" width="40" height="80" rx="10" transform="rotate(-20 70 400)" fill="#111" stroke="#333" strokeWidth="2" /> {/* FL */}
-          <rect x="290" y="380" width="40" height="80" rx="10" transform="rotate(-20 310 420)" fill="#111" stroke="#333" strokeWidth="2" /> {/* FR */}
-
-          {/* Rear Axle */}
-          <line x1="110" y1="175" x2="320" y2="195" stroke="#444" strokeWidth="8" />
-          {/* Rear Brake Disk */}
-          <ellipse cx="180" cy="182" rx="15" ry="30" transform="rotate(-15 180 182)" fill="none" stroke="#666" strokeWidth="4" />
-
-          {/* Main Frame / Tubes */}
-          <path d="M 200 480 L 100 400 L 130 220 L 230 190 L 280 280 L 260 410 Z" fill="none" stroke="url(#chassisGrad)" strokeWidth="6" strokeLinejoin="round" />
-          
-          {/* Front Bumper & Spoiler */}
-          <path d="M 200 490 Q 250 510 290 460 L 230 420 Z" fill="none" stroke="#444" strokeWidth="3" />
-          <path d="M 180 470 L 220 500" stroke="#333" strokeWidth="2" />
-          
-          {/* Left Side Pod */}
-          <path d="M 70 380 L 100 240 L 140 260 L 110 390 Z" fill="none" stroke="#444" strokeWidth="4" />
-          
-          {/* Right Side Pod */}
-          <path d="M 260 420 L 320 320 L 290 260 L 230 310 Z" fill="none" stroke="#444" strokeWidth="4" />
-
-          {/* Seat */}
-          <path d="M 190 320 Q 220 280 240 310 L 220 380 Q 200 370 170 350 Z" fill="none" stroke="#555" strokeWidth="5" />
-          
-          {/* Steering Wheel & Column */}
-          <ellipse cx="200" cy="360" rx="20" ry="10" transform="rotate(-20 200 360)" fill="none" stroke="#777" strokeWidth="5" />
-          <line x1="200" y1="360" x2="190" y2="300" stroke="#777" strokeWidth="3" />
-          
-          {/* Engine Silhouette */}
-          <rect x="230" y="250" width="50" height="60" rx="5" transform="rotate(-15 255 280)" fill="none" stroke="#666" strokeWidth="3" />
-          {/* Exhaust Outline */}
-          <path d="M 280 270 Q 300 250 310 280" fill="none" stroke="#555" strokeWidth="4" />
-          
-          {/* Battery */}
-          <rect x="100" y="280" width="30" height="40" rx="3" transform="rotate(-15 115 300)" fill="none" stroke="#666" strokeWidth="3" />
-        </svg>
+      {/* High-End 3D Render Kart */}
+      <div className="absolute inset-0 flex items-center justify-center p-8">
+        <img 
+          src="/kart-render.png" 
+          alt="Karting Chassis" 
+          className="w-full h-full object-contain filter drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]"
+        />
       </div>
 
-      {/* --- HOTSPOTS --- */}
+      {/* --- HUD BADGES --- */}
       {/* 
-        Using small, sleek "dots" with concentric halos instead of large blurred circles.
-        The Hit Target is large (padding), but the visual dot is small (w-3 h-3).
+        The dots are placed accurately over the render. 
+        Each dot connects via a CSS line to a floating frosted-glass badge.
       */}
-      
+
       {/* Engine Hotspot */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div 
-            onClick={() => setSelectedComp('engine')} 
-            className="absolute left-[63%] top-[45%] flex flex-col items-center justify-center group cursor-pointer z-10 p-4 -m-4" // Large hit target
-            aria-label="Détail Moteur"
-          >
-            <div className="relative flex items-center justify-center">
-              <div className={cn("absolute w-6 h-6 rounded-full opacity-20 blur-[2px] group-hover:opacity-40 transition-all duration-300", getStatusColor(profile.engine_hours_current, profile.engine_hours_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-              <div className={cn("w-3 h-3 rounded-full border border-black/50 shadow-md transition-transform duration-300 group-hover:scale-150 z-10", getStatusColor(profile.engine_hours_current, profile.engine_hours_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-            </div>
-            {/* Label only visible on explicit focus/hover if we want, but doing it permanently but tiny helps */}
-            <span className="absolute top-4 left-4 text-[9px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-white/70 group-hover:text-white transition-colors opacity-0 group-hover:opacity-100 whitespace-nowrap">MOTEUR</span>
+      <div 
+        className="absolute left-[65%] top-[45%] group cursor-pointer z-10" 
+        onClick={() => setSelectedComp('engine')}
+      >
+        <div className={cn("relative flex items-center", getStatusColor(profile.engine_hours_current, profile.engine_hours_life))} >
+          {/* Dot */}
+           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          {/* Line */}
+          <div className="w-16 h-px bg-current opacity-40 ml-1 transition-all group-hover:w-20" />
+          {/* Box */}
+          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 ml-1">
+            <span className="font-bold text-xs text-white opacity-80 uppercase">Moteur</span>
+            <span className="ml-2 font-mono text-xs text-white">{profile.engine_hours_current?.toFixed(1) || 0}h</span>
           </div>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="bg-black/95 border-white/10 text-white">
-          <p className="font-bold uppercase tracking-wider text-xs">Moteur ({profile.engine_model || "NC"})</p>
-          <p className="text-[10px] mt-1 opacity-60">Clique pour détails</p>
-        </TooltipContent>
-      </Tooltip>
+        </div>
+      </div>
 
-      {/* Front Left Tire */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_fl')} className="absolute left-[20%] top-[65%] flex flex-col items-center justify-center group cursor-pointer z-10 p-4 -m-4" aria-label="Détail Pneu Avant Gauche">
-            <div className="relative flex items-center justify-center">
-              <div className={cn("absolute w-6 h-6 rounded-full opacity-20 blur-[2px] group-hover:opacity-40 transition-all duration-300", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-              <div className={cn("w-3 h-3 rounded-full border border-black/50 shadow-md transition-transform duration-300 group-hover:scale-150 z-10", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-            </div>
-            <span className="absolute top-4 right-4 text-[9px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-white/70 group-hover:text-white transition-colors opacity-0 group-hover:opacity-100 whitespace-nowrap">AVG</span>
+      {/* Front Left Tire (AVG) */}
+      <div 
+        className="absolute left-[30%] top-[75%] group cursor-pointer z-10" 
+        onClick={() => setSelectedComp('tire_fl')}
+      >
+        <div className={cn("relative flex items-center flex-row-reverse", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} >
+           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          <div className="w-12 h-px bg-current opacity-40 mr-1 transition-all group-hover:w-16" />
+          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 mr-1 flex items-center gap-2">
+            <span className="font-bold text-xs text-white opacity-80">AVG</span>
+            <span className="font-mono text-xs text-white">{profile.tires_sessions_current || 0} sess.</span>
           </div>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          <p className="font-bold text-xs">Pneu Avant Gauche</p>
-        </TooltipContent>
-      </Tooltip>
+        </div>
+      </div>
 
-      {/* Front Right Tire */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_fr')} className="absolute left-[78%] top-[68%] flex flex-col items-center justify-center group cursor-pointer z-10 p-4 -m-4" aria-label="Détail Pneu Avant Droit">
-             <div className="relative flex items-center justify-center">
-              <div className={cn("absolute w-6 h-6 rounded-full opacity-20 blur-[2px] group-hover:opacity-40 transition-all duration-300", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-              <div className={cn("w-3 h-3 rounded-full border border-black/50 shadow-md transition-transform duration-300 group-hover:scale-150 z-10", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-            </div>
-            <span className="absolute top-4 left-4 text-[9px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-white/70 group-hover:text-white transition-colors opacity-0 group-hover:opacity-100 whitespace-nowrap">AVD</span>
+      {/* Front Right Tire (AVD) */}
+      <div 
+        className="absolute left-[80%] top-[70%] group cursor-pointer z-10" 
+        onClick={() => setSelectedComp('tire_fr')}
+      >
+        <div className={cn("relative flex items-center", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} >
+           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          <div className="w-12 h-px bg-current opacity-40 ml-1 transition-all group-hover:w-16" />
+          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 ml-1 flex items-center gap-2">
+            <span className="font-bold text-xs text-white opacity-80">AVD</span>
+            <span className="font-mono text-xs text-white">{profile.tires_sessions_current || 0} sess.</span>
           </div>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p className="font-bold text-xs">Pneu Avant Droit</p>
-        </TooltipContent>
-      </Tooltip>
+        </div>
+      </div>
 
-      {/* Rear Left Tire */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_rl')} className="absolute left-[25%] top-[25%] flex flex-col items-center justify-center group cursor-pointer z-10 p-4 -m-4" aria-label="Détail Pneu Arrière Gauche">
-             <div className="relative flex items-center justify-center">
-              <div className={cn("absolute w-6 h-6 rounded-full opacity-20 blur-[2px] group-hover:opacity-40 transition-all duration-300", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-              <div className={cn("w-3 h-3 rounded-full border border-black/50 shadow-md transition-transform duration-300 group-hover:scale-150 z-10", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-            </div>
-            <span className="absolute bottom-4 right-4 text-[9px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-white/70 group-hover:text-white transition-colors opacity-0 group-hover:opacity-100 whitespace-nowrap">ARG</span>
+      {/* Rear Left Tire (ARG) */}
+      <div 
+        className="absolute left-[20%] top-[25%] group cursor-pointer z-10" 
+        onClick={() => setSelectedComp('tire_rl')}
+      >
+        <div className={cn("relative flex items-center flex-row-reverse", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} >
+           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          <div className="w-16 h-px bg-current opacity-40 mr-1 transition-all group-hover:w-20" />
+          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 mr-1 flex items-center gap-2">
+            <span className="font-bold text-xs text-white opacity-80">ARG</span>
+            <span className="font-mono text-xs text-white">{profile.tires_sessions_current || 0} sess.</span>
           </div>
-        </TooltipTrigger>
-        <TooltipContent side="left">
-          <p className="font-bold text-xs">Pneu Arrière Gauche</p>
-        </TooltipContent>
-      </Tooltip>
+        </div>
+      </div>
 
-      {/* Rear Right Tire */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_rr')} className="absolute left-[80%] top-[28%] flex flex-col items-center justify-center group cursor-pointer z-10 p-4 -m-4" aria-label="Détail Pneu Arrière Droit">
-             <div className="relative flex items-center justify-center">
-              <div className={cn("absolute w-6 h-6 rounded-full opacity-20 blur-[2px] group-hover:opacity-40 transition-all duration-300", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-              <div className={cn("w-3 h-3 rounded-full border border-black/50 shadow-md transition-transform duration-300 group-hover:scale-150 z-10", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-            </div>
-            <span className="absolute bottom-4 left-4 text-[9px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-white/70 group-hover:text-white transition-colors opacity-0 group-hover:opacity-100 whitespace-nowrap">ARD</span>
+      {/* Rear Right Tire (ARD) */}
+      <div 
+        className="absolute left-[75%] top-[25%] group cursor-pointer z-10" 
+        onClick={() => setSelectedComp('tire_rr')}
+      >
+        <div className={cn("relative flex items-center", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} >
+           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+          <div className="w-16 h-px bg-current opacity-40 ml-1 transition-all group-hover:w-20" />
+          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 ml-1 flex items-center gap-2">
+            <span className="font-bold text-xs text-white opacity-80">ARD</span>
+            <span className="font-mono text-xs text-white">{profile.tires_sessions_current || 0} sess.</span>
           </div>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p className="font-bold text-xs">Pneu Arrière Droit</p>
-        </TooltipContent>
-      </Tooltip>
+        </div>
+      </div>
 
-      {/* Brakes (Rear Axle exclusively per constraints) */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('brakes')} className="absolute left-[45%] top-[28%] flex flex-col items-center justify-center group cursor-pointer transition-transform z-10 p-4 -m-4" aria-label="Détail Frein Arrière">
-            <div className="relative flex items-center justify-center">
-              <div className={cn("absolute w-6 h-6 rounded-full opacity-20 blur-[2px] group-hover:opacity-40 transition-all duration-300", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-              <div className={cn("w-3 h-3 rounded-full border border-black/50 shadow-md transition-transform duration-300 group-hover:scale-150 z-10", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life).replace("text-", "bg-").replace("stroke-", "border-"))} />
-            </div>
-            <span className="absolute bottom-4 left-0 text-[9px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-white/70 group-hover:text-white transition-colors opacity-0 group-hover:opacity-100 whitespace-nowrap">FREINS AR.</span>
+      {/* Brakes (Rear Axle) */}
+      <div 
+        className="absolute left-[45%] top-[25%] group cursor-pointer z-10" 
+        onClick={() => setSelectedComp('brakes')}
+      >
+        <div className={cn("relative flex flex-col items-center", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life).replace("drop-shadow", ""))} >
+          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 mb-1 flex flex-col items-center gap-1">
+            <span className="font-bold text-[10px] text-white opacity-80 uppercase tracking-widest">Freins</span>
+            <span className="font-mono text-xs text-white">{profile.brakes_sessions_current || 0} sess.</span>
           </div>
-        </TooltipTrigger>
-        <TooltipContent side="top">
-          <p className="font-bold text-xs">Freins Arrière ({profile.brakes_model || "NC"})</p>
-        </TooltipContent>
-      </Tooltip>
+          <div className="w-px h-8 bg-current opacity-40 mb-1 transition-all group-hover:h-12" />
+           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+        </div>
+      </div>
 
       {/* Battery */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('battery')} className="absolute left-[28%] top-[50%] flex flex-col items-center justify-center group cursor-pointer transition-transform z-10 p-4 -m-4" aria-label="Détail Batterie">
-            <div className="relative flex items-center justify-center">
-              <div className={cn("absolute w-6 h-6 rounded-full opacity-20 blur-[2px] group-hover:opacity-40 transition-all duration-300", getStatusColor(profile.battery_voltage_last, 12.5, true).replace("text-", "bg-").replace("stroke-", "border-"))} />
-              <div className={cn("w-3 h-3 rounded-full border border-black/50 shadow-md transition-transform duration-300 group-hover:scale-150 z-10", getStatusColor(profile.battery_voltage_last, 12.5, true).replace("text-", "bg-").replace("stroke-", "border-"))} />
-            </div>
-            <span className="absolute bottom-4 left-4 text-[9px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-black/80 border border-white/10 text-white/70 group-hover:text-white transition-colors opacity-0 group-hover:opacity-100 whitespace-nowrap">BATTERIE</span>
+      <div 
+        className="absolute left-[38%] top-[55%] group cursor-pointer z-10" 
+        onClick={() => setSelectedComp('battery')}
+      >
+        <div className={cn("relative flex flex-col items-center", getStatusColor(profile.battery_voltage_last, 12.5, true))} >
+          <div className="whitespace-nowrap px-3 py-1.5 bg-black/80 backdrop-blur-md border border-current/30 rounded shadow-lg transition-transform group-hover:scale-105 mb-1 flex items-center gap-2">
+            <span className="font-bold text-[10px] text-white opacity-80 uppercase tracking-widest">Batterie</span>
+            <span className="font-mono text-xs text-white">{profile.battery_voltage_last || "--"}V</span>
           </div>
-        </TooltipTrigger>
-        <TooltipContent side="left">
-          <p className="font-bold text-xs">Batterie</p>
-        </TooltipContent>
-      </Tooltip>
+          <div className="w-px h-6 bg-current opacity-40 mb-1 transition-all group-hover:h-10" />
+           <div className="w-3 h-3 rounded-full bg-current shadow-[0_0_12px_currentColor] z-10 group-hover:scale-150 transition-transform" />
+        </div>
+      </div>
       
       </div>
 
