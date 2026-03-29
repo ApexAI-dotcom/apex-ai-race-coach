@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BarChart3, Zap, User, Tag } from "lucide-react";
+import { Home, BarChart3, Zap, User, Tag, Wrench } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +15,7 @@ export const MobileNav = () => {
     { icon: Home, label: "Accueil", path: "/" },
     { icon: BarChart3, label: "Tableau de bord", labelShort: "Tableau", path: "/dashboard" },
     { icon: Zap, label: "Analyser", path: "/upload", isHighlight: true },
-    { icon: Tag, label: displayLabel, path: "/pricing" },
+    { icon: Wrench, label: "Mon Kart", labelShort: "Kart", path: "/mon-kart" },
     { icon: User, label: "Profil", path: "/profile" },
   ];
 
