@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { KartProfile } from "@/lib/api";
 import { Battery, Disc, Flame, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EngineVis, TireVis, BrakeVis, BatteryVis } from "@/components/kart/WearVisuals";
 
 interface KartSchematicProps {
   profile: KartProfile;
@@ -40,41 +41,61 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
         <div className="w-1/2 h-3/4 bg-primary/5 blur-[80px] rounded-full" />
       </div>
 
-      {/* Kart Blueprint Schematic */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-40 hover:opacity-80 transition-opacity duration-700 pointer-events-none">
-        <svg viewBox="0 0 400 600" className="w-[85%] h-full drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+      {/* Kart 3/4 Front Schematic */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+        <svg viewBox="0 0 400 600" className="w-[90%] h-full drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
           <defs>
              <linearGradient id="chassisGrad" x1="0" y1="0" x2="0" y2="1">
                <stop offset="0%" stopColor="#888" stopOpacity="0.8" />
                <stop offset="100%" stopColor="#fff" stopOpacity="0.2" />
              </linearGradient>
+             <style>
+               {`
+                 .hud-grid { stroke: rgba(255,255,255,0.05); stroke-width: 1; stroke-dasharray: 4 4; }
+               `}
+             </style>
           </defs>
           
-          {/* Main Frame / Tubes */}
-          <path d="M 160 120 L 240 120 Q 280 120 280 200 L 280 480 Q 280 520 260 520 L 140 520 Q 120 520 120 480 L 120 200 Q 120 120 160 120 Z" 
-                fill="none" stroke="url(#chassisGrad)" strokeWidth="6" strokeLinejoin="round" />
-          
-          {/* Front Bumper & Spoiler */}
-          <path d="M 120 120 C 100 80 140 40 200 40 C 260 40 300 80 280 120" fill="none" stroke="currentColor" strokeWidth="3" className="text-white/40" />
-          <path d="M 100 80 L 300 80" stroke="currentColor" strokeWidth="2" className="text-white/20" strokeDasharray="10 5" />
-          
-          {/* Side Pods */}
-          <rect x="60" y="240" width="40" height="150" rx="15" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/40" />
-          <rect x="300" y="240" width="40" height="150" rx="15" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/40" />
+          {/* Subtle HUD grid matching Kart perspective */}
+          <path d="M 50 100 L 350 150 M 40 250 L 360 300 M 30 400 L 370 450" className="hud-grid" />
+          <path d="M 100 50 L 80 550 M 200 60 L 200 560 M 300 70 L 320 570" className="hud-grid" />
+
+          {/* Tires (drawn behind chassis where needed) */}
+          <rect x="70" y="140" width="40" height="70" rx="10" transform="rotate(-15 90 175)" fill="#111" stroke="#333" strokeWidth="2" /> {/* RL */}
+          <rect x="300" y="160" width="40" height="70" rx="10" transform="rotate(-15 320 195)" fill="#111" stroke="#333" strokeWidth="2" /> {/* RR */}
+          <rect x="50" y="360" width="40" height="80" rx="10" transform="rotate(-20 70 400)" fill="#111" stroke="#333" strokeWidth="2" /> {/* FL */}
+          <rect x="290" y="380" width="40" height="80" rx="10" transform="rotate(-20 310 420)" fill="#111" stroke="#333" strokeWidth="2" /> {/* FR */}
 
           {/* Rear Axle */}
-          <line x1="80" y1="480" x2="320" y2="480" stroke="currentColor" strokeWidth="8" className="text-white/60" />
+          <line x1="110" y1="175" x2="320" y2="195" stroke="#444" strokeWidth="8" />
+          {/* Rear Brake Disk */}
+          <ellipse cx="180" cy="182" rx="15" ry="30" transform="rotate(-15 180 182)" fill="none" stroke="#666" strokeWidth="4" />
+
+          {/* Main Frame / Tubes */}
+          <path d="M 200 480 L 100 400 L 130 220 L 230 190 L 280 280 L 260 410 Z" fill="none" stroke="url(#chassisGrad)" strokeWidth="6" strokeLinejoin="round" />
           
+          {/* Front Bumper & Spoiler */}
+          <path d="M 200 490 Q 250 510 290 460 L 230 420 Z" fill="none" stroke="currentColor" strokeWidth="3" className="text-white/40" />
+          <path d="M 180 470 L 220 500" stroke="currentColor" strokeWidth="2" className="text-white/20" />
+          
+          {/* Left Side Pod */}
+          <path d="M 70 380 L 100 240 L 140 260 L 110 390 Z" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/40" />
+          
+          {/* Right Side Pod */}
+          <path d="M 260 420 L 320 320 L 290 260 L 230 310 Z" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/40" />
+
           {/* Seat */}
-          <path d="M 150 300 Q 200 260 250 300 L 230 400 Q 200 420 170 400 Z" fill="none" stroke="currentColor" strokeWidth="5" className="text-white/50" />
+          <path d="M 190 320 Q 220 280 240 310 L 220 380 Q 200 370 170 350 Z" fill="none" stroke="#555" strokeWidth="5" className="text-white/50" />
           
           {/* Steering Wheel & Column */}
-          <circle cx="200" cy="220" r="25" fill="none" stroke="currentColor" strokeWidth="5" className="text-white/60" />
-          <line x1="200" y1="245" x2="200" y2="290" stroke="currentColor" strokeWidth="4" className="text-white/40" />
+          <ellipse cx="200" cy="360" rx="20" ry="10" transform="rotate(-20 200 360)" fill="none" stroke="#777" strokeWidth="5" className="text-white/60" />
+          <line x1="200" y1="360" x2="190" y2="300" stroke="#777" strokeWidth="3" className="text-white/40" />
           
-          {/* Engine Silhouette (Abstract) */}
-          <rect x="230" y="320" width="60" height="70" rx="5" fill="none" stroke="currentColor" strokeWidth="3" className="text-white/30" />
-          <line x1="230" y1="355" x2="290" y2="355" stroke="currentColor" strokeWidth="2" className="text-white/20" />
+          {/* Engine Silhouette */}
+          <rect x="230" y="250" width="50" height="60" rx="5" transform="rotate(-15 255 280)" fill="none" stroke="#888" strokeWidth="3" className="text-white/30" />
+          
+          {/* Battery */}
+          <rect x="100" y="280" width="30" height="40" rx="3" transform="rotate(-15 115 300)" fill="none" stroke="#666" strokeWidth="3" className="text-white/30" />
         </svg>
       </div>
 
@@ -83,29 +104,29 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Engine Hotspot */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('engine')} className="absolute right-[20%] top-[55%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125 hover:z-20">
-            <div className={cn("w-16 h-16 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-2xl transition-all duration-300", getStatusColor(profile.engine_hours_current, profile.engine_hours_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
-              <Flame className={cn("w-8 h-8", getStatusColor(profile.engine_hours_current, profile.engine_hours_life))} />
+          <div onClick={() => setSelectedComp('engine')} className="absolute left-[63%] top-[46%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125 hover:z-20">
+            <div className={cn("w-14 h-14 sm:w-16 sm:h-16 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-2xl transition-all duration-300", getStatusColor(profile.engine_hours_current, profile.engine_hours_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
+              <Flame className={cn("w-7 h-7 sm:w-8 sm:h-8", getStatusColor(profile.engine_hours_current, profile.engine_hours_life))} />
             </div>
           </div>
         </TooltipTrigger>
         <TooltipContent side="right" className="bg-black/90 border-white/10 text-white">
           <p className="font-bold uppercase tracking-wider text-xs">Moteur ({profile.engine_model || "NC"})</p>
           <p className="text-sm font-mono mt-1 text-muted-foreground">{profile.engine_hours_current?.toFixed(1) || 0}h / {profile.engine_hours_life}h limit</p>
-          <p className="text-[10px] mt-2 opacity-50">Clique pour ajuster</p>
+          <p className="text-[10px] mt-2 opacity-50">Clique pour détails</p>
         </TooltipContent>
       </Tooltip>
 
       {/* Front Left Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_fl')} className="absolute left-[15%] top-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
-            <div className={cn("w-12 h-16 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
+          <div onClick={() => setSelectedComp('tire_fl')} className="absolute left-[20%] top-[66%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
+            <div className={cn("w-12 h-12 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Disc className={cn("w-6 h-6", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
           </div>
         </TooltipTrigger>
-        <TooltipContent side="left">
+        <TooltipContent side="bottom">
           <p className="font-bold">AVG ({profile.tires_model || "NC"})</p>
           <p className="text-xs text-muted-foreground">{profile.tires_sessions_current} / {profile.tires_sessions_life} sess.</p>
         </TooltipContent>
@@ -114,8 +135,8 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Front Right Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_fr')} className="absolute right-[15%] top-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
-             <div className={cn("w-12 h-16 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
+          <div onClick={() => setSelectedComp('tire_fr')} className="absolute left-[78%] top-[70%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
+             <div className={cn("w-12 h-14 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Disc className={cn("w-6 h-6", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
           </div>
@@ -129,9 +150,9 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Rear Left Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_rl')} className="absolute left-[12%] bottom-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
-             <div className={cn("w-14 h-20 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
-              <Disc className={cn("w-7 h-7", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
+          <div onClick={() => setSelectedComp('tire_rl')} className="absolute left-[25%] top-[29%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
+             <div className={cn("w-12 h-14 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
+              <Disc className={cn("w-6 h-6", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
           </div>
         </TooltipTrigger>
@@ -144,9 +165,9 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Rear Right Tire */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('tire_rr')} className="absolute right-[12%] bottom-[18%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
-             <div className={cn("w-14 h-20 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
-              <Disc className={cn("w-7 h-7", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
+          <div onClick={() => setSelectedComp('tire_rr')} className="absolute left-[80%] top-[32%] flex flex-col items-center justify-center group cursor-pointer z-10 transition-transform hover:scale-125">
+             <div className={cn("w-12 h-14 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
+              <Disc className={cn("w-6 h-6", getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life))} />
             </div>
           </div>
         </TooltipTrigger>
@@ -156,16 +177,16 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
         </TooltipContent>
       </Tooltip>
 
-      {/* Brakes */}
+      {/* Brakes (Rear Axle exclusively per constraints) */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('brakes')} className="absolute left-[35%] bottom-[25%] flex items-center justify-center group cursor-pointer transition-transform hover:scale-125 z-10">
+          <div onClick={() => setSelectedComp('brakes')} className="absolute left-[45%] top-[30%] flex items-center justify-center group cursor-pointer transition-transform hover:scale-125 z-10">
             <div className={cn("w-12 h-12 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-xl", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <AlertCircle className={cn("w-6 h-6", getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life))} />
             </div>
           </div>
         </TooltipTrigger>
-        <TooltipContent side="bottom">
+        <TooltipContent side="top">
           <p className="font-bold uppercase text-xs">Freins Arrière ({profile.brakes_model || "NC"})</p>
           <p className="text-sm font-mono mt-1 text-muted-foreground">{profile.brakes_sessions_current || 0} / {profile.brakes_sessions_life} sess.</p>
         </TooltipContent>
@@ -174,7 +195,7 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
       {/* Battery */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div onClick={() => setSelectedComp('battery')} className="absolute left-[30%] top-[45%] flex items-center justify-center transition-transform hover:scale-125 cursor-pointer z-10">
+          <div onClick={() => setSelectedComp('battery')} className="absolute left-[28%] top-[50%] flex items-center justify-center transition-transform hover:scale-125 cursor-pointer z-10">
             <div className={cn("w-10 h-10 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-md", getStatusColor(profile.battery_voltage_last, 12.5, true).replace("text-", "shadow-").replace("stroke-", "border-"))}>
               <Battery className={cn("w-5 h-5", getStatusColor(profile.battery_voltage_last, 12.5, true))} />
             </div>
@@ -214,7 +235,8 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
 
           <div className="space-y-4 py-4">
             {selectedComp === 'engine' && (
-              <div className="space-y-2 bg-white/5 p-4 rounded-lg border border-white/5">
+              <div className="space-y-4 bg-white/5 p-4 rounded-lg border border-white/5">
+                <EngineVis ratio={Math.min((profile.engine_hours_current || 0) / (profile.engine_hours_life || 15), 1)} />
                 <p><strong>Modèle :</strong> <span className="text-primary">{profile.engine_model || "Standard"}</span></p>
                 <div className="flex justify-between items-center mt-2">
                   <span>Usure Actuelle :</span>
@@ -227,7 +249,8 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
             )}
             
             {selectedComp?.startsWith('tire') && (
-              <div className="space-y-2 bg-white/5 p-4 rounded-lg border border-white/5">
+              <div className="space-y-4 bg-white/5 p-4 rounded-lg border border-white/5">
+                <TireVis ratio={Math.min((profile.tires_sessions_current || 0) / (profile.tires_sessions_life || 50), 1)} />
                 <p><strong>Train complet :</strong> <span className="text-primary">{profile.tires_model || "Standard"}</span></p>
                 <div className="flex justify-between items-center mt-2">
                   <span>Sessions Roulées :</span>
@@ -240,7 +263,8 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
             )}
 
             {selectedComp === 'brakes' && (
-              <div className="space-y-2 bg-white/5 p-4 rounded-lg border border-white/5">
+              <div className="space-y-4 bg-white/5 p-4 rounded-lg border border-white/5">
+                <BrakeVis ratio={Math.min((profile.brakes_sessions_current || 0) / (profile.brakes_sessions_life || 100), 1)} />
                 <p><strong>Système :</strong> <span className="text-primary">{profile.brakes_model || "Standard"}</span></p>
                 <div className="flex justify-between items-center mt-2">
                   <span>Usure Plaquettes :</span>
@@ -249,11 +273,13 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
                 <div className="w-full bg-white/10 h-2 rounded-full mt-2 overflow-hidden">
                   <div className={cn("h-full transition-all duration-500", (profile.brakes_sessions_current || 0) / (profile.brakes_sessions_life || 100) > 0.8 ? "bg-orange-500" : "bg-primary")} style={{ width: `${Math.min(((profile.brakes_sessions_current || 0) / (profile.brakes_sessions_life || 100)) * 100, 100)}%` }} />
                 </div>
+                <p className="text-xs text-muted-foreground italic border-l-2 border-primary pl-2 mt-4">Sur la plupart des karts loisir, le frein principal agit exclusivement sur l'axe arrière.</p>
               </div>
             )}
 
             {selectedComp === 'battery' && (
-              <div className="space-y-2 bg-white/5 p-4 rounded-lg border border-white/5">
+              <div className="space-y-4 bg-white/5 p-4 rounded-lg border border-white/5">
+                <BatteryVis voltage={profile.battery_voltage_last || 0} />
                 <div className="flex justify-between items-center mt-2">
                   <span>Dernière Tension Relevée :</span>
                   <span className={cn("font-mono text-lg font-bold", getStatusColor(profile.battery_voltage_last, 12.5, true).split(' ')[0])}>
