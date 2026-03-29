@@ -12,6 +12,8 @@ import { AlertBanner } from "@/components/kart/AlertBanner";
 import { KartSchematic } from "@/components/kart/KartSchematic";
 import { WearGauge } from "@/components/kart/WearGauge";
 import { KartSetupWizard } from "@/components/kart/KartSetupWizard";
+import { Layout } from "@/components/layout/Layout";
+import { PageMeta } from "@/components/seo/PageMeta";
 
 export default function MonKart() {
   const { session } = useAuth();
@@ -43,16 +45,19 @@ export default function MonKart() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-24 pb-12 px-4 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <Layout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </Layout>
     );
   }
 
   if (tier === "rookie" || tier === "visitor") {
     return (
-      <div className="min-h-screen pt-24 pb-12 px-4 container max-w-4xl mx-auto">
-        <div className="glass-card p-12 text-center flex flex-col items-center justify-center rounded-2xl border border-white/5 relative overflow-hidden">
+      <Layout>
+        <div className="container max-w-4xl mx-auto py-12 px-4">
+          <div className="glass-card p-12 text-center flex flex-col items-center justify-center rounded-2xl border border-white/5 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent blur-3xl -z-10" />
           <Wrench className="w-16 h-16 text-primary mb-6 animate-pulse" />
           <h1 className="text-3xl font-display font-bold mb-4">Mon Kart</h1>
@@ -67,7 +72,8 @@ export default function MonKart() {
             </Button>
           </Link>
         </div>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
@@ -135,8 +141,10 @@ export default function MonKart() {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-4 container max-w-6xl mx-auto space-y-6 absolute-children">
-      <div className="flex items-center justify-between mb-4">
+    <Layout>
+      <PageMeta title="Mon Kart | ApexAI" description="Suivi de l'usure de ton kart (cockpit interactif)." path="/kart" />
+      <div className="container max-w-6xl mx-auto py-8 px-4 space-y-6">
+        <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-display font-bold">Mon Kart (Cockpit)</h1>
           <p className="text-muted-foreground mt-2">Vue détaillée et usure des composants</p>
@@ -283,6 +291,7 @@ export default function MonKart() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </Layout>
   );
 }

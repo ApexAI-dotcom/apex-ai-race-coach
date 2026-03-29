@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import api, { KartProfile } from "@/lib/api";
+import { ENGINE_PRESETS, TIRE_PRESETS, BRAKE_PRESETS } from "@/constants/kart-presets";
 
 interface KartSetupWizardProps {
   token: string;
@@ -87,16 +88,17 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
                 <Label>Modèle du Moteur</Label>
-                <Select onValueChange={(val) => updateData({ engine_model: val })} value={data.engine_model || ""}>
+                <Select onValueChange={(val) => {
+                  const preset = ENGINE_PRESETS.find(p => p.name === val);
+                  updateData({ engine_model: val, engine_hours_life: preset ? preset.default_life : 15 });
+                }} value={data.engine_model || ""}>
                   <SelectTrigger className="bg-black/20">
                     <SelectValue placeholder="Choisir un modèle..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Rotax Max 125">Rotax Max 125</SelectItem>
-                    <SelectItem value="Rotax DD2">Rotax DD2</SelectItem>
-                    <SelectItem value="IAME X30">IAME X30</SelectItem>
-                    <SelectItem value="KZ">KZ (Boîte)</SelectItem>
-                    <SelectItem value="Autre">Autre</SelectItem>
+                    {ENGINE_PRESETS.map(p => (
+                      <SelectItem key={p.id} value={p.name}>{p.name} ({p.category})</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -127,12 +129,19 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
                 <Label>Modèle / Type de Pneus</Label>
-                <Input 
-                  placeholder="Ex: Vega Rose, Mojo D5, LeCont..." 
-                  className="bg-black/20"
-                  value={data.tires_model || ""} 
-                  onChange={(e) => updateData({ tires_model: e.target.value })}
-                />
+                <Select onValueChange={(val) => {
+                  const preset = TIRE_PRESETS.find(p => p.name === val);
+                  updateData({ tires_model: val, tires_sessions_life: preset ? preset.default_life : 50 });
+                }} value={data.tires_model || ""}>
+                  <SelectTrigger className="bg-black/20">
+                    <SelectValue placeholder="Choisir un train de pneus..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIRE_PRESETS.map(p => (
+                      <SelectItem key={p.id} value={p.name}>{p.name} ({p.compound})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Durée de vie (Sessions)</Label>
@@ -158,13 +167,20 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
           {step === 3 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
-                <Label>Modèle Freins</Label>
-                <Input 
-                  placeholder="Ex: Standard, OTK, Brembo..." 
-                  className="bg-black/20"
-                  value={data.brakes_model || ""} 
-                  onChange={(e) => updateData({ brakes_model: e.target.value })}
-                />
+                <Label>Système de Freinage</Label>
+                <Select onValueChange={(val) => {
+                  const preset = BRAKE_PRESETS.find(p => p.name === val);
+                  updateData({ brakes_model: val, brakes_sessions_life: preset ? preset.default_life : 100 });
+                }} value={data.brakes_model || ""}>
+                  <SelectTrigger className="bg-black/20">
+                    <SelectValue placeholder="Sélectionner le type de freins..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BRAKE_PRESETS.map(p => (
+                      <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Seuil d'alerte plaquettes (Sessions)</Label>
