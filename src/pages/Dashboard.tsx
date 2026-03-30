@@ -523,11 +523,11 @@ export default function Dashboard() {
               </Button>
               <Button 
                 variant="hero" 
-                className="flex-1 sm:flex-none h-11 px-4 sm:px-6 shadow-lg shadow-primary/20" 
+                className="flex-1 sm:flex-none h-11 px-4 sm:px-6 shadow-lg shadow-primary/20 gap-2" 
                 onClick={() => navigate("/upload")}
               >
-                <Plus className="w-5 h-5 mr-1" />
-                <span>Nouvelle</span><span className="hidden sm:inline ml-1">analyse</span>
+                <Plus className="w-5 h-5" />
+                <span>Nouvelle analyse</span>
               </Button>
             </div>
           </div>
@@ -767,6 +767,7 @@ export default function Dashboard() {
                 <TableHeader className="bg-secondary/30">
                   <TableRow className="border-white/5 hover:bg-transparent">
                     <TableHead className="py-5">Session</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Dossier</TableHead>
                     <TableHead>Performance</TableHead>
                     <TableHead>Temps</TableHead>

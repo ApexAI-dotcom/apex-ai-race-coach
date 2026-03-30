@@ -27,6 +27,11 @@ export default function Login() {
   const [submitLoading, setSubmitLoading] = useState(false)
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('mode') === 'register' || params.get('mode') === 'signup') {
+      setIsSignUp(true);
+    }
+    
     if (!authLoading && user) {
       const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
       navigate(from, { replace: true })
