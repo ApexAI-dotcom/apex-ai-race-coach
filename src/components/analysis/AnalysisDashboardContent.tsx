@@ -115,6 +115,7 @@ export function AnalysisDashboardContent({
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <h2 className={`${titleClass} mb-0`}>Sélection des tours</h2>
+                <p className="text-xs text-muted-foreground">Cliquez sur un tour pour l'ajouter ou le retirer des graphiques. Le point vert indique le meilleur tour.</p>
               </div>
               <div className="flex flex-wrap gap-1.5 md:gap-2">
                 {analysis.lap_times?.map((time, idx) => {
@@ -161,6 +162,7 @@ export function AnalysisDashboardContent({
           {plotData.trajectory_2d?.corners?.length > 0 && (
             <section className={sectionClass}>
                <h2 className={titleClass}>Carte du Circuit</h2>
+               <p className="text-xs text-muted-foreground mb-3">Vue aérienne de votre trajectoire réelle sur le circuit. Les marqueurs indiquent les virages détectés. Comparez votre ligne à la trajectoire idéale pour identifier les écarts et gagner du temps en élargissant vos entrées.</p>
                <TrackMap
                  corners={plotData.trajectory_2d.corners}
                  margins={plotData.apex_margin?.corners}
@@ -178,6 +180,7 @@ export function AnalysisDashboardContent({
             return (
               <section className={sectionClass}>
                 <h2 className={titleClass}>Trace de Vitesse</h2>
+                <p className="text-xs text-muted-foreground mb-3">Vitesse en km/h en fonction de la distance. Repérez les zones où vous freinez trop tôt ou réaccélérez trop tard. L'objectif est de porter plus de vitesse dans le virage pour sortir plus fort.</p>
                 <SpeedTraceChart
                   data={plotData.speed_trace}
                   selectedLaps={selectedLapNumbers}
@@ -197,6 +200,7 @@ export function AnalysisDashboardContent({
             return (
               <section className={sectionClass}>
                 <h2 className={titleClass}>Delta Temps</h2>
+                <p className="text-xs text-muted-foreground mb-3">Écart de temps cumulé entre vos tours et le meilleur tour. Si la courbe monte, vous perdez du temps. Concentrez votre travail sur les zones où la pente est la plus forte pour gagner des secondes.</p>
                 <TimeDeltaLapsChart
                   data={plotData.time_delta_laps}
                   selectedLaps={selectedLapNumbers}
@@ -215,6 +219,7 @@ export function AnalysisDashboardContent({
             return (
               <section className={sectionClass}>
                 <h2 className={titleClass}>Radar de Performance</h2>
+                <p className="text-xs text-muted-foreground mb-3">Synthèse de votre pilotage (freinage, trajectoire, régularité…). Une zone faible (près du centre) indique un point à travailler spécifiquement lors de votre prochaine session.</p>
                 <PerformanceRadar 
                   data={plotData.performance_radar} 
                   circuitName={circuitName}
@@ -231,7 +236,8 @@ export function AnalysisDashboardContent({
             if (isLocked) ctaShown = true;
             return (
               <section className={sectionClass}>
-                <h2 className={titleClass}>Marge à l'Apex</h2>
+                <h2 className={titleClass}>Points de Corde (Apex)</h2>
+                <p className="text-xs text-muted-foreground mb-3">Écart de vitesse entre votre passage et l'idéal théorique au point de corde de chaque virage. Un écart positif signifie que vous portez trop de vitesse (souvent au détriment de la réaccélération), un écart négatif que vous pouvez passer plus fort.</p>
                 <ApexMarginChart 
                   data={plotData.apex_margin.corners} 
                   circuitName={circuitName}
@@ -249,6 +255,7 @@ export function AnalysisDashboardContent({
             return (
               <section className={sectionClass}>
                 <h2 className={titleClass}>Accélérateur & Frein</h2>
+                <p className="text-xs text-muted-foreground mb-3">Usage des pédales en fonction de la distance. Recherchez des transitions franches entre frein et gaz. Évitez de garder du frein en phase de réaccélération pour ne pas étouffer le moteur.</p>
                 <ThrottleBrakeChart
                   data={plotData.throttle_brake}
                   selectedLaps={selectedLapNumbers}
@@ -263,6 +270,7 @@ export function AnalysisDashboardContent({
           {plotData.apex_margin?.corners?.length > 0 && (
             <section className="mb-8">
               <h2 className={titleClass}>Détails des virages</h2>
+              <p className="text-xs text-muted-foreground mb-3">Analyse virage par virage : vitesse au point de corde, vitesse d'entrée/sortie, note et temps perdu. Concentrez-vous sur les virages les moins bien notés pour progresser.</p>
               <CornerDetailsGrid
                 corners={enrichCornersWithCornerAnalysis(plotData, analysis)}
                 variant={embedded ? "app" : "racing"}

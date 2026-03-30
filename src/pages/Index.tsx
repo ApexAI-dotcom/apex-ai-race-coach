@@ -18,14 +18,14 @@ import heroImage from "@/assets/hero-racing.jpg";
 
 const stats = [
   { value: "12,847", label: "Tours analysés", icon: Target },
-  { value: "+7.2s", label: "Gain moyen par session", icon: Timer },
-  { value: "94%", label: "Précision apex", icon: TrendingUp },
+  { value: "+0.5s", label: "Gain moyen dès la 1re session", icon: Timer },
+  { value: "99%", label: "Fiabilité des métriques", icon: TrendingUp },
 ];
 
 const features = [
   {
     title: "Analyse IA des virages",
-    description: "Notre algorithme identifie chaque apex et calcule votre trajectoire optimale.",
+    description: "Notre algorithme identifie chaque point de corde et calcule votre trajectoire optimale.",
     icon: Target,
   },
   {
@@ -44,13 +44,13 @@ const testimonials = [
   {
     name: "Lucas M.",
     role: "Pilote Rotax DD2",
-    quote: "J'ai gagné 3 secondes en une session grâce aux conseils d'APEX AI.",
+    quote: "J'ai gagné 0.8 seconde dès ma première analyse avec APEX AI.",
     avatar: "LM",
   },
   {
     name: "Marie D.",
     role: "Championne régionale",
-    quote: "L'analyse des apex est incroyablement précise. Ça change tout.",
+    quote: "L'analyse des trajectoires est incroyablement précise. Ça change tout.",
     avatar: "MD",
   },
 ];
@@ -69,7 +69,7 @@ const faqs = [
   {
     question: "Comment améliorer mes temps en karting ?",
     answer:
-      "La clé pour gagner des secondes est la précision de la trajectoire kart. ApexAI analyse vos apex, votre vitesse d'entrée et votre réaccélération pour vous donner un plan d'action précis virage par virage.",
+      "La clé pour gagner des secondes est la précision de la trajectoire kart. ApexAI analyse vos points de corde, votre vitesse d'entrée et votre réaccélération pour vous donner un plan d'action précis virage par virage.",
   },
   {
     question: "ApexAI fonctionne avec quels boîtiers de télémétrie ?",
@@ -84,7 +84,7 @@ const faqs = [
   {
     question: "Combien de temps je peux gagner avec l'analyse IA ?",
     answer:
-      "Nos utilisateurs constatent un gain moyen de 1,2 seconde dès la première session. En optimisant votre pilotage karting avec nos conseils, vous pouvez rapidement descendre sous vos records personnels.",
+      "Nos utilisateurs constatent un gain moyen de 0,5 à 0,8 seconde dès la première analyse. En optimisant votre pilotage karting avec nos conseils, vous pouvez rapidement descendre sous vos records personnels.",
   },
   {
     question: "Est-ce que c'est adapté aux débutants ?",
@@ -94,7 +94,7 @@ const faqs = [
   {
     question: "Comment fonctionne le score /100 ?",
     answer:
-      "Le score global évalue votre régularité, votre précision aux apex et l'efficacité de votre freinage. C'est un indicateur simple pour suivre votre progression et comparer vos performances à chaque session karting.",
+      "Le score global évalue votre régularité, votre précision aux points de corde et l'efficacité de votre freinage. C'est un indicateur simple pour suivre votre progression et comparer vos performances à chaque session karting.",
   },
 ];
 
@@ -226,7 +226,7 @@ export default function Index() {
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Analyse ton fichier CSV MyChron et obtiens un{" "}
               <span className="text-primary font-semibold">Score /100</span> +{" "}
-              <span className="text-success font-semibold">7s gagnés</span> par session en moyenne.
+              <span className="text-success font-semibold">des conseils concrets</span> pour progresser à chaque session.
             </p>
 
             {/* CTA */}
@@ -425,7 +425,7 @@ export default function Index() {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-white/5 mb-6">
               <HelpCircle className="w-4 h-4 text-primary" />
-              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Support & SEO</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Support</span>
             </div>
             
             <h2 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-6">

@@ -25,8 +25,8 @@ const features = [
   },
   {
     icon: CheckCircle,
-    title: "Précision 94%",
-    description: "Détection précise de chaque apex",
+    title: "Fiabilité 99%",
+    description: "Détection précise de chaque point de corde",
   },
 ];
 

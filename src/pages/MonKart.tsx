@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link } from "react-router-dom";
-import api, { KartProfileResponse, KartProfile, addKartHistoryEntry } from "@/lib/api";
+import api, { KartProfileResponse, KartProfile, addKartHistoryEntry, deleteKartHistoryEntry, deleteKartSessionDay } from "@/lib/api";
 import { AlertBanner } from "@/components/kart/AlertBanner";
 import { KartSchematic } from "@/components/kart/KartSchematic";
 import { WearGauge } from "@/components/kart/WearGauge";
@@ -116,10 +116,12 @@ export default function MonKart() {
     if (!confirm(`Es-tu sûr de vouloir réinitialiser l'usure pour : ${component} ?`)) return;
     if (!session?.access_token) return;
     try {
+      console.log(`Resetting ${component}...`);
       await api.resetKartComponent(session.access_token, component, "Réinitialisation manuelle");
       toast.success("Compteur réinitialisé.");
       fetchProfile();
     } catch (e: any) {
+      console.error("Reset component failed:", e);
       toast.error("Erreur réinitialisation : " + e.message);
     }
   };
@@ -197,6 +199,30 @@ export default function MonKart() {
     }
   };
 
+  const handleDeleteHistoryEntry = async (entryId: string) => {
+    if (!confirm("Supprimer cette entrée d'entretien ?")) return;
+    if (!session?.access_token) return;
+    try {
+      await deleteKartHistoryEntry(session.access_token, entryId);
+      toast.success("Entrée d'entretien supprimée.");
+      fetchProfile();
+    } catch (e: any) {
+      toast.error("Erreur suppression : " + e.message);
+    }
+  };
+
+  const handleDeleteDay = async (date: string) => {
+    if (!confirm(`Supprimer toutes les sessions du ${new Date(date).toLocaleDateString("fr-FR")} ? Cette action est irréversible.`)) return;
+    if (!session?.access_token) return;
+    try {
+      await deleteKartSessionDay(session.access_token, date);
+      toast.success("Journée supprimée.");
+      fetchProfile();
+    } catch (e: any) {
+      toast.error("Erreur suppression : " + e.message);
+    }
+  };
+
   return (
     <Layout>
       <PageMeta title="Mon Kart | ApexAI" description="Suivi de l'usure de ton kart (cockpit interactif)." path="/kart" />
@@ -240,7 +266,7 @@ export default function MonKart() {
         {/* Left Column: Cockpit Schematic (Spans 4 columns) */}
         <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 order-1 h-fit">
           <div className="flex items-center justify-center p-4 bg-card border border-border shadow-sm rounded-2xl">
-            {prof && <KartSchematic profile={prof} />}
+            {prof && <KartSchematic profile={prof} recent_sessions={sessions} />}
           </div>
           
           {prof && <KartHealthStatus profile={prof} />}
@@ -335,7 +361,7 @@ export default function MonKart() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <KartSetupPanel profile={prof} onSave={handleUpdateSetup} />
-            <KartMaintenanceLog history={history} onAddEntry={handleAddHistory} />
+            <KartMaintenanceLog history={history} onAddEntry={handleAddHistory} onDeleteEntry={handleDeleteHistoryEntry} />
           </div>
 
           <div className="mt-6">
@@ -364,6 +390,7 @@ export default function MonKart() {
                     <th className="pb-3 font-medium text-right">RPM Max</th>
                     <th className="pb-3 font-medium text-right">G Lat Max</th>
                     <th className="pb-3 font-medium text-right">Temp Max</th>
+                    <th className="pb-3 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -378,6 +405,17 @@ export default function MonKart() {
                       <td className="py-3 text-right">{log.rpmMax ? `${Math.round(log.rpmMax)} tr/min` : "-"}</td>
                       <td className="py-3 text-right">{log.gLatMax ? `${log.gLatMax.toFixed(2)} G` : "-"}</td>
                       <td className="py-3 text-right">{log.tempMax ? `${Math.round(log.tempMax)} °C` : "-"}</td>
+                      <td className="py-3 text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                          onClick={() => handleDeleteDay(log.date)}
+                          title="Supprimer cette journée"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

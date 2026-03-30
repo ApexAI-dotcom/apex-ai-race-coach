@@ -490,8 +490,10 @@ export default function Dashboard() {
 
 
   const featuredScore = featuredAnalysis 
-    ? Math.round(getDisplayScore(featuredAnalysis.performance_score)) 
+    ? Math.round(getDisplayScore(featuredAnalysis.performance_score))
     : (latestAnalysis?.score || 0);
+    
+  const isBestScore = featuredAnalysis && featuredScore >= statistics.bestScore && statistics.bestScore > 0;
     
   const featuredGrade = featuredAnalysis?.performance_score?.grade || latestAnalysis?.grade || "C";
   const featuredSessionName = featuredAnalysis?.session_conditions?.session_name || latestAnalysis?.session_name;
@@ -525,7 +527,7 @@ export default function Dashboard() {
                 onClick={() => navigate("/upload")}
               >
                 <Plus className="w-5 h-5 mr-1" />
-                <span>Nouveau</span><span className="hidden sm:inline ml-1">Analyse</span>
+                <span>Nouvelle</span><span className="hidden sm:inline ml-1">analyse</span>
               </Button>
             </div>
           </div>
@@ -544,6 +546,11 @@ export default function Dashboard() {
               <Badge className="bg-red-500/20 text-red-300 border-none mb-4 px-3 py-1">
                 SESSION LA PLUS RÉCENTE
               </Badge>
+              {isBestScore && (
+                <Badge className="bg-yellow-500/20 text-yellow-500 border-none mb-4 px-3 py-1 ml-2">
+                  <Trophy className="w-3 h-3 mr-1" /> MEILLEUR SCORE
+                </Badge>
+              )}
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-end">
                 <div>
@@ -551,7 +558,7 @@ export default function Dashboard() {
                     {featuredSessionName || featuredAnalysis?.session_conditions?.circuit_name || latestAnalysis?.circuit_name || "Session"}
                   </h3>
                   <p className="text-muted-foreground text-sm md:text-lg mb-6 uppercase tracking-widest flex items-center gap-2">
-                    {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> {(featuredAnalysis.session_type || "practice").toUpperCase()}
+                    {formatDate(featuredAnalysis.timestamp)} <span className="w-1 h-1 rounded-full bg-muted-foreground" /> {(featuredAnalysis.session_type || "practice") === "practice" ? "ESSAIS" : (featuredAnalysis.session_type || "practice") === "qualifying" ? "QUALIF" : (featuredAnalysis.session_type || "practice") === "race" ? "COURSE" : (featuredAnalysis.session_type || "practice").toUpperCase()}
                   </p>
 
                   <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 md:mb-8 max-w-2xl">
@@ -559,17 +566,17 @@ export default function Dashboard() {
                       <div className="text-sm sm:text-xl font-bold text-foreground">
                         {(featuredAnalysis?.lap_time || latestAnalysis?.lap_time || 0).toFixed(2)}s
                       </div>
-                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">Best Lap</div>
+                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">Meilleur tour</div>
                     </div>
                     <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
                       <div className="text-sm sm:text-xl font-bold text-foreground">
                         {featuredAnalysis?.corners_detected || latestAnalysis?.corner_count || 0}
                       </div>
-                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">Corners</div>
+                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">Virages</div>
                     </div>
                     <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
                       <div className="text-sm sm:text-xl font-bold text-green-500">+1.2s</div>
-                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 font-bold tracking-wider">Gain AI</div>
+                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 font-bold tracking-wider">Gain estimé</div>
                     </div>
                   </div>
 
@@ -728,7 +735,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex gap-2 mt-1">
                       <Badge variant="outline" className="text-[8px] uppercase border-white/10 bg-white/5 py-0 px-1.5">
-                        {analysis.session_type || "Practice"}
+                        {(analysis.session_type || "practice") === "practice" ? "Essais" : (analysis.session_type || "practice") === "qualifying" ? "Qualif" : (analysis.session_type || "practice") === "race" ? "Course" : analysis.session_type || "Essais"}
                       </Badge>
                       <Badge variant="outline" className="text-[8px] uppercase border-white/10 bg-white/5 py-0 px-1.5">
                         {folders.find(f => f.analysisIds.includes(analysis.id))?.name || "Racine"}
@@ -742,7 +749,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                  <div className="font-mono text-foreground font-bold text-sm">Best: {analysis.lap_time.toFixed(2)}s</div>
+                  <div className="font-mono text-foreground font-bold text-sm">Meilleur : {analysis.lap_time.toFixed(2)}s</div>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/20 hover:text-primary" onClick={(e) => { e.stopPropagation(); handleCompareAdd(analysis.id); }}><GitCompareArrows className="w-4 h-4" /></Button>
                     <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/20 hover:text-primary" onClick={(e) => { e.stopPropagation(); handleMoveAnalysisRequest(analysis.id); }}><FolderInput className="w-4 h-4" /></Button>
@@ -791,7 +798,7 @@ export default function Dashboard() {
                           analysis.session_type === 'qualifying' ? 'bg-blue-500/20 text-blue-300' : 
                           'bg-white/5 text-muted-foreground'
                         }`}>
-                          {analysis.session_type || "Practice"}
+                          {(analysis.session_type || "practice") === "practice" ? "Essais" : (analysis.session_type || "practice") === "qualifying" ? "Qualif" : (analysis.session_type || "practice") === "race" ? "Course" : analysis.session_type || "Essais"}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -971,8 +978,8 @@ export default function Dashboard() {
                     <SelectValue placeholder="Type..." />
                   </SelectTrigger>
                   <SelectContent className="bg-[#0a0a0a] border-white/10">
-                    <SelectItem value="practice">Practice</SelectItem>
-                    <SelectItem value="qualifying">Qualif</SelectItem>
+                    <SelectItem value="practice">Essais</SelectItem>
+                    <SelectItem value="qualifying">Qualifications</SelectItem>
                     <SelectItem value="race">Course</SelectItem>
                   </SelectContent>
                 </Select>

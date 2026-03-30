@@ -197,7 +197,24 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   useEffect(() => {
     fetchSubscription();
-  }, [fetchSubscription]);
+    
+    // Si on vient de payer (success=true dans l'URL), on poll pendant quelques secondes
+    // pour s'assurer que le webhook Stripe a bien mis à jour la BDD.
+    if (searchParams.get("success") === "true") {
+      const startTime = Date.now();
+      const interval = setInterval(async () => {
+        await fetchSubscription();
+        if (Date.now() - startTime > POLL_MAX_DURATION_MS) {
+          clearInterval(interval);
+          // On nettoie l'URL pour éviter de poll à nouveau au refresh
+          const newParams = new URLSearchParams(searchParams);
+          newParams.delete("success");
+          setSearchParams(newParams, { replace: true });
+        }
+      }, POLL_INTERVAL_MS);
+      return () => clearInterval(interval);
+    }
+  }, [fetchSubscription, searchParams, setSearchParams]);
 
   const incrementAnalysesUsed = useCallback(() => {
     setLimits(prev => {
