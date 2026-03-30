@@ -76,6 +76,8 @@ const BADGE_COLORS: Record<string, string> = {
 export default function SubscriberHome() {
   const navigate = useNavigate();
   const { user, session } = useAuth();
+  const { tier, fetchSubscription, isLoading: subLoading } = useSubscription();
+
   const [analyses, setAnalyses] = useState<AnalysisSummary[]>([]);
   const [objectives, setObjectives] = useState<UserObjective[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,6 +108,14 @@ export default function SubscriberHome() {
     };
     loadData();
   }, [user?.id]);
+
+  const handleRefreshStatus = async () => {
+    toast.promise(fetchSubscription(), {
+      loading: "Vérification de l'abonnement...",
+      success: "Statut mis à jour",
+      error: "Erreur lors de la mise à jour"
+    });
+  };
 
   // Load tips (public)
   useEffect(() => {
@@ -202,13 +212,31 @@ export default function SubscriberHome() {
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex justify-between items-center bg-secondary/10 p-4 rounded-2xl border border-white/5">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Salut {firstName}</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Tes performances en un coup d'œil</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-secondary/10 p-5 rounded-2xl border border-white/5 gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold shadow-lg shadow-primary/20 shrink-0">
+            {firstName.charAt(0)}
+          </div>
+          <div>
+            <h1 className="text-2xl font-display font-bold text-foreground">Salut {firstName}</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <Badge variant="outline" className={`text-[10px] uppercase border-white/10 ${tier === 'racer' || tier === 'team' ? 'bg-primary/20 text-primary border-primary/30' : 'bg-white/5 text-muted-foreground'}`}>
+                {tier === 'racer' ? 'RACER' : tier === 'team' ? 'TEAM' : 'ROOKIE'}
+              </Badge>
+              <button 
+                onClick={handleRefreshStatus}
+                className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors group"
+                disabled={subLoading}
+              >
+                <RotateCcw className={`w-3 h-3 ${subLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+                Rafraîchir
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold shadow-lg shadow-primary/20">
-          {firstName.charAt(0)}
+        <div className="hidden sm:block text-right">
+          <p className="text-xs text-muted-foreground">Analyses ce mois</p>
+          <p className="text-xl font-bold text-foreground">{analyses.length}</p>
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/api";
 
 const POLL_INTERVAL_MS = 2000;
-const POLL_MAX_DURATION_MS = 10000;
+const POLL_MAX_DURATION_MS = 60000;
 
 const SUBSCRIPTION_STORAGE_KEY = "apex_subscription_backend";
 const CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 min

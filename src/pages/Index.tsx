@@ -18,7 +18,7 @@ import heroImage from "@/assets/hero-racing.jpg";
 
 const stats = [
   { value: "12,847", label: "Tours analysés", icon: Target },
-  { value: "+0.5s", label: "Gain moyen dès la 1re session", icon: Timer },
+  { value: "+1.2s", label: "Gain moyen dès la 1re session", icon: Timer },
   { value: "99%", label: "Fiabilité des métriques", icon: TrendingUp },
 ];
 
@@ -84,7 +84,7 @@ const faqs = [
   {
     question: "Combien de temps je peux gagner avec l'analyse IA ?",
     answer:
-      "Nos utilisateurs constatent un gain moyen de 0,5 à 0,8 seconde dès la première analyse. En optimisant votre pilotage karting avec nos conseils, vous pouvez rapidement descendre sous vos records personnels.",
+      "Nos utilisateurs constatent un gain moyen de 1,2 seconde dès la première analyse. En optimisant votre pilotage karting avec nos conseils, vous pouvez rapidement descendre sous vos records personnels.",
   },
   {
     question: "Est-ce que c'est adapté aux débutants ?",
@@ -236,9 +236,9 @@ export default function Index() {
               transition={{ delay: 0.4 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <Link to={isAuthenticated ? "/upload" : "/pricing"} className="group">
+              <Link to={isAuthenticated ? "/upload" : "/login?mode=signup"} className="group">
                 <Button variant="hero" size="xl" className="group hover:bg-orange-500 hover:scale-105 hover:shadow-lg shadow-md transition-all duration-300">
-                  {isAuthenticated ? getCtaLabel(tier, subLoading) : "Commencer — 3 analyses"}
+                  {isAuthenticated ? getCtaLabel(tier, subLoading) : "S'inscrire — 3 analyses"}
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
@@ -400,9 +400,9 @@ export default function Index() {
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
                 Rejoins les 127 pilotes qui utilisent déjà APEX AI pour dominer les circuits.
               </p>
-              <Link to="/upload" className="w-full max-w-sm mx-auto block group">
+              <Link to={isAuthenticated ? "/upload" : "/login?mode=signup"} className="w-full max-w-sm mx-auto block group">
                 <Button variant="hero" size="xl" className="w-full group-hover:bg-orange-500 group-hover:scale-105 group-hover:shadow-lg transition-all duration-300">
-                  Commencer maintenant
+                  S'inscrire maintenant
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
