@@ -64,6 +64,7 @@ import {
   type HomeTip,
   type HomeInsightsResponse,
 } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
 
 // Badge color map
@@ -111,11 +112,21 @@ export default function SubscriberHome() {
   }, [user?.id]);
 
   const handleRefreshStatus = async () => {
-    toast.promise(fetchSubscription(), {
-      loading: "Vérification de l'abonnement...",
-      success: "Statut mis à jour",
-      error: "Erreur lors de la mise à jour"
-    });
+    toast.promise(
+      (async () => {
+        // 1. Force backend sync check with Stripe API
+        await fetch(`${API_BASE_URL}/api/stripe/sync`, {
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        });
+        // 2. Then refresh local subscription status
+        await fetchSubscription();
+      })(),
+      {
+        loading: "Synchronisation avec Stripe...",
+        success: "Statut mis à jour",
+        error: "Erreur lors de la synchronisation"
+      }
+    );
   };
 
   // Load tips (public)
