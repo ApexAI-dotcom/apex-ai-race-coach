@@ -1,0 +1,300 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Apex AI - API REST
+Application FastAPI principale
+Version: 1.0.0
+"""
+
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+import logging
+import time
+import os
+from pathlib import Path
+
+# Initialiser le logging avant les imports qui l'utilisent
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Redis client global (connexion propre on_shutdown)
+redis_client = None
+
+from .routes import router
+from .config import settings
+
+# Rate Limiting avec SlowAPI
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from .rate_limiter import limiter
+
+# Import du router Stripe
+try:
+    from .stripe_routes import router as stripe_router
+    logger.info("✓ Stripe router loaded successfully")
+except ImportError as e:
+    logger.warning(f"⚠ Warning: Could not import stripe router: {e}")
+    logger.warning("  Stripe endpoints will not be available")
+    stripe_router = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup / shutdown : connexion Redis"""
+    global redis_client
+    if settings.REDIS_URL:
+        try:
+            from redis.asyncio import Redis
+            redis_client = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+            await redis_client.ping()
+            logger.info("✓ Redis connected")
+        except Exception as e:
+            logger.warning(f"⚠ Redis not available: {e}")
+            redis_client = None
+    else:
+        redis_client = None
+    app.state.redis = redis_client
+    yield
+    if redis_client:
+        await redis_client.aclose()
+        logger.info("✓ Redis connection closed")
+
+
+# Créer application FastAPI
+app = FastAPI(
+    title="Apex AI API",
+    description="API d'analyse de télémétrie karting avec IA - Scoring /100 et Coaching",
+    version="1.0.0",
+    lifespan=lifespan,
+    docs_url="/docs" if (settings.ENVIRONMENT == "development" or settings.DOCS_ENABLED) else None,
+    redoc_url="/redoc" if (settings.ENVIRONMENT == "development" or settings.DOCS_ENABLED) else None
+)
+
+# Enregistrement du Rate Limiter global (mais appliqué sélectivement sur les routes)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS - lire depuis CORS_ORIGINS (env var). "*" = toutes origines (preview Vercel)
+cors_origins_str = os.environ.get("CORS_ORIGINS", "http://localhost:8080")
+if cors_origins_str.strip() == "*":
+    allow_origins = ["*"]
+else:
+    allow_origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allow_origins,
+    allow_credentials=True if "*" not in allow_origins else False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["X-Process-Time"]
+)
+
+# Compression GZip
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Ajoute des headers de sécurité HTTPS/HTTP de base sans casser le CORS ou les uploads."""
+    response = await call_next(request)
+    # Protection contre le MIME sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    # Prévention du clickjacking (désactivé si le front a besoin d'iframer, mais ici on interdit)
+    response.headers["X-Frame-Options"] = "DENY"
+    # HSTS (Hardening transport HTTPS) - 1 an
+    if settings.ENVIRONMENT == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
+# Limite taille upload (50MB par défaut, MAX_UPLOAD_SIZE en bytes)
+MAX_UPLOAD_SIZE = int(os.environ.get("MAX_UPLOAD_SIZE", 52428800))  # 50MB
+
+@app.middleware("http")
+async def limit_upload_size(request: Request, call_next):
+    """Rejeter les requêtes POST trop volumineuses avec 413 et message clair."""
+    if request.method == "POST" and "content-length" in request.headers:
+        try:
+            content_length = int(request.headers["content-length"])
+            if content_length > MAX_UPLOAD_SIZE:
+                return JSONResponse(
+                    status_code=413,
+                    content={
+                        "success": False,
+                        "error": "file_too_large",
+                        "message": (
+                            f"Fichier trop volumineux ({content_length/1024/1024:.1f}MB). "
+                            f"Limite : {MAX_UPLOAD_SIZE/1024/1024:.0f}MB. "
+                            "Astuce : exportez votre CSV en sélectionnant 1 canal sur 10 "
+                            "dans Race Studio (décimation 1:10)."
+                        )
+                    }
+                )
+        except ValueError:
+            pass
+    return await call_next(request)
+
+# Servir les images statiques (graphiques matplotlib)
+output_dir = Path(settings.OUTPUT_DIR)
+output_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/output", StaticFiles(directory=str(output_dir)), name="output")
+if settings.ENVIRONMENT == "production" and "localhost" in settings.BASE_URL:
+    logger.warning("BASE_URL points to localhost - graphiques ne s'afficheront pas en prod. Set BASE_URL on Railway/Render.")
+
+# Middleware timing et logging
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Middleware pour logger les requêtes et calculer le temps de traitement"""
+    start_time = time.time()
+    
+    logger.info(f"➡️  {request.method} {request.url.path} - {request.client.host if request.client else 'unknown'}")
+    
+    try:
+        response = await call_next(request)
+        duration = time.time() - start_time
+        
+        logger.info(
+            f"⬅️  {request.method} {request.url.path} "
+            f"- {response.status_code} - {duration:.2f}s"
+        )
+        
+        response.headers["X-Process-Time"] = str(round(duration, 3))
+        return response
+    
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(
+            f"❌ {request.method} {request.url.path} - ERROR - {duration:.2f}s: {str(e)}",
+            exc_info=True
+        )
+        raise
+
+
+# Routes
+app.include_router(router, prefix="/api/v1", tags=["analysis"])
+
+# Routes Stripe
+if stripe_router:
+    app.include_router(stripe_router)
+
+# Routes User Profile (subscription, profile)
+try:
+    from .user_routes import router as user_router
+    app.include_router(user_router)
+    logger.info("✓ User routes loaded (/api/user/subscription, /api/user/profile)")
+except ImportError as e:
+    logger.warning("⚠ User routes not loaded: %s", e)
+
+# Routes Analyses (paginated, JWT + RLS)
+try:
+    from .analyses_routes import router as analyses_router
+    app.include_router(analyses_router)
+    logger.info("✓ Analyses routes loaded (GET /api/analyses)")
+except ImportError as e:
+    logger.warning("⚠ Analyses routes not loaded: %s", e)
+
+# Routes Home (tips, insights, reset)
+try:
+    from .home_routes import router as home_router
+    app.include_router(home_router)
+    logger.info("✓ Home routes loaded (/api/home/tips, /api/home/insights)")
+except ImportError as e:
+    logger.warning("⚠ Home routes not loaded: %s", e)
+
+# Routes Mon Kart (MVP)
+try:
+    from .kart_routes import router as kart_router
+    app.include_router(kart_router)
+    logger.info("✓ Kart routes loaded (/api/kart)")
+except ImportError as e:
+    logger.warning("⚠ Kart routes not loaded: %s", e)
+
+# Routes Auth (debug temporaire)
+try:
+    from .auth import auth_router
+    app.include_router(auth_router)
+    logger.info("✓ Auth routes loaded (GET /api/auth/debug)")
+except ImportError as e:
+    logger.warning("⚠ Auth routes not loaded: %s", e)
+
+# Routes Admin (TEMPORAIRE : run-migrations)
+try:
+    from .admin_routes import router as admin_router
+    app.include_router(admin_router)
+    logger.info("✓ Admin routes loaded (POST /api/admin/run-migrations)")
+except ImportError as e:
+    logger.warning("⚠ Admin routes not loaded: %s", e)
+
+# Importer process-video depuis routes pour accès direct /api/process-video
+from .routes import process_video
+app.post("/api/process-video")(process_video)
+
+
+@app.get("/", tags=["info"])
+async def root():
+    """
+    Point d'entrée de l'API.
+    
+    Returns:
+        Informations sur l'API
+    """
+    return {
+        "name": "Apex AI API",
+        "version": "1.0.0",
+        "status": "operational",
+        "description": "API d'analyse de télémétrie karting avec IA",
+        "docs": "/docs" if (settings.ENVIRONMENT == "development" or settings.DOCS_ENABLED) else "disabled",
+        "endpoints": {
+            "analyze": "/api/v1/analyze",
+            "analyse": "/api/v1/analyse/{cache_key}",
+            "health": "/health"
+        }
+    }
+
+
+@app.get("/health", tags=["info"])
+async def health():
+    """
+    Health check endpoint.
+    En prod, commit_sha permet de vérifier la version déployée (Railway injecte RAILWAY_GIT_COMMIT_SHA).
+    """
+    commit_sha = os.environ.get("RAILWAY_GIT_COMMIT_SHA") or os.environ.get("GIT_COMMIT_SHA") or os.environ.get("VERCEL_GIT_COMMIT_SHA")
+    return {
+        "status": "healthy",
+        "version": "1.0.0",
+        "environment": settings.ENVIRONMENT,
+        "commit_sha": commit_sha[:7] if commit_sha else None,
+    }
+
+
+# Handler d'erreurs global
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Handler global pour les erreurs non capturées"""
+    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "error": "Internal server error",
+            "message": "Une erreur inattendue s'est produite"
+        }
+    )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(
+        "src.api.main:app",
+        host="0.0.0.0",
+        port=port,
+        reload=settings.ENVIRONMENT == "development"
+    )

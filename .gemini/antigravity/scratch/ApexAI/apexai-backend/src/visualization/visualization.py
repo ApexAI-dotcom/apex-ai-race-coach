@@ -1,0 +1,1213 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Apex AI - Visualization (Karting Pro)
+Création de 8 graphiques style F1 AWS pour analyse professionnelle
+"""
+
+# Backend headless OBLIGATOIRE pour Railway/Render (pas de display)
+import matplotlib
+matplotlib.use("Agg")
+
+import math
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from pathlib import Path
+from typing import Dict, Optional, Any
+import warnings
+import tempfile
+import os
+
+# Brand ApexAI Dark Theme
+BG_DARK = '#0a0a0f'
+BG_CARD = '#13131a'
+BG_PANEL = '#1a1a2e'
+COLOR_ORANGE = '#f97316'
+COLOR_PURPLE = '#8b5cf6'
+COLOR_GREEN = '#22c55e'
+COLOR_RED = '#ef4444'
+COLOR_YELLOW = '#eab308'
+COLOR_TEXT = '#e2e8f0'
+COLOR_MUTED = '#64748b'
+GRID_COLOR = '#1e293b'
+FIG_SIZE = (12, 7)
+DPI = 120
+
+# Style global matplotlib dark
+plt.rcParams.update({
+    'figure.facecolor': BG_DARK,
+    'axes.facecolor': BG_CARD,
+    'axes.edgecolor': BG_PANEL,
+    'axes.labelcolor': COLOR_TEXT,
+    'axes.titlecolor': COLOR_TEXT,
+    'xtick.color': COLOR_MUTED,
+    'ytick.color': COLOR_MUTED,
+    'text.color': COLOR_TEXT,
+    'grid.color': GRID_COLOR,
+    'grid.alpha': 0.5,
+    'legend.facecolor': BG_PANEL,
+    'legend.edgecolor': BG_PANEL,
+    'legend.labelcolor': COLOR_TEXT,
+})
+
+
+def _style_ax(ax, title: str, xlabel: str = '', ylabel: str = ''):
+    """Applique le dark theme brand ApexAI sur un axe."""
+    ax.set_facecolor(BG_CARD)
+    ax.set_title(title, color=COLOR_TEXT, fontsize=15, fontweight='bold', pad=12)
+    if xlabel:
+        ax.set_xlabel(xlabel, color=COLOR_MUTED, fontsize=11)
+    if ylabel:
+        ax.set_ylabel(ylabel, color=COLOR_MUTED, fontsize=11)
+    ax.tick_params(colors=COLOR_MUTED)
+    ax.grid(True, color=GRID_COLOR, alpha=0.5, linestyle='--', linewidth=0.8)
+    for spine in ax.spines.values():
+        spine.set_edgecolor(BG_PANEL)
+
+
+def downsample_array(arr, max_points: int = 250):
+    if arr is None or len(arr) <= max_points:
+        return arr
+    indices = np.linspace(0, len(arr) - 1, max_points, dtype=int)
+    if isinstance(arr, list):
+        return [arr[i] for i in indices]
+    elif isinstance(arr, np.ndarray):
+        return arr[indices].tolist()
+    else:
+        if hasattr(arr, 'iloc'):
+            return arr.iloc[indices].tolist()
+        return list(np.array(arr)[indices])
+
+
+def _calculate_scores(df: pd.DataFrame) -> Dict[str, float]:
+    """
+    Calcule les 5 scores (0-100) pour le radar chart.
+    
+    Args:
+        df: DataFrame avec colonnes nécessaires
+    
+    Returns:
+        Dictionnaire avec scores : apex_precision, speed_efficiency, consistency, braking, racing_line
+    """
+    scores = {
+        'apex_precision': 75.0,
+        'speed_efficiency': 80.0,
+        'consistency': 85.0,
+        'braking': 70.0,
+        'racing_line': 75.0
+    }
+    
+    try:
+        # 1. Apex Precision (si corner_details disponible)
+        if 'corners' in df.attrs and 'corner_details' in df.attrs['corners']:
+            corner_details = df.attrs['corners']['corner_details']
+            if corner_details:
+                # Calculer score basé sur la précision (moins de déviation = mieux)
+                # Score de base, sera amélioré si apex_deviation disponible
+                scores['apex_precision'] = 85.0
+        
+        # 2. Speed Efficiency
+        if 'corners' in df.attrs and 'corner_details' in df.attrs['corners']:
+            corner_details = df.attrs['corners']['corner_details']
+            if corner_details:
+                efficiencies = [c.get('speed_efficiency_pct', 80.0) for c in corner_details 
+                               if 'speed_efficiency_pct' in c]
+                if efficiencies:
+                    scores['speed_efficiency'] = float(np.mean(efficiencies))
+        
+        # 3. Consistency (si multi-tours, sinon valeur par défaut)
+        if 'time' in df.columns and len(df) > 10:
+            # Simplifié : score fixe pour single-lap
+            scores['consistency'] = 85.0
+        
+        # 4. Braking (score basé sur ratio throttle/brake)
+        if 'throttle' in df.columns and 'brake' in df.columns:
+            throttle = pd.to_numeric(df['throttle'], errors='coerce').fillna(0).values
+            brake = pd.to_numeric(df['brake'], errors='coerce').fillna(0).values
+            
+            # Score = % du temps où brake est utilisé de manière optimale
+            brake_ratio = np.sum(brake > 20) / len(brake) if len(brake) > 0 else 0.5
+            scores['braking'] = float(min(100, brake_ratio * 100 * 1.5))
+        
+        # 5. Racing Line (basé sur variance curvature)
+        if 'curvature' in df.columns:
+            curvature = pd.to_numeric(df['curvature'], errors='coerce').fillna(0).values
+            curvature_variance = np.var(np.abs(curvature))
+            # Moins de variance = ligne plus stable = meilleur score
+            scores['racing_line'] = float(max(50, 100 - curvature_variance * 10000))
+    
+    except Exception as e:
+        warnings.warn(f"Warning: Erreur calcul scores : {str(e)}")
+    
+    return scores
+
+
+def plot_trajectory_2d(df: pd.DataFrame, save_path: str) -> bool:
+    try:
+        required_cols = ['longitude_smooth', 'latitude_smooth', 'speed']
+        if not all(col in df.columns for col in required_cols):
+            return False
+        
+        lon = pd.to_numeric(df['longitude_smooth'], errors='coerce').values
+        lat = pd.to_numeric(df['latitude_smooth'], errors='coerce').values
+        speed = pd.to_numeric(df['speed'], errors='coerce').values
+        
+        fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI)
+        fig.patch.set_facecolor(BG_DARK)
+        ax.set_facecolor(BG_DARK)
+        
+        # Trajectoire colorée par vitesse
+        points = np.array([lon, lat]).T.reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        from matplotlib.collections import LineCollection
+        from matplotlib.colors import LinearSegmentedColormap
+        
+        # Colormap brand : violet → orange → vert
+        cmap = LinearSegmentedColormap.from_list(
+            'apex', [COLOR_PURPLE, COLOR_ORANGE, COLOR_GREEN]
+        )
+        lc = LineCollection(segments, cmap=cmap, linewidth=2.5, alpha=0.9)
+        lc.set_array(speed)
+        ax.add_collection(lc)
+        ax.autoscale()
+        
+        # Apex markers : un seul marqueur + label par corner_id (pas un par passage)
+        corner_analysis = df.attrs.get('corner_analysis', [])
+        if corner_analysis:
+            plotted_ids = set()
+            for corner in corner_analysis:
+                cid = corner.get('corner_id')
+                apex_lat = corner.get('apex_lat')
+                apex_lon = corner.get('apex_lon')
+                if cid is None or apex_lat is None or apex_lon is None or cid in plotted_ids:
+                    continue
+                plotted_ids.add(cid)
+                ax.scatter(apex_lon, apex_lat, marker='*', s=180,
+                          color=COLOR_ORANGE, edgecolors=BG_DARK,
+                          linewidths=0.8, zorder=10)
+                ax.annotate(f'V{int(cid)}', xy=(apex_lon, apex_lat),
+                           xytext=(4, 6), textcoords='offset points',
+                           fontsize=8, color=COLOR_ORANGE, fontweight='bold')
+        elif 'is_apex' in df.columns and 'corner_id' in df.columns:
+            from collections import defaultdict
+            apex_mask = df['is_apex'].fillna(False)
+            if apex_mask.any():
+                by_cid = defaultdict(list)
+                for i in np.where(apex_mask.values)[0]:
+                    cid = df.iloc[i]['corner_id']
+                    if pd.notna(cid):
+                        by_cid[int(cid)].append((lon[i], lat[i]))
+                plotted_ids = set()
+                for cid, points in by_cid.items():
+                    if cid in plotted_ids or not points:
+                        continue
+                    plotted_ids.add(cid)
+                    med_lon = np.median([p[0] for p in points])
+                    med_lat = np.median([p[1] for p in points])
+                    ax.scatter(med_lon, med_lat, marker='*', s=180,
+                              color=COLOR_ORANGE, edgecolors=BG_DARK,
+                              linewidths=0.8, zorder=10)
+                    ax.annotate(f'V{cid}', xy=(med_lon, med_lat),
+                               xytext=(4, 6), textcoords='offset points',
+                               fontsize=8, color=COLOR_ORANGE, fontweight='bold')
+        
+        # Start / Finish
+        ax.scatter(lon[0], lat[0], s=120, color=COLOR_GREEN, 
+                  marker='o', edgecolors=BG_DARK, zorder=11, label='Départ')
+        ax.scatter(lon[-1], lat[-1], s=120, color=COLOR_RED, 
+                  marker='s', edgecolors=BG_DARK, zorder=11, label='Arrivée')
+        
+        cbar = plt.colorbar(lc, ax=ax)
+        cbar.set_label('Vitesse (km/h)', color=COLOR_MUTED, fontsize=10)
+        cbar.ax.yaxis.set_tick_params(color=COLOR_MUTED)
+        plt.setp(cbar.ax.yaxis.get_ticklabels(), color=COLOR_MUTED)
+        cbar.outline.set_edgecolor(BG_PANEL)
+        
+        _style_ax(ax, 'Kart Trajectoire GPS — Circuit Complet', 'Longitude', 'Latitude')
+        ax.set_aspect('equal')
+        ax.legend(facecolor=BG_PANEL, edgecolor=BG_PANEL, labelcolor=COLOR_TEXT, fontsize=9)
+        
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_trajectory_2d : {e}")
+        return False
+
+
+def plot_lap_comparison(df: pd.DataFrame, save_path: str) -> bool:
+    """Si plusieurs tours : scatter score/vitesse par virage par tour. Sinon : courbe vitesse avec zones virages colorées par score."""
+    try:
+        corner_analysis = df.attrs.get('corner_analysis', [])
+        laps_analyzed = 1
+        if 'lap_number' in df.columns:
+            laps_analyzed = int(df['lap_number'].nunique())
+        if laps_analyzed > 1 and corner_analysis:
+            x_corner, y_val, lap_ids = [], [], []
+            for c in corner_analysis:
+                cid = c.get('corner_id', 0)
+                per_lap = c.get('per_lap_data') or []
+                for pl in per_lap:
+                    lap = pl.get('lap', 0)
+                    speed = pl.get('apex_speed_kmh') or 0
+                    x_corner.append(cid)
+                    y_val.append(speed)
+                    lap_ids.append(lap)
+            if not x_corner:
+                return False
+            fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI)
+            fig.patch.set_facecolor(BG_DARK)
+            laps_u = sorted(set(lap_ids))
+            colors = [COLOR_ORANGE, COLOR_PURPLE, COLOR_GREEN, COLOR_YELLOW][:len(laps_u)]
+            for i, lap in enumerate(laps_u):
+                mask = [l == lap for l in lap_ids]
+                ax.scatter([x_corner[j] for j in range(len(mask)) if mask[j]],
+                           [y_val[j] for j in range(len(mask)) if mask[j]],
+                           label=f'Tour {lap}', color=colors[i % len(colors)], alpha=0.8, s=40)
+            ax.set_xticks(sorted(set(x_corner)))
+            ax.set_xticklabels([f'V{x}' for x in sorted(set(x_corner))], color=COLOR_TEXT)
+            ax.legend(fontsize=9)
+            _style_ax(ax, 'Stats Comparaison tours — Vitesse apex par virage', 'Virage', 'Vitesse apex (km/h)')
+            fig.tight_layout()
+            plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+            plt.close(fig)
+            return True
+        if 'cumulative_distance' in df.columns and 'speed' in df.columns:
+            dist = pd.to_numeric(df['cumulative_distance'], errors='coerce').values
+            speed = pd.to_numeric(df['speed'], errors='coerce').values
+            fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI)
+            fig.patch.set_facecolor(BG_DARK)
+            ax.plot(dist, speed, color=COLOR_ORANGE, linewidth=1.5, alpha=0.9)
+            scores_by_cid = {c.get('corner_id'): c.get('score', 50) for c in corner_analysis}
+            if 'corner_id' in df.columns and scores_by_cid:
+                for cid, score in scores_by_cid.items():
+                    mask = (df['corner_id'].values == cid)
+                    if mask.any():
+                        d = dist[mask]
+                        if len(d) > 0:
+                            ax.axvspan(d.min(), d.max(), alpha=0.2, color=COLOR_GREEN if score >= 70 else COLOR_ORANGE if score >= 50 else COLOR_RED)
+            _style_ax(ax, 'Stats Vitesse cumulée — Zones virages colorées par score', 'Distance (m)', 'Vitesse (km/h)')
+            fig.tight_layout()
+            plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+            plt.close(fig)
+            return True
+        return False
+    except Exception as e:
+        warnings.warn(f"Warning: plot_lap_comparison : {e}")
+        return False
+
+
+def plot_lateral_g_chart(df: pd.DataFrame, save_path: str) -> bool:
+    try:
+        # Utiliser colonnes directes du df (plus df.attrs)
+        if 'corner_id' not in df.columns or 'lateral_g' not in df.columns:
+            # Fallback : essayer lateral_g depuis colonnes disponibles
+            if 'lateral_g' not in df.columns:
+                warnings.warn("Warning: lateral_g manquant pour lateral_g_chart")
+                return False
+        
+        # Agréger G max par virage
+        g_col = 'lateral_g' if 'lateral_g' in df.columns else 'lateral_g_smooth'
+        corner_col = 'corner_id' if 'corner_id' in df.columns else None
+        
+        if corner_col:
+            corner_df = df[df['corner_id'] > 0].copy()
+            corner_df['lateral_g_abs'] = pd.to_numeric(corner_df[g_col], errors='coerce').abs()
+            grouped = corner_df.groupby('corner_id')['lateral_g_abs'].max().reset_index()
+            corner_ids = grouped['corner_id'].tolist()
+            max_g = grouped['lateral_g_abs'].tolist()
+        else:
+            return False
+        
+        colors = [COLOR_GREEN if g < 1.5 else COLOR_ORANGE if g < 2.0 else COLOR_RED 
+                 for g in max_g]
+        
+        fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI)
+        fig.patch.set_facecolor(BG_DARK)
+        
+        bars = ax.bar(corner_ids, max_g, color=colors, alpha=0.85, 
+                     edgecolor=BG_DARK, linewidth=0.5, width=0.7)
+        
+        ax.axhline(y=2.0, color=COLOR_ORANGE, linestyle='--', linewidth=1.5, 
+                  alpha=0.7, label='Limite conseillée (2.0g)')
+        ax.axhline(y=1.5, color=COLOR_GREEN, linestyle='--', linewidth=1.5, 
+                  alpha=0.7, label='Target optimal (1.5g)')
+        
+        for cid, g in zip(corner_ids, max_g):
+            ax.text(cid, g + 0.03, f'{g:.1f}g', ha='center', 
+                   va='bottom', fontsize=8, color=COLOR_MUTED)
+        
+        _style_ax(ax, 'G-Force G Latéral — Par Virage', 'Virage', 'G latéral (g)')
+        ax.legend(fontsize=9)
+        
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_lateral_g_chart : {e}")
+        return False
+
+
+def plot_speed_trace(df: pd.DataFrame, save_path: str) -> bool:
+    try:
+        if 'cumulative_distance' not in df.columns or 'speed' not in df.columns:
+            return False
+        
+        dist = pd.to_numeric(df['cumulative_distance'], errors='coerce').values
+        speed = pd.to_numeric(df['speed'], errors='coerce').values
+        
+        fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI)
+        fig.patch.set_facecolor(BG_DARK)
+        
+        # Zones virages en fond
+        if 'corner_id' in df.columns:
+            corner_ids = df['corner_id'].values
+            in_corner = False
+            start_d = 0
+            for i, cid in enumerate(corner_ids):
+                if cid > 0 and not in_corner:
+                    start_d = dist[i]
+                    in_corner = True
+                elif cid == 0 and in_corner:
+                    ax.axvspan(start_d, dist[i], alpha=0.12, 
+                              color=COLOR_PURPLE, zorder=0)
+                    in_corner = False
+        
+        # Ligne vitesse avec gradient d'épaisseur
+        ax.plot(dist, speed, color=COLOR_ORANGE, linewidth=2, 
+               alpha=0.9, label='Vitesse', zorder=2)
+        ax.fill_between(dist, 0, speed, color=COLOR_ORANGE, alpha=0.08, zorder=1)
+        
+        # Vitesse moyenne
+        avg = np.nanmean(speed)
+        ax.axhline(y=avg, color=COLOR_PURPLE, linestyle='--', 
+                  linewidth=1.2, alpha=0.7, 
+                  label=f'Moyenne {avg:.0f} km/h')
+        
+        # Apex markers
+        if 'is_apex' in df.columns:
+            apex_mask = df['is_apex'] == True
+            if apex_mask.any():
+                apex_d = dist[apex_mask.values]
+                apex_s = speed[apex_mask.values]
+                ax.scatter(apex_d, apex_s, marker='v', s=80, 
+                          color=COLOR_ORANGE, edgecolors=BG_DARK,
+                          linewidths=0.5, zorder=5, label='Apex')
+        
+        # Secteurs
+        if len(dist) > 0 and not np.isnan(dist[-1]):
+            total = dist[-1]
+            for frac, label in [(1/3, 'S1'), (2/3, 'S2')]:
+                ax.axvline(x=total*frac, color=COLOR_MUTED, 
+                          linestyle=':', alpha=0.4, linewidth=1)
+            for frac, label in [(1/6, 'S1'), (1/2, 'S2'), (5/6, 'S3')]:
+                ypos = np.nanmax(speed) * 0.95
+                ax.text(total*frac, ypos, label, ha='center', 
+                       fontsize=10, color=COLOR_MUTED,
+                       bbox=dict(boxstyle='round,pad=0.2', 
+                                facecolor=BG_PANEL, alpha=0.8,
+                                edgecolor='none'))
+        
+        _style_ax(ax, 'Trace Trace de Vitesse — Tour Complet', 
+                 'Distance (m)', 'Vitesse (km/h)')
+        ax.legend(fontsize=9)
+        
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_speed_trace : {e}")
+        return False
+
+
+def plot_throttle_brake(df: pd.DataFrame, save_path: str) -> bool:
+    try:
+        if 'cumulative_distance' not in df.columns:
+            return False
+        if 'throttle' not in df.columns or 'brake' not in df.columns:
+            # Simuler depuis vitesse si pas de throttle/brake
+            if 'speed' not in df.columns:
+                return False
+            dist = pd.to_numeric(df['cumulative_distance'], errors='coerce').values
+            speed = pd.to_numeric(df['speed'], errors='coerce').values
+            speed_diff = np.gradient(speed)
+            throttle = np.clip(speed_diff * 20, 0, 100)
+            brake = np.clip(-speed_diff * 20, 0, 100)
+        else:
+            dist = pd.to_numeric(df['cumulative_distance'], errors='coerce').values
+            throttle = pd.to_numeric(df['throttle'], errors='coerce').fillna(0).values
+            brake = pd.to_numeric(df['brake'], errors='coerce').fillna(0).values
+        
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=FIG_SIZE, dpi=DPI, 
+                                        sharex=True, height_ratios=[1, 1])
+        fig.patch.set_facecolor(BG_DARK)
+        
+        # Throttle
+        ax1.fill_between(dist, 0, throttle, color=COLOR_GREEN, alpha=0.7)
+        ax1.plot(dist, throttle, color=COLOR_GREEN, linewidth=1.2)
+        _style_ax(ax1, 'Throttle Accelerateur', ylabel='% Gaz')
+        ax1.set_ylim(0, 110)
+        
+        # Brake
+        ax2.fill_between(dist, 0, brake, color=COLOR_RED, alpha=0.7)
+        ax2.plot(dist, brake, color=COLOR_RED, linewidth=1.2)
+        _style_ax(ax2, 'Brake Freinage', 'Distance (m)', '% Frein')
+        ax2.set_ylim(0, 110)
+        
+        # Apex markers sur les deux
+        if 'is_apex' in df.columns:
+            apex_mask = df['is_apex'] == True
+            if apex_mask.any():
+                apex_d = dist[apex_mask.values]
+                for ad in apex_d:
+                    ax1.axvline(x=ad, color=COLOR_ORANGE, 
+                               linestyle=':', alpha=0.4, linewidth=1)
+                    ax2.axvline(x=ad, color=COLOR_ORANGE, 
+                               linestyle=':', alpha=0.4, linewidth=1)
+        
+        fig.suptitle('Inputs Throttle & Brake — Application', 
+                    color=COLOR_TEXT, fontsize=15, fontweight='bold')
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_throttle_brake : {e}")
+        return False
+
+
+def plot_sector_times(df: pd.DataFrame, save_path: str) -> bool:
+    try:
+        if 'cumulative_distance' not in df.columns or 'time' not in df.columns:
+            return False
+        
+        dist = pd.to_numeric(df['cumulative_distance'], errors='coerce').values
+        time = pd.to_numeric(df['time'], errors='coerce').values
+        
+        if len(dist) == 0 or np.isnan(dist[-1]):
+            return False
+        
+        total_dist = dist[-1]
+        s1_idx = np.argmin(np.abs(dist - total_dist/3))
+        s2_idx = np.argmin(np.abs(dist - 2*total_dist/3))
+        
+        s1 = float(time[s1_idx] - time[0])
+        s2 = float(time[s2_idx] - time[s1_idx])
+        s3 = float(time[-1] - time[s2_idx])
+        sector_times = [s1, s2, s3]
+        optimal_times = [t * 0.95 for t in sector_times]
+        
+        fig, ax = plt.subplots(figsize=(10, 6), dpi=DPI)
+        fig.patch.set_facecolor(BG_DARK)
+        
+        x = np.arange(3)
+        w = 0.35
+        bars1 = ax.bar(x - w/2, sector_times, w, 
+                      label='Votre temps', color=COLOR_PURPLE, 
+                      alpha=0.85, edgecolor=BG_DARK, linewidth=0.5)
+        bars2 = ax.bar(x + w/2, optimal_times, w, 
+                      label='Optimal (-5%)', color=COLOR_GREEN, 
+                      alpha=0.6, edgecolor=BG_DARK, linewidth=0.5)
+        
+        total = time[-1] - time[0]
+        for i, (t, opt) in enumerate(zip(sector_times, optimal_times)):
+            delta = t - opt
+            ax.text(i, max(t, opt) + total*0.01, 
+                   f'+{delta:.2f}s', ha='center', 
+                   va='bottom', fontsize=10, 
+                   color=COLOR_ORANGE, fontweight='bold')
+        
+        _style_ax(ax, 'Time Analyse Secteurs — Temps Comparés', 
+                 'Secteur', 'Temps (s)')
+        ax.set_xticks(x)
+        ax.set_xticklabels(['S1', 'S2', 'S3'], color=COLOR_TEXT, fontsize=12)
+        ax.legend(fontsize=9)
+        
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_sector_times : {e}")
+        return False
+
+
+def plot_apex_precision(df: pd.DataFrame, save_path: str) -> bool:
+    try:
+        # Utiliser corner_id et apex_distance_error depuis df si dispo
+        if 'corner_id' not in df.columns:
+            return False
+        
+        # Agréger par virage : apex_distance_error ou écart de vitesse
+        corner_ids = []
+        deviations = []
+        
+        if 'apex_distance_error' in df.columns:
+            grp = df[df['corner_id'] > 0].groupby('corner_id')['apex_distance_error'].mean()
+            corner_ids = grp.index.tolist()
+            deviations = grp.values.tolist()
+        elif 'is_apex' in df.columns and 'speed' in df.columns:
+            # Fallback : écart vitesse apex par virage
+            apex_df = df[df['is_apex'] == True]
+            if 'apex_speed_optimal' in df.columns:
+                for cid, grp in apex_df.groupby('corner_id'):
+                    real = grp['speed'].mean()
+                    opt = grp['apex_speed_optimal'].mean() if 'apex_speed_optimal' in grp else real
+                    corner_ids.append(cid)
+                    deviations.append(abs(opt - real) * 0.1)
+            else:
+                return False
+        else:
+            return False
+        
+        if not corner_ids:
+            return False
+        
+        colors = [COLOR_GREEN if d < 1.0 else COLOR_ORANGE if d < 2.5 else COLOR_RED 
+                 for d in deviations]
+        
+        fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI)
+        fig.patch.set_facecolor(BG_DARK)
+        
+        y_pos = range(len(corner_ids))
+        bars = ax.barh(list(y_pos), deviations, color=colors, 
+                      alpha=0.85, edgecolor=BG_DARK, linewidth=0.5)
+        
+        ax.axvline(x=1.0, color=COLOR_GREEN, linestyle='--', 
+                  linewidth=1.5, alpha=0.7, label='Excellent (<1m)')
+        ax.axvline(x=2.5, color=COLOR_ORANGE, linestyle='--', 
+                  linewidth=1.5, alpha=0.7, label='Acceptable (<2.5m)')
+        
+        ax.set_yticks(list(y_pos))
+        ax.set_yticklabels([f'V{cid}' for cid in corner_ids], 
+                          color=COLOR_TEXT, fontsize=9)
+        
+        for pos, (cid, dev) in enumerate(zip(corner_ids, deviations)):
+            ax.text(dev + 0.05, pos, f'{dev:.1f}m', 
+                   va='center', fontsize=8, color=COLOR_MUTED)
+        
+        _style_ax(ax, 'Apex Précision Apex — Écart par Virage', 
+                 'Écart (m)', '')
+        ax.legend(fontsize=9)
+        
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_apex_precision : {e}")
+        return False
+
+
+def plot_time_loss_by_corner(df: pd.DataFrame, save_path: str) -> bool:
+    """Barres horizontales : temps perdu par virage (time_lost * laps_analyzed), trié du plus grand au plus petit. Rouge >0.1s, orange 0.05–0.1s, vert <0.05s."""
+    try:
+        corner_analysis = df.attrs.get('corner_analysis', [])
+        if not corner_analysis:
+            return False
+        laps_analyzed = int(df['lap_number'].nunique()) if 'lap_number' in df.columns else 1
+        labels = []
+        times = []
+        for c in corner_analysis:
+            cid = c.get('corner_id', 0)
+            tl = float(c.get('time_lost', 0) or 0) * max(1, laps_analyzed)
+            labels.append(f"V{cid}")
+            times.append(tl)
+        order = np.argsort(times)[::-1]
+        labels = [labels[i] for i in order]
+        times = [times[i] for i in order]
+        colors = [COLOR_RED if t > 0.1 else COLOR_ORANGE if t > 0.05 else COLOR_GREEN for t in times]
+        fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI)
+        fig.patch.set_facecolor(BG_DARK)
+        y_pos = range(len(labels))
+        ax.barh(list(y_pos), times, color=colors, alpha=0.85, height=0.7)
+        ax.set_yticks(list(y_pos))
+        ax.set_yticklabels(labels, color=COLOR_TEXT, fontsize=10)
+        for i, t in enumerate(times):
+            if t > 0:
+                ax.text(t + 0.005, i, f'{t:.3f}s', va='center', fontsize=8, color=COLOR_MUTED)
+        _style_ax(ax, 'Time Temps perdu par virage — Priorités', 'Temps perdu (s)', '')
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_time_loss_by_corner : {e}")
+        return False
+
+
+def plot_speed_delta_by_corner(df: pd.DataFrame, save_path: str) -> bool:
+    """Barres : apex_speed_optimal - apex_speed_real (km/h) par virage."""
+    try:
+        corner_analysis = df.attrs.get('corner_analysis', [])
+        if not corner_analysis:
+            return False
+        labels = [f"V{c.get('corner_id', 0)}" for c in corner_analysis]
+        deltas = []
+        for c in corner_analysis:
+            opt = float(c.get('apex_speed_optimal', 0) or 0)
+            real = float(c.get('apex_speed_real', 0) or 0)
+            deltas.append(opt - real)
+        colors = [COLOR_RED if d > 10 else COLOR_ORANGE if d > 5 else COLOR_GREEN for d in deltas]
+        fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI)
+        fig.patch.set_facecolor(BG_DARK)
+        x_pos = range(len(labels))
+        ax.bar(x_pos, deltas, color=colors, alpha=0.85, width=0.7)
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels(labels, color=COLOR_TEXT, fontsize=10)
+        ax.axhline(y=0, color=COLOR_MUTED, linestyle='-', linewidth=0.8)
+        for i, d in enumerate(deltas):
+            if abs(d) >= 0.5:
+                ax.text(i, d + (0.5 if d >= 0 else -0.5), f'{d:+.1f}', ha='center', va='bottom' if d >= 0 else 'top', fontsize=8, color=COLOR_MUTED)
+        _style_ax(ax, 'Trace Vitesse apex — Marge par virage (optimal − réel)', '', 'km/h')
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_speed_delta_by_corner : {e}")
+        return False
+
+
+def plot_corner_performance_matrix(df: pd.DataFrame, save_path: str) -> bool:
+    """Heatmap : virages en colonnes, métriques en lignes (Vitesse Apex %, Précision Apex, G Latéral, Temps Perdu). Vert/orange/rouge."""
+    try:
+        corner_analysis = df.attrs.get('corner_analysis', [])
+        if not corner_analysis:
+            return False
+        row_labels = ['Vitesse Apex %', 'Précision Apex', 'G Latéral', 'Temps Perdu']
+        col_labels = [f"V{c.get('corner_id', 0)}" for c in corner_analysis]
+        data = []
+        for _ in row_labels:
+            data.append([0.0] * len(corner_analysis))
+        for j, c in enumerate(corner_analysis):
+            eff = float(c.get('speed_efficiency', 0) or 0)
+            data[0][j] = min(100, max(0, eff))
+            err = float(c.get('apex_distance_error', 0) or 0)
+            data[1][j] = max(0, 100 - err * 2)
+            data[2][j] = float(c.get('lateral_g_max', 0) or 0) * 50
+            data[3][j] = max(0, 100 - float(c.get('time_lost', 0) or 0) * 200)
+        data = np.array(data)
+        fig, ax = plt.subplots(figsize=(max(8, len(col_labels) * 1.2), 5), dpi=DPI)
+        fig.patch.set_facecolor(BG_DARK)
+        im = ax.imshow(data, aspect='auto', cmap='RdYlGn', vmin=0, vmax=100)
+        ax.set_xticks(range(len(col_labels)))
+        ax.set_xticklabels(col_labels, color=COLOR_TEXT, fontsize=9)
+        ax.set_yticks(range(len(row_labels)))
+        ax.set_yticklabels(row_labels, color=COLOR_TEXT, fontsize=10)
+        plt.colorbar(im, ax=ax, label='Score 0-100')
+        _style_ax(ax, 'Matrix Matrice performance par virage', '', '')
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_corner_performance_matrix : {e}")
+        return False
+
+
+def plot_performance_radar(df: pd.DataFrame, save_path: str) -> bool:
+    try:
+        if 'score_data' not in df.attrs:
+            return False
+        score_data = df.attrs['score_data']
+        breakdown = score_data.get('breakdown', {})
+        apex = min(100, breakdown.get('apex_precision', 0) / 30 * 100)
+        consistency = min(100, breakdown.get('trajectory_consistency', 0) / 25 * 100)
+        speed = min(100, breakdown.get('apex_speed', 0) / 25 * 100)
+        sectors = min(100, breakdown.get('sector_times', 0) / 20 * 100)
+        overall = score_data.get('overall_score')
+        if overall is None:
+            overall = sum(breakdown.values()) if breakdown else (apex + consistency + speed + sectors) / 4
+        
+        categories = ['Précision\nApex', 'Régularité', 'Vitesse\nApex', 'Secteurs']
+        values = [apex, consistency, speed, sectors]
+        
+        angles = np.linspace(0, 2*np.pi, len(categories), endpoint=False).tolist()
+        values_plot = values + values[:1]
+        angles_plot = angles + angles[:1]
+        
+        fig, ax = plt.subplots(figsize=(9, 9), dpi=DPI, 
+                              subplot_kw=dict(projection='polar'))
+        fig.patch.set_facecolor(BG_DARK)
+        ax.set_facecolor(BG_DARK)
+        
+        # Grille
+        ax.set_ylim(0, 100)
+        ax.set_yticks([25, 50, 75, 100])
+        ax.set_yticklabels(['25', '50', '75', '100'], 
+                          color=COLOR_MUTED, fontsize=8)
+        ax.grid(True, color=GRID_COLOR, alpha=0.6, linestyle='--')
+        ax.spines['polar'].set_color(BG_PANEL)
+        
+        # Fill gradient
+        ax.fill(angles_plot, values_plot, color=COLOR_PURPLE, alpha=0.2)
+        ax.plot(angles_plot, values_plot, color=COLOR_ORANGE, 
+               linewidth=2.5, marker='o', markersize=6,
+               markerfacecolor=COLOR_ORANGE, markeredgecolor=BG_DARK)
+        
+        ax.set_xticks(angles)
+        ax.set_xticklabels(categories, color=COLOR_TEXT, fontsize=11)
+        
+        # Score au centre
+        ax.text(0, -35, f'{overall:.0f}', ha='center', va='center',
+               fontsize=32, fontweight='bold', color=COLOR_ORANGE,
+               transform=ax.transData)
+        ax.text(0, -55, '/100', ha='center', va='center',
+               fontsize=14, color=COLOR_MUTED,
+               transform=ax.transData)
+        
+        ax.set_title('Performance Performance Radar', color=COLOR_TEXT, 
+                    fontsize=15, fontweight='bold', pad=20)
+        
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_performance_radar : {e}")
+        return False
+
+
+def plot_performance_score_breakdown(df: pd.DataFrame, save_path: str) -> bool:
+    try:
+        if 'score_data' not in df.attrs:
+            return False
+        score_data = df.attrs['score_data']
+        breakdown = score_data.get('breakdown', {})
+        overall = score_data.get('overall_score')
+        if overall is None:
+            overall = sum(breakdown.values()) if breakdown else 0.0
+        grade = score_data.get('grade', 'C')
+
+        categories = ['Précision Apex', 'Régularité', 'Vitesse Apex', 'Temps Secteurs']
+        values = [
+            breakdown.get('apex_precision', 0.0),
+            breakdown.get('trajectory_consistency', 0.0),
+            breakdown.get('apex_speed', 0.0),
+            breakdown.get('sector_times', 0.0)
+        ]
+        conditions_bonus = float(breakdown.get('conditions_bonus', 0))
+        if conditions_bonus > 0:
+            categories.append(f"Bonus conditions (+{int(conditions_bonus)}pts)")
+            values.append(conditions_bonus)
+        sum_values = sum(values)
+        if abs(sum_values - overall) > 1.0:
+            warnings.warn(f"plot_performance_score_breakdown: sum(breakdown)={sum_values:.1f} != overall={overall:.1f}")
+        max_scores = [30.0, 25.0, 25.0, 20.0]
+        if conditions_bonus > 0:
+            max_scores.append(conditions_bonus)
+        pcts = [v/m*100 for v, m in zip(values, max_scores)]
+        colors = [COLOR_GREEN if p >= 70 else COLOR_ORANGE if p >= 50 else COLOR_RED 
+                 for p in pcts]
+        if conditions_bonus > 0:
+            colors[-1] = COLOR_GREEN
+        fig, ax = plt.subplots(figsize=(10, 6), dpi=DPI)
+        fig.patch.set_facecolor(BG_DARK)
+        y_pos = range(len(categories))
+        ax.barh(list(y_pos), max_scores, color=BG_PANEL, 
+               alpha=0.5, edgecolor='none', height=0.6)
+        ax.barh(list(y_pos), values, color=colors, 
+                alpha=0.85, edgecolor='none', height=0.6)
+        ax.set_yticks(list(y_pos))
+        ax.set_yticklabels(categories, color=COLOR_TEXT, fontsize=11)
+        for pos, (v, m, p) in enumerate(zip(values, max_scores, pcts)):
+            if conditions_bonus > 0 and pos == len(values) - 1:
+                ax.text(m + 0.3, pos, f'+{int(v)} pts', va='center', fontsize=9, color=COLOR_MUTED)
+            else:
+                ax.text(m + 0.3, pos, f'{v:.1f}/{m:.0f} ({p:.0f}%)', 
+                       va='center', fontsize=9, color=COLOR_MUTED)
+        color_grade = COLOR_GREEN if overall >= 80 else COLOR_ORANGE if overall >= 60 else COLOR_RED
+        ax.text(0.98, 0.95, f'{overall:.0f}/100', transform=ax.transAxes,
+               fontsize=28, fontweight='bold', color=color_grade,
+               ha='right', va='top')
+        ax.text(0.98, 0.82, f'Grade {grade}', transform=ax.transAxes,
+               fontsize=14, color=COLOR_MUTED, ha='right', va='top')
+        _style_ax(ax, 'Stats Score de Performance — Breakdown', 
+                 'Points', '')
+        ax.set_xlim(0, max(max_scores) * 1.3)
+        
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_performance_score_breakdown : {e}")
+        return False
+
+
+def plot_corner_heatmap(df: pd.DataFrame, save_path: str) -> bool:
+    try:
+        lon_col = 'longitude_smooth' if 'longitude_smooth' in df.columns else 'longitude'
+        lat_col = 'latitude_smooth' if 'latitude_smooth' in df.columns else 'latitude'
+        if lon_col not in df.columns or lat_col not in df.columns:
+            return False
+        lon_all = pd.to_numeric(df[lon_col], errors='coerce').values
+        lat_all = pd.to_numeric(df[lat_col], errors='coerce').values
+
+        fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI)
+        fig.patch.set_facecolor(BG_DARK)
+        ax.set_facecolor(BG_DARK)
+
+        # 1. Trajectoire GPS complète en fond (fine, sombre)
+        ax.plot(lon_all, lat_all, color=BG_PANEL, linewidth=1.2, alpha=0.7, zorder=1)
+
+        # 2. Cercles aux positions GPS des virages (pas de lignes entre eux)
+        corners = df.attrs.get('corner_analysis', [])
+        corners_with_gps = [c for c in corners if c.get('apex_lat') is not None and c.get('apex_lon') is not None]
+
+        def _haversine_m(lat1, lon1, lat2, lon2):
+            R = 6371000
+            dlat = math.radians(lat2 - lat1)
+            dlon = math.radians(lon2 - lon1)
+            a = (math.sin(dlat / 2) ** 2 +
+                 math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
+                 math.sin(dlon / 2) ** 2)
+            return R * 2 * math.asin(math.sqrt(a))
+
+        # Offsets des labels pour éviter chevauchements (chicanes V7/V8)
+        label_offsets = {}
+        for i, c1 in enumerate(corners_with_gps):
+            offset = (6, 6)
+            for j, c2 in enumerate(corners_with_gps):
+                if i == j:
+                    continue
+                dist = _haversine_m(c1['apex_lat'], c1['apex_lon'], c2['apex_lat'], c2['apex_lon'])
+                if dist < 40:
+                    offset = (6, 12) if i < j else (6, -18)
+                    break
+            label_offsets[c1.get('corner_id')] = offset
+
+        for corner in corners_with_gps:
+            apex_lon = corner.get('apex_lon')
+            apex_lat = corner.get('apex_lat')
+            score = corner.get('score', 70)
+            corner_id = corner.get('corner_id', '?')
+            color = COLOR_GREEN if score >= 80 else COLOR_ORANGE if score >= 65 else COLOR_RED
+            ax.scatter(apex_lon, apex_lat, s=400, color=color, zorder=5,
+                      edgecolors=COLOR_TEXT, linewidths=1.5)
+            xytext = label_offsets.get(corner_id, (6, 6))
+            ax.annotate(f'V{corner_id}\n{score:.0f}',
+                       xy=(apex_lon, apex_lat),
+                       xytext=xytext, textcoords='offset points',
+                       fontsize=8, color=COLOR_TEXT, fontweight='bold', zorder=6)
+
+        from matplotlib.patches import Patch
+        legend_elements = [
+            Patch(facecolor=COLOR_GREEN, label='Excellent ≥80'),
+            Patch(facecolor=COLOR_ORANGE, label='Moyen 65-80'),
+            Patch(facecolor=COLOR_RED, label='À travailler <65'),
+        ]
+        ax.legend(handles=legend_elements, facecolor=BG_PANEL,
+                 edgecolor=BG_PANEL, labelcolor=COLOR_TEXT, fontsize=9)
+        _style_ax(ax, 'Map Carte Performance — Heatmap Virages', 'Longitude', 'Latitude')
+        ax.set_aspect('equal')
+        fig.tight_layout()
+        plt.savefig(save_path, dpi=DPI, bbox_inches='tight', facecolor=BG_DARK)
+        plt.close(fig)
+        return True
+    except Exception as e:
+        warnings.warn(f"Warning: plot_corner_heatmap : {e}")
+        return False
+
+
+def generate_all_plots(df: pd.DataFrame, output_dir: str = "./plots") -> Dict[str, str]:
+    """
+    Génère les 8 graphiques style F1 AWS pour analyse karting professionnelle.
+    
+    Args:
+        df: DataFrame avec colonnes nécessaires (doit avoir été traité par le pipeline)
+        output_dir: Dossier de sortie pour les PNG
+    
+    Returns:
+        Dictionnaire avec chemins des PNG générés (clés: noms des plots)
+    """
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    
+    plot_functions = {
+        'trajectory_2d': plot_trajectory_2d,
+        'lap_comparison': plot_lap_comparison,
+        'lateral_g_chart': plot_lateral_g_chart,
+        'speed_trace': plot_speed_trace,
+        'corner_performance_matrix': plot_corner_performance_matrix,
+        'time_loss_by_corner': plot_time_loss_by_corner,
+        'speed_delta_by_corner': plot_speed_delta_by_corner,
+        'performance_radar': plot_performance_radar,
+        'performance_score_breakdown': plot_performance_score_breakdown,
+        'corner_heatmap': plot_corner_heatmap
+    }
+    plots = {name: str(output_path / f"{name}.png") for name in plot_functions}
+    results = {}
+    for plot_name, save_path in plots.items():
+        try:
+            plot_func = plot_functions[plot_name]
+            success = plot_func(df, save_path)
+            if success:
+                results[plot_name] = save_path
+            else:
+                warnings.warn(f"Warning: Échec génération {plot_name}")
+        except Exception as e:
+            warnings.warn(f"Warning: Exception {plot_name} : {str(e)}")
+    
+    return results
+
+
+def generate_all_plots_base64(df: pd.DataFrame) -> Dict[str, Optional[str]]:
+    """
+    Génère tous les graphiques et les retourne
+    en base64 data URIs au lieu de fichiers disque.
+    Survit aux redéploiements Docker.
+    """
+    import base64
+
+    plots = {}
+    plot_functions = {
+        'trajectory_2d': plot_trajectory_2d,
+        'lap_comparison': plot_lap_comparison,
+        'lateral_g_chart': plot_lateral_g_chart,
+        'speed_trace': plot_speed_trace,
+        'corner_performance_matrix': plot_corner_performance_matrix,
+        'time_loss_by_corner': plot_time_loss_by_corner,
+        'speed_delta_by_corner': plot_speed_delta_by_corner,
+        'performance_radar': plot_performance_radar,
+        'performance_score_breakdown': plot_performance_score_breakdown,
+        'corner_heatmap': plot_corner_heatmap,
+    }
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        for name, func in plot_functions.items():
+            try:
+                save_path = os.path.join(tmpdir, f"{name}.png")
+                success = func(df, save_path)
+                if success and os.path.exists(save_path):
+                    with open(save_path, 'rb') as f:
+                        b64 = base64.b64encode(f.read()).decode('utf-8')
+                    plots[name] = f"data:image/png;base64,{b64}"
+                else:
+                    plots[name] = None
+            except Exception:
+                plots[name] = None
+
+    return plots
+
+
+def generate_plot_data(df: pd.DataFrame) -> Dict[str, Any]:
+    """
+    Génère les données brutes JSON/Dict pour les graphiques interactifs (Recharts) du frontend.
+    """
+    from typing import Dict, Any, List
+    import pandas as pd
+    import numpy as np
+    
+    plot_data: Dict[str, Any] = {}
+    
+    try:
+        # --- 1. Speed Trace ---
+        if 'cumulative_distance' in df.columns and 'speed' in df.columns:
+            laps_data = []
+            if 'lap_number' in df.columns:
+                for lap, lap_df in df.groupby('lap_number'):
+                    if pd.notna(lap) and lap >= 0:
+                        laps_data.append({
+                            "lap_number": int(lap),
+                            "lap_time": float(lap_df['time'].iloc[-1] - lap_df['time'].iloc[0]) if 'time' in lap_df.columns else 0.0,
+                            "distance_m": downsample_array([round(float(d), 1) for d in lap_df['cumulative_distance'].values]),
+                            "speed_kmh": downsample_array([round(float(s), 1) for s in lap_df['speed'].values]),
+                            "is_reference": False
+                        })
+            else:
+                laps_data.append({
+                    "lap_number": 1,
+                    "lap_time": float(df['time'].iloc[-1] - df['time'].iloc[0]) if 'time' in df.columns else 0.0,
+                    "distance_m": downsample_array([round(float(d), 1) for d in df['cumulative_distance'].values]),
+                    "speed_kmh": downsample_array([round(float(s), 1) for s in df['speed'].values]),
+                })
+            
+            # Sectors (simple divide by 3 for missing track map boundaries)
+            max_dist = float(df['cumulative_distance'].max()) if 'cumulative_distance' in df.columns else 0.0
+            sectors = [
+                {"name": "S1", "start_m": 0.0, "end_m": round(max_dist / 3, 1)},
+                {"name": "S2", "start_m": round(max_dist / 3, 1), "end_m": round(max_dist * 2 / 3, 1)},
+                {"name": "S3", "start_m": round(max_dist * 2 / 3, 1), "end_m": round(max_dist, 1)}
+            ] if max_dist > 0 else []
+            
+            avg_speed = float(df['speed'].mean()) if 'speed' in df.columns else 0.0
+            
+            plot_data["speed_trace"] = {
+                "laps": laps_data,
+                "sectors": sectors,
+                "avg_speed_kmh": round(avg_speed, 1)
+            }
+
+        # --- 2. Throttle / Brake ---
+        if 'cumulative_distance' in df.columns and 'throttle' in df.columns and 'brake' in df.columns:
+            tb_laps = []
+            if 'lap_number' in df.columns:
+                # Top 1 lap for simplicity
+                for lap, lap_df in df.groupby('lap_number'):
+                    if pd.notna(lap) and lap >= 0:
+                        tb_laps.append({
+                            "lap_number": int(lap),
+                            "distance_m": downsample_array([round(float(d), 1) for d in lap_df['cumulative_distance'].values]),
+                            "throttle_pct": downsample_array([round(float(t), 1) for t in lap_df['throttle'].values]),
+                            "brake_pct": downsample_array([round(float(b), 1) for b in lap_df['brake'].values]),
+                        })
+            else:
+                 tb_laps.append({
+                    "lap_number": 1,
+                    "distance_m": downsample_array([round(float(d), 1) for d in df['cumulative_distance'].values]),
+                    "throttle_pct": downsample_array([round(float(t), 1) for t in df['throttle'].values]),
+                    "brake_pct": downsample_array([round(float(b), 1) for b in df['brake'].values]),
+                })
+            plot_data["throttle_brake"] = {"laps": tb_laps}
+
+        # --- 3. Performance Radar ---
+        if 'score_data' in df.attrs:
+            breakdown = df.attrs['score_data'].get('breakdown', {})
+            plot_data["performance_radar"] = {
+                "axes": ["Précision Apex", "Régularité", "Vitesse Apex", "Secteurs"],
+                "values": [
+                    round(breakdown.get('apex_precision', 0), 1),
+                    round(breakdown.get('trajectory_consistency', 0), 1),
+                    round(breakdown.get('apex_speed', 0), 1),
+                    round(breakdown.get('sector_times', 0), 1)
+                ],
+                "max_values": [30, 25, 25, 20]
+            }
+
+        # --- 4. Apex Margin ---
+        if 'corner_analysis' in df.attrs:
+            corners = df.attrs['corner_analysis']
+            margins = []
+            for c in corners:
+                opt = float(c.get('apex_speed_optimal', 0) or 0)
+                real = float(c.get('apex_speed_real', 0) or 0)
+                margin = round(opt - real, 1)
+                
+                status = "warning" if margin > 5 else ("good" if margin > 2 else "optimal")
+                if margin < 0:
+                    status = "good"
+                
+                # Fetch metrics safely
+                metrics = c.get('metrics', {}) or {}
+                
+                margins.append({
+                    "label": f"V{c.get('corner_id', 0)}",
+                    "margin_kmh": margin,
+                    "status": status,
+                    "corner_type": c.get('corner_type', 'right'),
+                    "grade": c.get('grade', 'C'),
+                    "score": round(float(c.get('score', 0) or 0), 1),
+                    "apex_speed_real": round(real, 1),
+                    "apex_speed_optimal": round(opt, 1),
+                    "time_lost": round(float(c.get('time_lost', 0) or 0), 3),
+                    "entry_speed": round(float(metrics.get('entry_speed', 0) or 0), 1),
+                    "exit_speed": round(float(metrics.get('exit_speed', 0) or 0), 1),
+                })
+            plot_data["apex_margin"] = {"corners": margins}
+
+        # --- 5. Trajectory 2D ---
+        if 'latitude_smooth' in df.columns and 'longitude_smooth' in df.columns and 'speed' in df.columns:
+            traj_laps = []
+            if 'lap_number' in df.columns:
+                best_lap_num = df.attrs.get('best_lap_number')
+                for lap, lap_df in df.groupby('lap_number'):
+                    if pd.notna(lap) and lap >= 0:
+                        if len(lap_df) < 10:
+                            continue
+                        traj_laps.append({
+                            "lap_number": int(lap),
+                            "is_best": int(lap) == best_lap_num,
+                            "lat": downsample_array([float(l) for l in lap_df['latitude_smooth'].values]),
+                            "lon": downsample_array([float(l) for l in lap_df['longitude_smooth'].values]),
+                            "speed_kmh": downsample_array([round(float(s), 1) for s in lap_df['speed'].values])
+                        })
+            else:
+                 traj_laps.append({
+                    "lat": downsample_array([float(l) for l in df['latitude_smooth'].values]), 
+                    "lon": downsample_array([float(l) for l in df['longitude_smooth'].values]),
+                    "speed_kmh": downsample_array([round(float(s), 1) for s in df['speed'].values])
+                })
+                 
+            traj_corners = []
+            if 'corner_analysis' in df.attrs:
+                 for c in df.attrs['corner_analysis']:
+                     if c.get('apex_lat') is not None and c.get('apex_lon') is not None:
+                         traj_corners.append({
+                             "id": c.get('corner_id', 0),
+                             "lat": float(c['apex_lat']),
+                             "lon": float(c['apex_lon']),
+                             "label": f"V{c.get('corner_id', 0)}",
+                             "grade": c.get('grade', 'C'),
+                             "corner_type": c.get('corner_type', 'right'),
+                             "apex_speed": round(float(c.get('apex_speed_real', 0) or 0), 1)
+                         })
+            plot_data["trajectory_2d"] = {"laps": traj_laps, "corners": traj_corners}
+
+        # --- 6. Time Delta (per-lap vs best lap) ---
+        if 'cumulative_distance' in df.columns and 'time' in df.columns and 'lap_number' in df.columns:
+            try:
+                lap_groups = {}
+                for lap, lap_df in df.groupby('lap_number'):
+                    if pd.notna(lap) and int(lap) > 0 and len(lap_df) > 10:
+                        lap_groups[int(lap)] = lap_df
+
+                if len(lap_groups) >= 1:
+                    # Find best lap (shortest time span)
+                    lap_durations = {}
+                    for ln, ldf in lap_groups.items():
+                        t = ldf['time'].dropna()
+                        if len(t) >= 2:
+                            lap_durations[ln] = float(t.iloc[-1] - t.iloc[0])
+
+                    if lap_durations:
+                        best_lap_num = min(lap_durations, key=lap_durations.get)
+                        best_df = lap_groups[best_lap_num]
+
+                        # Build best lap interpolation: distance -> elapsed time
+                        best_dist = best_df['cumulative_distance'].values
+                        best_time_raw = best_df['time'].values
+                        best_elapsed = best_time_raw - best_time_raw[0]
+
+                        # Normalize distances to start at 0 for each lap
+                        best_dist_norm = best_dist - best_dist[0]
+
+                        delta_laps = []
+                        for ln, ldf in lap_groups.items():
+                            comp_dist = ldf['cumulative_distance'].values
+                            comp_time_raw = ldf['time'].values
+                            comp_elapsed = comp_time_raw - comp_time_raw[0]
+                            comp_dist_norm = comp_dist - comp_dist[0]
+
+                            # Interpolate best lap elapsed time at comparison distances
+                            best_interp = np.interp(comp_dist_norm, best_dist_norm, best_elapsed)
+                            delta = comp_elapsed - best_interp  # positive = slower
+
+                            # Downsample
+                            dist_out = downsample_array([round(float(d), 1) for d in comp_dist_norm], 150)
+                            delta_out = downsample_array([round(float(d), 3) for d in delta], 150)
+
+                            delta_laps.append({
+                                "lap_number": ln,
+                                "distance_m": dist_out,
+                                "delta_s": delta_out,
+                                "is_best": ln == best_lap_num,
+                            })
+
+                        plot_data["time_delta_laps"] = {
+                            "best_lap_number": best_lap_num,
+                            "laps": delta_laps,
+                        }
+            except Exception as e:
+                warnings.warn(f"Warning: Erreur time_delta_laps: {e}")
+
+    except Exception as e:
+        warnings.warn(f"Warning: Erreur generate_plot_data: {e}")
+        
+    return plot_data

@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+env/
+venv/
+
+# Environment
+.env
+.env.local
+
+# Logs & DB
+*.log
+*.db
+bot.log
+bot_stats.db
+
+# Temp & Output
+temp/
+output_*/
+*.png
+*.jpg
+*.csv
+test_*.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend / temp (separate repos - Vercel)
+node_modules/
+apex-ai-fresh/
+lovable-temp/
+
+.vercel
