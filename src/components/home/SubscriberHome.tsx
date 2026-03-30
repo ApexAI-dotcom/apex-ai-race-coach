@@ -64,6 +64,7 @@ import {
   type HomeTip,
   type HomeInsightsResponse,
 } from "@/lib/api";
+import { useSubscription } from "@/hooks/useSubscription";
 
 // Badge color map
 const BADGE_COLORS: Record<string, string> = {
