@@ -142,7 +142,7 @@ export default function PricingPage() {
     const priceId = getPriceId(planId, period);
     const token = session?.access_token;
     if (!priceId || !user?.id || !token) {
-      if (!user) window.location.href = "/login?mode=register";
+      if (!user) window.location.href = "/login?mode=signup";
       return;
     }
     setError(null);
