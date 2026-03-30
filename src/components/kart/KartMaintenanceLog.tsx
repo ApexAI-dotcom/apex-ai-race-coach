@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
-import { History, Wrench, Flame, Disc, Loader2, Plus, Calendar } from "lucide-react";
+import { History, Wrench, Flame, Disc, Loader2, Plus, Calendar, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export function KartMaintenanceLog({ history, onAddEntry }: { history: any[], onAddEntry?: (type: string, notes: string, date: string) => void }) {
+export function KartMaintenanceLog({ history, onAddEntry, onDeleteEntry }: { history: any[], onAddEntry?: (type: string, notes: string, date: string) => void, onDeleteEntry?: (entryId: string) => void }) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState("general");
   const [notes, setNotes] = useState("");
@@ -111,7 +111,7 @@ export function KartMaintenanceLog({ history, onAddEntry }: { history: any[], on
       <CardContent className="flex-1 overflow-y-auto max-h-[300px] pr-2 mt-4 custom-scrollbar">
         <div className="space-y-4">
           {history.map((log) => (
-            <div key={log.id} className="flex items-start gap-4 p-3 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors">
+            <div key={log.id} className="flex items-start gap-4 p-3 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors group">
               <div className="p-2 rounded-full bg-background border border-border shadow-sm">
                 {getIcon(log.component_type)}
               </div>
@@ -132,6 +132,17 @@ export function KartMaintenanceLog({ history, onAddEntry }: { history: any[], on
                   <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">Durée : {log.previous_sessions} sessions</p>
                 )}
               </div>
+              {onDeleteEntry && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 shrink-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => onDeleteEntry(log.id)}
+                  title="Supprimer cette entrée"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
             </div>
           ))}
         </div>

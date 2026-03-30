@@ -132,6 +132,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   });
 
   const [trackCondition, setTrackCondition] = useState<"dry" | "damp" | "wet" | "rain">("dry");
+  const [sessionType, setSessionType] = useState<string>("practice");
   const [trackTemperature, setTrackTemperature] = useState<number | "">("");
 
   // États analyse
@@ -374,7 +375,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         track_temperature: tempNum ?? undefined,
         session_name: sessionName,
         accessToken: session?.access_token ?? undefined,
-      });
+        session_type: sessionType,
+      } as any);
 
       // 2. Circuit check for Rookie
       if (tier === "rookie" && limits?.allowed_circuit && analysisResult.session_conditions?.circuit_name) {
@@ -964,6 +966,35 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                         }}
                         className="w-full max-w-[150px] p-2 rounded-lg bg-secondary/50 border border-white/10 text-foreground placeholder:text-muted-foreground"
                       />
+                    </div>
+                    
+                    {/* Type de session */}
+                    <div className="mt-6">
+                      <label className="text-sm font-medium text-foreground block mb-3">
+                        Type de session
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {(
+                          [
+                            { value: "practice", label: "Essais", icon: "🏎️" },
+                            { value: "qualifying", label: "Qualifications", icon: "⏱️" },
+                            { value: "race", label: "Course", icon: "🏁" },
+                          ]
+                        ).map(({ value, label, icon }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setSessionType(value)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
+                              sessionType === value
+                                ? "bg-[#ff6b35] text-white border-[#ff6b35]"
+                                : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
+                            }`}
+                          >
+                            {icon} {label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </CardContent>

@@ -8,10 +8,18 @@ import { EngineVis, TireVis, BrakeVis, BatteryVis } from "@/components/kart/Wear
 
 interface KartSchematicProps {
   profile: KartProfile;
+  recent_sessions?: any[];
 }
 
-export const KartSchematic = ({ profile }: KartSchematicProps) => {
+export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) => {
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
+
+  // Exhaust temperature alert: check if any recent session had high exhaust temp
+  const EXHAUST_TEMP_THRESHOLD = 650; // °C
+  const latestExhaustTemp = recent_sessions?.length 
+    ? Math.max(...recent_sessions.filter(s => s.exhaust_temp_max != null).map(s => s.exhaust_temp_max || 0))
+    : 0;
+  const isExhaustHot = latestExhaustTemp > EXHAUST_TEMP_THRESHOLD;
 
   const getStatusColor = (current: number | undefined, max: number | undefined, isVoltage = false) => {
     if (isVoltage) {
@@ -67,6 +75,12 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
                <stop offset="50%" stopColor="#ccc" />
                <stop offset="100%" stopColor="#555" />
              </linearGradient>
+             {isExhaustHot && (
+               <radialGradient id="exhaustGlow" cx="50%" cy="50%" r="60%">
+                 <stop offset="0%" stopColor="#ff2200" stopOpacity="0.8" />
+                 <stop offset="100%" stopColor="#ff2200" stopOpacity="0" />
+               </radialGradient>
+             )}
           </defs>
 
           {/* Center Floor Pan */}
@@ -90,10 +104,13 @@ export const KartSchematic = ({ profile }: KartSchematicProps) => {
             {/* Cylinder Head / Spark Plug area */}
             <circle cx="22" cy="50" r="10" fill="#222" stroke="#666" strokeWidth="2" />
             <circle cx="22" cy="50" r="3" fill="#dfdfdf" />
-            {/* Exhaust Pipe routing to the back */}
-            <path d="M 40 40 Q 60 40 60 0 Q 60 -40 30 -60" fill="none" stroke="#222" strokeWidth="14" strokeLinecap="round" />
-            <path d="M 40 40 Q 60 40 60 0 Q 60 -40 30 -60" fill="none" stroke="#888" strokeWidth="8" strokeLinecap="round" />
-            <path d="M 40 40 Q 60 40 60 0 Q 60 -40 30 -60" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" />
+            {/* Exhaust Pipe — turns red when temperature is too high */}
+            {isExhaustHot && (
+              <circle cx="35" cy="-10" r="30" fill="url(#exhaustGlow)" className="animate-pulse" />
+            )}
+            <path d="M 40 40 Q 60 40 60 0 Q 60 -40 30 -60" fill="none" stroke={isExhaustHot ? "#220000" : "#222"} strokeWidth="14" strokeLinecap="round" />
+            <path d="M 40 40 Q 60 40 60 0 Q 60 -40 30 -60" fill="none" stroke={isExhaustHot ? "#ff3333" : "#888"} strokeWidth="8" strokeLinecap="round" className={isExhaustHot ? "animate-pulse" : ""} />
+            <path d="M 40 40 Q 60 40 60 0 Q 60 -40 30 -60" fill="none" stroke={isExhaustHot ? "rgba(255,100,50,0.6)" : "rgba(255,255,255,0.3)"} strokeWidth="2" strokeLinecap="round" />
           </g>
 
           {/* Battery Area (Left Side under pod) */}

@@ -990,6 +990,38 @@ export async function deleteKartSession(accessToken: string, sessionId: string):
   return await parseJSONResponse<any>(response);
 }
 
+export async function deleteKartHistoryEntry(accessToken: string, entryId: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/history/${entryId}`, {
+    method: "DELETE",
+    signal: controller.signal,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
+export async function deleteKartSessionDay(accessToken: string, date: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/day/${date}`, {
+    method: "DELETE",
+    signal: controller.signal,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -1008,6 +1040,8 @@ export default {
   resetKartComponent,
   bulkImportKartSessions,
   deleteKartSession,
+  deleteKartHistoryEntry,
+  deleteKartSessionDay,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,
   MAX_FILE_SIZE_BYTES,
