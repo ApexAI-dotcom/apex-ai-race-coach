@@ -228,6 +228,18 @@ export default function Dashboard() {
     setIsEditDialogOpen(true);
   };
 
+  const handleTypeChange = async (id: string, newType: string) => {
+    try {
+      const success = await updateAnalysis(id, { session_type: newType }, user?.id);
+      if (success) {
+        await loadData();
+        toast.success("Type de session mis à jour");
+      }
+    } catch (err) {
+      toast.error("Erreur mise à jour");
+    }
+  };
+
   const handleSaveSessionEdit = async () => {
     if (editSessionId) {
       const success = await updateAnalysis(editSessionId, { 
@@ -794,13 +806,23 @@ export default function Dashboard() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={`text-[10px] uppercase border-white/10 ${
-                          analysis.session_type === 'race' ? 'bg-red-500/20 text-red-300' : 
-                          analysis.session_type === 'qualifying' ? 'bg-blue-500/20 text-blue-300' : 
-                          'bg-white/5 text-muted-foreground'
-                        }`}>
-                          {(analysis.session_type || "practice") === "practice" ? "Essais" : (analysis.session_type || "practice") === "qualifying" ? "Qualif" : (analysis.session_type || "practice") === "race" ? "Course" : analysis.session_type || "Essais"}
-                        </Badge>
+                        <Select 
+                          value={analysis.session_type || "practice"} 
+                          onValueChange={(val) => handleTypeChange(analysis.id, val)}
+                        >
+                          <SelectTrigger className={`h-7 px-3 text-[10px] uppercase border-white/10 w-[90px] ${
+                            analysis.session_type === 'race' ? 'bg-red-500/20 text-red-300' : 
+                            analysis.session_type === 'qualifying' ? 'bg-blue-500/20 text-blue-300' : 
+                            'bg-white/5 text-muted-foreground'
+                          }`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#0a0a0a] border-white/10">
+                            <SelectItem value="practice">Essais</SelectItem>
+                            <SelectItem value="qualifying">Qualif</SelectItem>
+                            <SelectItem value="race">Course</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-[10px] uppercase border-white/10 bg-white/5">
