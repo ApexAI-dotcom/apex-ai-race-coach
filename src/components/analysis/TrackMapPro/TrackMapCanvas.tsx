@@ -62,6 +62,34 @@ function renderGlow(polyline: string, color: string) {
   );
 }
 
+function renderBrakingMarkers(segments: ColoredSegment[], isSynthetic: boolean) {
+  const markers = [];
+  for (let i = 1; i < segments.length; i++) {
+    if (segments[i].phase === 'braking' && segments[i - 1].phase !== 'braking') {
+      const dx = segments[i].x2 - segments[i].x1;
+      const dy = segments[i].y2 - segments[i].y1;
+      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      markers.push({ x: segments[i].x1, y: segments[i].y1, angle });
+    }
+  }
+
+  const color = isSynthetic ? MODEL_GOLD : '#ef4444';
+
+  return (
+    <g className="pointer-events-none z-20">
+      {markers.map((m, i) => (
+        <g key={`bp-${i}`} transform={`translate(${m.x.toFixed(1)}, ${m.y.toFixed(1)})`}>
+          {/* Pulsing effect to make braking points obvious */}
+          <circle cx="0" cy="0" r="8" fill={color} opacity="0.3">
+            <animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="0" cy="0" r="4" fill="#ffffff" stroke={color} strokeWidth="2" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
 function renderDirectionArrows(segments: ColoredSegment[]) {
   if (segments.length < ARROW_INTERVAL * 2) return null;
   const arrows: JSX.Element[] = [];
@@ -128,19 +156,21 @@ function renderCorners(
           stroke={`url(#corner-gradient)`}
           strokeWidth={isHovered ? 2.5 : 2}
         />
-        {/* Label */}
+        {/* Apex star inside circle instead of number for a cleaner look or just standard text */}
         <text
           x={c.x}
-          y={c.y + 4}
+          y={c.y + 3.5}
           textAnchor="middle"
           fill="#ffffff"
-          fontSize={isHovered ? '11' : '10'}
-          fontWeight="700"
+          fontSize={isHovered ? '9' : '8'}
+          fontWeight="800"
           fontFamily="'Space Grotesk', sans-serif"
           className="select-none pointer-events-none"
         >
           {c.label.replace('V', '')}
         </text>
+        {/* Actual apex tip mark (tiny diamond pointing to the track) */}
+        <polygon points={`${c.x},${c.y - r - 4} ${c.x - 3},${c.y - r - 7} ${c.x + 3},${c.y - r - 7}`} fill="#ffffff" />
       </g>
     );
   });
@@ -301,6 +331,10 @@ export function TrackMapCanvas({
                 ))}
             </g>
           )}
+
+          {/* Explicit Braking Start Points in Complete mode */}
+          {profile === 'complete' && primary.segments.some(s => s.phase) && renderBrakingMarkers(primary.segments, false)}
+          {profile === 'complete' && showSynthetic && syntheticProjection && renderBrakingMarkers(syntheticProjection.segments, true)}
 
           {/* Direction arrows */}
           {renderDirectionArrows(primary.segments)}

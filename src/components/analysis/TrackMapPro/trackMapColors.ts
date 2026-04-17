@@ -15,26 +15,24 @@ export const TRACK_BG_DARK = '#0a0a0f';
 export const TRACK_BG_CARD = '#111118';
 export const REF_WHITE = '#e2e8f0';
 
-// ── Speed gradient: yellow (slow) → red (fast) ──
-// HSL: yellow = hue 50°, red = hue 0°
+// ── Speed gradient: red (slow) → green (fast) ──
+// HSL: red = hue 0°, green = hue 120°
 export function speedToColor(speed: number, minSpeed: number, maxSpeed: number): string {
   if (maxSpeed <= minSpeed) return APEX_RED;
   const t = Math.max(0, Math.min(1, (speed - minSpeed) / (maxSpeed - minSpeed)));
-  // Interpolate hue 50° (yellow, slow) → 0° (red, fast)
-  const hue = (1 - t) * 50;
-  // Brighter at low speed, darker at high speed
-  const lightness = 55 - t * 10;
-  return `hsl(${hue}, 100%, ${lightness}%)`;
+  // Interpolate hue 0° (red, slow) → 120° (green, fast)
+  const hue = t * 120;
+  return `hsl(${hue}, 100%, 45%)`;
 }
 
 // ── Speed gradient as raw RGB for SVG stops ──
 export function speedToRGBArray(speed: number, minSpeed: number, maxSpeed: number): [number, number, number] {
   if (maxSpeed <= minSpeed) return [220, 38, 38]; // APEX_RED
   const t = Math.max(0, Math.min(1, (speed - minSpeed) / (maxSpeed - minSpeed)));
-  // From yellow [250,204,21] (t=0) to red [220,38,38] (t=1)
-  const r = Math.round(250 - t * 30);
-  const g = Math.round(204 - t * 166);
-  const b = Math.round(21 + t * 17);
+  // Basic linear RGB interpolation for fallback
+  const r = Math.round(220 * (1 - t) + 34 * t);
+  const g = Math.round(38 * (1 - t) + 197 * t);
+  const b = Math.round(38 * (1 - t) + 94 * t);
   return [r, g, b];
 }
 
