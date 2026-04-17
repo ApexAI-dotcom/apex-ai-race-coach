@@ -3,6 +3,7 @@
  * Renders the main track visualization: colored segments, corners, direction arrows
  */
 import { useCallback, type MouseEvent } from 'react';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import type { TrackMapProfile } from '@/types/analysis';
 import type { LapProjection, ProjectedCorner, ColoredSegment } from './useTrackMapData';
 import { SVG_W, SVG_H } from './useTrackMapData';
@@ -234,13 +235,39 @@ export function TrackMapCanvas({
   }, [onPointHover]);
 
   return (
-    <svg
-      viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-      className={`w-full overflow-visible ${isFullscreen ? 'flex-1 h-full max-h-none' : 'h-auto max-h-[600px]'}`}
-      style={{ aspectRatio: `${SVG_W} / ${SVG_H}` }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+    <TransformWrapper
+      initialScale={1}
+      minScale={0.5}
+      maxScale={6}
+      centerOnInit={true}
+      wheel={{ step: 0.1 }}
+      doubleClick={{ mode: 'zoomIn' }}
+      zoomAnimation={{ animationType: 'easeOut' }}
+      panning={{ velocityDisabled: true }}
     >
+        {({ zoomIn, zoomOut, resetTransform }) => (
+          <div className="relative w-full h-full">
+            {/* Zoom Controls */}
+            <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-secondary/80 p-1.5 rounded-md border border-white/10 backdrop-blur-sm shadow-xl">
+              <button onClick={() => zoomIn()} className="p-1.5 hover:bg-white/10 rounded transition-colors text-white" aria-label="Zoom In">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
+              <button onClick={() => zoomOut()} className="p-1.5 hover:bg-white/10 rounded transition-colors text-white" aria-label="Zoom Out">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/></svg>
+              </button>
+              <button onClick={() => resetTransform()} className="p-1.5 hover:bg-white/10 rounded transition-colors text-white" aria-label="Reset Zoom">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              </button>
+            </div>
+
+            <TransformComponent wrapperClass={`w-full overflow-hidden ${isFullscreen ? 'h-[calc(100vh-100px)]' : 'h-auto max-h-[600px]'} flex justify-center items-center`} contentClass="w-full h-full flex justify-center items-center">
+              <svg
+                viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+                className="w-full overflow-visible"
+                style={{ aspectRatio: `${SVG_W} / ${SVG_H}`, minHeight: '300px' }}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+              >
       <defs>
         {/* F1-style corner gradient border */}
         <linearGradient id="corner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -393,5 +420,9 @@ export function TrackMapCanvas({
         </>
       )}
     </svg>
+    </TransformComponent>
+    </div>
+    )}
+  </TransformWrapper>
   );
 }

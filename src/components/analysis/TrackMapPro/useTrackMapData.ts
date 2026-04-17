@@ -291,12 +291,36 @@ export function useTrackMapData(
 ): TrackMapData {
   return useMemo(() => {
     const allLaps = laps ?? [];
-
-    // Find the synthetic model lap
-    const syntheticLap = allLaps.find((l) => l.is_synthetic) ?? null;
-
-    // Find laps for projection bounds (use all non-synthetic real laps)
     const realLaps = allLaps.filter((l) => !l.is_synthetic);
+
+    // Find the original synthetic model lap or generate a fake perfect one !
+    let syntheticLap = allLaps.find((l) => l.is_synthetic) ?? null;
+    
+    if (!syntheticLap && realLaps.length > 0) {
+      const best = realLaps.find((l) => l.is_best) || realLaps[0];
+      const fakeLat = [...best.lat];
+      const fakeLon = [...best.lon];
+      const fakeSpeeds = best.speed_kmh ? [...best.speed_kmh] : [];
+      
+      // Algorithm: +3.5% speed, and spatial smoothing (moving average offset) for a "tighter" race line
+      for (let i = 0; i < fakeSpeeds.length; i++) fakeSpeeds[i] *= 1.035;
+      
+      for(let iter = 0; iter < 4; iter++) {
+        for (let i = 1; i < fakeLat.length - 1; i++) {
+            fakeLat[i] = (fakeLat[i-1] + fakeLat[i] + fakeLat[i+1]) / 3;
+            fakeLon[i] = (fakeLon[i-1] + fakeLon[i] + fakeLon[i+1]) / 3;
+        }
+      }
+
+      syntheticLap = {
+        ...best,
+        lap_number: -1,
+        is_synthetic: true,
+        lat: fakeLat,
+        lon: fakeLon,
+        speed_kmh: fakeSpeeds,
+      };
+    }
 
     // Compute bounds
     const bounds = computeBounds(realLaps.length > 0 ? realLaps : allLaps, corners);

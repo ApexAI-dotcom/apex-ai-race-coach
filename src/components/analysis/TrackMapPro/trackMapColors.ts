@@ -20,19 +20,30 @@ export const REF_WHITE = '#e2e8f0';
 export function speedToColor(speed: number, minSpeed: number, maxSpeed: number): string {
   if (maxSpeed <= minSpeed) return APEX_RED;
   const t = Math.max(0, Math.min(1, (speed - minSpeed) / (maxSpeed - minSpeed)));
-  // Interpolate hue 0° (red, slow) → 120° (green, fast)
-  const hue = t * 120;
-  return `hsl(${hue}, 100%, 45%)`;
+  const hue = t * 130;
+  // Use a sine wave to push the lightness up in the middle (creating bright vibrant yellow/orange)
+  // while keeping the extremes (red and green) deep and high contrast.
+  const lightness = 45 + Math.sin(t * Math.PI) * 15;
+  return `hsl(${hue}, 100%, ${lightness}%)`;
 }
 
 // ── Speed gradient as raw RGB for SVG stops ──
 export function speedToRGBArray(speed: number, minSpeed: number, maxSpeed: number): [number, number, number] {
   if (maxSpeed <= minSpeed) return [220, 38, 38]; // APEX_RED
   const t = Math.max(0, Math.min(1, (speed - minSpeed) / (maxSpeed - minSpeed)));
-  // Basic linear RGB interpolation for fallback
-  const r = Math.round(220 * (1 - t) + 34 * t);
-  const g = Math.round(38 * (1 - t) + 197 * t);
-  const b = Math.round(38 * (1 - t) + 94 * t);
+  // We interpolate through yellow `[250, 204, 21]` at t=0.5
+  let r, g, b;
+  if (t < 0.5) {
+    const t2 = t * 2; // 0 to 1 mapping for first half
+    r = Math.round(220 * (1 - t2) + 250 * t2);
+    g = Math.round(38 * (1 - t2) + 204 * t2);
+    b = Math.round(38 * (1 - t2) + 21 * t2);
+  } else {
+    const t2 = (t - 0.5) * 2; // 0 to 1 mapping for second half
+    r = Math.round(250 * (1 - t2) + 34 * t2);
+    g = Math.round(204 * (1 - t2) + 197 * t2);
+    b = Math.round(21 * (1 - t2) + 94 * t2);
+  }
   return [r, g, b];
 }
 
