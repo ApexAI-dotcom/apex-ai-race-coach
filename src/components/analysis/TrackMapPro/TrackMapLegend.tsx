@@ -2,7 +2,7 @@
  * TrackMapPro — Dynamic legend
  */
 import type { TrackMapProfile } from '@/types/analysis';
-import { APEX_ORANGE, APEX_RED, TRACK_GREEN, TRACK_GRAY, MODEL_GOLD } from './trackMapColors';
+import { APEX_ORANGE, APEX_RED, TRACK_GREEN, TRACK_GRAY, MODEL_GOLD, MODEL_GOLD_LIGHT } from './trackMapColors';
 
 interface TrackMapLegendProps {
   profile: TrackMapProfile;
@@ -28,7 +28,7 @@ export function TrackMapLegend({
           <div
             className="h-2 w-20 rounded-full"
             style={{
-              background: `linear-gradient(to right, ${APEX_RED}, ${APEX_ORANGE})`,
+              background: `linear-gradient(to right, ${MODEL_GOLD_LIGHT}, ${APEX_RED})`,
             }}
           />
           <span>{Math.round(speedMax)} km/h</span>

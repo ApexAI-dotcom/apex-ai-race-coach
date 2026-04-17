@@ -11,6 +11,8 @@ import { APEX_ORANGE, APEX_RED, MODEL_GOLD, TRACK_BG_DARK, REF_WHITE } from './t
 interface TrackMapCanvasProps {
   primary: LapProjection | null;
   reference: LapProjection | null;
+  syntheticProjection?: LapProjection | null;
+  showSynthetic?: boolean;
   corners: ProjectedCorner[];
   profile: TrackMapProfile;
   hoveredIndex: number | null;
@@ -147,6 +149,8 @@ function renderCorners(
 export function TrackMapCanvas({
   primary,
   reference,
+  syntheticProjection,
+  showSynthetic,
   corners,
   profile,
   hoveredIndex,
@@ -234,6 +238,23 @@ export function TrackMapCanvas({
             strokeLinejoin="round"
             opacity={reference.isSynthetic ? 0.85 : 0.45}
             strokeDasharray={reference.isSynthetic ? 'none' : '8 4'}
+          />
+        </>
+      )}
+
+      {/* Synthetic Perfect Lap overlay (when toggled on) */}
+      {showSynthetic && syntheticProjection && (
+        <>
+          {renderGlow(syntheticProjection.polyline, MODEL_GOLD)}
+          <polyline
+            points={syntheticProjection.polyline}
+            fill="none"
+            stroke={MODEL_GOLD}
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={0.85}
+            strokeDasharray="6 4"
           />
         </>
       )}

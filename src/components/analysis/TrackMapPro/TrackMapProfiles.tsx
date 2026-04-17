@@ -2,6 +2,8 @@
  * TrackMapPro — Profile selector bar
  */
 import type { TrackMapProfile, TrajectoryLap } from '@/types/analysis';
+import { Activity, Gauge, Map, GitCompare } from 'lucide-react';
+import React from 'react';
 
 interface TrackMapProfilesProps {
   active: TrackMapProfile;
@@ -16,14 +18,15 @@ interface TrackMapProfilesProps {
   bestLapNumber: number;
 }
 
-const PROFILES: { id: TrackMapProfile; label: string; icon: string }[] = [
-  { id: 'speed', label: 'Vitesse', icon: '🏎️' },
-  { id: 'braking', label: 'Freinage', icon: '🛑' },
-  { id: 'compare', label: 'Comparaison', icon: '📊' },
-  { id: 'complete', label: 'Complet', icon: '⚡' },
+const PROFILES: { id: TrackMapProfile; label: string; icon: React.ElementType }[] = [
+  { id: 'complete', label: 'Complet', icon: Map },
+  { id: 'speed', label: 'Vitesse', icon: Gauge },
+  { id: 'braking', label: 'Freinage', icon: Activity },
+  { id: 'compare', label: 'Comparaison', icon: GitCompare },
 ];
 
 export function TrackMapProfiles({
+
   active,
   onChange,
   laps,
@@ -40,20 +43,23 @@ export function TrackMapProfiles({
     <div className="space-y-2">
       {/* Profile pills */}
       <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-1">
-        {PROFILES.map((p) => (
-          <button
-            key={p.id}
-            onClick={() => onChange(p.id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
-              active === p.id
-                ? 'trackmap-profile-active text-white shadow-lg'
-                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/80'
-            }`}
-          >
-            <span className="text-sm">{p.icon}</span>
-            <span className="hidden sm:inline">{p.label}</span>
-          </button>
-        ))}
+        {PROFILES.map((p) => {
+          const Icon = p.icon;
+          return (
+            <button
+              key={p.id}
+              onClick={() => onChange(p.id)}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+                active === p.id
+                  ? 'trackmap-profile-active text-white shadow-lg'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/80'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{p.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Comparison mode: lap selectors */}
