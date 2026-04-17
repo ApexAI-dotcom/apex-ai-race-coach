@@ -66,7 +66,9 @@ export function TrackMapCornerPanel({ corner, onClose }: TrackMapCornerPanelProp
 
       {/* Stats */}
       <div className="border-t border-white/5 pt-1.5 space-y-0">
-        <Row label="Vitesse entrée" value={corner.entry_speed.toFixed(1)} unit=" km/h" />
+        {corner.entry_speed > 0 && (
+          <Row label="Vitesse entrée" value={corner.entry_speed.toFixed(1)} unit=" km/h" />
+        )}
         <Row label="Vitesse apex" value={corner.apex_speed_real.toFixed(1)} unit=" km/h" />
         {corner.apex_speed_optimal > 0 && (
           <Row
@@ -76,7 +78,9 @@ export function TrackMapCornerPanel({ corner, onClose }: TrackMapCornerPanelProp
             color="text-yellow-500"
           />
         )}
-        <Row label="Vitesse sortie" value={corner.exit_speed.toFixed(1)} unit=" km/h" />
+        {corner.exit_speed > 0 && (
+          <Row label="Vitesse sortie" value={corner.exit_speed.toFixed(1)} unit=" km/h" />
+        )}
         {corner.lateral_g_max > 0 && (
           <Row label="G latéral max" value={corner.lateral_g_max.toFixed(2)} unit="g" />
         )}

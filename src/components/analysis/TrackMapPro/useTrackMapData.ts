@@ -10,7 +10,7 @@ import type {
   CornerDetail,
   TrackMapProfile,
 } from '@/types/analysis';
-import { speedToColor, brakingSegmentColor, brakingPhase, type BrakingPhase } from './trackMapColors';
+import { speedToColor, brakingSegmentColor, brakingPhase, type BrakingPhase, APEX_RED, TRACK_GREEN, TRACK_GRAY } from './trackMapColors';
 
 // ── SVG canvas dimensions ──
 export const SVG_W = 900;
@@ -61,6 +61,8 @@ export interface TrackMapData {
   reference: LapProjection | null;
   /** Synthetic model lap (if available) */
   syntheticLap: TrajectoryLap | null;
+  /** Projected synthetic model lap */
+  syntheticProjection: LapProjection | null;
   /** Projected corners */
   corners: ProjectedCorner[];
   /** Enriched corner details (merged from apex_margin + corner_analysis) */
@@ -179,13 +181,38 @@ function projectLap(
     let color: string;
     let phase: BrakingPhase | undefined;
 
+    // Adaptive logic for phase detection
+    // Calculate speed delta over 2 points for slight smoothing
+    const s1 = speeds[i] ?? 0;
+    const s2 = speeds[Math.min(i + 2, speeds.length - 1)] ?? s1;
+    const dv = s2 - s1;
+    
+    // Check if we have real pedal data (> 0)
+    const hasPedals = throttles.some(t => t > 0) || brakes.some(b => b > 0);
+
     if (profile === 'speed' || profile === 'complete') {
       color = speedToColor(avgSpeed, globalSpeedMin, globalSpeedMax);
+      // Still detect phase for overlays (like braking zones in 'complete')
+      phase = dv < -0.3 ? 'braking' : dv > 0.3 ? 'acceleration' : 'coasting';
     } else if (profile === 'braking') {
-      const thr = ((throttles[i] ?? 0) + (throttles[i + 1] ?? 0)) / 2;
-      const brk = ((brakes[i] ?? 0) + (brakes[i + 1] ?? 0)) / 2;
-      color = brakingSegmentColor(thr, brk);
-      phase = brakingPhase(thr, brk);
+      if (hasPedals) {
+        const thr = ((throttles[i] ?? 0) + (throttles[i + 1] ?? 0)) / 2;
+        const brk = ((brakes[i] ?? 0) + (brakes[i + 1] ?? 0)) / 2;
+        color = brakingSegmentColor(thr, brk);
+        phase = brakingPhase(thr, brk);
+      } else {
+        // Fallback to dv/dt
+        if (dv < -0.5) {
+          phase = 'braking';
+          color = APEX_RED;
+        } else if (dv > 0.5) {
+          phase = 'acceleration';
+          color = TRACK_GREEN;
+        } else {
+          phase = 'coasting';
+          color = TRACK_GRAY;
+        }
+      }
     } else {
       // compare mode — solid color, determined by caller
       color = '#f97316';
@@ -278,6 +305,7 @@ export function useTrackMapData(
         primary: null,
         reference: null,
         syntheticLap,
+        syntheticProjection: null,
         corners: [],
         cornerDetails: [],
         project: () => [0, 0] as [number, number],
@@ -331,12 +359,19 @@ export function useTrackMapData(
       }
     }
 
+    // Always project synthetic lap if available for the toggle
+    let syntheticProjection: LapProjection | null = null;
+    if (syntheticLap) {
+       syntheticProjection = projectLap(syntheticLap, project, profile, globalMin, globalMax);
+    }
+
     const cornerDetails = buildCornerDetails(corners, margins, cornerAnalysis);
 
     return {
       primary,
       reference,
       syntheticLap,
+      syntheticProjection,
       corners: projCorners,
       cornerDetails,
       project,
