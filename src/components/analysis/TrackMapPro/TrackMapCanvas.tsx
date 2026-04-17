@@ -246,7 +246,7 @@ export function TrackMapCanvas({
       panning={{ velocityDisabled: true }}
     >
         {({ zoomIn, zoomOut, resetTransform }) => (
-          <div className="relative w-full h-full">
+          <div className={`relative w-full ${isFullscreen ? 'flex-1 h-full' : 'h-full max-h-[600px]'}`}>
             {/* Zoom Controls */}
             <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-secondary/80 p-1.5 rounded-md border border-white/10 backdrop-blur-sm shadow-xl">
               <button onClick={() => zoomIn()} className="p-1.5 hover:bg-white/10 rounded transition-colors text-white" aria-label="Zoom In">
@@ -260,10 +260,10 @@ export function TrackMapCanvas({
               </button>
             </div>
 
-            <TransformComponent wrapperClass={`w-full overflow-hidden ${isFullscreen ? 'h-[calc(100vh-100px)]' : 'h-auto max-h-[600px]'} flex justify-center items-center`} contentClass="w-full h-full flex justify-center items-center">
+            <TransformComponent wrapperClass={`w-full overflow-hidden ${isFullscreen ? 'h-full flex-1' : 'h-auto max-h-[600px]'} flex justify-center items-center min-h-[300px]`} contentClass="w-full h-full flex justify-center items-center">
               <svg
                 viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-                className="w-full overflow-visible"
+                className={`w-full overflow-visible ${isFullscreen ? 'max-h-full' : 'max-h-[600px]'}`}
                 style={{ aspectRatio: `${SVG_W} / ${SVG_H}`, minHeight: '300px' }}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
