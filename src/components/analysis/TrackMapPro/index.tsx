@@ -149,21 +149,25 @@ export function TrackMapPro({
           onComparisonLapChange={handleComparisonChange}
           bestLapNumber={bestLapNumber}
         />
+      </div>
+
+      {/* SVG Canvas and Controls */}
+      <div className="relative px-1 pt-2">
         {data.syntheticProjection && (
-          <div className="flex justify-end mt-2">
+          <div className="absolute top-4 left-4 z-10">
             <button
               onClick={() => setShowSynthetic(!showSynthetic)}
-              className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md transition-colors ${showSynthetic ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'text-muted-foreground hover:bg-secondary/50'}`}
+              className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-md transition-all shadow-md backdrop-blur-sm ${
+                showSynthetic 
+                  ? 'bg-yellow-500/90 text-yellow-950 border border-yellow-500' 
+                  : 'bg-black/60 text-white/90 hover:bg-black/80 border border-white/10'
+              }`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
-              {showSynthetic ? 'Masquer Tour IA' : 'Afficher Tour Parfait IA'}
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+              {showSynthetic ? 'MASQUER TOUR IA' : 'AFFICHER TOUR IA'}
             </button>
           </div>
         )}
-      </div>
-
-      {/* SVG Canvas */}
-      <div className="relative px-1 pt-2">
         <TrackMapCanvas
           primary={data.primary}
           reference={data.reference}

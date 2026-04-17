@@ -28,7 +28,7 @@ export function TrackMapLegend({
           <div
             className="h-2 w-20 rounded-full"
             style={{
-              background: `linear-gradient(to right, ${MODEL_GOLD_LIGHT}, ${APEX_RED})`,
+              background: `linear-gradient(to right, ${APEX_RED}, ${TRACK_GREEN})`,
             }}
           />
           <span>{Math.round(speedMax)} km/h</span>
