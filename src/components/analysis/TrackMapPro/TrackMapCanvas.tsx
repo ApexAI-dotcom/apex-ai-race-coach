@@ -260,7 +260,12 @@ export function TrackMapCanvas({
               </button>
             </div>
 
-            <TransformComponent wrapperClass={`w-full overflow-hidden ${isFullscreen ? 'h-full flex-1' : 'h-auto max-h-[600px]'} flex justify-center items-center min-h-[300px]`} contentClass="w-full h-full flex justify-center items-center">
+            <TransformComponent 
+              wrapperClass={`w-full overflow-hidden ${isFullscreen ? 'h-full flex-1' : 'h-auto max-h-[600px]'} flex justify-center items-center min-h-[300px]`} 
+              contentClass="w-full h-full flex justify-center items-center"
+              wrapperStyle={{ width: '100%', height: isFullscreen ? '100%' : 'auto' }}
+              contentStyle={{ width: '100%', height: '100%' }}
+            >
               <svg
                 viewBox={`0 0 ${SVG_W} ${SVG_H}`}
                 className={`w-full overflow-visible ${isFullscreen ? 'max-h-full' : 'max-h-[600px]'}`}
@@ -304,23 +309,6 @@ export function TrackMapCanvas({
         </>
       )}
 
-      {/* Synthetic Perfect Lap overlay (when toggled on) */}
-      {showSynthetic && syntheticProjection && (
-        <>
-          {renderGlow(syntheticProjection.polyline, MODEL_GOLD)}
-          <polyline
-            points={syntheticProjection.polyline}
-            fill="none"
-            stroke={MODEL_GOLD}
-            strokeWidth={3}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity={0.85}
-            strokeDasharray="6 4"
-          />
-        </>
-      )}
-
       {/* Primary lap */}
       {primary && (
         <>
@@ -329,7 +317,7 @@ export function TrackMapCanvas({
 
           {/* Colored segments (speed or braking profile) */}
           {profile !== 'compare'
-            ? renderSegments(primary.segments, 3.5)
+            ? renderSegments(primary.segments, 3)
             : (
               /* Compare mode: solid orange primary line */
               <polyline
@@ -342,6 +330,23 @@ export function TrackMapCanvas({
               />
             )
           }
+
+          {/* Synthetic Perfect Lap overlay (when toggled on) - Rendered ON TOP of primary */}
+          {showSynthetic && syntheticProjection && (
+            <>
+              {renderGlow(syntheticProjection.polyline, MODEL_GOLD)}
+              <polyline
+                points={syntheticProjection.polyline}
+                fill="none"
+                stroke={MODEL_GOLD}
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.95}
+                strokeDasharray="6 4"
+              />
+            </>
+          )}
 
           {/* Braking profile overlay in Complete mode */}
           {profile === 'complete' && primary.segments.some(s => s.phase) && (

@@ -21,6 +21,12 @@ import {
   WifiOff,
   Brain,
   BarChart3,
+  Sun,
+  CloudRain,
+  Droplets,
+  CloudDrizzle,
+  Flag,
+  Car
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -932,23 +938,23 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     <div className="flex flex-wrap gap-2 mb-4">
                       {(
                         [
-                          { value: "dry" as const, label: "Sec", icon: "☀️" },
-                          { value: "damp" as const, label: "Humide", icon: "🌦️" },
-                          { value: "wet" as const, label: "Mouillée", icon: "💧" },
-                          { value: "rain" as const, label: "Pluie", icon: "🌧️" },
+                          { value: "dry" as const, label: "Sec", Icon: Sun },
+                          { value: "damp" as const, label: "Humide", Icon: CloudDrizzle },
+                          { value: "wet" as const, label: "Mouillée", Icon: Droplets },
+                          { value: "rain" as const, label: "Pluie", Icon: CloudRain },
                         ] as const
-                      ).map(({ value, label, icon }) => (
+                      ).map(({ value, label, Icon }) => (
                         <button
                           key={value}
                           type="button"
                           onClick={() => setTrackCondition(value)}
-                          className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
+                          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
                             trackCondition === value
                               ? "bg-[#ff6b35] text-white border-[#ff6b35]"
                               : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
                           }`}
                         >
-                          {icon} {label}
+                          <Icon className="w-4 h-4" /> {label}
                         </button>
                       ))}
                     </div>
@@ -976,22 +982,22 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                       <div className="flex flex-wrap gap-2">
                         {(
                           [
-                            { value: "practice", label: "Essais", icon: "🏎️" },
-                            { value: "qualifying", label: "Qualifications", icon: "⏱️" },
-                            { value: "race", label: "Course", icon: "🏁" },
+                            { value: "practice", label: "Essais", Icon: Car },
+                            { value: "qualifying", label: "Qualifications", Icon: Clock },
+                            { value: "race", label: "Course", Icon: Flag },
                           ]
-                        ).map(({ value, label, icon }) => (
+                        ).map(({ value, label, Icon }) => (
                           <button
                             key={value}
                             type="button"
                             onClick={() => setSessionType(value)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
+                            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
                               sessionType === value
                                 ? "bg-[#ff6b35] text-white border-[#ff6b35]"
                                 : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
                             }`}
                           >
-                            {icon} {label}
+                            <Icon className="w-4 h-4" /> {label}
                           </button>
                         ))}
                       </div>

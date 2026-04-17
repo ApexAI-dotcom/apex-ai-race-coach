@@ -60,11 +60,11 @@ export function TrackMapPro({
   useEffect(() => {
     if (!containerRef.current) return;
     if (isFullscreen) {
-      containerRef.current.classList.add('fixed', 'inset-0', 'z-[999]', 'bg-[#111118]', 'flex', 'flex-col', 'overflow-y-auto');
+      containerRef.current.classList.add('fixed', 'inset-0', 'z-[999]', 'bg-[#111118]', 'flex', 'flex-col', 'overflow-hidden');
       containerRef.current.classList.remove('relative');
       document.body.style.overflow = 'hidden';
     } else {
-      containerRef.current.classList.remove('fixed', 'inset-0', 'z-[999]', 'bg-[#111118]', 'flex', 'flex-col', 'overflow-y-auto');
+      containerRef.current.classList.remove('fixed', 'inset-0', 'z-[999]', 'bg-[#111118]', 'flex', 'flex-col', 'overflow-hidden');
       containerRef.current.classList.add('relative');
       document.body.style.overflow = '';
     }
