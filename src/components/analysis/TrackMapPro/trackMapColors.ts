@@ -16,14 +16,28 @@ export const TRACK_BG_CARD = '#111118';
 export const REF_WHITE = '#e2e8f0';
 
 // ── Speed gradient: red (slow) → green (fast) ──
-// HSL: red = hue 0°, green = hue 120°
-export function speedToColor(speed: number, minSpeed: number, maxSpeed: number): string {
+// HSL: red = hue 0°, green = hue 135°
+export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, medianSpeed?: number): string {
   if (maxSpeed <= minSpeed) return APEX_RED;
-  const t = Math.max(0, Math.min(1, (speed - minSpeed) / (maxSpeed - minSpeed)));
-  const hue = t * 130;
-  // Use a sine wave to push the lightness up in the middle (creating bright vibrant yellow/orange)
-  // while keeping the extremes (red and green) deep and high contrast.
-  const lightness = 45 + Math.sin(t * Math.PI) * 15;
+  
+  let t: number;
+  if (medianSpeed && speed > minSpeed && speed < maxSpeed) {
+    // Piecewise linear interpolation to force median speed strictly to t=0.5 (Yellow)
+    if (speed <= medianSpeed) {
+      t = 0.5 * ((speed - minSpeed) / (medianSpeed - minSpeed));
+    } else {
+      t = 0.5 + 0.5 * ((speed - medianSpeed) / (maxSpeed - medianSpeed));
+    }
+  } else {
+    t = (speed - minSpeed) / (maxSpeed - minSpeed);
+  }
+  
+  t = Math.max(0, Math.min(1, t));
+  
+  // Power curve to pull colors away from the mushy middle
+  // If t=0.5 it stays 0.5. It pushes extremes. Actually, piecewise already fixed it.
+  const hue = t * 135;
+  const lightness = 40 + Math.sin(t * Math.PI) * 20; // 40 at red/green, 60 at yellow
   return `hsl(${hue}, 100%, ${lightness}%)`;
 }
 

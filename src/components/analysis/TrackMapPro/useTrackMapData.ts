@@ -145,6 +145,7 @@ function projectLap(
   profile: TrackMapProfile,
   globalSpeedMin: number,
   globalSpeedMax: number,
+  globalSpeedMedian?: number,
 ): LapProjection {
   const pts: ProjectedPoint[] = [];
   const segments: ColoredSegment[] = [];
@@ -191,7 +192,7 @@ function projectLap(
     const hasPedals = throttles.some(t => t > 0) || brakes.some(b => b > 0);
 
     if (profile === 'speed' || profile === 'complete') {
-      color = speedToColor(avgSpeed, globalSpeedMin, globalSpeedMax);
+      color = speedToColor(avgSpeed, globalSpeedMin, globalSpeedMax, globalSpeedMedian);
       // Still detect phase for overlays (like braking zones in 'complete')
       phase = dv < -0.3 ? 'braking' : dv > 0.3 ? 'acceleration' : 'coasting';
     } else if (profile === 'braking') {
@@ -323,7 +324,7 @@ export function useTrackMapData(
     });
 
     // Compute global speed bounds using robust percentiles (5th-98th) to ignore pit stops and spikes
-    let globalMin = 40, globalMax = 100;
+    let globalMin = 40, globalMax = 100, globalMedian = 70;
     const allSpeeds: number[] = [];
     for (const lap of realLaps) {
       if (!lap.speed_kmh) continue;
@@ -335,6 +336,7 @@ export function useTrackMapData(
       allSpeeds.sort((a, b) => a - b);
       globalMin = allSpeeds[Math.floor(allSpeeds.length * 0.05)];
       globalMax = allSpeeds[Math.floor(allSpeeds.length * 0.98)];
+      globalMedian = allSpeeds[Math.floor(allSpeeds.length * 0.5)];
     }
 
     // Find the primary lap
@@ -343,7 +345,7 @@ export function useTrackMapData(
       || realLaps[0];
 
     const primary = primaryLap
-      ? projectLap(primaryLap, project, profile, globalMin, globalMax)
+      ? projectLap(primaryLap, project, profile, globalMin, globalMax, globalMedian)
       : null;
 
     // Find comparison lap
@@ -354,14 +356,14 @@ export function useTrackMapData(
         ? syntheticLap
         : realLaps.find((l) => l.lap_number === comparisonLapNumber);
       if (refLap) {
-        reference = projectLap(refLap, project, profile, globalMin, globalMax);
+        reference = projectLap(refLap, project, profile, globalMin, globalMax, globalMedian);
       }
     }
 
     // Always project synthetic lap if available for the toggle
     let syntheticProjection: LapProjection | null = null;
     if (syntheticLap) {
-       syntheticProjection = projectLap(syntheticLap, project, profile, globalMin, globalMax);
+       syntheticProjection = projectLap(syntheticLap, project, profile, globalMin, globalMax, globalMedian);
     }
 
     const cornerDetails = buildCornerDetails(corners, margins, cornerAnalysis);
