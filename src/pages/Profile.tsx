@@ -556,9 +556,14 @@ export default function Profile() {
 
             {/* Evolution Chart */}
             <div className="glass-card p-6">
-              <h3 className="font-display font-semibold text-lg text-foreground mb-4">
-                Évolution du score
-              </h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-display font-semibold text-lg text-foreground">
+                  Évolution du score
+                </h3>
+                <div className="text-[9px] font-bold text-muted-foreground bg-white/5 px-2 py-0.5 rounded border border-white/5 uppercase tracking-tighter">
+                  Chronologique
+                </div>
+              </div>
               {loadingSessions || sessions.length === 0 ? (
                 <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
                   {loadingSessions ? (
@@ -582,7 +587,7 @@ export default function Profile() {
                             animate={{ height: `${height}%` }}
                             transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
                             className="flex-1 rounded-t-sm bg-gradient-to-t from-primary/50 to-primary"
-                            title={`Score: ${session.score}/100`}
+                            title={`Session du ${new Date(session.date).toLocaleDateString()} — Score: ${session.score}/100`}
                           />
                         );
                       })}

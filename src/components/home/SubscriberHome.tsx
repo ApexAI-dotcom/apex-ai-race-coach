@@ -159,10 +159,19 @@ export default function SubscriberHome() {
 
   // Chart data: last 7 sessions
   const chartData = useMemo(() => {
-    return [...analyses].reverse().slice(-7).map((a, i) => ({
-      name: `S${i + 1}`,
+    const sorted = [...analyses].sort((a, b) => a.timestamp - b.timestamp);
+    const dateCounts: Record<string, number> = {};
+    
+    return sorted.map(a => {
+      const d = new Date(a.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+      dateCounts[d] = (dateCounts[d] || 0) + 1;
+      return { ...a, dateLabel: d, daySessionIdx: dateCounts[d] };
+    })
+    .slice(-7)
+    .map((a) => ({
+      name: dateCounts[a.dateLabel] > 1 ? `${a.dateLabel} (#${a.daySessionIdx})` : a.dateLabel,
       score: a.score,
-      fullDate: new Date(a.date).toLocaleDateString(),
+      fullDate: new Date(a.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
     }));
   }, [analyses]);
 
@@ -259,9 +268,14 @@ export default function SubscriberHome() {
             <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Ta Progression</CardTitle>
             <CardDescription className="text-lg font-bold text-foreground mt-1">Évolution du score</CardDescription>
           </div>
-          <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => navigate("/dashboard")}>
-            Voir le tableau de bord <ChevronRight className="w-3 h-3" />
-          </Button>
+          <div className="flex flex-col items-end">
+            <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => navigate("/dashboard")}>
+              Voir le tableau de bord <ChevronRight className="w-3 h-3" />
+            </Button>
+            <div className="text-[9px] font-bold text-muted-foreground mt-1 bg-white/5 px-2 py-0.5 rounded border border-white/5 uppercase tracking-tighter">
+              Chronologique (Ancien → Récent)
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] w-full mt-4">
@@ -280,6 +294,11 @@ export default function SubscriberHome() {
                   cursor={{ fill: "rgba(255,255,255,0.05)" }}
                   contentStyle={{ backgroundColor: "#0d1117", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
                   itemStyle={{ color: "#ffffff" }}
+                  labelStyle={{ color: "#ef4444", fontWeight: "bold", marginBottom: "4px" }}
+                  labelFormatter={(value, items) => {
+                    const item = items[0]?.payload;
+                    return item ? `Session du ${item.fullDate}` : value;
+                  }}
                 />
                 <Bar dataKey="score" radius={[4, 4, 0, 0]} barSize={40}>
                   {chartData.map((entry, index) => (
