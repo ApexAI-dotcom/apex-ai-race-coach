@@ -427,11 +427,11 @@ export async function uploadAndAnalyzeCSV(
   }
 
   // Créer controller avec timeout adaptatif
-  let timeoutMs = 30000;
+  let timeoutMs = 45000;
   if (file.size > 20 * 1024 * 1024) {
-    timeoutMs = 120000;
+    timeoutMs = 180000;
   } else if (file.size > 5 * 1024 * 1024) {
-    timeoutMs = 60000;
+    timeoutMs = 120000;
   }
   const controller = createTimeoutController(timeoutMs);
 
@@ -527,7 +527,8 @@ export async function parseLaps(file: File): Promise<ParseLapsResponse> {
   }
   const formData = new FormData();
   formData.append("file", file);
-  const controller = createTimeoutController(60000);
+  // Increase timeout for heavy files during initial upload
+  const controller = createTimeoutController(120000);
   const response = await fetch(`${API_BASE_URL}/api/v1/parse-laps`, {
     method: "POST",
     body: formData,
