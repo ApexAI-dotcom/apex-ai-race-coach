@@ -527,7 +527,7 @@ export async function parseLaps(file: File): Promise<ParseLapsResponse> {
   }
   const formData = new FormData();
   formData.append("file", file);
-  const controller = createTimeoutController(120000);
+  const controller = createTimeoutController(60000);
   const response = await fetch(`${API_BASE_URL}/api/v1/parse-laps`, {
     method: "POST",
     body: formData,
