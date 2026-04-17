@@ -2,7 +2,7 @@
  * TrackMapPro — Main orchestrator
  * Premium circuit map visualization with 4 profiles (Speed, Braking, Compare, Complete)
  */
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type {
   TrajectoryCorner,
   TrajectoryLap,
@@ -54,6 +54,21 @@ export function TrackMapPro({
   const [hoveredCornerId, setHoveredCornerId] = useState<number | null>(null);
   const [selectedCornerId, setSelectedCornerId] = useState<number | null>(null);
   const [showSynthetic, setShowSynthetic] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  // Apply CSS pseudo-fullscreen 
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (isFullscreen) {
+      containerRef.current.classList.add('fixed', 'inset-0', 'z-[999]', 'bg-[#111118]', 'flex', 'flex-col', 'overflow-y-auto');
+      containerRef.current.classList.remove('relative');
+      document.body.style.overflow = 'hidden';
+    } else {
+      containerRef.current.classList.remove('fixed', 'inset-0', 'z-[999]', 'bg-[#111118]', 'flex', 'flex-col', 'overflow-y-auto');
+      containerRef.current.classList.add('relative');
+      document.body.style.overflow = '';
+    }
+  }, [isFullscreen]);
 
   // ── Data ──
   const data = useTrackMapData(
@@ -180,6 +195,7 @@ export function TrackMapPro({
           onPointHover={handlePointHover}
           onCornerClick={handleCornerClick}
           onCornerHover={setHoveredCornerId}
+          isFullscreen={isFullscreen}
         />
 
         {/* Tooltip */}
@@ -201,10 +217,11 @@ export function TrackMapPro({
           onClose={() => setSelectedCornerId(null)}
         />
 
-        {/* Fullscreen button */}
-        <TrackMapFullscreen containerRef={containerRef}>
-          <></>
-        </TrackMapFullscreen>
+        {/* Fullscreen button wrapper */}
+        <TrackMapFullscreen 
+          isFullscreen={isFullscreen} 
+          toggle={() => setIsFullscreen(!isFullscreen)} 
+        />
       </div>
 
       {/* Legend */}

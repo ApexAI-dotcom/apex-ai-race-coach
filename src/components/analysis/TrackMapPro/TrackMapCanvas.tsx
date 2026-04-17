@@ -20,6 +20,7 @@ interface TrackMapCanvasProps {
   onPointHover: (index: number | null, clientX: number, clientY: number) => void;
   onCornerClick: (cornerId: number) => void;
   onCornerHover: (cornerId: number | null) => void;
+  isFullscreen?: boolean;
 }
 
 // Direction arrow every N segments
@@ -64,7 +65,10 @@ function renderGlow(polyline: string, color: string) {
 
 function renderBrakingMarkers(segments: ColoredSegment[], isSynthetic: boolean) {
   const markers = [];
-  for (let i = 1; i < segments.length; i++) {
+  // Skip first and last few segments to prevent false positives near start/finish overlap 
+  const exclusionRange = 10;
+  
+  for (let i = exclusionRange; i < segments.length - exclusionRange; i++) {
     if (segments[i].phase === 'braking' && segments[i - 1].phase !== 'braking') {
       const dx = segments[i].x2 - segments[i].x1;
       const dy = segments[i].y2 - segments[i].y1;
@@ -188,6 +192,7 @@ export function TrackMapCanvas({
   onPointHover,
   onCornerClick,
   onCornerHover,
+  isFullscreen,
 }: TrackMapCanvasProps) {
   // Invisible hit area for hover detection
   const handleMouseMove = useCallback(
@@ -231,7 +236,7 @@ export function TrackMapCanvas({
   return (
     <svg
       viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-      className="w-full h-auto max-h-[600px] overflow-visible"
+      className={`w-full overflow-visible ${isFullscreen ? 'flex-1 h-full max-h-none' : 'h-auto max-h-[600px]'}`}
       style={{ aspectRatio: `${SVG_W} / ${SVG_H}` }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
