@@ -293,34 +293,8 @@ export function useTrackMapData(
     const allLaps = laps ?? [];
     const realLaps = allLaps.filter((l) => !l.is_synthetic);
 
-    // Find the original synthetic model lap or generate a fake perfect one !
-    let syntheticLap = allLaps.find((l) => l.is_synthetic) ?? null;
-    
-    if (!syntheticLap && realLaps.length > 0) {
-      const best = realLaps.find((l) => l.is_best) || realLaps[0];
-      const fakeLat = [...best.lat];
-      const fakeLon = [...best.lon];
-      const fakeSpeeds = best.speed_kmh ? [...best.speed_kmh] : [];
-      
-      // Algorithm: +3.5% speed, and spatial smoothing (moving average offset) for a "tighter" race line
-      for (let i = 0; i < fakeSpeeds.length; i++) fakeSpeeds[i] *= 1.035;
-      
-      for(let iter = 0; iter < 4; iter++) {
-        for (let i = 1; i < fakeLat.length - 1; i++) {
-            fakeLat[i] = (fakeLat[i-1] + fakeLat[i] + fakeLat[i+1]) / 3;
-            fakeLon[i] = (fakeLon[i-1] + fakeLon[i] + fakeLon[i+1]) / 3;
-        }
-      }
-
-      syntheticLap = {
-        ...best,
-        lap_number: -1,
-        is_synthetic: true,
-        lat: fakeLat,
-        lon: fakeLon,
-        speed_kmh: fakeSpeeds,
-      };
-    }
+    // Find the original synthetic model lap
+    const syntheticLap = allLaps.find((l) => l.is_synthetic) ?? null;
 
     // Compute bounds
     const bounds = computeBounds(realLaps.length > 0 ? realLaps : allLaps, corners);
@@ -348,19 +322,20 @@ export function useTrackMapData(
       return { ...c, x, y };
     });
 
-    // Compute global speed bounds (across all real laps for consistent coloring)
-    let globalMin = Infinity, globalMax = -Infinity;
+    // Compute global speed bounds using robust percentiles (5th-98th) to ignore pit stops and spikes
+    let globalMin = 40, globalMax = 100;
+    const allSpeeds: number[] = [];
     for (const lap of realLaps) {
       if (!lap.speed_kmh) continue;
       for (const s of lap.speed_kmh) {
-        if (s > 0) {
-          globalMin = Math.min(globalMin, s);
-          globalMax = Math.max(globalMax, s);
-        }
+        if (s > 10) allSpeeds.push(s);
       }
     }
-    if (globalMin === Infinity) globalMin = 0;
-    if (globalMax === -Infinity) globalMax = 100;
+    if (allSpeeds.length > 0) {
+      allSpeeds.sort((a, b) => a - b);
+      globalMin = allSpeeds[Math.floor(allSpeeds.length * 0.05)];
+      globalMax = allSpeeds[Math.floor(allSpeeds.length * 0.98)];
+    }
 
     // Find the primary lap
     const primaryLap = realLaps.find((l) => l.lap_number === selectedLapNumber)

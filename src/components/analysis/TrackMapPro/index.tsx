@@ -167,7 +167,7 @@ export function TrackMapPro({
       </div>
 
       {/* SVG Canvas and Controls */}
-      <div className="relative px-1 pt-2">
+      <div className={`relative px-1 pt-2 ${isFullscreen ? 'flex-1 w-full min-h-0 flex flex-col' : ''}`}>
         {data.syntheticProjection && (
           <div className="absolute top-4 left-4 z-10">
             <button
