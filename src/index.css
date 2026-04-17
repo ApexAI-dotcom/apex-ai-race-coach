@@ -177,6 +177,25 @@
   .nav-link-active {
     @apply text-primary font-medium;
   }
+
+  .trackmap-pro {
+    background: radial-gradient(ellipse at center, #111118 0%, #0a0a0f 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .trackmap-profile-active {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(0 100% 45%) 100%);
+    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.5);
+  }
+
+  .trackmap-tooltip {
+    backdrop-filter: blur(20px);
+    background: hsl(var(--card) / 0.92);
+    border: 1px solid hsl(var(--primary) / 0.25);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
 }
 
 @layer utilities {

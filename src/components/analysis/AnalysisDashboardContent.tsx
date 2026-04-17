@@ -8,7 +8,7 @@ import { ApexMarginChart } from "./ApexMarginChart";
 import { ThrottleBrakeChart } from "./ThrottleBrakeChart";
 import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
-import { TrackMap } from "./TrackMap";
+import { TrackMapPro } from "./TrackMapPro";
 import { CoachingAdvice } from "./CoachingAdvice";
 import { enrichCornersWithCornerAnalysis } from "./utils";
 import type { AnalysisResponse as AnalysisResult } from "@/types/analysis";
@@ -162,12 +162,14 @@ export function AnalysisDashboardContent({
           {plotData.trajectory_2d?.corners?.length > 0 && (
             <section className={sectionClass}>
                <h2 className={titleClass}>Carte du Circuit</h2>
-               <p className="text-xs text-muted-foreground mb-3">Vue aérienne de votre trajectoire réelle sur le circuit. Les marqueurs indiquent les virages détectés. Comparez votre ligne à la trajectoire idéale pour identifier les écarts et gagner du temps en élargissant vos entrées.</p>
-               <TrackMap
+               <p className="text-xs text-muted-foreground mb-3">Vue aérienne de votre trajectoire réelle sur le circuit. Sélectionnez un profil de visualisation pour explorer les données de vitesse, freinage, ou comparer votre ligne à la trajectoire cible.</p>
+               <TrackMapPro
                  corners={plotData.trajectory_2d.corners}
                  margins={plotData.apex_margin?.corners}
-                 laps={plotData.trajectory_2d.laps ? [plotData.trajectory_2d.laps[bestTrackLapIndex]] : undefined}
-                 onCornerClick={() => {}}
+                 laps={plotData.trajectory_2d.laps}
+                 cornerAnalysis={analysis.corner_analysis as unknown[]}
+                 bestLapNumber={bestLapNumber}
+                 selectedLapNumbers={selectedLapNumbers}
                />
             </section>
           )}

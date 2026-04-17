@@ -75,6 +75,36 @@ export interface TrajectoryLap {
   lat: number[];
   lon: number[];
   speed_kmh?: number[];
+  throttle_pct?: number[];
+  brake_pct?: number[];
+  distance_m?: number[];
+  rpm?: number[];
+  lateral_g?: number[];
+  is_synthetic?: boolean;
+  reference_type?: 'model' | 'best_real';
+  label?: string;
+}
+
+export type TrackMapProfile = 'speed' | 'braking' | 'compare' | 'complete';
+
+export interface CornerDetail {
+  id: number;
+  label: string;
+  corner_type: string;
+  grade: string;
+  score: number;
+  apex_speed_real: number;
+  apex_speed_optimal: number;
+  entry_speed: number;
+  exit_speed: number;
+  target_entry_speed?: number;
+  target_exit_speed?: number;
+  lateral_g_max: number;
+  time_lost: number;
+  apex_lat?: number;
+  apex_lon?: number;
+  margin_kmh?: number;
+  status?: CornerMarginStatus;
 }
 
 export interface PlotData {
