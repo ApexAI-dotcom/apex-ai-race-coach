@@ -1,27 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, BarChart3, Zap, User, Tag, Wrench } from "lucide-react";
 import { motion } from "framer-motion";
-import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useAuth } from "@/hooks/useAuth";
 
 export const MobileNav = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
-  const { plan, isLoading } = useSubscription();
-  
-  const displayLabel = "Plans";
 
   const navItems = [
     { icon: Home, label: "Accueil", path: "/" },
     { icon: BarChart3, label: "Tableau de bord", labelShort: "Tableau", path: "/dashboard" },
     { icon: Zap, label: "Analyser", path: "/upload", isHighlight: true },
     { icon: Wrench, label: "Mon Kart", labelShort: "Kart", path: "/mon-kart" },
+    { icon: Tag, label: "Plans", path: "/pricing" },
     { icon: User, label: "Profil", path: "/profile" },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-card border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
-      <div className="flex items-center justify-around h-16 px-4 min-h-[4rem]">
+      <div className="flex items-center justify-around h-16 px-2 min-h-[4rem]">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
