@@ -336,8 +336,21 @@ export function TrackMapCanvas({
 
           {/* Synthetic Perfect Lap overlay (when toggled on) - Rendered ON TOP of primary */}
           {showSynthetic && syntheticProjection && (
-            <>
+            <g className="ai-lap-group">
               {renderGlow(syntheticProjection.polyline, MODEL_GOLD)}
+              {/* Pulsating background line */}
+              <polyline
+                points={syntheticProjection.polyline}
+                fill="none"
+                stroke={MODEL_GOLD}
+                strokeWidth={5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.3}
+              >
+                <animate attributeName="opacity" values="0.1;0.4;0.1" dur="2s" repeatCount="indefinite" />
+              </polyline>
+              {/* Sharp dash line with movement effect */}
               <polyline
                 points={syntheticProjection.polyline}
                 fill="none"
@@ -345,10 +358,11 @@ export function TrackMapCanvas({
                 strokeWidth={2.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                opacity={0.95}
-                strokeDasharray="6 4"
+                opacity={1}
+                strokeDasharray="10 10"
+                className="animate-dash"
               />
-            </>
+            </g>
           )}
 
           {/* Braking profile overlay in Complete mode */}
