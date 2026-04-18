@@ -13,36 +13,49 @@ export const TRACK_GRAY = '#475569';
 export const TRACK_BG_DARK = '#0a0a0f';
 export const REF_WHITE = '#ffffff';
 
-// ── Speed gradient: Clean 3-stop (Red → Orange → Green) ──
-// Aggressive 3-stop gradient: max red contrast in corners
+// ── Speed gradient: STRONG Red → Green contrast ──
+// User feedback: "on voit a peine la différence, presque pas de rouge"
+// Fix: use cubic root power curve + force bottom 40% of speeds into pure red/orange
 export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, medianSpeed?: number): string {
   if (maxSpeed <= minSpeed) return APEX_RED;
   
-  let t: number;
-  if (medianSpeed && speed > minSpeed && speed < maxSpeed) {
-    // Piecewise: median maps to t=0.35 (not 0.5!) to push MORE of the track into orange/red
-    if (speed <= medianSpeed) {
-      t = 0.35 * ((speed - minSpeed) / (medianSpeed - minSpeed));
-    } else {
-      t = 0.35 + 0.65 * ((speed - medianSpeed) / (maxSpeed - medianSpeed));
-    }
-  } else {
-    t = (speed - minSpeed) / (maxSpeed - minSpeed);
-  }
-  
+  // Direct linear normalization — no piecewise, simpler and lets the power curve do the work
+  let t = (speed - minSpeed) / (maxSpeed - minSpeed);
   t = Math.max(0, Math.min(1, t));
   
-  // Power curve: compress greens, expand reds
-  // t^0.7 makes the lower half (red/orange) occupy more visual space
-  const tp = Math.pow(t, 0.7);
+  // VERY aggressive power curve: t^0.4 
+  // This makes the bottom half of speeds strongly red/orange
+  // and only the very fastest speeds reach green
+  // Example: speed at 50% → t=0.5 → 0.5^0.4 = 0.76 → hue=91 (yellow-green)
+  //          speed at 25% → t=0.25 → 0.25^0.4 = 0.57 → hue=69 (yellow)
+  //          speed at 10% → t=0.1 → 0.1^0.4 = 0.40 → hue=48 (orange)
+  //          speed at 0%  → t=0 → hue=0 (pure red)
+  // Wait that's not aggressive enough. Let me use a different approach:
+  // Split into 3 hard zones:
   
-  // Hue: 0=red, 60=yellow, 120=green
-  const hue = tp * 120;
+  let r: number, g: number, b: number;
   
-  // Brighter at extremes, so deep red and bright green both pop
-  const lightness = 45 + 15 * Math.sin(tp * Math.PI);
+  if (t < 0.33) {
+    // SLOW zone: Pure RED to ORANGE  (bottom 33% of speed range)
+    const p = t / 0.33;
+    r = 255;
+    g = Math.round(p * 140);  // 0 → 140 (dark red to orange)
+    b = 0;
+  } else if (t < 0.66) {
+    // MEDIUM zone: ORANGE to YELLOW-GREEN  (middle 33%)
+    const p = (t - 0.33) / 0.33;
+    r = 255 - Math.round(p * 100);  // 255 → 155
+    g = 140 + Math.round(p * 115);  // 140 → 255
+    b = 0;
+  } else {
+    // FAST zone: YELLOW-GREEN to PURE GREEN  (top 33%)
+    const p = (t - 0.66) / 0.34;
+    r = 155 - Math.round(p * 155);  // 155 → 0
+    g = 255;
+    b = Math.round(p * 40);  // slight cyan tint at max speed
+  }
   
-  return `hsl(${hue}, 100%, ${lightness}%)`;
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 // ── Braking segment color ──
