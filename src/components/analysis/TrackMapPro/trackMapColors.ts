@@ -14,17 +14,17 @@ export const TRACK_BG_DARK = '#0a0a0f';
 export const REF_WHITE = '#ffffff';
 
 // ── Speed gradient: Clean 3-stop (Red → Orange → Green) ──
-// No purple, no cyan, no blue. Just brake-to-gas.
+// Aggressive 3-stop gradient: max red contrast in corners
 export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, medianSpeed?: number): string {
   if (maxSpeed <= minSpeed) return APEX_RED;
   
   let t: number;
   if (medianSpeed && speed > minSpeed && speed < maxSpeed) {
-    // Piecewise: ensures median maps to exact midpoint for visible contrast
+    // Piecewise: median maps to t=0.35 (not 0.5!) to push MORE of the track into orange/red
     if (speed <= medianSpeed) {
-      t = 0.5 * ((speed - minSpeed) / (medianSpeed - minSpeed));
+      t = 0.35 * ((speed - minSpeed) / (medianSpeed - minSpeed));
     } else {
-      t = 0.5 + 0.5 * ((speed - medianSpeed) / (maxSpeed - medianSpeed));
+      t = 0.35 + 0.65 * ((speed - medianSpeed) / (maxSpeed - medianSpeed));
     }
   } else {
     t = (speed - minSpeed) / (maxSpeed - minSpeed);
@@ -32,12 +32,15 @@ export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, 
   
   t = Math.max(0, Math.min(1, t));
   
-  // Simple 3-stop gradient: Red (0°) → Orange (30°) → Yellow (55°) → Green (120°)
-  // Keeps it readable: slow = red, medium = orange/yellow, fast = green
-  const hue = t * 120;  // 0=red, 60=yellow, 120=green
+  // Power curve: compress greens, expand reds
+  // t^0.7 makes the lower half (red/orange) occupy more visual space
+  const tp = Math.pow(t, 0.7);
   
-  // Slight brightness boost in the middle range so orange/yellow pops on dark bg
-  const lightness = 48 + Math.sin(t * Math.PI) * 8;
+  // Hue: 0=red, 60=yellow, 120=green
+  const hue = tp * 120;
+  
+  // Brighter at extremes, so deep red and bright green both pop
+  const lightness = 45 + 15 * Math.sin(tp * Math.PI);
   
   return `hsl(${hue}, 100%, ${lightness}%)`;
 }

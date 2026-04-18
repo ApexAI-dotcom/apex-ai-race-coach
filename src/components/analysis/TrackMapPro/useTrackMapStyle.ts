@@ -113,8 +113,8 @@ export function computeGlobalSpeedBounds(laps: TrajectoryLap[]) {
   }
   if (allSpeeds.length > 0) {
     allSpeeds.sort((a, b) => a - b);
-    globalMin = allSpeeds[Math.floor(allSpeeds.length * 0.05)];
-    globalMax = allSpeeds[Math.floor(allSpeeds.length * 0.98)];
+    globalMin = allSpeeds[Math.floor(allSpeeds.length * 0.02)];
+    globalMax = allSpeeds[Math.floor(allSpeeds.length * 0.97)];
     globalMedian = allSpeeds[Math.floor(allSpeeds.length * 0.5)];
   }
   return { globalMin, globalMax, globalMedian };
