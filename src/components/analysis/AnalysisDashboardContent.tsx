@@ -162,7 +162,8 @@ export function AnalysisDashboardContent({
           {plotData.trajectory_2d?.corners?.length > 0 && (
             <section className={sectionClass}>
                <h2 className={titleClass}>Carte du Circuit</h2>
-               <p className="text-xs text-muted-foreground mb-3">Vue aérienne de votre trajectoire réelle sur le circuit. Sélectionnez un profil de visualisation pour explorer les données de vitesse, freinage, ou comparer votre ligne à la trajectoire cible.</p>
+               <p className="text-xs text-muted-foreground mb-1">Vue aérienne de votre trajectoire réelle sur le circuit. Sélectionnez un profil de visualisation pour explorer les données de vitesse, freinage, ou comparer votre ligne à la trajectoire cible.</p>
+               <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1.5"><span className="inline-block w-5 h-0.5 border-t-2 border-dashed border-yellow-400"></span>Le <strong className="text-yellow-400">Tour Parfait IA</strong> représente une trajectoire synthétique calculée à partir de votre meilleur tour, lissée et optimisée pour simuler la ligne idéale.</p>
                <TrackMapPro
                  corners={plotData.trajectory_2d.corners}
                  margins={plotData.apex_margin?.corners}
