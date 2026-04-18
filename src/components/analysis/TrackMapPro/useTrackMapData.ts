@@ -111,6 +111,8 @@ export function useTrackMap(
       corners: projectedCorners,
       cornerDetails,
       project,
+      globalSpeedMin: globalMin,
+      globalSpeedMax: globalMax,
     };
   }, [project, bounds, laps, corners, profile, selectedLap, comparisonLap, margins, cornerAnalysis]);
 
