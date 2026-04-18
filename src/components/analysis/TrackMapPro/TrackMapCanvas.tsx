@@ -5,8 +5,9 @@
 import { useCallback, type MouseEvent } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import type { TrackMapProfile } from '@/types/analysis';
-import type { LapProjection, ProjectedCorner, ColoredSegment } from './useTrackMapData';
-import { SVG_W, SVG_H } from './useTrackMapData';
+import type { ProjectedCorner } from './useTrackMapGeometry';
+import type { LapProjection, ColoredSegment } from './useTrackMapStyle';
+import { SVG_W, SVG_H } from './useTrackMapGeometry';
 import { APEX_ORANGE, APEX_RED, MODEL_GOLD, TRACK_BG_DARK, REF_WHITE } from './trackMapColors';
 
 interface TrackMapCanvasProps {
@@ -244,6 +245,8 @@ export function TrackMapCanvas({
       doubleClick={{ mode: 'zoomIn' }}
       zoomAnimation={{ animationType: 'easeOut' }}
       panning={{ velocityDisabled: true }}
+      onZoom={() => onPointHover(null, 0, 0)}
+      onPanning={() => onPointHover(null, 0, 0)}
     >
         {({ zoomIn, zoomOut, resetTransform }) => (
           <div className={`relative w-full ${isFullscreen ? 'flex-1 h-full' : 'h-full max-h-[600px]'}`}>
