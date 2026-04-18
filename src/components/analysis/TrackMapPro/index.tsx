@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { TrajectoryCorner, TrajectoryLap, CornerMargin } from '@/types/analysis';
 import { useTrackMap } from './useTrackMapData';
 import { TrackMapProfiles } from './TrackMapProfiles';
@@ -82,12 +83,12 @@ export function TrackMapPro({
 
   if (!data?.primary && corners.length === 0) return null;
 
-  return (
+  const content = (
     <div
       ref={containerRef}
-      className={`trackmap-pro ${state.isFullscreen ? 'fixed inset-0 z-[999] bg-[#111118] flex flex-col overflow-hidden' : 'relative'}`}
+      className={`trackmap-pro w-full ${state.isFullscreen ? 'fixed inset-0 z-[9999] bg-[#0a0a0f] flex flex-col p-4 m-0 max-w-none' : 'relative rounded-xl overflow-hidden'}`}
     >
-      <div className="p-3 pb-0">
+      <div className="p-3 pb-0 shrink-0">
         <TrackMapProfiles
           active={state.profile}
           onChange={onProfileChange}
@@ -158,7 +159,7 @@ export function TrackMapPro({
         />
       </div>
 
-      <div className="px-3 pb-2">
+      <div className="px-3 pb-2 shrink-0">
         <TrackMapLegend
           profile={state.profile}
           speedMin={data?.globalSpeedMin ?? 0}
@@ -169,4 +170,10 @@ export function TrackMapPro({
       </div>
     </div>
   );
+
+  if (state.isFullscreen && typeof document !== 'undefined') {
+    return createPortal(content, document.body);
+  }
+
+  return content;
 }
