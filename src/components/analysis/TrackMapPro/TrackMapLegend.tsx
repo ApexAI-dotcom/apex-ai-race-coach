@@ -2,7 +2,7 @@
  * TrackMapPro — Dynamic legend
  */
 import type { TrackMapProfile } from '@/types/analysis';
-import { APEX_ORANGE, APEX_RED, TRACK_GREEN, TRACK_GRAY, MODEL_GOLD, MODEL_GOLD_LIGHT } from './trackMapColors';
+import { APEX_ORANGE, APEX_RED, TRACK_GREEN, TRACK_GRAY, TRACK_YELLOW, MODEL_CYAN } from './trackMapColors';
 
 interface TrackMapLegendProps {
   profile: TrackMapProfile;
@@ -28,7 +28,7 @@ export function TrackMapLegend({
           <div
             className="h-2 w-20 rounded-full"
             style={{
-              background: `linear-gradient(to right, ${APEX_RED}, ${TRACK_GREEN})`,
+              background: `linear-gradient(to right, ${APEX_RED}, ${TRACK_YELLOW}, ${TRACK_GREEN})`,
             }}
           />
           <span>{Math.round(speedMax)} km/h</span>
@@ -62,7 +62,7 @@ export function TrackMapLegend({
           </div>
           {hasModel && comparisonLabel ? (
             <div className="flex items-center gap-1">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: MODEL_GOLD }} />
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: MODEL_CYAN }} />
               <span>{comparisonLabel}</span>
             </div>
           ) : comparisonLabel ? (
