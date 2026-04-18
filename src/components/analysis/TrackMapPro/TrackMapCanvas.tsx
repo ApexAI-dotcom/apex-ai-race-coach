@@ -8,7 +8,7 @@ import type { TrackMapProfile } from '@/types/analysis';
 import type { ProjectedCorner } from './useTrackMapGeometry';
 import type { LapProjection, ColoredSegment } from './useTrackMapStyle';
 import { SVG_W, SVG_H } from './useTrackMapGeometry';
-import { APEX_ORANGE, APEX_RED, MODEL_GOLD, TRACK_BG_DARK, REF_WHITE } from './trackMapColors';
+import { APEX_ORANGE, APEX_RED, MODEL_CYAN, TRACK_BG_DARK, REF_WHITE } from './trackMapColors';
 
 interface TrackMapCanvasProps {
   primary: LapProjection | null;
@@ -50,19 +50,9 @@ function renderSegments(segments: ColoredSegment[], strokeWidth: number, opacity
   ));
 }
 
+// No more glow effects for a sleek look
 function renderGlow(polyline: string, color: string) {
-  return (
-    <polyline
-      points={polyline}
-      fill="none"
-      stroke={color}
-      strokeWidth={28}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      opacity={0.12}
-      style={{ filter: 'blur(10px)' }}
-    />
-  );
+  return null;
 }
 
 function renderBrakingMarkers(segments: ColoredSegment[], isSynthetic: boolean) {
@@ -132,7 +122,6 @@ function renderCorners(
 ) {
   return corners.map((c) => {
     const isHovered = hoveredCornerId === c.id;
-    const r = isHovered ? 15 : 13;
     return (
       <g
         key={c.id}
@@ -141,42 +130,26 @@ function renderCorners(
         onMouseEnter={() => onCornerHover(c.id)}
         onMouseLeave={() => onCornerHover(null)}
       >
-        {/* Glow ring */}
-        <circle
-          cx={c.x}
-          cy={c.y}
-          r={r + 3}
-          fill="none"
-          stroke={isHovered ? APEX_ORANGE : 'rgba(249,115,22,0.3)'}
-          strokeWidth={isHovered ? 2 : 1}
-          opacity={isHovered ? 0.8 : 0.4}
-        />
-        {/* Background circle */}
-        <circle cx={c.x} cy={c.y} r={r} fill="#000000" />
-        {/* Gradient border */}
-        <circle
-          cx={c.x}
-          cy={c.y}
-          r={r}
-          fill="none"
-          stroke={`url(#corner-gradient)`}
-          strokeWidth={isHovered ? 2.5 : 2}
-        />
-        {/* Apex star inside circle instead of number for a cleaner look or just standard text */}
+        {/* Connection line from track to label */}
+        <line x1={c.x} y1={c.y} x2={c.x} y2={c.y - 14} stroke={REF_WHITE} strokeWidth={isHovered ? 1.5 : 0.5} opacity={isHovered ? 1 : 0.5} />
+        {/* Hover expanded hit area */}
+        <circle cx={c.x} cy={c.y} r={16} fill="transparent" />
+        {/* Precise Apex Dot */}
+        <circle cx={c.x} cy={c.y} r={isHovered ? 4 : 2.5} fill={REF_WHITE} />
+        {/* Label block */}
+        <rect x={c.x - 10} y={c.y - 25} width={20} height={11} fill="#1a1c23" rx={2} stroke={isHovered ? MODEL_CYAN : REF_WHITE} strokeWidth={isHovered ? 1 : 0.5} />
         <text
           x={c.x}
-          y={c.y + 3.5}
+          y={c.y - 17}
           textAnchor="middle"
-          fill="#ffffff"
-          fontSize={isHovered ? '9' : '8'}
-          fontWeight="800"
+          fill={isHovered ? MODEL_CYAN : REF_WHITE}
+          fontSize={8}
+          fontWeight="700"
           fontFamily="'Space Grotesk', sans-serif"
           className="select-none pointer-events-none"
         >
           {c.label.replace('V', '')}
         </text>
-        {/* Actual apex tip mark (tiny diamond pointing to the track) */}
-        <polygon points={`${c.x},${c.y - r - 4} ${c.x - 3},${c.y - r - 7} ${c.x + 3},${c.y - r - 7}`} fill="#ffffff" />
       </g>
     );
   });
@@ -277,20 +250,15 @@ export function TrackMapCanvas({
                 onMouseLeave={handleMouseLeave}
               >
       <defs>
-        {/* F1-style corner gradient border */}
-        <linearGradient id="corner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={APEX_ORANGE} />
-          <stop offset="100%" stopColor={APEX_RED} />
-        </linearGradient>
-        {/* Subtle radial background */}
-        <radialGradient id="bg-gradient" cx="50%" cy="50%" r="60%">
-          <stop offset="0%" stopColor="#111118" />
-          <stop offset="100%" stopColor={TRACK_BG_DARK} />
-        </radialGradient>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1"/>
+        </pattern>
       </defs>
 
-      {/* Background */}
-      <rect width={SVG_W} height={SVG_H} fill="url(#bg-gradient)" rx={16} />
+      {/* Background purely flat and dark */}
+      <rect width={SVG_W} height={SVG_H} fill="#101218" rx={16} />
+      {/* Telemetry Grid overlay */}
+      <rect width={SVG_W} height={SVG_H} fill="url(#grid)" rx={16} />
 
       {/* Reference/comparison lap (behind primary) */}
       {reference && profile === 'compare' && (
@@ -315,9 +283,6 @@ export function TrackMapCanvas({
       {/* Primary lap */}
       {primary && (
         <>
-          {/* Glow layer */}
-          {renderGlow(primary.polyline, APEX_ORANGE)}
-
           {/* Colored segments (speed or braking profile) */}
           {profile !== 'compare'
             ? renderSegments(primary.segments, 3)
@@ -334,35 +299,17 @@ export function TrackMapCanvas({
             )
           }
 
-          {/* Synthetic Perfect Lap overlay (when toggled on) - Rendered ON TOP of primary */}
+          {/* Synthetic Perfect Lap overlay - Sharp Cyan Solid Line */}
           {showSynthetic && syntheticProjection && (
-            <g className="ai-lap-group">
-              {renderGlow(syntheticProjection.polyline, MODEL_GOLD)}
-              {/* Pulsating background line */}
-              <polyline
-                points={syntheticProjection.polyline}
-                fill="none"
-                stroke={MODEL_GOLD}
-                strokeWidth={5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity={0.3}
-              >
-                <animate attributeName="opacity" values="0.1;0.4;0.1" dur="2s" repeatCount="indefinite" />
-              </polyline>
-              {/* Sharp dash line with movement effect */}
-              <polyline
-                points={syntheticProjection.polyline}
-                fill="none"
-                stroke={MODEL_GOLD}
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity={1}
-                strokeDasharray="10 10"
-                className="animate-dash"
-              />
-            </g>
+            <polyline
+              points={syntheticProjection.polyline}
+              fill="none"
+              stroke={MODEL_CYAN}
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={1}
+            />
           )}
 
           {/* Braking profile overlay in Complete mode */}

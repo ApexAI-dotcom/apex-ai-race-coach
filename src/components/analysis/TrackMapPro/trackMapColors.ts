@@ -1,26 +1,25 @@
 /**
  * TrackMapPro — Color utilities
- * Centralise toutes les couleurs et fonctions d'interpolation
+ * Télémétrie F1 Style: Plats, Nette, Couleurs franches.
  */
 
 // ── Brand Colors ──
 export const APEX_ORANGE = '#f97316';
-export const APEX_RED = '#dc2626';
-export const APEX_DARK_RED = '#991b1b';
-export const MODEL_GOLD = '#eab308';
-export const MODEL_GOLD_LIGHT = '#facc15';
-export const TRACK_GREEN = '#22c55e';
-export const TRACK_GRAY = '#64748b';
-export const TRACK_BG_DARK = '#0a0a0f';
-export const TRACK_BG_CARD = '#111118';
-export const REF_WHITE = '#e2e8f0';
+export const APEX_RED = '#ff2020';      // F1 Slow / Brake
+export const MODEL_CYAN = '#00e5ff';    // AI Lap (Laser bright cyan)
+export const TRACK_GREEN = '#00ff40';   // F1 Fast / Acceleration
+export const TRACK_YELLOW = '#ffee00';  // F1 Medium
+export const TRACK_GRAY = '#475569';
+export const TRACK_BG_DARK = '#0a0a0f'; // Dark flat 
+export const REF_WHITE = '#ffffff';
 
-// ── Speed gradient: Deep Blue (slowest) → Red → Yellow → Green → Cyan (fastest) ──
+// ── Speed gradient: Red (slow) → Yellow (medium) → Green (fast) ──
 export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, medianSpeed?: number): string {
   if (maxSpeed <= minSpeed) return APEX_RED;
   
   let t: number;
   if (medianSpeed && speed > minSpeed && speed < maxSpeed) {
+    // Piecewise strict linear interpolation forcing median to exactly t=0.5 (Yellow)
     if (speed <= medianSpeed) {
       t = 0.5 * ((speed - minSpeed) / (medianSpeed - minSpeed));
     } else {
@@ -32,42 +31,12 @@ export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, 
   
   t = Math.max(0, Math.min(1, t));
   
-  // Radical non-linear hue mapping to force high contrast
-  // 300° (Purple) -> 0° (Red) -> 60° (Yellow) -> 140° (Green) -> 200° (Cyan)
-  let hue: number;
-  if (t < 0.25) { // Slowest -> Slow (Purple to Red)
-    hue = 300 + (t / 0.25) * 60; // 300 to 360
-  } else if (t < 0.5) { // Slow -> Medium (Red to Yellow)
-    hue = (t - 0.25) / 0.25 * 60; // 0 to 60
-  } else if (t < 0.75) { // Medium -> Fast (Yellow to Green)
-    hue = 60 + (t - 0.5) / 0.25 * 80; // 60 to 140
-  } else { // Fast -> Fastest (Green to Cyan)
-    hue = 140 + (t - 0.75) / 0.25 * 60; // 140 to 200
-  }
+  // HSL: 0 = Red, 60 = Yellow, 120 = Green.
+  // We want pure vibrant hue shift from 0 to 120.
+  const hue = Math.round(t * 120);
   
-  // Dynamic lightness to make the "sweet spot" (yellow/green) pop
-  const lightness = 45 + Math.sin(t * Math.PI) * 15; 
-  return `hsl(${hue % 360}, 100%, ${lightness}%)`;
-}
-
-// ── Speed gradient as raw RGB for SVG stops ──
-export function speedToRGBArray(speed: number, minSpeed: number, maxSpeed: number): [number, number, number] {
-  if (maxSpeed <= minSpeed) return [220, 38, 38]; // APEX_RED
-  const t = Math.max(0, Math.min(1, (speed - minSpeed) / (maxSpeed - minSpeed)));
-  // We interpolate through yellow `[250, 204, 21]` at t=0.5
-  let r, g, b;
-  if (t < 0.5) {
-    const t2 = t * 2; // 0 to 1 mapping for first half
-    r = Math.round(220 * (1 - t2) + 250 * t2);
-    g = Math.round(38 * (1 - t2) + 204 * t2);
-    b = Math.round(38 * (1 - t2) + 21 * t2);
-  } else {
-    const t2 = (t - 0.5) * 2; // 0 to 1 mapping for second half
-    r = Math.round(250 * (1 - t2) + 34 * t2);
-    g = Math.round(204 * (1 - t2) + 197 * t2);
-    b = Math.round(21 * (1 - t2) + 94 * t2);
-  }
-  return [r, g, b];
+  // In F1, colors are pure bright spots, no luminosity dips.
+  return `hsl(${hue}, 100%, 50%)`;
 }
 
 // ── Braking segment color ──
@@ -89,16 +58,10 @@ export function brakingPhase(throttlePct: number, brakePct: number): BrakingPhas
 export function gradeColor(grade: string): string {
   switch (grade.toUpperCase()) {
     case 'A': return TRACK_GREEN;
-    case 'B': return '#3b82f6'; // blue
-    case 'C': return MODEL_GOLD;
+    case 'B': return '#3b82f6';
+    case 'C': return TRACK_YELLOW;
     case 'D': return APEX_ORANGE;
     case 'F': return APEX_RED;
     default: return TRACK_GRAY;
   }
-}
-
-// ── Lap colors for multi-lap comparison ──
-const LAP_COLORS = [APEX_ORANGE, '#8b5cf6', TRACK_GREEN, '#06b6d4', '#ec4899', '#f59e0b'];
-export function lapColor(index: number): string {
-  return LAP_COLORS[index % LAP_COLORS.length];
 }
