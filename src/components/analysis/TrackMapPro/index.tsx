@@ -109,8 +109,8 @@ export function TrackMapPro({
               onClick={() => state.setShowSynthetic(!state.showSynthetic)}
               className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-md transition-all shadow-md backdrop-blur-sm ${
                 state.showSynthetic 
-                  ? 'bg-cyan-500/90 text-cyan-950 border border-cyan-400' 
-                  : 'bg-black/60 text-cyan-400 hover:bg-black/80 border border-cyan-500/30'
+                  ? 'bg-yellow-500/90 text-yellow-950 border border-yellow-500' 
+                  : 'bg-black/60 text-yellow-400 hover:bg-black/80 border border-yellow-500/30'
               }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>

@@ -91,7 +91,7 @@ export function TrackMapLegend({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: MODEL_GOLD }} />
-            <span className="font-medium text-cyan-400">Tour Parfait IA</span>
+            <span className="font-medium text-yellow-400">Tour Parfait IA</span>
           </div>
         </div>
       )}
