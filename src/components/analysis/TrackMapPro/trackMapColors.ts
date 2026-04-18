@@ -1,24 +1,26 @@
 /**
  * TrackMapPro — Color utilities
- * Télémétrie F1 Style: Plats, Nette, Couleurs franches.
+ * Apex AI ADN: Vibrant neon on dark background, clean readable gradients
  */
 
 // ── Brand Colors ──
 export const APEX_ORANGE = '#f97316';
 export const APEX_RED = '#ff2020';
-export const MODEL_GOLD = '#facc15';
+export const MODEL_GOLD = '#00e5ff';    // Tour IA: Cyan vif — DOIT trancher avec le gradient Rouge→Vert
 export const TRACK_GREEN = '#00ff40';
 export const TRACK_YELLOW = '#ffee00';
 export const TRACK_GRAY = '#475569';
 export const TRACK_BG_DARK = '#0a0a0f';
 export const REF_WHITE = '#ffffff';
 
-// ── Speed gradient: Neon Apex ADN (Deep Blue → Red → Yellow → Green → Cyan) ──
+// ── Speed gradient: Clean 3-stop (Red → Orange → Green) ──
+// No purple, no cyan, no blue. Just brake-to-gas.
 export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, medianSpeed?: number): string {
   if (maxSpeed <= minSpeed) return APEX_RED;
   
   let t: number;
   if (medianSpeed && speed > minSpeed && speed < maxSpeed) {
+    // Piecewise: ensures median maps to exact midpoint for visible contrast
     if (speed <= medianSpeed) {
       t = 0.5 * ((speed - minSpeed) / (medianSpeed - minSpeed));
     } else {
@@ -30,20 +32,14 @@ export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, 
   
   t = Math.max(0, Math.min(1, t));
   
-  // Apex ADN dynamic multi-hue logic for strong variation
-  let hue: number;
-  if (t < 0.25) {
-    hue = 300 + (t / 0.25) * 60; // Purple to Red
-  } else if (t < 0.5) {
-    hue = (t - 0.25) / 0.25 * 60; // Red to Yellow
-  } else if (t < 0.75) {
-    hue = 60 + (t - 0.5) / 0.25 * 80; // Yellow to Green
-  } else {
-    hue = 140 + (t - 0.75) / 0.25 * 60; // Green to Cyan
-  }
+  // Simple 3-stop gradient: Red (0°) → Orange (30°) → Yellow (55°) → Green (120°)
+  // Keeps it readable: slow = red, medium = orange/yellow, fast = green
+  const hue = t * 120;  // 0=red, 60=yellow, 120=green
   
-  const lightness = 45 + Math.sin(t * Math.PI) * 15; 
-  return `hsl(${hue % 360}, 100%, ${lightness}%)`;
+  // Slight brightness boost in the middle range so orange/yellow pops on dark bg
+  const lightness = 48 + Math.sin(t * Math.PI) * 8;
+  
+  return `hsl(${hue}, 100%, ${lightness}%)`;
 }
 
 // ── Braking segment color ──

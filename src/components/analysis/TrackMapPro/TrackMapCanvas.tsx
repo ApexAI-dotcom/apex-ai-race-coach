@@ -330,15 +330,37 @@ export function TrackMapCanvas({
             )
           }
 
-          {/* Synthetic Perfect Lap overlay - Cyan glow + Stroke */}
+          {/* Synthetic Perfect Lap overlay - Bright Cyan, unmissable */}
           {showSynthetic && syntheticProjection && (
             <g className="ai-lap-group">
-              {renderGlow(syntheticProjection.polyline, MODEL_GOLD)}
+              {/* Wide outer glow */}
               <polyline
                 points={syntheticProjection.polyline}
                 fill="none"
                 stroke={MODEL_GOLD}
-                strokeWidth={3}
+                strokeWidth={20}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.15}
+                style={{ filter: 'blur(8px)' }}
+              />
+              {/* Tight inner glow */}
+              <polyline
+                points={syntheticProjection.polyline}
+                fill="none"
+                stroke={MODEL_GOLD}
+                strokeWidth={8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.3}
+                style={{ filter: 'blur(3px)' }}
+              />
+              {/* Core solid line */}
+              <polyline
+                points={syntheticProjection.polyline}
+                fill="none"
+                stroke={MODEL_GOLD}
+                strokeWidth={3.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 opacity={1}
