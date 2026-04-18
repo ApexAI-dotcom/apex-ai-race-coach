@@ -86,7 +86,7 @@ export function TrackMapPro({
   const content = (
     <div
       ref={containerRef}
-      className={`trackmap-pro w-full ${state.isFullscreen ? 'fixed inset-0 z-[9999] bg-[#0a0a0f] flex flex-col p-4 m-0 max-w-none' : 'relative rounded-xl overflow-hidden'}`}
+      className={`trackmap-pro w-full ${state.isFullscreen ? 'fixed inset-0 z-[9999] bg-background flex flex-col p-4 m-0 max-w-none' : 'relative rounded-xl overflow-hidden'}`}
     >
       <div className="p-3 pb-0 shrink-0">
         <TrackMapProfiles
