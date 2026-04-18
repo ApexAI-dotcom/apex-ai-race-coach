@@ -10,6 +10,7 @@ interface TrackMapLegendProps {
   speedMax: number;
   hasModel: boolean;
   comparisonLabel?: string;
+  showSynthetic?: boolean;
 }
 
 export function TrackMapLegend({
@@ -18,6 +19,7 @@ export function TrackMapLegend({
   speedMax,
   hasModel,
   comparisonLabel,
+  showSynthetic,
 }: TrackMapLegendProps) {
   return (
     <div className="flex flex-wrap items-center gap-3 px-2 py-1.5 text-[10px] text-muted-foreground">
@@ -71,6 +73,16 @@ export function TrackMapLegend({
               <span>{comparisonLabel}</span>
             </div>
           ) : null}
+        </div>
+      )}
+
+      {/* Persistent AI Lap legend if synthetic overlay is active */}
+      {showSynthetic && profile !== 'compare' && (
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded-full" style={{ background: MODEL_CYAN }} />
+            <span className="font-medium text-cyan-400">Tour Parfait IA</span>
+          </div>
         </div>
       )}
     </div>
