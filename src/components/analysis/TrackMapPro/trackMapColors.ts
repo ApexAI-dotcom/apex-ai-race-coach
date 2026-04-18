@@ -6,7 +6,7 @@
 // ── Brand Colors ──
 export const APEX_ORANGE = '#f97316';
 export const APEX_RED = '#ff2020';
-export const MODEL_GOLD = '#00e5ff';    // Tour IA: Cyan vif — DOIT trancher avec le gradient Rouge→Vert
+export const MODEL_GOLD = '#facc15';    // Tour IA: Or vif
 export const TRACK_GREEN = '#00ff40';
 export const TRACK_YELLOW = '#ffee00';
 export const TRACK_GRAY = '#475569';
