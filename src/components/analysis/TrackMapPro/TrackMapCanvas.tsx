@@ -69,7 +69,7 @@ function renderBrakingMarkers(segments: ColoredSegment[], isSynthetic: boolean) 
     }
   }
 
-  const color = isSynthetic ? MODEL_GOLD : '#ef4444';
+  const color = isSynthetic ? MODEL_CYAN : '#ef4444';
 
   return (
     <g className="pointer-events-none z-20">
@@ -255,8 +255,7 @@ export function TrackMapCanvas({
         </pattern>
       </defs>
 
-      {/* Background purely flat and dark */}
-      <rect width={SVG_W} height={SVG_H} fill="#101218" rx={16} />
+      {/* Background purely transparent so the CSS container gradient shines through */}
       {/* Telemetry Grid overlay */}
       <rect width={SVG_W} height={SVG_H} fill="url(#grid)" rx={16} />
 
@@ -265,12 +264,12 @@ export function TrackMapCanvas({
         <>
           {renderGlow(
             reference.polyline,
-            reference.isSynthetic ? MODEL_GOLD : REF_WHITE
+            reference.isSynthetic ? MODEL_CYAN : REF_WHITE
           )}
           <polyline
             points={reference.polyline}
             fill="none"
-            stroke={reference.isSynthetic ? MODEL_GOLD : REF_WHITE}
+            stroke={reference.isSynthetic ? MODEL_CYAN : REF_WHITE}
             strokeWidth={reference.isSynthetic ? 3 : 2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
