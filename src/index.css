@@ -275,5 +275,18 @@
       box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.8);
     }
   }
+
+  .animate-dash {
+    animation: dash 5s linear infinite;
+  }
+
+  @keyframes dash {
+    from {
+      stroke-dashoffset: 200;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
 }
 

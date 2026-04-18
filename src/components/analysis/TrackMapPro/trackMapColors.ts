@@ -15,14 +15,12 @@ export const TRACK_BG_DARK = '#0a0a0f';
 export const TRACK_BG_CARD = '#111118';
 export const REF_WHITE = '#e2e8f0';
 
-// ── Speed gradient: red (slow) → green (fast) ──
-// HSL: red = hue 0°, green = hue 135°
+// ── Speed gradient: Deep Blue (slowest) → Red → Yellow → Green → Cyan (fastest) ──
 export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, medianSpeed?: number): string {
   if (maxSpeed <= minSpeed) return APEX_RED;
   
   let t: number;
   if (medianSpeed && speed > minSpeed && speed < maxSpeed) {
-    // Piecewise linear interpolation to force median speed strictly to t=0.5 (Yellow)
     if (speed <= medianSpeed) {
       t = 0.5 * ((speed - minSpeed) / (medianSpeed - minSpeed));
     } else {
@@ -34,11 +32,22 @@ export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, 
   
   t = Math.max(0, Math.min(1, t));
   
-  // Power curve to pull colors away from the mushy middle
-  // If t=0.5 it stays 0.5. It pushes extremes. Actually, piecewise already fixed it.
-  const hue = t * 135;
-  const lightness = 40 + Math.sin(t * Math.PI) * 20; // 40 at red/green, 60 at yellow
-  return `hsl(${hue}, 100%, ${lightness}%)`;
+  // Radical non-linear hue mapping to force high contrast
+  // 300° (Purple) -> 0° (Red) -> 60° (Yellow) -> 140° (Green) -> 200° (Cyan)
+  let hue: number;
+  if (t < 0.25) { // Slowest -> Slow (Purple to Red)
+    hue = 300 + (t / 0.25) * 60; // 300 to 360
+  } else if (t < 0.5) { // Slow -> Medium (Red to Yellow)
+    hue = (t - 0.25) / 0.25 * 60; // 0 to 60
+  } else if (t < 0.75) { // Medium -> Fast (Yellow to Green)
+    hue = 60 + (t - 0.5) / 0.25 * 80; // 60 to 140
+  } else { // Fast -> Fastest (Green to Cyan)
+    hue = 140 + (t - 0.75) / 0.25 * 60; // 140 to 200
+  }
+  
+  // Dynamic lightness to make the "sweet spot" (yellow/green) pop
+  const lightness = 45 + Math.sin(t * Math.PI) * 15; 
+  return `hsl(${hue % 360}, 100%, ${lightness}%)`;
 }
 
 // ── Speed gradient as raw RGB for SVG stops ──

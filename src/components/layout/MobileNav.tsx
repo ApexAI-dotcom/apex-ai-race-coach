@@ -8,7 +8,6 @@ export const MobileNav = () => {
   const { isAuthenticated } = useAuth();
 
   const navItems = [
-    { icon: Home, label: "Accueil", path: "/" },
     { icon: BarChart3, label: "Tableau de bord", labelShort: "Tableau", path: "/dashboard" },
     { icon: Zap, label: "Analyser", path: "/upload", isHighlight: true },
     { icon: Wrench, label: "Mon Kart", labelShort: "Kart", path: "/mon-kart" },
