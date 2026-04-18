@@ -5,21 +5,20 @@
 
 // ── Brand Colors ──
 export const APEX_ORANGE = '#f97316';
-export const APEX_RED = '#ff2020';      // F1 Slow / Brake
-export const MODEL_CYAN = '#00e5ff';    // AI Lap (Laser bright cyan)
-export const TRACK_GREEN = '#00ff40';   // F1 Fast / Acceleration
-export const TRACK_YELLOW = '#ffee00';  // F1 Medium
+export const APEX_RED = '#ff2020';
+export const MODEL_GOLD = '#facc15';
+export const TRACK_GREEN = '#00ff40';
+export const TRACK_YELLOW = '#ffee00';
 export const TRACK_GRAY = '#475569';
-export const TRACK_BG_DARK = '#0a0a0f'; // Dark flat 
+export const TRACK_BG_DARK = '#0a0a0f';
 export const REF_WHITE = '#ffffff';
 
-// ── Speed gradient: Red (slow) → Yellow (medium) → Green (fast) ──
+// ── Speed gradient: Neon Apex ADN (Deep Blue → Red → Yellow → Green → Cyan) ──
 export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, medianSpeed?: number): string {
   if (maxSpeed <= minSpeed) return APEX_RED;
   
   let t: number;
   if (medianSpeed && speed > minSpeed && speed < maxSpeed) {
-    // Piecewise strict linear interpolation forcing median to exactly t=0.5 (Yellow)
     if (speed <= medianSpeed) {
       t = 0.5 * ((speed - minSpeed) / (medianSpeed - minSpeed));
     } else {
@@ -31,12 +30,20 @@ export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, 
   
   t = Math.max(0, Math.min(1, t));
   
-  // HSL: 0 = Red, 60 = Yellow, 120 = Green.
-  // We want pure vibrant hue shift from 0 to 120.
-  const hue = Math.round(t * 120);
+  // Apex ADN dynamic multi-hue logic for strong variation
+  let hue: number;
+  if (t < 0.25) {
+    hue = 300 + (t / 0.25) * 60; // Purple to Red
+  } else if (t < 0.5) {
+    hue = (t - 0.25) / 0.25 * 60; // Red to Yellow
+  } else if (t < 0.75) {
+    hue = 60 + (t - 0.5) / 0.25 * 80; // Yellow to Green
+  } else {
+    hue = 140 + (t - 0.75) / 0.25 * 60; // Green to Cyan
+  }
   
-  // In F1, colors are pure bright spots, no luminosity dips.
-  return `hsl(${hue}, 100%, 50%)`;
+  const lightness = 45 + Math.sin(t * Math.PI) * 15; 
+  return `hsl(${hue % 360}, 100%, ${lightness}%)`;
 }
 
 // ── Braking segment color ──

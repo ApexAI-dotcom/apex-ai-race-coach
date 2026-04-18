@@ -178,10 +178,7 @@
   }
 
   .trackmap-pro {
-    background: radial-gradient(ellipse at center, #111118 0%, #0a0a0f 100%);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 1rem;
-    overflow: hidden;
+    /* Container styling is now fully handled by Tailwind and parent glass-card */
   }
 
   .trackmap-profile-active {
