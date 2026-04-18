@@ -15,30 +15,34 @@ export const REF_WHITE = '#ffffff';
 
 // ── Speed gradient: MAXIMUM contrast Red ↔ Green ──
 // Both extremes are at full brightness and saturation
-export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, _medianSpeed?: number): string {
+export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, medianSpeed?: number): string {
   if (maxSpeed <= minSpeed) return '#ff0000';
   
   let t = (speed - minSpeed) / (maxSpeed - minSpeed);
   t = Math.max(0, Math.min(1, t));
   
-  // Direct RGB interpolation through 3 hard stops for maximum contrast:
-  // 0.0  = PURE RED        rgb(255, 0, 0)
-  // 0.5  = BRIGHT ORANGE   rgb(255, 165, 0)  
-  // 1.0  = PURE GREEN      rgb(0, 255, 0)
+  // Power curve to compress the middle and expand the edges.
+  // We want < 50% speed to be VERY RED, and > 75% speed to be VERY GREEN.
   
   let r: number, g: number, b: number;
   
-  if (t < 0.5) {
-    // RED → ORANGE (slow → medium)
-    const p = t / 0.5;
+  if (t < 0.35) {
+    // 0 to 35% of speed range is almost pure RED to dark ORANGE
+    const p = t / 0.35;
     r = 255;
-    g = Math.round(p * 165);
+    g = Math.round(p * 128); // 0 to 128 (pure red to dark orange)
+    b = 0;
+  } else if (t < 0.65) {
+    // 35% to 65% is ORANGE to YELLOW
+    const p = (t - 0.35) / 0.30;
+    r = 255;
+    g = 128 + Math.round(p * 127); // 128 to 255
     b = 0;
   } else {
-    // ORANGE → GREEN (medium → fast)
-    const p = (t - 0.5) / 0.5;
-    r = Math.round(255 * (1 - p));
-    g = 165 + Math.round(90 * p);  // 165 → 255
+    // 65% to 100% is YELLOW to PURE GREEN. We drop the Red very fast to get pure green.
+    const p = (t - 0.65) / 0.35;
+    r = 255 - Math.round(p * 255); // 255 to 0
+    g = 255;
     b = 0;
   }
   
