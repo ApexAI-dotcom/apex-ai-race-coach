@@ -27,6 +27,7 @@ interface AuthContextType {
   signInEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signUpEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signInMagicLink: (email: string) => Promise<{ error: AuthError | null }>
+  signInGoogle: () => Promise<{ error: AuthError | null }>
   resetPasswordForEmail: (email: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<{ error: AuthError | null }>
 }
@@ -122,6 +123,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error }
   }
 
+  const signInGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    })
+    return { error }
+  }
+
   const signInMagicLink = async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -161,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInEmail,
     signUpEmail,
     signInMagicLink,
+    signInGoogle,
     resetPasswordForEmail,
     signOut,
   }
