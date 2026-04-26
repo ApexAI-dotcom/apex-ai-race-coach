@@ -120,7 +120,7 @@ export function useTrackMap(
     state: {
       profile, selectedLap, comparisonLap, showSynthetic, isFullscreen,
       hoveredPoint, hoveredCornerId, selectedCornerId,
-      setProfile, setSelectedLap, setComparisonLap, setShowSynthetic, setIsFullscreen, setHoveredCornerId
+      setProfile, setSelectedLap, setComparisonLap, setShowSynthetic, setIsFullscreen, setHoveredCornerId, setSelectedCornerId
     },
     handlers: {
       handleProfileChange, handlePointHover, handleCornerClick

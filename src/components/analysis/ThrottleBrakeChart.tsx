@@ -73,7 +73,7 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
   const renderContent = () => {
     if (isSingleLap) {
       return (
-        <div className="min-h-[280px] sm:h-[350px] w-full" aria-label="Throttle and brake by distance">
+        <div className="h-[300px] sm:h-[350px] w-full" aria-label="Throttle and brake by distance">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -85,10 +85,10 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
                     key={c.corner_id || i}
                     x1={Math.max(0, dist - 15)} 
                     x2={dist + 15}
-                    fill="hsl(var(--primary))" 
-                    fillOpacity={0.08}
+                    fill="#f97316" 
+                    fillOpacity={0.15}
                   >
-                    <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="hsl(var(--primary))" fontSize={10} opacity={0.8} />
+                    <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" opacity={1} />
                   </ReferenceArea>
                 );
               })}
@@ -135,7 +135,7 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
     }
 
     return (
-      <div className="min-h-[280px] sm:h-[350px] w-full" aria-label="Throttle and brake by distance (multi-lap)">
+      <div className="h-[300px] sm:h-[350px] w-full" aria-label="Throttle and brake by distance (multi-lap)">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -147,10 +147,10 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
                   key={c.corner_id || i}
                   x1={Math.max(0, dist - 15)} 
                   x2={dist + 15}
-                  fill="hsl(var(--primary))" 
-                  fillOpacity={0.08}
+                  fill="#f97316" 
+                  fillOpacity={0.15}
                 >
-                  <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="hsl(var(--primary))" fontSize={10} opacity={0.8} />
+                  <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" opacity={1} />
                 </ReferenceArea>
               );
             })}

@@ -116,10 +116,10 @@ export function SpeedTraceChart({
                   key={`corner_${c.corner_id || i}`}
                   x1={Math.max(0, dist - 15)} 
                   x2={dist + 15}
-                  fill="hsl(var(--primary))" 
-                  fillOpacity={0.08}
+                  fill="#f97316" 
+                  fillOpacity={0.15}
                 >
-                  <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="hsl(var(--primary))" fontSize={10} opacity={0.8} />
+                  <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" opacity={1} />
                 </ReferenceArea>
               );
             })}
