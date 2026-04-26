@@ -16,8 +16,10 @@ interface CornerLike {
   avg_cumulative_distance?: number;
 }
 
-const MIN_ZONE_WIDTH_M = 24;
+const DEFAULT_HALF_ZONE_WIDTH_M = 34;
+const MIN_HALF_ZONE_WIDTH_M = 18;
 const EDGE_PADDING_M = 6;
+const MIN_GAP_M = 4;
 
 function toFiniteNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
@@ -48,24 +50,41 @@ function buildZonesFromApexes(apexes: Array<{ id: string; label: string; apexX: 
   if (apexes.length === 0 || lapMax <= lapMin) return [];
 
   const overlays: CornerOverlay[] = [];
+  let previousZoneEnd = lapMin + EDGE_PADDING_M - MIN_GAP_M;
+
   for (let i = 0; i < apexes.length; i += 1) {
     const current = apexes[i];
     const prev = apexes[i - 1];
     const next = apexes[i + 1];
 
-    const leftMid = prev ? (prev.apexX + current.apexX) / 2 : current.apexX - MIN_ZONE_WIDTH_M / 2;
-    const rightMid = next ? (current.apexX + next.apexX) / 2 : current.apexX + MIN_ZONE_WIDTH_M / 2;
+    const leftSpacing = prev ? current.apexX - prev.apexX : Number.POSITIVE_INFINITY;
+    const rightSpacing = next ? next.apexX - current.apexX : Number.POSITIVE_INFINITY;
+    const localSpacing = Math.min(leftSpacing, rightSpacing);
+    const localHalfWidth = Number.isFinite(localSpacing)
+      ? Math.max(MIN_HALF_ZONE_WIDTH_M, Math.min(DEFAULT_HALF_ZONE_WIDTH_M, localSpacing * 0.32))
+      : DEFAULT_HALF_ZONE_WIDTH_M;
 
-    let x1 = Math.max(lapMin + EDGE_PADDING_M, leftMid);
-    let x2 = Math.min(lapMax - EDGE_PADDING_M, rightMid);
+    let x1 = Math.max(lapMin + EDGE_PADDING_M, current.apexX - localHalfWidth);
+    let x2 = Math.min(lapMax - EDGE_PADDING_M, current.apexX + localHalfWidth);
 
-    if (x2 - x1 < MIN_ZONE_WIDTH_M) {
-      const halfWidth = MIN_ZONE_WIDTH_M / 2;
-      x1 = Math.max(lapMin + EDGE_PADDING_M, current.apexX - halfWidth);
-      x2 = Math.min(lapMax - EDGE_PADDING_M, current.apexX + halfWidth);
+    // Keep a visible gap between consecutive zones for readability.
+    if (x1 < previousZoneEnd + MIN_GAP_M) {
+      const shift = previousZoneEnd + MIN_GAP_M - x1;
+      x1 += shift;
+      x2 += shift;
     }
 
-    if (x2 > x1) {
+    if (x2 > lapMax - EDGE_PADDING_M) {
+      const shiftBack = x2 - (lapMax - EDGE_PADDING_M);
+      x1 -= shiftBack;
+      x2 -= shiftBack;
+    }
+
+    if (x1 < lapMin + EDGE_PADDING_M) {
+      x1 = lapMin + EDGE_PADDING_M;
+    }
+
+    if (x2 - x1 >= MIN_HALF_ZONE_WIDTH_M && x2 > x1) {
       overlays.push({
         id: current.id,
         label: current.label,
@@ -73,6 +92,7 @@ function buildZonesFromApexes(apexes: Array<{ id: string; label: string; apexX: 
         x2,
         apexX: current.apexX,
       });
+      previousZoneEnd = x2;
     }
   }
 
