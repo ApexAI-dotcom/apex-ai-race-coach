@@ -44,7 +44,10 @@ export function TrackMapCornerPanel({ corner, onClose }: TrackMapCornerPanelProp
           </div>
         </div>
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           className="text-muted-foreground hover:text-foreground text-sm transition-colors"
         >
           ✕

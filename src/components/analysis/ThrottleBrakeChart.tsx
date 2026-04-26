@@ -10,6 +10,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  ReferenceArea,
+  Label,
 } from "recharts";
 import type { ThrottleBrakeLap } from "@/types/analysis";
 import { downsample } from "./utils";
@@ -24,11 +26,12 @@ interface ThrottleBrakeChartProps {
   selectedLaps: number[];
   circuitName?: string | null;
   hideCta?: boolean;
+  cornerAnalysis?: any[];
 }
 
 const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
 
-export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hideCta = false }: ThrottleBrakeChartProps) {
+export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hideCta = false, cornerAnalysis }: ThrottleBrakeChartProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
   const visible = isChartVisible("throttle_brake", circuitName);
@@ -70,10 +73,25 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
   const renderContent = () => {
     if (isSingleLap) {
       return (
-        <div className="h-[240px] w-full" aria-label="Throttle and brake by distance">
+        <div className="min-h-[280px] sm:h-[350px] w-full" aria-label="Throttle and brake by distance">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <AreaChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              {cornerAnalysis?.map((c, i) => {
+                const dist = c.avg_cumulative_distance;
+                if (typeof dist !== 'number') return null;
+                return (
+                  <ReferenceArea 
+                    key={c.corner_id || i}
+                    x1={Math.max(0, dist - 15)} 
+                    x2={dist + 15}
+                    fill="hsl(var(--primary))" 
+                    fillOpacity={0.08}
+                  >
+                    <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="hsl(var(--primary))" fontSize={10} opacity={0.8} />
+                  </ReferenceArea>
+                );
+              })}
               <XAxis
                 dataKey="distance_m"
                 stroke="hsl(var(--border))"
@@ -117,10 +135,25 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
     }
 
     return (
-      <div className="h-[280px] w-full" aria-label="Throttle and brake by distance (multi-lap)">
+      <div className="min-h-[280px] sm:h-[350px] w-full" aria-label="Throttle and brake by distance (multi-lap)">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            {cornerAnalysis?.map((c, i) => {
+              const dist = c.avg_cumulative_distance;
+              if (typeof dist !== 'number') return null;
+              return (
+                <ReferenceArea 
+                  key={c.corner_id || i}
+                  x1={Math.max(0, dist - 15)} 
+                  x2={dist + 15}
+                  fill="hsl(var(--primary))" 
+                  fillOpacity={0.08}
+                >
+                  <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="hsl(var(--primary))" fontSize={10} opacity={0.8} />
+                </ReferenceArea>
+              );
+            })}
             <XAxis
               dataKey="distance_m"
               stroke="hsl(var(--border))"
