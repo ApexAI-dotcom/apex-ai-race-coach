@@ -112,18 +112,24 @@ export function SpeedTraceChart({
                 ifOverflow="hidden"
               />
             ))}
-            {cornerMarkers?.map((c) => (
-              <ReferenceArea
-                key={`corner_${c.id}`}
-                x1={c.distance_m - 30}
-                x2={c.distance_m + 30}
-                fill="#f97316"
-                fillOpacity={0.18}
-                ifOverflow="hidden"
-              >
-                <Label value={c.label} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" />
-              </ReferenceArea>
-            ))}
+            {cornerMarkers?.map((c, i) => {
+              const color = i % 2 === 0 ? "#f97316" : "#a855f7";
+              return (
+                <ReferenceArea
+                  key={`corner_${c.id}`}
+                  x1={c.distance_m - 35}
+                  x2={c.distance_m + 35}
+                  fill={color}
+                  fillOpacity={0.2}
+                  stroke={color}
+                  strokeOpacity={0.4}
+                  strokeWidth={1}
+                  ifOverflow="hidden"
+                >
+                  <Label value={c.label} position="insideTop" fill={color} fontSize={12} fontWeight="bold" />
+                </ReferenceArea>
+              );
+            })}
             <XAxis
               type="number"
               dataKey="distance_m"
