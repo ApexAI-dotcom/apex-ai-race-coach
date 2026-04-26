@@ -28,7 +28,11 @@ export function TrackMapCornerPanel({ corner, onClose }: TrackMapCornerPanelProp
   const gradeCol = gradeColor(corner.grade);
 
   return (
-    <div className="absolute right-2 top-2 z-40 w-52 trackmap-tooltip rounded-xl p-3 animate-in fade-in slide-in-from-right-2 duration-200">
+    <div 
+      className="absolute right-2 top-2 z-40 w-52 trackmap-tooltip rounded-xl p-3 animate-in fade-in slide-in-from-right-2 duration-200"
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
