@@ -14,7 +14,7 @@ import {
   Label,
 } from "recharts";
 import type { ThrottleBrakeLap } from "@/types/analysis";
-import { downsample } from "./utils";
+import { downsample, type CornerMarker } from "./utils";
 import { BlurOverlay } from "../ui/BlurOverlay";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useNavigate } from "react-router-dom";
@@ -26,12 +26,12 @@ interface ThrottleBrakeChartProps {
   selectedLaps: number[];
   circuitName?: string | null;
   hideCta?: boolean;
-  cornerAnalysis?: any[];
+  cornerMarkers?: CornerMarker[];
 }
 
 const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
 
-export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hideCta = false, cornerAnalysis }: ThrottleBrakeChartProps) {
+export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hideCta = false, cornerMarkers }: ThrottleBrakeChartProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
   const visible = isChartVisible("throttle_brake", circuitName);
@@ -70,8 +70,6 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
 
   if (series.length === 0) return null;
 
-  const lapStart = series[0]?.distance_m ?? 0;
-
   const renderContent = () => {
     if (isSingleLap) {
       return (
@@ -80,21 +78,18 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
             <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              {cornerAnalysis?.map((c, i) => {
-                const dist = c.avg_cumulative_distance;
-                if (typeof dist !== 'number') return null;
-                return (
-                  <ReferenceArea 
-                    key={c.corner_id || i}
-                    x1={Math.max(lapStart, lapStart + dist - 20)} 
-                    x2={lapStart + dist + 20}
-                    fill="#f97316" 
-                    fillOpacity={0.15}
-                  >
-                    <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" opacity={1} />
-                  </ReferenceArea>
-                );
-              })}
+              {cornerMarkers?.map((c) => (
+                <ReferenceArea
+                  key={`corner_${c.id}`}
+                  x1={c.distance_m - 30}
+                  x2={c.distance_m + 30}
+                  fill="#f97316"
+                  fillOpacity={0.18}
+                  ifOverflow="hidden"
+                >
+                  <Label value={c.label} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" />
+                </ReferenceArea>
+              ))}
               <XAxis
                 type="number"
                 dataKey="distance_m"
@@ -146,21 +141,18 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
           <ResponsiveContainer width="100%" height="100%">
           <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            {cornerAnalysis?.map((c, i) => {
-              const dist = c.avg_cumulative_distance;
-              if (typeof dist !== 'number') return null;
-              return (
-                <ReferenceArea 
-                  key={c.corner_id || i}
-                  x1={Math.max(lapStart, lapStart + dist - 20)} 
-                  x2={lapStart + dist + 20}
-                  fill="#f97316" 
-                  fillOpacity={0.15}
-                >
-                  <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" opacity={1} />
-                </ReferenceArea>
-              );
-            })}
+            {cornerMarkers?.map((c) => (
+              <ReferenceArea
+                key={`corner_${c.id}`}
+                x1={c.distance_m - 30}
+                x2={c.distance_m + 30}
+                fill="#f97316"
+                fillOpacity={0.18}
+                ifOverflow="hidden"
+              >
+                <Label value={c.label} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" />
+              </ReferenceArea>
+            ))}
             <XAxis
               type="number"
               dataKey="distance_m"
