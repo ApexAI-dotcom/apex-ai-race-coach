@@ -87,26 +87,29 @@ export function AnalysisDashboardContent({
 
   const selectedLapNumbers = providedSelectedLaps || localSelectedLaps;
 
-  // Compute corner markers (relative 0-based distance from lap start).
-  // Primary: snap corner GPS positions onto the trajectory lap (exact track-map alignment).
-  // Fallback: detect speed minima from the speed trace.
-  // Charts add their own lapStart (series[0].distance_m) to get absolute X coordinates.
+  // Compute corner markers as ABSOLUTE session distances (same X domain as charts).
+  // Primary: GPS snapping onto trajectory lap — guarantees alignment with track map.
+  // Fallback: speed minima detection from the speed trace.
   const cornerMarkers = useMemo(() => {
     const trajCorners = plotData?.trajectory_2d?.corners;
     const trajLaps = plotData?.trajectory_2d?.laps;
 
-    // Try GPS snapping first
-    if (trajCorners?.length) {
-      const gpsMarkers = computeCornerMarkersFromGPS(trajLaps, trajCorners);
-      if (gpsMarkers && gpsMarkers.length > 0) return gpsMarkers;
-    }
-
-    // Speed minima fallback
     const refLapNum = selectedLapNumbers[0] ?? bestLapNumber;
     const refLap =
       plotData?.speed_trace?.laps?.find((l: any) => l.lap_number === refLapNum) ??
       plotData?.speed_trace?.laps?.find((l: any) => l.lap_number === bestLapNumber) ??
       plotData?.speed_trace?.laps?.[0];
+
+    // lapStartOffset: absolute session distance at the start of the reference lap
+    const lapStartOffset: number = refLap?.distance_m?.[0] ?? 0;
+
+    // Try GPS snapping first (exact alignment with track map corner labels)
+    if (trajCorners?.length && trajLaps?.length) {
+      const gpsMarkers = computeCornerMarkersFromGPS(trajLaps, trajCorners, lapStartOffset);
+      if (gpsMarkers && gpsMarkers.length > 0) return gpsMarkers;
+    }
+
+    // Speed minima fallback
     const cornerLabels = (trajCorners ?? []).map((c: any) => String(c.label));
     if (!refLap?.distance_m?.length || !refLap?.speed_kmh?.length || !cornerLabels.length) return [];
     return computeCornerMarkersFromSpeed(refLap.distance_m, refLap.speed_kmh, cornerLabels);

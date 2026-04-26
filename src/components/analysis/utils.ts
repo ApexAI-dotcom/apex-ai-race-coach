@@ -59,11 +59,7 @@ export function enrichCornersWithCornerAnalysis(plotData: any, analysis: any) {
 export interface CornerMarker {
   id: number;
   label: string;
-  /**
-   * Distance from the START of the lap in metres (0-based relative).
-   * Charts must add their own `lapStart` (series[0].distance_m) to obtain
-   * the absolute X coordinate used by Recharts.
-   */
+  /** Absolute cumulative session distance in metres — same X coordinate system as the charts. */
   distance_m: number;
 }
 
@@ -77,27 +73,31 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
 }
 
 /**
- * Snap each corner (by GPS lat/lon) to the nearest point on any available
- * trajectory lap and return its cumulative distance from lap start (0-based).
- * This guarantees exact visual alignment with the track map corner labels.
+ * Snap each corner (by GPS lat/lon) to the nearest GPS point on any available
+ * trajectory lap. Returns ABSOLUTE session distances (lapStartOffset + relative).
+ * Guarantees the same corner order as the track map (same trajectory_2d source).
  *
- * Returns null when trajectory laps are unavailable or have insufficient GPS data.
+ * lapStartOffset = series[0].distance_m of the reference lap so the returned
+ * distances land in the same absolute domain as the chart X axis.
+ *
+ * Returns null when trajectory data is unavailable or has no valid GPS points.
  */
 export function computeCornerMarkersFromGPS(
   laps: Array<{ lat: number[]; lon: number[]; is_synthetic?: boolean }> | null | undefined,
   corners: Array<{ lat: number; lon: number; label: string }> | null | undefined,
+  lapStartOffset: number,
 ): CornerMarker[] | null {
   if (!laps?.length || !corners?.length) return null;
 
   // Prefer a real lap; fall back to synthetic as last resort
   const lap =
-    laps.find(l => !l.is_synthetic && l.lat?.length > 5 && l.lon?.length > 5) ??
-    laps.find(l => l.lat?.length > 5 && l.lon?.length > 5);
+    laps.find(l => !l.is_synthetic && (l.lat?.length ?? 0) > 5) ??
+    laps.find(l => (l.lat?.length ?? 0) > 5);
   if (!lap) return null;
 
   const n = Math.min(lap.lat.length, lap.lon.length);
 
-  // Cumulative haversine distance along the GPS path (0-based)
+  // Cumulative haversine distance along the GPS path (0-based, relative)
   const cumDist = new Array<number>(n).fill(0);
   for (let i = 1; i < n; i++) {
     cumDist[i] = cumDist[i - 1] + haversineMeters(lap.lat[i - 1], lap.lon[i - 1], lap.lat[i], lap.lon[i]);
@@ -110,14 +110,17 @@ export function computeCornerMarkersFromGPS(
       const d = haversineMeters(c.lat, c.lon, lap.lat[j], lap.lon[j]);
       if (d < minD) { minD = d; minIdx = j; }
     }
-    return { id: i + 1, label: c.label, distance_m: cumDist[minIdx] };
+    return {
+      id: i + 1,
+      label: c.label,
+      distance_m: lapStartOffset + cumDist[minIdx],
+    };
   });
 }
 
 /**
  * Detect corner apexes from a speed trace by finding the N deepest speed minima.
- * Returns distances relative to the start of the provided arrays (0-based).
- * Falls back when GPS corner snapping is unavailable.
+ * Returns ABSOLUTE session distances (same as distArr values).
  */
 export function computeCornerMarkersFromSpeed(
   distArr: number[],
@@ -126,8 +129,6 @@ export function computeCornerMarkersFromSpeed(
 ): CornerMarker[] {
   const n = Math.min(distArr.length, speedArr.length);
   if (n < 5 || cornerLabels.length === 0) return [];
-
-  const lapStart0 = distArr[0];
 
   // 5-point moving-average smoothing to suppress GPS/telemetry jitter
   const smoothed = new Array<number>(n);
@@ -138,11 +139,11 @@ export function computeCornerMarkersFromSpeed(
     smoothed[i] = s / c;
   }
 
-  // Collect strict local minima (win=1: lower than both immediate neighbours)
+  // Collect ALL strict local minima (lower than both immediate neighbours)
   const candidates: { d: number; v: number }[] = [];
   for (let i = 1; i < n - 1; i++) {
     if (smoothed[i] < smoothed[i - 1] && smoothed[i] < smoothed[i + 1]) {
-      candidates.push({ d: distArr[i] - lapStart0, v: smoothed[i] });
+      candidates.push({ d: distArr[i], v: smoothed[i] });
     }
   }
   if (candidates.length === 0) return [];
