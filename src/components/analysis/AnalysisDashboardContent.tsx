@@ -89,15 +89,15 @@ export function AnalysisDashboardContent({
   const selectedLapNumbers = providedSelectedLaps || localSelectedLaps;
   const selectedLapNumber = selectedLapNumbers[0] ?? bestLapNumber;
   
-  const referenceTrajectoryLap = useMemo(() => {
-    const laps = plotData?.trajectory_2d?.laps ?? [];
+  const referenceSpeedLap = useMemo(() => {
+    const laps = plotData?.speed_trace?.laps ?? [];
     if (!laps.length) return null;
-    const lapWithNumber = laps.find((lap: any) => lap?.lap_number === selectedLapNumber);
-    if (lapWithNumber) return lapWithNumber;
-    const best = laps.find((lap: any) => lap?.is_best);
+    const selected = laps.find((lap: any) => lap?.lap_number === selectedLapNumber);
+    if (selected) return selected;
+    const best = laps.find((lap: any) => lap?.lap_number === bestLapNumber);
     if (best) return best;
-    return laps[bestTrackLapIndex] ?? laps[0];
-  }, [plotData?.trajectory_2d?.laps, selectedLapNumber, bestTrackLapIndex]);
+    return laps[0];
+  }, [plotData?.speed_trace?.laps, selectedLapNumber, bestLapNumber]);
 
   const speedTraceDomain = useMemo(() => {
     const lap = plotData?.speed_trace?.laps?.find((item: any) => item.lap_number === selectedLapNumber)
@@ -110,12 +110,13 @@ export function AnalysisDashboardContent({
   const cornerOverlays = useMemo(() => {
     return buildCornerOverlays({
       trajectoryCorners: plotData?.trajectory_2d?.corners ?? [],
-      referenceLap: referenceTrajectoryLap,
+      trajectoryLaps: plotData?.trajectory_2d?.laps ?? [],
+      referenceSpeedLap,
       cornerAnalysis: analysis.corner_analysis as unknown[],
       domainMin: speedTraceDomain?.min,
       domainMax: speedTraceDomain?.max,
     });
-  }, [plotData?.trajectory_2d?.corners, referenceTrajectoryLap, analysis.corner_analysis, speedTraceDomain]);
+  }, [plotData?.trajectory_2d?.corners, plotData?.trajectory_2d?.laps, referenceSpeedLap, analysis.corner_analysis, speedTraceDomain]);
   const wrapperClass = embedded ? "space-y-6" : "max-w-7xl mx-auto p-4 md:p-8 space-y-8";
   const sectionClass = embedded
     ? "mb-6 md:mb-8 rounded-lg border border-white/5 bg-secondary/50 p-3 md:p-4"

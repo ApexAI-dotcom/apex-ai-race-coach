@@ -1,4 +1,5 @@
 import type { TrajectoryCorner, TrajectoryLap } from "@/types/analysis";
+import { computeCornerMarkersFromGPS, computeCornerMarkersFromSpeed } from "./utils";
 
 export interface CornerOverlay {
   id: string;
@@ -78,64 +79,61 @@ function buildZonesFromApexes(apexes: Array<{ id: string; label: string; apexX: 
   return overlays;
 }
 
-function findNearestLapIndex(cornerLat: number, cornerLon: number, lat: number[], lon: number[]): number | null {
-  let bestIndex: number | null = null;
-  let bestDistance = Number.POSITIVE_INFINITY;
-
-  const n = Math.min(lat.length, lon.length);
-  for (let i = 0; i < n; i += 1) {
-    const lt = lat[i];
-    const ln = lon[i];
-    if (!Number.isFinite(lt) || !Number.isFinite(ln)) continue;
-    const dLat = lt - cornerLat;
-    const dLon = ln - cornerLon;
-    const d2 = dLat * dLat + dLon * dLon;
-    if (d2 < bestDistance) {
-      bestDistance = d2;
-      bestIndex = i;
-    }
-  }
-
-  return bestIndex;
-}
-
 export function buildCornerOverlays(params: {
   trajectoryCorners?: TrajectoryCorner[];
-  referenceLap?: TrajectoryLap | null;
+  trajectoryLaps?: TrajectoryLap[];
+  referenceSpeedLap?: { distance_m?: number[]; speed_kmh?: number[] } | null;
   cornerAnalysis?: unknown[];
   domainMin?: number;
   domainMax?: number;
 }): CornerOverlay[] {
   const {
     trajectoryCorners = [],
-    referenceLap = null,
+    trajectoryLaps = [],
+    referenceSpeedLap = null,
     cornerAnalysis = [],
     domainMin,
     domainMax,
   } = params;
 
-  const lapDistance = referenceLap?.distance_m ?? [];
-  const lapLat = referenceLap?.lat ?? [];
-  const lapLon = referenceLap?.lon ?? [];
+  const lapDistance = referenceSpeedLap?.distance_m ?? [];
+  const lapSpeeds = referenceSpeedLap?.speed_kmh ?? [];
   const lapMin = toFiniteNumber(domainMin) ?? lapDistance[0];
   const lapMax = toFiniteNumber(domainMax) ?? lapDistance[lapDistance.length - 1];
   if (!Number.isFinite(lapMin) || !Number.isFinite(lapMax) || lapMax <= lapMin) return [];
 
   const apexes: Array<{ id: string; label: string; apexX: number; order: number }> = [];
 
-  if (trajectoryCorners.length > 0 && lapDistance.length > 0 && lapLat.length > 0 && lapLon.length > 0) {
-    trajectoryCorners.forEach((corner, idx) => {
-      const lapIndex = findNearestLapIndex(corner.lat, corner.lon, lapLat, lapLon);
-      if (lapIndex === null || lapIndex >= lapDistance.length) return;
-
-      const apexX = lapDistance[lapIndex];
-      if (!Number.isFinite(apexX) || apexX < lapMin || apexX > lapMax) return;
-
+  const gpsMarkers = computeCornerMarkersFromGPS(
+    trajectoryLaps.map((lap) => ({ lat: lap.lat ?? [], lon: lap.lon ?? [], is_synthetic: lap.is_synthetic })),
+    trajectoryCorners.map((corner) => ({ lat: corner.lat, lon: corner.lon, label: corner.label })),
+    lapMin
+  );
+  if (gpsMarkers?.length) {
+    gpsMarkers.forEach((marker, idx) => {
+      if (!Number.isFinite(marker.distance_m) || marker.distance_m < lapMin || marker.distance_m > lapMax) return;
       apexes.push({
-        id: `gps-${corner.id ?? idx}`,
-        label: corner.label || `V${idx + 1}`,
-        apexX,
-        order: getCornerNumber(corner.label, idx + 1),
+        id: `gps-${marker.id}`,
+        label: marker.label || `V${idx + 1}`,
+        apexX: marker.distance_m,
+        order: getCornerNumber(marker.label, idx + 1),
+      });
+    });
+  }
+
+  if (apexes.length === 0 && lapDistance.length > 5 && lapSpeeds.length > 5 && trajectoryCorners.length > 0) {
+    const speedMarkers = computeCornerMarkersFromSpeed(
+      lapDistance,
+      lapSpeeds,
+      trajectoryCorners.map((corner, idx) => corner.label || `V${idx + 1}`)
+    );
+    speedMarkers.forEach((marker, idx) => {
+      if (!Number.isFinite(marker.distance_m) || marker.distance_m < lapMin || marker.distance_m > lapMax) return;
+      apexes.push({
+        id: `spd-${marker.id}`,
+        label: marker.label || `V${idx + 1}`,
+        apexX: marker.distance_m,
+        order: getCornerNumber(marker.label, idx + 1),
       });
     });
   }
