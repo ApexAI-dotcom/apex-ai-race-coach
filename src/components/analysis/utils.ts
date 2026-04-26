@@ -59,76 +59,67 @@ export function enrichCornersWithCornerAnalysis(plotData: any, analysis: any) {
 export interface CornerMarker {
   id: number;
   label: string;
+  /** Distance relative to lap start (metres, 0-based). Add chart lapStart to get absolute. */
   distance_m: number;
 }
 
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000;
+  const toRad = Math.PI / 180;
+  const φ1 = lat1 * toRad, φ2 = lat2 * toRad;
+  const Δφ = (lat2 - lat1) * toRad, Δλ = (lon2 - lon1) * toRad;
+  const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 /**
- * Detect corner apex positions from the speed trace by finding local speed minima.
- * This works entirely from the chart's own data — no GPS or optional fields needed.
+ * Compute corner positions as distances relative to the lap start (0-based metres).
  *
- * Algorithm:
- *  1. Smooth the speed signal to remove noise
- *  2. Find all local minima with an adaptive window
- *  3. Merge minima that are too close (keep lowest speed)
- *  4. Keep the N deepest, re-sorted by position, labelled from cornerLabels
+ * Uses GPS coordinates from trajectory_2d.corners snapped to the nearest point in the
+ * reference lap's GPS trajectory. Cumulative distance is computed via haversine so this
+ * works even when trajectory_2d.laps[i].distance_m is absent.
+ *
+ * Each chart adds its own lapStart (= series[0].distance_m) to get absolute coordinates
+ * that align with that chart's X axis, regardless of which lap is displayed.
  */
-export function computeCornerMarkersFromSpeed(
-  distArr: number[],
-  speedArr: number[],
-  cornerLabels: string[],
+export function computeCornerMarkersRelative(
+  trajectoryCorners: { id: number; label: string; lat: number; lon: number }[] | undefined,
+  trajectoryLaps:
+    | { is_best?: boolean; lap_number?: number; lat: number[]; lon: number[] }[]
+    | undefined,
 ): CornerMarker[] {
-  const n = Math.min(distArr.length, speedArr.length);
-  if (n < 10 || cornerLabels.length === 0) return [];
+  if (!trajectoryCorners?.length || !trajectoryLaps?.length) return [];
 
-  const expectedCount = cornerLabels.length;
-  const totalDist = distArr[n - 1] - distArr[0];
+  // Prefer the best lap; fall back to the first lap with enough GPS points
+  const refLap =
+    trajectoryLaps.find((l) => l.is_best && l.lat?.length > 10) ??
+    trajectoryLaps.find((l) => l.lat?.length > 10) ??
+    trajectoryLaps[0];
 
-  // Moving-average smoothing to reduce sensor noise
-  const smoothWin = Math.max(2, Math.floor(n / 60));
-  const smoothed = new Array(n).fill(0);
-  for (let i = 0; i < n; i++) {
-    let sum = 0, cnt = 0;
-    for (let j = Math.max(0, i - smoothWin); j <= Math.min(n - 1, i + smoothWin); j++) {
-      sum += speedArr[j]; cnt++;
+  if (!refLap?.lat?.length || !refLap?.lon?.length) return [];
+
+  const lat = refLap.lat;
+  const lon = refLap.lon;
+  const n = Math.min(lat.length, lon.length);
+  if (n < 2) return [];
+
+  // Build 0-based cumulative distance array via haversine
+  const dist = new Array<number>(n);
+  dist[0] = 0;
+  for (let i = 1; i < n; i++) {
+    dist[i] = dist[i - 1] + haversineDistance(lat[i - 1], lon[i - 1], lat[i], lon[i]);
+  }
+
+  // Snap each corner's GPS to the nearest trajectory point
+  return trajectoryCorners.map((c) => {
+    let bestIdx = 0;
+    let bestSq = Infinity;
+    for (let i = 0; i < n; i++) {
+      const dLat = lat[i] - c.lat;
+      const dLon = lon[i] - c.lon;
+      const sq = dLat * dLat + dLon * dLon;
+      if (sq < bestSq) { bestSq = sq; bestIdx = i; }
     }
-    smoothed[i] = sum / cnt;
-  }
-
-  // Find local minima (strict: lower than all neighbours in window)
-  const localWin = Math.max(2, Math.floor(n / (expectedCount * 5)));
-  const candidates: { distance_m: number; speed: number }[] = [];
-  for (let i = localWin; i < n - localWin; i++) {
-    const v = smoothed[i];
-    let isMin = true;
-    for (let j = i - localWin; j <= i + localWin; j++) {
-      if (j !== i && smoothed[j] <= v) { isMin = false; break; }
-    }
-    if (isMin) candidates.push({ distance_m: distArr[i], speed: v });
-  }
-  if (candidates.length === 0) return [];
-
-  // Merge candidates closer than minGap, keeping lowest speed
-  const minGap = totalDist / (expectedCount * 3);
-  const merged: { distance_m: number; speed: number }[] = [];
-  for (const c of candidates) {
-    const last = merged[merged.length - 1];
-    if (last && c.distance_m - last.distance_m < minGap) {
-      if (c.speed < last.speed) merged[merged.length - 1] = c;
-    } else {
-      merged.push(c);
-    }
-  }
-
-  // Keep the N deepest minima, re-sort by track position
-  let selected = merged;
-  if (merged.length > expectedCount) {
-    selected = [...merged].sort((a, b) => a.speed - b.speed).slice(0, expectedCount);
-    selected.sort((a, b) => a.distance_m - b.distance_m);
-  }
-
-  return selected.map((m, i) => ({
-    id: i + 1,
-    label: cornerLabels[i] ?? `V${i + 1}`,
-    distance_m: m.distance_m,
-  }));
+    return { id: c.id, label: c.label, distance_m: dist[bestIdx] };
+  });
 }

@@ -113,16 +113,17 @@ export function SpeedTraceChart({
               />
             ))}
             {cornerMarkers?.map((c, i) => {
-              const color = i % 2 === 0 ? "#f97316" : "#a855f7";
+              const color = i % 2 === 0 ? "#f97316" : "#ea580c";
+              const pos = lapStart + c.distance_m;
               return (
                 <ReferenceArea
                   key={`corner_${c.id}`}
-                  x1={c.distance_m - 35}
-                  x2={c.distance_m + 35}
+                  x1={pos - 35}
+                  x2={pos + 35}
                   fill={color}
-                  fillOpacity={0.2}
+                  fillOpacity={0.22}
                   stroke={color}
-                  strokeOpacity={0.4}
+                  strokeOpacity={0.5}
                   strokeWidth={1}
                   ifOverflow="hidden"
                 >

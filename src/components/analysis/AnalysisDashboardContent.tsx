@@ -10,7 +10,7 @@ import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { TrackMapPro } from "./TrackMapPro";
 import { CoachingAdvice } from "./CoachingAdvice";
-import { enrichCornersWithCornerAnalysis, computeCornerMarkersFromSpeed } from "./utils";
+import { enrichCornersWithCornerAnalysis, computeCornerMarkersRelative } from "./utils";
 import type { AnalysisResponse as AnalysisResult } from "@/types/analysis";
 
 interface AnalysisDashboardContentProps {
@@ -87,20 +87,16 @@ export function AnalysisDashboardContent({
 
   const selectedLapNumbers = providedSelectedLaps || localSelectedLaps;
 
-  // Detect corner apex positions from the speed trace (local speed minima = apex).
-  // This uses the exact same data as the chart X axis → perfect alignment guaranteed.
-  // Corner labels come from trajectory_2d.corners (already ordered along the track).
-  const cornerMarkers = useMemo(() => {
-    const refLapNum = selectedLapNumbers[0] ?? bestLapNumber;
-    const refLap =
-      plotData?.speed_trace?.laps?.find((l) => l.lap_number === refLapNum) ??
-      plotData?.speed_trace?.laps?.[0];
-    const cornerLabels = (plotData?.trajectory_2d?.corners ?? []).map((c: any) => c.label as string);
-    if (!refLap?.distance_m?.length || !refLap?.speed_kmh?.length || cornerLabels.length === 0) {
-      return [];
-    }
-    return computeCornerMarkersFromSpeed(refLap.distance_m, refLap.speed_kmh, cornerLabels);
-  }, [plotData?.speed_trace?.laps, plotData?.trajectory_2d?.corners, selectedLapNumbers, bestLapNumber]);
+  // Compute corner positions as 0-based relative distances (GPS snap + haversine).
+  // Each chart adds its own lapStart to get absolute coordinates — works for every lap.
+  // Uses the same trajectory_2d.corners as the track map → always same corner count.
+  const cornerMarkers = useMemo(
+    () => computeCornerMarkersRelative(
+      plotData?.trajectory_2d?.corners,
+      plotData?.trajectory_2d?.laps,
+    ),
+    [plotData?.trajectory_2d?.corners, plotData?.trajectory_2d?.laps],
+  );
 
   const wrapperClass = embedded ? "space-y-6" : "max-w-7xl mx-auto p-4 md:p-8 space-y-8";
   const sectionClass = embedded
