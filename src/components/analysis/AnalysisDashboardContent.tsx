@@ -10,7 +10,7 @@ import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { TrackMapPro } from "./TrackMapPro";
 import { CoachingAdvice } from "./CoachingAdvice";
-import { enrichCornersWithCornerAnalysis, computeCornerMarkersRelative } from "./utils";
+import { enrichCornersWithCornerAnalysis, computeCornerMarkersFromSpeed } from "./utils";
 import type { AnalysisResponse as AnalysisResult } from "@/types/analysis";
 
 interface AnalysisDashboardContentProps {
@@ -87,21 +87,19 @@ export function AnalysisDashboardContent({
 
   const selectedLapNumbers = providedSelectedLaps || localSelectedLaps;
 
-  // Compute corner positions relative to lap start (0-based metres).
-  // Tries GPS+haversine first (exact count = track map), falls back to speed minima.
-  // Each chart adds its own series[0].distance_m to align with its X axis.
+  // Detect corner apex positions from the speed trace (local speed minima = apex).
+  // Returns ABSOLUTE distances — directly usable as X coordinates on every chart.
+  // Labels come from trajectory_2d.corners (same source as the track map).
   const cornerMarkers = useMemo(() => {
-    // Speed trace best lap as fallback data source
-    const bestSpeedLap =
+    const refLapNum = selectedLapNumbers[0] ?? bestLapNumber;
+    const refLap =
+      plotData?.speed_trace?.laps?.find((l) => l.lap_number === refLapNum) ??
       plotData?.speed_trace?.laps?.find((l) => l.lap_number === bestLapNumber) ??
       plotData?.speed_trace?.laps?.[0];
-    return computeCornerMarkersRelative(
-      plotData?.trajectory_2d?.corners as any,
-      plotData?.trajectory_2d?.laps as any,
-      bestSpeedLap?.distance_m,
-      bestSpeedLap?.speed_kmh,
-    );
-  }, [plotData?.trajectory_2d?.corners, plotData?.trajectory_2d?.laps, plotData?.speed_trace?.laps, bestLapNumber]);
+    const cornerLabels = (plotData?.trajectory_2d?.corners ?? []).map((c: any) => String(c.label));
+    if (!refLap?.distance_m?.length || !refLap?.speed_kmh?.length || !cornerLabels.length) return [];
+    return computeCornerMarkersFromSpeed(refLap.distance_m, refLap.speed_kmh, cornerLabels);
+  }, [plotData?.speed_trace?.laps, plotData?.trajectory_2d?.corners, selectedLapNumbers, bestLapNumber]);
 
   const wrapperClass = embedded ? "space-y-6" : "max-w-7xl mx-auto p-4 md:p-8 space-y-8";
   const sectionClass = embedded
