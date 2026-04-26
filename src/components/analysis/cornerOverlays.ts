@@ -33,14 +33,25 @@ function getCornerNumber(label: string | undefined, fallback: number): number {
 
 function normalizeDistance(rawDistance: number, lapMin: number, lapMax: number): number | null {
   if (!Number.isFinite(rawDistance) || lapMax <= lapMin) return null;
+  const lapSpan = lapMax - lapMin;
 
   if (rawDistance >= lapMin - 5 && rawDistance <= lapMax + 5) {
     return rawDistance;
   }
 
-  const lapSpan = lapMax - lapMin;
   if (rawDistance >= 0 && rawDistance <= lapSpan + 50) {
     return lapMin + rawDistance;
+  }
+
+  // Handle start/finish wrap-around: map values one lap before/after into current domain.
+  const wrappedMinus = rawDistance - lapSpan;
+  if (wrappedMinus >= lapMin - 10 && wrappedMinus <= lapMax + 10) {
+    return wrappedMinus;
+  }
+
+  const wrappedPlus = rawDistance + lapSpan;
+  if (wrappedPlus >= lapMin - 10 && wrappedPlus <= lapMax + 10) {
+    return wrappedPlus;
   }
 
   return null;
@@ -131,11 +142,12 @@ export function buildCornerOverlays(params: {
   );
   if (gpsMarkers?.length) {
     gpsMarkers.forEach((marker, idx) => {
-      if (!Number.isFinite(marker.distance_m) || marker.distance_m < lapMin || marker.distance_m > lapMax) return;
+      const apexX = normalizeDistance(marker.distance_m, lapMin, lapMax);
+      if (apexX === null) return;
       apexes.push({
         id: `gps-${marker.id}`,
         label: marker.label || `V${idx + 1}`,
-        apexX: marker.distance_m,
+        apexX,
         order: getCornerNumber(marker.label, idx + 1),
       });
     });
@@ -148,11 +160,12 @@ export function buildCornerOverlays(params: {
       trajectoryCorners.map((corner, idx) => corner.label || `V${idx + 1}`)
     );
     speedMarkers.forEach((marker, idx) => {
-      if (!Number.isFinite(marker.distance_m) || marker.distance_m < lapMin || marker.distance_m > lapMax) return;
+      const apexX = normalizeDistance(marker.distance_m, lapMin, lapMax);
+      if (apexX === null) return;
       apexes.push({
         id: `spd-${marker.id}`,
         label: marker.label || `V${idx + 1}`,
-        apexX: marker.distance_m,
+        apexX,
         order: getCornerNumber(marker.label, idx + 1),
       });
     });
