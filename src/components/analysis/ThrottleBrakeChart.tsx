@@ -70,6 +70,8 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
 
   if (series.length === 0) return null;
 
+  const lapStart = series[0]?.distance_m ?? 0;
+
   const renderContent = () => {
     if (isSingleLap) {
       return (
@@ -84,8 +86,8 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
                 return (
                   <ReferenceArea 
                     key={c.corner_id || i}
-                    x1={Math.max(0, dist - 15)} 
-                    x2={dist + 15}
+                    x1={Math.max(lapStart, lapStart + dist - 20)} 
+                    x2={lapStart + dist + 20}
                     fill="#f97316" 
                     fillOpacity={0.15}
                   >
@@ -150,8 +152,8 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
               return (
                 <ReferenceArea 
                   key={c.corner_id || i}
-                  x1={Math.max(0, dist - 15)} 
-                  x2={dist + 15}
+                  x1={Math.max(lapStart, lapStart + dist - 20)} 
+                  x2={lapStart + dist + 20}
                   fill="#f97316" 
                   fillOpacity={0.15}
                 >

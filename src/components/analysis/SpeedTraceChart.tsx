@@ -84,6 +84,8 @@ export function SpeedTraceChart({
 
   if (series.length === 0) return null;
 
+  const lapStart = series[0]?.distance_m ?? 0;
+
   return (
     <BlurOverlay
       isLocked={!visible}
@@ -103,8 +105,8 @@ export function SpeedTraceChart({
             {sectors?.map((s, i) => (
               <ReferenceArea
                 key={s.name}
-                x1={s.start_m}
-                x2={s.end_m}
+                x1={lapStart + s.start_m}
+                x2={lapStart + s.end_m}
                 fill={i === 0 ? "#3b82f6" : i === 1 ? "#22c55e" : "#f97316"}
                 fillOpacity={0.1}
               />
@@ -115,8 +117,8 @@ export function SpeedTraceChart({
               return (
                 <ReferenceArea 
                   key={`corner_${c.corner_id || i}`}
-                  x1={Math.max(0, dist - 15)} 
-                  x2={dist + 15}
+                  x1={Math.max(lapStart, lapStart + dist - 20)} 
+                  x2={lapStart + dist + 20}
                   fill="#f97316" 
                   fillOpacity={0.15}
                 >
