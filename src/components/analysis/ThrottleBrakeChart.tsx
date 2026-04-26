@@ -150,18 +150,25 @@ export function ThrottleBrakeChart({ data, selectedLaps, circuitName = null, hid
           <ResponsiveContainer width="100%" height="100%">
           <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            {cornerMarkers?.map((c) => (
-              <ReferenceArea
-                key={`corner_${c.id}`}
-                x1={c.distance_m - 30}
-                x2={c.distance_m + 30}
-                fill="#f97316"
-                fillOpacity={0.18}
-                ifOverflow="hidden"
-              >
-                <Label value={c.label} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" />
-              </ReferenceArea>
-            ))}
+            {cornerMarkers?.map((c, i) => {
+              const color = i % 2 === 0 ? "#f97316" : "#ea580c";
+              const pos = lapStart + c.distance_m;
+              return (
+                <ReferenceArea
+                  key={`corner_${c.id}`}
+                  x1={pos - 35}
+                  x2={pos + 35}
+                  fill={color}
+                  fillOpacity={0.22}
+                  stroke={color}
+                  strokeOpacity={0.5}
+                  strokeWidth={1}
+                  ifOverflow="hidden"
+                >
+                  <Label value={c.label} position="insideTop" fill={color} fontSize={12} fontWeight="bold" />
+                </ReferenceArea>
+              );
+            })}
             <XAxis
               type="number"
               dataKey="distance_m"
