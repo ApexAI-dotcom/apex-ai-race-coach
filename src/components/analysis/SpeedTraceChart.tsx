@@ -12,10 +12,11 @@ import {
   Label,
 } from "recharts";
 import type { SpeedTraceData } from "@/types/analysis";
-import { downsample, type CornerMarker } from "./utils";
+import { downsample } from "./utils";
 import { BlurOverlay } from "../ui/BlurOverlay";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useNavigate } from "react-router-dom";
+import type { CornerOverlay } from "./cornerOverlays";
 
 interface SpeedTraceChartProps {
   data: SpeedTraceData;
@@ -24,7 +25,7 @@ interface SpeedTraceChartProps {
   variant?: "points" | "line";
   circuitName?: string | null;
   hideCta?: boolean;
-  cornerMarkers?: CornerMarker[];
+  cornerOverlays?: CornerOverlay[];
 }
 
 const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
@@ -69,7 +70,7 @@ export function SpeedTraceChart({
   variant = "line",
   circuitName = null,
   hideCta = false,
-  cornerMarkers,
+  cornerOverlays = [],
 }: SpeedTraceChartProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
@@ -112,20 +113,16 @@ export function SpeedTraceChart({
                 ifOverflow="hidden"
               />
             ))}
-            {cornerMarkers?.map((c, i) => {
-              const color = i % 2 === 0 ? "#f97316" : "#ea580c";
+            {cornerOverlays.map((corner) => {
               return (
-                <ReferenceArea
-                  key={`corner_${c.id}`}
-                  x1={c.distance_m - 20}
-                  x2={c.distance_m + 20}
-                  fill={color}
-                  fillOpacity={0.25}
-                  stroke={color}
-                  strokeOpacity={0.6}
-                  strokeWidth={1}
+                <ReferenceArea 
+                  key={corner.id}
+                  x1={corner.x1}
+                  x2={corner.x2}
+                  fill="#f97316" 
+                  fillOpacity={0.15}
                 >
-                  <Label value={c.label} position="insideTop" fill={color} fontSize={12} fontWeight="bold" />
+                  <Label value={corner.label} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" opacity={1} />
                 </ReferenceArea>
               );
             })}

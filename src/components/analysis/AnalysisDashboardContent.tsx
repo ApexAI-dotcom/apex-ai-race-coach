@@ -10,7 +10,8 @@ import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { TrackMapPro } from "./TrackMapPro";
 import { CoachingAdvice } from "./CoachingAdvice";
-import { enrichCornersWithCornerAnalysis, computeCornerMarkersFromSpeed, computeCornerMarkersFromGPS } from "./utils";
+import { enrichCornersWithCornerAnalysis } from "./utils";
+import { buildCornerOverlays } from "./cornerOverlays";
 import type { AnalysisResponse as AnalysisResult } from "@/types/analysis";
 
 interface AnalysisDashboardContentProps {
@@ -86,35 +87,35 @@ export function AnalysisDashboardContent({
   };
 
   const selectedLapNumbers = providedSelectedLaps || localSelectedLaps;
+  const selectedLapNumber = selectedLapNumbers[0] ?? bestLapNumber;
+  
+  const referenceTrajectoryLap = useMemo(() => {
+    const laps = plotData?.trajectory_2d?.laps ?? [];
+    if (!laps.length) return null;
+    const lapWithNumber = laps.find((lap: any) => lap?.lap_number === selectedLapNumber);
+    if (lapWithNumber) return lapWithNumber;
+    const best = laps.find((lap: any) => lap?.is_best);
+    if (best) return best;
+    return laps[bestTrackLapIndex] ?? laps[0];
+  }, [plotData?.trajectory_2d?.laps, selectedLapNumber, bestTrackLapIndex]);
 
-  // Compute corner markers as ABSOLUTE session distances (same X domain as charts).
-  // Primary: GPS snapping onto trajectory lap — guarantees alignment with track map.
-  // Fallback: speed minima detection from the speed trace.
-  const cornerMarkers = useMemo(() => {
-    const trajCorners = plotData?.trajectory_2d?.corners;
-    const trajLaps = plotData?.trajectory_2d?.laps;
+  const speedTraceDomain = useMemo(() => {
+    const lap = plotData?.speed_trace?.laps?.find((item: any) => item.lap_number === selectedLapNumber)
+      ?? plotData?.speed_trace?.laps?.[0];
+    const dist = lap?.distance_m ?? [];
+    if (!dist.length) return null;
+    return { min: dist[0], max: dist[dist.length - 1] };
+  }, [plotData?.speed_trace?.laps, selectedLapNumber]);
 
-    const refLapNum = selectedLapNumbers[0] ?? bestLapNumber;
-    const refLap =
-      plotData?.speed_trace?.laps?.find((l: any) => l.lap_number === refLapNum) ??
-      plotData?.speed_trace?.laps?.find((l: any) => l.lap_number === bestLapNumber) ??
-      plotData?.speed_trace?.laps?.[0];
-
-    // lapStartOffset: absolute session distance at the start of the reference lap
-    const lapStartOffset: number = refLap?.distance_m?.[0] ?? 0;
-
-    // Try GPS snapping first (exact alignment with track map corner labels)
-    if (trajCorners?.length && trajLaps?.length) {
-      const gpsMarkers = computeCornerMarkersFromGPS(trajLaps, trajCorners, lapStartOffset);
-      if (gpsMarkers && gpsMarkers.length > 0) return gpsMarkers;
-    }
-
-    // Speed minima fallback
-    const cornerLabels = (trajCorners ?? []).map((c: any) => String(c.label));
-    if (!refLap?.distance_m?.length || !refLap?.speed_kmh?.length || !cornerLabels.length) return [];
-    return computeCornerMarkersFromSpeed(refLap.distance_m, refLap.speed_kmh, cornerLabels);
-  }, [plotData?.speed_trace?.laps, plotData?.trajectory_2d?.corners, plotData?.trajectory_2d?.laps, selectedLapNumbers, bestLapNumber]);
-
+  const cornerOverlays = useMemo(() => {
+    return buildCornerOverlays({
+      trajectoryCorners: plotData?.trajectory_2d?.corners ?? [],
+      referenceLap: referenceTrajectoryLap,
+      cornerAnalysis: analysis.corner_analysis as unknown[],
+      domainMin: speedTraceDomain?.min,
+      domainMax: speedTraceDomain?.max,
+    });
+  }, [plotData?.trajectory_2d?.corners, referenceTrajectoryLap, analysis.corner_analysis, speedTraceDomain]);
   const wrapperClass = embedded ? "space-y-6" : "max-w-7xl mx-auto p-4 md:p-8 space-y-8";
   const sectionClass = embedded
     ? "mb-6 md:mb-8 rounded-lg border border-white/5 bg-secondary/50 p-3 md:p-4"
@@ -218,7 +219,7 @@ export function AnalysisDashboardContent({
                   bestLapNumber={bestLapNumber}
                   circuitName={circuitName}
                   hideCta={currentHideCta}
-                  cornerMarkers={cornerMarkers}
+                  cornerOverlays={cornerOverlays}
                 />
               </section>
             );
@@ -238,7 +239,7 @@ export function AnalysisDashboardContent({
                   selectedLaps={selectedLapNumbers}
                   circuitName={circuitName}
                   hideCta={currentHideCta}
-                  cornerMarkers={cornerMarkers}
+                  cornerOverlays={cornerOverlays}
                 />
               </section>
             );
@@ -294,7 +295,7 @@ export function AnalysisDashboardContent({
                   selectedLaps={selectedLapNumbers}
                   circuitName={circuitName}
                   hideCta={currentHideCta}
-                  cornerMarkers={cornerMarkers}
+                  cornerOverlays={cornerOverlays}
                 />
               </section>
             );
