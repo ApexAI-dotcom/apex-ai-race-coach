@@ -80,8 +80,9 @@ export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null, hid
       onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
       hideButton={hideCta}
     >
-      <div className="h-[260px] w-full" aria-label="Time delta by distance">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        <div className="h-[280px] sm:h-[300px] w-[800px] md:w-full" aria-label="Time delta by distance">
+          <ResponsiveContainer width="100%" height="100%">
           <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             {cornerAnalysis?.map((c, i) => {
@@ -100,9 +101,11 @@ export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null, hid
               );
             })}
             <XAxis
+              type="number"
               dataKey="distance_m"
               stroke="hsl(var(--border))"
               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+              domain={["dataMin", "dataMax"]}
               tickFormatter={(v) => `${v}m`}
             />
             <YAxis
@@ -146,6 +149,7 @@ export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null, hid
             })}
           </LineChart>
         </ResponsiveContainer>
+      </div>
       </div>
     </BlurOverlay>
   );
