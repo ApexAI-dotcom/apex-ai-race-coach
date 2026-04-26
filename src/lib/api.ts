@@ -92,6 +92,7 @@ export interface CornerAnalysis {
   per_lap_data?: PerLapCornerData[];
   apex_lat?: number | null;
   apex_lon?: number | null;
+  avg_cumulative_distance?: number | null;
 }
 
 const CORNER_KEYS: (keyof CornerAnalysis)[] = [
@@ -143,6 +144,7 @@ export function mapCornerData(raw: Record<string, unknown>): CornerAnalysis {
     per_lap_data: Array.isArray(raw.per_lap_data) ? (raw.per_lap_data as PerLapCornerData[]) : undefined,
     apex_lat: raw.apex_lat != null ? Number(raw.apex_lat) : undefined,
     apex_lon: raw.apex_lon != null ? Number(raw.apex_lon) : undefined,
+    avg_cumulative_distance: raw.avg_cumulative_distance != null ? Number(raw.avg_cumulative_distance) : undefined,
   };
 }
 
