@@ -10,7 +10,7 @@ import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { TrackMapPro } from "./TrackMapPro";
 import { CoachingAdvice } from "./CoachingAdvice";
-import { enrichCornersWithCornerAnalysis } from "./utils";
+import { enrichCornersWithCornerAnalysis, computeCornerMarkers } from "./utils";
 import type { AnalysisResponse as AnalysisResult } from "@/types/analysis";
 
 interface AnalysisDashboardContentProps {
@@ -86,7 +86,21 @@ export function AnalysisDashboardContent({
   };
 
   const selectedLapNumbers = providedSelectedLaps || localSelectedLaps;
-  
+
+  // Compute corner X-axis positions (absolute cumulative distance) by snapping each
+  // corner's GPS apex to the nearest point in the reference lap's trajectory. This puts
+  // the markers in the SAME coordinate system as the chart's X axis (which uses the
+  // first selected lap's distance_m). Corners are then perfectly aligned with speed dips.
+  const cornerMarkers = useMemo(
+    () =>
+      computeCornerMarkers(
+        plotData?.trajectory_2d?.corners,
+        plotData?.trajectory_2d?.laps,
+        selectedLapNumbers[0] ?? bestLapNumber
+      ),
+    [plotData?.trajectory_2d?.corners, plotData?.trajectory_2d?.laps, selectedLapNumbers, bestLapNumber]
+  );
+
   const wrapperClass = embedded ? "space-y-6" : "max-w-7xl mx-auto p-4 md:p-8 space-y-8";
   const sectionClass = embedded
     ? "mb-6 md:mb-8 rounded-lg border border-white/5 bg-secondary/50 p-3 md:p-4"
@@ -190,7 +204,7 @@ export function AnalysisDashboardContent({
                   bestLapNumber={bestLapNumber}
                   circuitName={circuitName}
                   hideCta={currentHideCta}
-                  cornerAnalysis={analysis.corner_analysis as any}
+                  cornerMarkers={cornerMarkers}
                 />
               </section>
             );
@@ -210,7 +224,7 @@ export function AnalysisDashboardContent({
                   selectedLaps={selectedLapNumbers}
                   circuitName={circuitName}
                   hideCta={currentHideCta}
-                  cornerAnalysis={analysis.corner_analysis as any}
+                  cornerMarkers={cornerMarkers}
                 />
               </section>
             );
@@ -266,7 +280,7 @@ export function AnalysisDashboardContent({
                   selectedLaps={selectedLapNumbers}
                   circuitName={circuitName}
                   hideCta={currentHideCta}
-                  cornerAnalysis={analysis.corner_analysis as any}
+                  cornerMarkers={cornerMarkers}
                 />
               </section>
             );
