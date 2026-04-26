@@ -72,6 +72,9 @@ export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null, hid
 
   if (series.length === 0) return null;
 
+  // series is built from bestLap.distance_m — use its first value as the lap start offset
+  const lapStart = series[0]?.distance_m ?? 0;
+
   return (
     <BlurOverlay
       isLocked={!visible}
@@ -86,16 +89,17 @@ export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null, hid
           <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             {cornerMarkers?.map((c, i) => {
-              const color = i % 2 === 0 ? "#f97316" : "#a855f7";
+              const color = i % 2 === 0 ? "#f97316" : "#ea580c";
+              const pos = lapStart + c.distance_m;
               return (
                 <ReferenceArea
                   key={`corner_${c.id}`}
-                  x1={c.distance_m - 35}
-                  x2={c.distance_m + 35}
+                  x1={pos - 35}
+                  x2={pos + 35}
                   fill={color}
-                  fillOpacity={0.2}
+                  fillOpacity={0.22}
                   stroke={color}
-                  strokeOpacity={0.4}
+                  strokeOpacity={0.5}
                   strokeWidth={1}
                   ifOverflow="hidden"
                 >
