@@ -92,8 +92,9 @@ export function SpeedTraceChart({
       onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
       hideButton={hideCta}
     >
-      <div className="h-[320px] w-full" aria-label="Speed trace by distance">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        <div className="h-[320px] sm:h-[350px] w-[800px] md:w-full" aria-label="Speed trace by distance">
+          <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={series}
             margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
@@ -124,6 +125,7 @@ export function SpeedTraceChart({
               );
             })}
             <XAxis
+              type="number"
               dataKey="distance_m"
               stroke="hsl(var(--border))"
               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
@@ -164,6 +166,7 @@ export function SpeedTraceChart({
             })}
           </LineChart>
         </ResponsiveContainer>
+      </div>
       </div>
     </BlurOverlay>
   );
