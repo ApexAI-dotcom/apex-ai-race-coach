@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import api, { KartProfile } from "@/lib/api";
 import { ENGINE_PRESETS, TIRE_PRESETS, BRAKE_PRESETS } from "@/constants/kart-presets";
+import { useNavigate } from "react-router-dom";
 
 interface KartSetupWizardProps {
   token: string;
@@ -17,6 +18,7 @@ interface KartSetupWizardProps {
 }
 
 export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [openEngine, setOpenEngine] = useState(false);
@@ -35,7 +37,13 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
   });
 
   const handleNext = () => setStep((s) => Math.min(s + 1, 3));
-  const handleBack = () => setStep((s) => Math.max(s - 1, 1));
+  const handleBack = () => {
+    if (step === 1) {
+      navigate("/dashboard");
+    } else {
+      setStep((s) => Math.max(s - 1, 1));
+    }
+  };
   
   const updateData = (updates: Partial<KartProfile>) => {
     setData((prev) => ({ ...prev, ...updates }));
@@ -65,7 +73,7 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-4 container max-w-2xl mx-auto flex items-center justify-center">
+    <div className="py-12 px-4 container max-w-2xl mx-auto">
       <Card className="glass-card w-full relative overflow-hidden shadow-2xl shadow-primary/10">
         <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
           <div 
@@ -267,7 +275,7 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
         </CardContent>
 
         <CardFooter className="flex justify-between px-8 pb-8 pt-4">
-          <Button variant="ghost" onClick={handleBack} disabled={step === 1}>
+          <Button variant="ghost" onClick={handleBack}>
             <ChevronLeft className="w-4 h-4 mr-2" />
             Retour
           </Button>

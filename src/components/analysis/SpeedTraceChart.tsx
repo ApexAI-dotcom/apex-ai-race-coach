@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   ReferenceArea,
   Legend,
+  Label,
 } from "recharts";
 import type { SpeedTraceData } from "@/types/analysis";
 import { downsample } from "./utils";
@@ -23,6 +24,7 @@ interface SpeedTraceChartProps {
   variant?: "points" | "line";
   circuitName?: string | null;
   hideCta?: boolean;
+  cornerAnalysis?: any[];
 }
 
 const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
@@ -67,6 +69,7 @@ export function SpeedTraceChart({
   variant = "line",
   circuitName = null,
   hideCta = false,
+  cornerAnalysis,
 }: SpeedTraceChartProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
@@ -105,6 +108,21 @@ export function SpeedTraceChart({
                 fillOpacity={0.1}
               />
             ))}
+            {cornerAnalysis?.map((c, i) => {
+              const dist = c.avg_cumulative_distance;
+              if (typeof dist !== 'number') return null;
+              return (
+                <ReferenceArea 
+                  key={`corner_${c.corner_id || i}`}
+                  x1={Math.max(0, dist - 15)} 
+                  x2={dist + 15}
+                  fill="hsl(var(--primary))" 
+                  fillOpacity={0.08}
+                >
+                  <Label value={c.label || `V${c.corner_id}`} position="insideTop" fill="hsl(var(--primary))" fontSize={10} opacity={0.8} />
+                </ReferenceArea>
+              );
+            })}
             <XAxis
               dataKey="distance_m"
               stroke="hsl(var(--border))"

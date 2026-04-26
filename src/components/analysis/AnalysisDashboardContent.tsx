@@ -190,6 +190,7 @@ export function AnalysisDashboardContent({
                   bestLapNumber={bestLapNumber}
                   circuitName={circuitName}
                   hideCta={currentHideCta}
+                  cornerAnalysis={analysis.corner_analysis as any}
                 />
               </section>
             );
@@ -209,6 +210,7 @@ export function AnalysisDashboardContent({
                   selectedLaps={selectedLapNumbers}
                   circuitName={circuitName}
                   hideCta={currentHideCta}
+                  cornerAnalysis={analysis.corner_analysis as any}
                 />
               </section>
             );
@@ -264,6 +266,7 @@ export function AnalysisDashboardContent({
                   selectedLaps={selectedLapNumbers}
                   circuitName={circuitName}
                   hideCta={currentHideCta}
+                  cornerAnalysis={analysis.corner_analysis as any}
                 />
               </section>
             );

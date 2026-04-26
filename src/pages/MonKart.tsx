@@ -89,7 +89,11 @@ export default function MonKart() {
 
   // Show Wizard if profile not fully configured
   if (prof && !prof.engine_model) {
-    return <KartSetupWizard token={session!.access_token} onComplete={fetchProfile} />;
+    return (
+      <Layout>
+        <KartSetupWizard token={session!.access_token} onComplete={fetchProfile} />
+      </Layout>
+    );
   }
 
   const handleBulkImport = async () => {
