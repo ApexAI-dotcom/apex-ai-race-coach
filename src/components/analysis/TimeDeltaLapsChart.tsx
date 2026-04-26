@@ -90,12 +90,11 @@ export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null, hid
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             {cornerMarkers?.map((c, i) => {
               const color = i % 2 === 0 ? "#f97316" : "#ea580c";
-              const cx = lapStart + c.distance_m;
               return (
                 <ReferenceArea
                   key={`corner_${c.id}`}
-                  x1={cx - 20}
-                  x2={cx + 20}
+                  x1={c.distance_m - 20}
+                  x2={c.distance_m + 20}
                   fill={color}
                   fillOpacity={0.25}
                   stroke={color}
