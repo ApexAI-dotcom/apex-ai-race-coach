@@ -1,0 +1,78 @@
+# ============================================================
+# .gitignore racine - C:\Users\Administrateur
+# Ce dépôt ne doit suivre QUE les fichiers du projet ApexAI.
+# Tout le reste (dotfiles, cache, outils, Google Drive) est exclu.
+# ============================================================
+
+# --- Outils et configs personnels (dotfiles) ---
+.antigravity/
+.app_conf/
+.cache/
+.config/
+.cursor/
+.docker/
+.fontconfig/
+.gemini/
+.linux_conf/
+.matplotlib/
+.railway/
+.redhat/
+.rustup/
+.claude/
+.gitconfig
+.lesshst
+.python_history
+.claude.json
+.claude.json.backup
+.ssh/
+.gnupg/
+
+# --- Claude Code (worktrees temporaires - gérés automatiquement) ---
+Desktop/.claude/
+
+# --- Bureau (Desktop) - tout sauf le projet ApexAI ---
+Desktop/*
+!Desktop/ApexAI/
+
+# --- Dossiers utilisateur Windows standard ---
+Documents/
+Downloads/
+Pictures/
+Videos/
+Music/
+Favorites/
+Links/
+Searches/
+OneDrive/
+iCloudDrive/
+AppData/
+
+# --- Autres dossiers personnels ---
+go/
+mlx/
+PortableApps/
+Local\ Sites/
+IntelGraphicsProfiles/
+Start.exe
+xsetup.log
+telemetrie_monaco_light.csv
+package-lock.json
+presentation-builder/
+self-hosted-ai-starter-kit/
+
+# --- Google Drive (fichiers de sync et métadonnées) ---
+*.tmp
+.tmp.driveupload/
+Desktop/.tmp.driveupload/
+*.gdoc
+*.gsheet
+*.gslide
+desktop.ini
+thumbs.db
+.DS_Store
+~$*
+
+# --- Windows (raccourcis, fichiers système) ---
+*.lnk
+NTUSER.DAT*
+ntuser.*
