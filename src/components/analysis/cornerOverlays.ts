@@ -113,6 +113,7 @@ function buildZonesFromApexes(apexes: Array<{ id: string; label: string; apexX: 
 export function buildCornerOverlays(params: {
   trajectoryCorners?: TrajectoryCorner[];
   trajectoryLaps?: TrajectoryLap[];
+  referenceTrajectoryLap?: TrajectoryLap | null;
   referenceSpeedLap?: { distance_m?: number[]; speed_kmh?: number[] } | null;
   cornerAnalysis?: unknown[];
   domainMin?: number;
@@ -121,6 +122,7 @@ export function buildCornerOverlays(params: {
   const {
     trajectoryCorners = [],
     trajectoryLaps = [],
+    referenceTrajectoryLap = null,
     referenceSpeedLap = null,
     cornerAnalysis = [],
     domainMin,
@@ -135,12 +137,59 @@ export function buildCornerOverlays(params: {
 
   const apexes: Array<{ id: string; label: string; apexX: number; order: number }> = [];
 
+  // Primary strategy: map each detected corner (track map source of truth) to the same lap path,
+  // then project by normalized index onto speed-trace distance. This decouples corner overlays
+  // from braking minima and preserves 1:1 corner count coherence (e.g. 11 corners -> 11 zones).
+  if (
+    trajectoryCorners.length > 0 &&
+    lapDistance.length > 5 &&
+    referenceTrajectoryLap?.lat?.length &&
+    referenceTrajectoryLap?.lon?.length
+  ) {
+    const lat = referenceTrajectoryLap.lat;
+    const lon = referenceTrajectoryLap.lon;
+    const n = Math.min(lat.length, lon.length);
+    const distLen = lapDistance.length;
+
+    for (let i = 0; i < trajectoryCorners.length; i += 1) {
+      const corner = trajectoryCorners[i];
+      let nearestIdx = -1;
+      let best = Number.POSITIVE_INFINITY;
+
+      for (let j = 0; j < n; j += 1) {
+        const lt = lat[j];
+        const ln = lon[j];
+        if (!Number.isFinite(lt) || !Number.isFinite(ln)) continue;
+        const dLat = corner.lat - lt;
+        const dLon = corner.lon - ln;
+        const d2 = dLat * dLat + dLon * dLon;
+        if (d2 < best) {
+          best = d2;
+          nearestIdx = j;
+        }
+      }
+
+      if (nearestIdx < 0) continue;
+      const t = n > 1 ? nearestIdx / (n - 1) : 0;
+      const speedIdx = Math.min(distLen - 1, Math.max(0, Math.round(t * (distLen - 1))));
+      const apexX = normalizeDistance(lapDistance[speedIdx], lapMin, lapMax);
+      if (apexX === null) continue;
+
+      apexes.push({
+        id: `trk-${corner.id ?? i + 1}`,
+        label: corner.label || `V${i + 1}`,
+        apexX,
+        order: getCornerNumber(corner.label, i + 1),
+      });
+    }
+  }
+
   const gpsMarkers = computeCornerMarkersFromGPS(
     trajectoryLaps.map((lap) => ({ lat: lap.lat ?? [], lon: lap.lon ?? [], is_synthetic: lap.is_synthetic })),
     trajectoryCorners.map((corner) => ({ lat: corner.lat, lon: corner.lon, label: corner.label })),
     lapMin
   );
-  if (gpsMarkers?.length) {
+  if (apexes.length === 0 && gpsMarkers?.length) {
     gpsMarkers.forEach((marker, idx) => {
       const apexX = normalizeDistance(marker.distance_m, lapMin, lapMax);
       if (apexX === null) return;
