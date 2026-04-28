@@ -94,6 +94,7 @@ export function TimeDeltaLapsChart({ data, selectedLaps, circuitName = null, hid
                   x2={corner.x2}
                   fill="#f97316" 
                   fillOpacity={0.15}
+                  ifOverflow="visible"
                 >
                   <Label value={corner.label} position="insideTop" fill="#f97316" fontSize={11} fontWeight="bold" opacity={1} />
                 </ReferenceArea>

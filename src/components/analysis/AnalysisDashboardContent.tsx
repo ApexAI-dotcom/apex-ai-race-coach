@@ -128,6 +128,52 @@ export function AnalysisDashboardContent({
       domainMax: speedTraceDomain?.max,
     });
   }, [plotData?.trajectory_2d?.corners, plotData?.trajectory_2d?.laps, referenceTrajectoryLap, referenceSpeedLap, analysis.corner_analysis, speedTraceDomain]);
+
+  /** Delta chart uses best lap distance as X — overlays must use the same domain + speed lap, not the speed-trace selection. */
+  const timeDeltaRefLap = useMemo(() => {
+    const laps = plotData?.time_delta_laps?.laps ?? [];
+    if (!laps.length) return null;
+    return laps.find((l: { is_best?: boolean }) => l.is_best) ?? laps[0];
+  }, [plotData?.time_delta_laps?.laps]);
+
+  const timeDeltaDomain = useMemo(() => {
+    const dist = timeDeltaRefLap?.distance_m ?? [];
+    if (!dist.length) return null;
+    return { min: dist[0], max: dist[dist.length - 1] };
+  }, [timeDeltaRefLap]);
+
+  const referenceSpeedLapForTimeDelta = useMemo(() => {
+    const laps = plotData?.speed_trace?.laps ?? [];
+    if (!laps.length) return null;
+    const n = timeDeltaRefLap?.lap_number;
+    if (n != null) {
+      const match = laps.find((l: { lap_number?: number }) => l.lap_number === n);
+      if (match) return match;
+    }
+    return (
+      laps.find((l: { lap_number?: number }) => l.lap_number === bestLapNumber) ?? laps[0]
+    );
+  }, [plotData?.speed_trace?.laps, timeDeltaRefLap, bestLapNumber]);
+
+  const cornerOverlaysTimeDelta = useMemo(() => {
+    if (!timeDeltaDomain || !referenceSpeedLapForTimeDelta) return [];
+    return buildCornerOverlays({
+      trajectoryCorners: plotData?.trajectory_2d?.corners ?? [],
+      trajectoryLaps: plotData?.trajectory_2d?.laps ?? [],
+      referenceTrajectoryLap,
+      referenceSpeedLap: referenceSpeedLapForTimeDelta,
+      cornerAnalysis: analysis.corner_analysis as unknown[],
+      domainMin: timeDeltaDomain.min,
+      domainMax: timeDeltaDomain.max,
+    });
+  }, [
+    plotData?.trajectory_2d?.corners,
+    plotData?.trajectory_2d?.laps,
+    referenceTrajectoryLap,
+    referenceSpeedLapForTimeDelta,
+    analysis.corner_analysis,
+    timeDeltaDomain,
+  ]);
   const wrapperClass = embedded ? "space-y-6" : "max-w-7xl mx-auto p-4 md:p-8 space-y-8";
   const sectionClass = embedded
     ? "mb-6 md:mb-8 rounded-lg border border-white/5 bg-secondary/50 p-3 md:p-4"
@@ -251,7 +297,7 @@ export function AnalysisDashboardContent({
                   selectedLaps={selectedLapNumbers}
                   circuitName={circuitName}
                   hideCta={currentHideCta}
-                  cornerOverlays={cornerOverlays}
+                  cornerOverlays={cornerOverlaysTimeDelta}
                 />
               </section>
             );

@@ -32,12 +32,11 @@ const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4
 
 function buildSeries(
   laps: SpeedTraceData["laps"],
-  sectors: SpeedTraceData["sectors"],
   selectedLapNumbers: number[],
   maxPoints: number
 ) {
   const selectedLaps = laps.filter(l => selectedLapNumbers.includes(l.lap_number));
-  if (selectedLaps.length === 0) return { series: [], sectors, activeLaps: [] };
+  if (selectedLaps.length === 0) return { series: [], activeLaps: [] };
 
   const referenceLap = selectedLaps[0];
   const dist = referenceLap.distance_m;
@@ -60,7 +59,7 @@ function buildSeries(
     return point;
   });
 
-  return { series, sectors, activeLaps: selectedLaps };
+  return { series, activeLaps: selectedLaps };
 }
 
 export function SpeedTraceChart({
@@ -78,14 +77,12 @@ export function SpeedTraceChart({
   const visible = isChartVisible("speed_trace", circuitName);
   const cta = getCtaDetails(circuitName);
 
-  const { series, sectors, activeLaps } = useMemo(
-    () => buildSeries(data.laps, data.sectors ?? [], selectedLaps, 100),
-    [data.laps, data.sectors, selectedLaps]
+  const { series, activeLaps } = useMemo(
+    () => buildSeries(data.laps, selectedLaps, 100),
+    [data.laps, selectedLaps]
   );
 
   if (series.length === 0) return null;
-
-  const lapStart = series[0]?.distance_m ?? 0;
 
   return (
     <BlurOverlay
@@ -103,16 +100,6 @@ export function SpeedTraceChart({
             margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            {sectors?.map((s, i) => (
-              <ReferenceArea
-                key={s.name}
-                x1={lapStart + s.start_m}
-                x2={lapStart + s.end_m}
-                fill={i === 0 ? "#3b82f6" : i === 1 ? "#22c55e" : "#f97316"}
-                fillOpacity={0.1}
-                ifOverflow="hidden"
-              />
-            ))}
             {cornerOverlays.map((corner) => {
               return (
                 <ReferenceArea 
