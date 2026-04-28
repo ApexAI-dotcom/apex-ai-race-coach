@@ -135,6 +135,20 @@ export function buildCornerOverlays(params: {
   const lapMax = toFiniteNumber(domainMax) ?? lapDistance[lapDistance.length - 1];
   if (!Number.isFinite(lapMin) || !Number.isFinite(lapMax) || lapMax <= lapMin) return [];
 
+  // When chart domain is relative (0..lapLength) but speed trace distances are absolute
+  // (e.g. 5026..6236), project speed distances into the chart domain.
+  const speedStart = lapDistance[0];
+  const speedEnd = lapDistance[lapDistance.length - 1];
+  const speedSpan = Number.isFinite(speedStart) && Number.isFinite(speedEnd) ? speedEnd - speedStart : NaN;
+  const domainSpan = lapMax - lapMin;
+  const shouldAlignByOffset =
+    Number.isFinite(speedSpan) &&
+    Math.abs(speedSpan - domainSpan) < 120 &&
+    Number.isFinite(speedStart) &&
+    Math.abs(speedStart - lapMin) > 120;
+  const speedDistanceOffset = shouldAlignByOffset && Number.isFinite(speedStart) ? speedStart - lapMin : 0;
+  const toChartDistance = (value: number): number => value - speedDistanceOffset;
+
   const apexes: Array<{ id: string; label: string; apexX: number; order: number }> = [];
 
   // Primary strategy: map each detected corner (track map source of truth) to the same lap path,
@@ -172,7 +186,7 @@ export function buildCornerOverlays(params: {
       if (nearestIdx < 0) continue;
       const t = n > 1 ? nearestIdx / (n - 1) : 0;
       const speedIdx = Math.min(distLen - 1, Math.max(0, Math.round(t * (distLen - 1))));
-      const apexX = normalizeDistance(lapDistance[speedIdx], lapMin, lapMax);
+      const apexX = normalizeDistance(toChartDistance(lapDistance[speedIdx]), lapMin, lapMax);
       if (apexX === null) continue;
 
       apexes.push({
@@ -209,7 +223,7 @@ export function buildCornerOverlays(params: {
       trajectoryCorners.map((corner, idx) => corner.label || `V${idx + 1}`)
     );
     speedMarkers.forEach((marker, idx) => {
-      const apexX = normalizeDistance(marker.distance_m, lapMin, lapMax);
+      const apexX = normalizeDistance(toChartDistance(marker.distance_m), lapMin, lapMax);
       if (apexX === null) return;
       apexes.push({
         id: `spd-${marker.id}`,
