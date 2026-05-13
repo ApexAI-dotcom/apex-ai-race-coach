@@ -17,7 +17,7 @@ export const MobileNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-card border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-card rounded-none border-t border-white/5 pb-[env(safe-area-inset-bottom)] transform-gpu">
       <div className="flex items-center justify-around h-16 px-2 min-h-[4rem]">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
