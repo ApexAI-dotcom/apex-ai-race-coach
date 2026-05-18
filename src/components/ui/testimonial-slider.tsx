@@ -56,11 +56,14 @@ const HelmetIcon: React.FC = () => (
     strokeLinecap="round" 
     strokeLinejoin="round"
   >
-    <path d="M2 10a9 9 0 0 1 18 0v3a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3v-3z" />
-    <path d="M6 10h11a1 1 0 0 1 1 1v2a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-2a1 1 0 0 1 1-1z" fill="currentColor" fillOpacity="0.2" className="text-orange-500" />
-    <path d="M11 4a9 9 0 0 1 2 0" />
-    <path d="M12 2v2" />
-    <path d="M7 16h10" />
+    {/* Clean side-profile F1 helmet shell */}
+    <path d="M3 14a8.5 8.5 0 0 1 14.5-6l3 3v2a3 3 0 0 1-3 3H4a1 1 0 0 1-1-1z" />
+    {/* Distinctive F1 visor */}
+    <path d="M10 8h9.5c.3 0 .5.2.5.5v1.5c0 .3-.2.5-.5.5H11" fill="currentColor" fillOpacity="0.25" className="text-orange-500" />
+    {/* Chin guard air vents / details */}
+    <path d="M12 14h5" />
+    {/* Aerodynamic rear spoiler typical of F1 helmets */}
+    <path d="M4.5 7.5C5.5 6.5 7 6 8 6" />
   </svg>
 );
 
