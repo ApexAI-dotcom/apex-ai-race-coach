@@ -171,7 +171,7 @@ export default function PricingSection4({
         animationNum={4}
         timelineRef={pricingRef}
         customVariants={revealVariants}
-        className="absolute top-0 left-0 right-0 h-[500px] overflow-hidden [mask-image:radial-gradient(50%_50%,white,transparent)] pointer-events-none"
+        className="absolute inset-0 w-full h-full [mask-image:radial-gradient(ellipse_at_center,white_10%,transparent_65%)] pointer-events-none z-0"
       >
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:65px_65px]"></div>
         <SparklesComp
@@ -183,27 +183,13 @@ export default function PricingSection4({
         />
       </TimelineContent>
 
-      <TimelineContent
-        animationNum={5}
-        timelineRef={pricingRef}
-        customVariants={revealVariants}
-        className="absolute left-0 top-0 w-full h-[500px] flex flex-col items-start justify-start overflow-hidden p-0 z-0 pointer-events-none opacity-30"
-      >
-        <div
-          className="absolute left-[-200px] right-[-200px] top-0 h-[800px] flex-none rounded-full"
-          style={{
-            border: "150px solid hsl(var(--primary) / 0.12)",
-            filter: "blur(110px)",
-            WebkitFilter: "blur(110px)",
-          }}
-        ></div>
-      </TimelineContent>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_center,hsl(var(--primary)/0.12)_0%,transparent_60%)] pointer-events-none z-0" />
 
       <article className="text-center mb-16 pt-16 max-w-3xl mx-auto space-y-4 relative z-10 px-4">
-        <h2 className="text-4xl md:text-5xl font-display font-bold text-white tracking-tight">
+        <h2 className="text-4xl md:text-5xl font-display font-bold text-white tracking-tight flex flex-wrap justify-center gap-x-2.5 gap-y-1">
           <VerticalCutReveal
             splitBy="words"
-            staggerDuration={0.1}
+            staggerDuration={0.08}
             staggerFrom="first"
             reverse={true}
             containerClassName="justify-center"
@@ -214,8 +200,9 @@ export default function PricingSection4({
               delay: 0,
             }}
           >
-            Le plan parfait pour progresser
+            Le plan parfait pour une progression
           </VerticalCutReveal>
+          <span className="text-gradient-primary">intelligente</span>
         </h2>
 
         <TimelineContent
@@ -301,9 +288,9 @@ export default function PricingSection4({
                 )}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30">
-                    <span className="inline-flex items-center gap-1 py-1 px-3 text-xs font-bold rounded-full gradient-primary text-white shadow-lg shadow-primary/30 uppercase tracking-wider">
-                      <SparklesIcon className="w-3 h-3" />
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1.5 py-1 px-3.5 text-[10px] sm:text-xs font-bold rounded-full gradient-primary text-white shadow-lg shadow-primary/35 uppercase tracking-wider">
+                      <SparklesIcon className="w-3.5 h-3.5 shrink-0" />
                       Le plus populaire
                     </span>
                   </div>
@@ -368,9 +355,6 @@ export default function PricingSection4({
                     </button>
 
                     <div className="space-y-4 pt-6 border-t border-white/5">
-                      <h4 className="font-semibold text-sm text-foreground uppercase tracking-wider text-left opacity-90">
-                        Inclusions :
-                      </h4>
                       <ul className="space-y-3">
                         {plan.includes.map((feature, featureIndex) => (
                           <li key={featureIndex} className="flex items-start gap-3 text-left">

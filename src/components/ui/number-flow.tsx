@@ -18,8 +18,8 @@ export default function NumberFlow({ value, className }: NumberFlowProps) {
 
   const direction = value > prevValue ? 1 : -1;
 
-  // Split number into string to render characters
-  const formattedValue = value.toFixed(0);
+  const formattedValue =
+    value === 0 ? "0" : value % 1 === 0 ? value.toString() : value.toFixed(2).replace(".", ",");
 
   return (
     <span
