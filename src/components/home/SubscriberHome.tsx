@@ -66,7 +66,6 @@ import {
 } from "@/lib/api";
 import { API_BASE_URL } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
-import { SaaSToolsShowcase } from "@/components/dashboard/SaaSToolsShowcase";
 
 // Badge color map
 const BADGE_COLORS: Record<string, string> = {
@@ -282,9 +281,6 @@ export default function SubscriberHome() {
           <p className="text-xl font-bold text-foreground">{analyses.length}</p>
         </div>
       </div>
-
-      {/* SaaS Tools Showcase Control Deck */}
-      <SaaSToolsShowcase />
 
       {/* Progression Chart */}
       <Card className="glass-card overflow-hidden">
