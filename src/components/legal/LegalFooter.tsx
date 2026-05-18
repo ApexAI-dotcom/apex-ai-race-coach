@@ -16,21 +16,21 @@ export const LegalFooter = () => (
           >
             Mentions légales
           </Link>
-          <span className="text-muted-foreground/60" aria-hidden>·</span>
-          <Link
-            to="/legal#cgv"
-            className="hover:text-foreground hover:underline transition-colors"
-          >
+          <span className="text-muted-foreground/60" aria-hidden>
+            ·
+          </span>
+          <Link to="/legal#cgv" className="hover:text-foreground hover:underline transition-colors">
             CGV
           </Link>
-          <span className="text-muted-foreground/60" aria-hidden>·</span>
-          <Link
-            to="/legal#cgu"
-            className="hover:text-foreground hover:underline transition-colors"
-          >
+          <span className="text-muted-foreground/60" aria-hidden>
+            ·
+          </span>
+          <Link to="/legal#cgu" className="hover:text-foreground hover:underline transition-colors">
             CGU
           </Link>
-          <span className="text-muted-foreground/60" aria-hidden>·</span>
+          <span className="text-muted-foreground/60" aria-hidden>
+            ·
+          </span>
           <a
             href="mailto:contact@apexai.run"
             className="hover:text-foreground hover:underline transition-colors"

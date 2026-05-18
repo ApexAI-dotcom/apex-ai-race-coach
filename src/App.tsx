@@ -58,59 +58,59 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-        <ThemeInit />
-        <ScrollToTop />
-        <AuthProvider>
-          <SubscriptionProvider>
-            <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/success" element={<Success />} />
-            <Route path="/legal" element={<Legal />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/upload" element={<Upload />} />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/analysis/:analysisId" element={<AnalysisResultPage />} />
-            <Route
-              path="/parametres"
-              element={
-                <ProtectedRoute>
-                  <Parametres />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/mon-kart"
-              element={
-                <ProtectedRoute>
-                  <MonKart />
-                </ProtectedRoute>
-              }
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          </SubscriptionProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+          <ThemeInit />
+          <ScrollToTop />
+          <AuthProvider>
+            <SubscriptionProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/success" element={<Success />} />
+                <Route path="/legal" element={<Legal />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/upload" element={<Upload />} />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/analysis/:analysisId" element={<AnalysisResultPage />} />
+                <Route
+                  path="/parametres"
+                  element={
+                    <ProtectedRoute>
+                      <Parametres />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/mon-kart"
+                  element={
+                    <ProtectedRoute>
+                      <MonKart />
+                    </ProtectedRoute>
+                  }
+                />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </SubscriptionProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   </HelmetProvider>
 );
 

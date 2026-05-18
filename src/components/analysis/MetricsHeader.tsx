@@ -15,7 +15,7 @@ export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderPro
   const { isChartVisible, getCtaDetails } = useSubscription();
   const circuitName = analysis.session_conditions?.circuit_name;
   const cta = getCtaDetails(circuitName);
-  
+
   // Track map is always visible, let's assume "vitesse_moyenne" and "score" follow speed_trace/others logic
   const isScoreVisible = isChartVisible("performance_score", circuitName);
   const isAvgSpeedVisible = isChartVisible("avg_speed", circuitName);
@@ -31,9 +31,9 @@ export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderPro
       : 1;
   const avgSpeed =
     (analysis as unknown as { avg_speed_kmh?: number }).avg_speed_kmh ??
-    (analysis.plot_data?.speed_trace?.avg_speed_kmh);
+    analysis.plot_data?.speed_trace?.avg_speed_kmh;
   const corners = analysis.corners_detected ?? 0;
-  const gradeCounts = (analysis.corner_analysis as { grade?: string }[] ?? []).reduce(
+  const gradeCounts = ((analysis.corner_analysis as { grade?: string }[]) ?? []).reduce(
     (acc, c) => {
       const g = (c.grade ?? "?").toUpperCase().slice(0, 1);
       acc[g] = (acc[g] ?? 0) + 1;
@@ -55,16 +55,31 @@ export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderPro
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div className={cardClass} style={{ borderColor: 'rgba(34, 197, 94, 0.3)', backgroundColor: 'rgba(34, 197, 94, 0.05)' }}>
-        <div className={labelClass} style={{ color: '#4ade80' }}>Meilleur tour</div>
-        <div className={valueClass} style={{ color: '#22c55e' }}>
+      <div
+        className={cardClass}
+        style={{
+          borderColor: "rgba(34, 197, 94, 0.3)",
+          backgroundColor: "rgba(34, 197, 94, 0.05)",
+        }}
+      >
+        <div className={labelClass} style={{ color: "#4ade80" }}>
+          Meilleur tour
+        </div>
+        <div className={valueClass} style={{ color: "#22c55e" }}>
           {typeof bestLap === "number" ? bestLap.toFixed(2) : bestLap}s
         </div>
-        <div className={metaClass} style={{ color: '#4ade80' }}>Tour #{bestLapNum}</div>
+        <div className={metaClass} style={{ color: "#4ade80" }}>
+          Tour #{bestLapNum}
+        </div>
       </div>
 
       <div className="h-full">
-        <BlurOverlay isLocked={!isScoreVisible} ctaTitle="" ctaButtonText="Débloquer" onCtaClick={handleCta}>
+        <BlurOverlay
+          isLocked={!isScoreVisible}
+          ctaTitle=""
+          ctaButtonText="Débloquer"
+          onCtaClick={handleCta}
+        >
           <div className={cardClass}>
             <div className={labelClass}>Score global</div>
             <div className="text-2xl font-bold" style={{ color: gradeColor }}>
@@ -81,7 +96,12 @@ export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderPro
       </div>
 
       <div className="h-full">
-        <BlurOverlay isLocked={!isAvgSpeedVisible} ctaTitle="" ctaButtonText="Débloquer" onCtaClick={handleCta}>
+        <BlurOverlay
+          isLocked={!isAvgSpeedVisible}
+          ctaTitle=""
+          ctaButtonText="Débloquer"
+          onCtaClick={handleCta}
+        >
           <div className={cardClass}>
             <div className={labelClass}>Vitesse moyenne</div>
             <div className={valueClass}>
@@ -92,7 +112,12 @@ export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderPro
       </div>
 
       <div className="h-full">
-        <BlurOverlay isLocked={!isCornersVisible} ctaTitle="" ctaButtonText="Débloquer" onCtaClick={handleCta}>
+        <BlurOverlay
+          isLocked={!isCornersVisible}
+          ctaTitle=""
+          ctaButtonText="Débloquer"
+          onCtaClick={handleCta}
+        >
           <div className={cardClass}>
             <div className={labelClass}>Virages</div>
             <div className={valueClass}>{corners}</div>
@@ -101,7 +126,10 @@ export function MetricsHeader({ analysis, variant = "racing" }: MetricsHeaderPro
                 <span
                   key={g}
                   className="px-1.5 py-0.5 rounded text-xs"
-                  style={{ backgroundColor: `${GRADE_COLORS[g] ?? "#8b949e"}30`, color: GRADE_COLORS[g] ?? "#8b949e" }}
+                  style={{
+                    backgroundColor: `${GRADE_COLORS[g] ?? "#8b949e"}30`,
+                    color: GRADE_COLORS[g] ?? "#8b949e",
+                  }}
                 >
                   {g}:{n}
                 </span>

@@ -19,7 +19,11 @@ interface PerformanceRadarProps {
   hideCta?: boolean;
 }
 
-export function PerformanceRadar({ data, circuitName = null, hideCta = false }: PerformanceRadarProps) {
+export function PerformanceRadar({
+  data,
+  circuitName = null,
+  hideCta = false,
+}: PerformanceRadarProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
   const visible = isChartVisible("radar", circuitName);
@@ -47,14 +51,19 @@ export function PerformanceRadar({ data, circuitName = null, hideCta = false }: 
       isLocked={!visible}
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
-      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
+      onCtaClick={() =>
+        navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")
+      }
       hideButton={hideCta}
     >
       <div className="h-[260px] w-full" aria-label="Performance radar">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={chartData} margin={{ top: 32, right: 32, left: 32, bottom: 32 }}>
             <PolarGrid stroke="hsl(var(--border))" />
-            <PolarAngleAxis dataKey="subject" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+            <PolarAngleAxis
+              dataKey="subject"
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+            />
             <PolarRadiusAxis
               angle={90}
               domain={[0, 100]}
@@ -69,10 +78,19 @@ export function PerformanceRadar({ data, circuitName = null, hideCta = false }: 
               strokeWidth={1.5}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: 8,
+                color: "hsl(var(--foreground))",
+              }}
               itemStyle={{ color: "hsl(var(--foreground))" }}
               labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-              formatter={(value: number, _name: string, props: { payload: { raw?: number; max?: number } }) => [
+              formatter={(
+                value: number,
+                _name: string,
+                props: { payload: { raw?: number; max?: number } }
+              ) => [
                 `${value}%${props.payload?.raw != null && props.payload?.max != null ? ` (${props.payload.raw.toFixed(1)} / ${props.payload.max})` : ""}`,
                 "",
               ]}

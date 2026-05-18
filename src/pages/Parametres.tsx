@@ -63,10 +63,7 @@ export default function Parametres() {
         if (data.avatar_url != null) setAvatarUrl(String(data.avatar_url));
       } else {
         // Fallback user_metadata si pas encore de ligne profiles
-        const name =
-          (user.user_metadata?.full_name as string) ||
-          user.email?.split("@")[0] ||
-          "";
+        const name = (user.user_metadata?.full_name as string) || user.email?.split("@")[0] || "";
         const avatar = (user.user_metadata?.avatar_url as string) || "";
         setDisplayName(name);
         setAvatarUrl(avatar);
@@ -177,9 +174,7 @@ export default function Parametres() {
         >
           <div className="flex items-center gap-4">
             <Settings className="w-8 h-8 text-primary" />
-            <h1 className="font-display text-3xl font-bold text-foreground">
-              Paramètres
-            </h1>
+            <h1 className="font-display text-3xl font-bold text-foreground">Paramètres</h1>
           </div>
 
           {/* Profil : photo + pseudo (Supabase) */}
@@ -191,7 +186,7 @@ export default function Parametres() {
               </div>
               <div className="flex flex-col sm:flex-row gap-6">
                 <div className="flex flex-col items-center gap-3">
-                  <div 
+                  <div
                     className="relative group cursor-pointer"
                     onClick={() => fileInputRef.current?.click()}
                   >
@@ -203,14 +198,16 @@ export default function Parametres() {
                         {(displayName || user.email || "U").slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     <div className="absolute inset-0 rounded-2xl bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
                       {uploadingAvatar ? (
                         <Loader2 className="w-6 h-6 text-white animate-spin" />
                       ) : (
                         <>
                           <Camera className="w-6 h-6 text-white mb-1" />
-                          <span className="text-[10px] text-white font-medium uppercase tracking-wider">Changer</span>
+                          <span className="text-[10px] text-white font-medium uppercase tracking-wider">
+                            Changer
+                          </span>
                         </>
                       )}
                     </div>
@@ -240,7 +237,9 @@ export default function Parametres() {
                 </div>
                 <div className="flex-1 space-y-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Pseudo / Nom d'affichage</Label>
+                    <Label className="text-sm font-medium text-muted-foreground">
+                      Pseudo / Nom d'affichage
+                    </Label>
                     <Input
                       type="text"
                       value={displayName}
@@ -249,12 +248,12 @@ export default function Parametres() {
                       className="mt-2 w-full p-4 border-2 rounded-xl focus-visible:ring-4 focus-visible:ring-primary/20"
                     />
                   </div>
-                  <Button
-                    onClick={saveProfile}
-                    disabled={savingProfile}
-                    className="gap-2"
-                  >
-                    {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <Button onClick={saveProfile} disabled={savingProfile} className="gap-2">
+                    {savingProfile ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
                     Enregistrer le profil
                   </Button>
                 </div>
@@ -264,15 +263,11 @@ export default function Parametres() {
 
           {/* Nom Pilote (local, pour "Bonjour X" sur Dashboard/Profil) */}
           <div className="glass-card p-6 rounded-xl">
-            <Label className="text-lg font-semibold mb-4 block">
-              Nom du pilote
-            </Label>
+            <Label className="text-lg font-semibold mb-4 block">Nom du pilote</Label>
             <Input
               type="text"
               value={settings.nomPilote}
-              onChange={(e) =>
-                setSettings({ ...settings, nomPilote: e.target.value })
-              }
+              onChange={(e) => setSettings({ ...settings, nomPilote: e.target.value })}
               placeholder="Yann Moreau"
               className="w-full p-4 border-2 rounded-xl focus-visible:ring-4 focus-visible:ring-primary/20"
             />
@@ -282,9 +277,7 @@ export default function Parametres() {
           <div className="grid md:grid-cols-2 gap-6">
             {/* Unités */}
             <div className="glass-card p-6 rounded-xl">
-              <Label className="text-lg font-semibold mb-6 block">
-                Unités vitesse
-              </Label>
+              <Label className="text-lg font-semibold mb-6 block">Unités vitesse</Label>
               <div className="space-y-3">
                 <label className="flex items-center p-3 rounded-lg hover:bg-secondary/50 cursor-pointer">
                   <input
@@ -292,9 +285,7 @@ export default function Parametres() {
                     name="unites"
                     value="kmh"
                     checked={settings.unites === "kmh"}
-                    onChange={(e) =>
-                      setSettings({ ...settings, unites: e.target.value as "kmh" })
-                    }
+                    onChange={(e) => setSettings({ ...settings, unites: e.target.value as "kmh" })}
                     className="mr-3 w-5 h-5 text-primary"
                   />
                   <span className="text-sm">km/h</span>
@@ -305,9 +296,7 @@ export default function Parametres() {
                     name="unites"
                     value="mph"
                     checked={settings.unites === "mph"}
-                    onChange={(e) =>
-                      setSettings({ ...settings, unites: e.target.value as "mph" })
-                    }
+                    onChange={(e) => setSettings({ ...settings, unites: e.target.value as "mph" })}
                     className="mr-3 w-5 h-5 text-primary"
                   />
                   <span className="text-sm">mph</span>
@@ -353,14 +342,10 @@ export default function Parametres() {
               <input
                 type="checkbox"
                 checked={settings.notifications}
-                onChange={(e) =>
-                  setSettings({ ...settings, notifications: e.target.checked })
-                }
+                onChange={(e) => setSettings({ ...settings, notifications: e.target.checked })}
                 className="h-4 w-4 rounded border-input text-primary"
               />
-              <span className="text-sm font-medium">
-                Notifications analyses terminées
-              </span>
+              <span className="text-sm font-medium">Notifications analyses terminées</span>
             </label>
           </div>
 

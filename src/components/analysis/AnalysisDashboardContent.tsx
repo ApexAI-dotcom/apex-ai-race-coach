@@ -24,7 +24,10 @@ interface AnalysisDashboardContentProps {
 }
 
 const BestLapBadge = ({ lapNumber }: { lapNumber: number }) => (
-  <Badge variant="outline" className="ml-2 bg-green-500/10 text-green-500 border-green-500/20 text-[10px] py-0 px-1.5 h-5 flex items-center gap-1">
+  <Badge
+    variant="outline"
+    className="ml-2 bg-green-500/10 text-green-500 border-green-500/20 text-[10px] py-0 px-1.5 h-5 flex items-center gap-1"
+  >
     <Trophy className="w-2.5 h-2.5" />
     Meilleur T{lapNumber}
   </Badge>
@@ -74,21 +77,23 @@ export function AnalysisDashboardContent({
     return maxIdx;
   }, [plotData?.trajectory_2d?.laps, bestLapNumber, providedBestTrackLapIndex]);
 
-  const [localSelectedLaps, setLocalSelectedLaps] = useState<number[]>(() => providedSelectedLaps || [bestLapNumber]);
+  const [localSelectedLaps, setLocalSelectedLaps] = useState<number[]>(
+    () => providedSelectedLaps || [bestLapNumber]
+  );
 
   const toggleLap = (lapNum: number) => {
     if (providedToggleLap) {
       providedToggleLap(lapNum);
     } else {
-      setLocalSelectedLaps(prev => 
-        prev.includes(lapNum) ? prev.filter(l => l !== lapNum) : [...prev, lapNum]
+      setLocalSelectedLaps((prev) =>
+        prev.includes(lapNum) ? prev.filter((l) => l !== lapNum) : [...prev, lapNum]
       );
     }
   };
 
   const selectedLapNumbers = providedSelectedLaps || localSelectedLaps;
   const selectedLapNumber = selectedLapNumbers[0] ?? bestLapNumber;
-  
+
   const referenceTrajectoryLap = useMemo(() => {
     const laps = plotData?.trajectory_2d?.laps ?? [];
     if (!laps.length) return null;
@@ -110,8 +115,9 @@ export function AnalysisDashboardContent({
   }, [plotData?.speed_trace?.laps, selectedLapNumber, bestLapNumber]);
 
   const speedTraceDomain = useMemo(() => {
-    const lap = plotData?.speed_trace?.laps?.find((item: any) => item.lap_number === selectedLapNumber)
-      ?? plotData?.speed_trace?.laps?.[0];
+    const lap =
+      plotData?.speed_trace?.laps?.find((item: any) => item.lap_number === selectedLapNumber) ??
+      plotData?.speed_trace?.laps?.[0];
     const dist = lap?.distance_m ?? [];
     if (!dist.length) return null;
     return { min: dist[0], max: dist[dist.length - 1] };
@@ -127,7 +133,14 @@ export function AnalysisDashboardContent({
       domainMin: speedTraceDomain?.min,
       domainMax: speedTraceDomain?.max,
     });
-  }, [plotData?.trajectory_2d?.corners, plotData?.trajectory_2d?.laps, referenceTrajectoryLap, referenceSpeedLap, analysis.corner_analysis, speedTraceDomain]);
+  }, [
+    plotData?.trajectory_2d?.corners,
+    plotData?.trajectory_2d?.laps,
+    referenceTrajectoryLap,
+    referenceSpeedLap,
+    analysis.corner_analysis,
+    speedTraceDomain,
+  ]);
 
   /** Delta chart uses best lap distance as X — overlays must use the same domain + speed lap, not the speed-trace selection. */
   const timeDeltaRefLap = useMemo(() => {
@@ -150,9 +163,7 @@ export function AnalysisDashboardContent({
       const match = laps.find((l: { lap_number?: number }) => l.lap_number === n);
       if (match) return match;
     }
-    return (
-      laps.find((l: { lap_number?: number }) => l.lap_number === bestLapNumber) ?? laps[0]
-    );
+    return laps.find((l: { lap_number?: number }) => l.lap_number === bestLapNumber) ?? laps[0];
   }, [plotData?.speed_trace?.laps, timeDeltaRefLap, bestLapNumber]);
 
   const cornerOverlaysTimeDelta = useMemo(() => {
@@ -186,9 +197,8 @@ export function AnalysisDashboardContent({
     : "text-xl font-bold text-foreground mb-4";
   const fallbackTextClass = "text-muted-foreground text-sm";
 
-  const hasThrottleBrake = plotData?.throttle_brake?.laps?.[0]?.throttle_pct?.some(
-    (v: number) => v > 10
-  ) ?? false;
+  const hasThrottleBrake =
+    plotData?.throttle_brake?.laps?.[0]?.throttle_pct?.some((v: number) => v > 10) ?? false;
 
   let ctaShown = false;
   const circuitName = analysis.session_conditions?.circuit_name;
@@ -202,7 +212,10 @@ export function AnalysisDashboardContent({
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <h2 className={`${titleClass} mb-0`}>Sélection des tours</h2>
-                <p className="text-xs text-muted-foreground">Cliquez sur un tour pour l'ajouter ou le retirer des graphiques. Le point vert indique le meilleur tour.</p>
+                <p className="text-xs text-muted-foreground">
+                  Cliquez sur un tour pour l'ajouter ou le retirer des graphiques. Le point vert
+                  indique le meilleur tour.
+                </p>
               </div>
               <div className="flex flex-wrap gap-1.5 md:gap-2">
                 {analysis.lap_times?.map((time, idx) => {
@@ -214,7 +227,7 @@ export function AnalysisDashboardContent({
                       key={idx}
                       variant={isSelected ? "default" : "outline"}
                       className={`cursor-pointer gap-1.5 py-1.5 px-3 transition-all ${
-                        isSelected 
+                        isSelected
                           ? "bg-primary text-white border-transparent"
                           : "bg-transparent border-white/10 text-muted-foreground hover:border-[#ff6b35]/50"
                       } ${isBest ? "ring-1 ring-green-500/50" : ""}`}
@@ -236,8 +249,8 @@ export function AnalysisDashboardContent({
             const currentHideCta = isLocked ? ctaShown : false;
             if (isLocked) ctaShown = true;
             return (
-              <CoachingAdvice 
-                advice={analysis.coaching_advice} 
+              <CoachingAdvice
+                advice={analysis.coaching_advice}
                 fastestLapNumber={bestLapNumber}
                 isLocked={isLocked}
                 hideCta={currentHideCta}
@@ -248,122 +261,162 @@ export function AnalysisDashboardContent({
           {/* TRACK MAP */}
           {plotData.trajectory_2d?.corners?.length > 0 && (
             <section className={sectionClass}>
-               <h2 className={titleClass}>Carte du Circuit</h2>
-               <p className="text-xs text-muted-foreground mb-1">Vue aérienne de votre trajectoire réelle sur le circuit. Sélectionnez un profil de visualisation pour explorer les données de vitesse, freinage, ou comparer votre ligne à la trajectoire cible.</p>
-               <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1.5"><span className="inline-block w-5 h-0.5 border-t-2 border-dashed border-yellow-400"></span>Le <strong className="text-yellow-400">Tour Parfait IA</strong> représente une trajectoire synthétique calculée à partir de votre meilleur tour, lissée et optimisée pour simuler la ligne idéale.</p>
-               <TrackMapPro
-                 corners={plotData.trajectory_2d.corners}
-                 margins={plotData.apex_margin?.corners}
-                 laps={plotData.trajectory_2d.laps}
-                 cornerAnalysis={analysis.corner_analysis as unknown[]}
-                 bestLapNumber={bestLapNumber}
-                 selectedLapNumbers={selectedLapNumbers}
-               />
+              <h2 className={titleClass}>Carte du Circuit</h2>
+              <p className="text-xs text-muted-foreground mb-1">
+                Vue aérienne de votre trajectoire réelle sur le circuit. Sélectionnez un profil de
+                visualisation pour explorer les données de vitesse, freinage, ou comparer votre
+                ligne à la trajectoire cible.
+              </p>
+              <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1.5">
+                <span className="inline-block w-5 h-0.5 border-t-2 border-dashed border-yellow-400"></span>
+                Le <strong className="text-yellow-400">Tour Parfait IA</strong> représente une
+                trajectoire synthétique calculée à partir de votre meilleur tour, lissée et
+                optimisée pour simuler la ligne idéale.
+              </p>
+              <TrackMapPro
+                corners={plotData.trajectory_2d.corners}
+                margins={plotData.apex_margin?.corners}
+                laps={plotData.trajectory_2d.laps}
+                cornerAnalysis={analysis.corner_analysis as unknown[]}
+                bestLapNumber={bestLapNumber}
+                selectedLapNumbers={selectedLapNumbers}
+              />
             </section>
           )}
 
           {/* SPEED TRACE */}
-          {plotData.speed_trace && (() => {
-            const isLocked = !isChartVisible("speed_trace", circuitName);
-            const currentHideCta = isLocked ? ctaShown : false;
-            if (isLocked) ctaShown = true;
-            return (
-              <section className={sectionClass}>
-                <h2 className={titleClass}>Trace de Vitesse</h2>
-                <p className="text-xs text-muted-foreground mb-3">Vitesse en km/h en fonction de la distance. Repérez les zones où vous freinez trop tôt ou réaccélérez trop tard. L'objectif est de porter plus de vitesse dans le virage pour sortir plus fort.</p>
-                <SpeedTraceChart
-                  data={plotData.speed_trace}
-                  selectedLaps={selectedLapNumbers}
-                  bestLapNumber={bestLapNumber}
-                  circuitName={circuitName}
-                  hideCta={currentHideCta}
-                  cornerOverlays={cornerOverlays}
-                />
-              </section>
-            );
-          })()}
+          {plotData.speed_trace &&
+            (() => {
+              const isLocked = !isChartVisible("speed_trace", circuitName);
+              const currentHideCta = isLocked ? ctaShown : false;
+              if (isLocked) ctaShown = true;
+              return (
+                <section className={sectionClass}>
+                  <h2 className={titleClass}>Trace de Vitesse</h2>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Vitesse en km/h en fonction de la distance. Repérez les zones où vous freinez
+                    trop tôt ou réaccélérez trop tard. L'objectif est de porter plus de vitesse dans
+                    le virage pour sortir plus fort.
+                  </p>
+                  <SpeedTraceChart
+                    data={plotData.speed_trace}
+                    selectedLaps={selectedLapNumbers}
+                    bestLapNumber={bestLapNumber}
+                    circuitName={circuitName}
+                    hideCta={currentHideCta}
+                    cornerOverlays={cornerOverlays}
+                  />
+                </section>
+              );
+            })()}
 
           {/* TIME DELTA */}
-          {plotData.time_delta_laps && plotData.time_delta_laps.laps?.length > 0 && (() => {
-            const isLocked = !isChartVisible("delta_time", circuitName);
-            const currentHideCta = isLocked ? ctaShown : false;
-            if (isLocked) ctaShown = true;
-            return (
-              <section className={sectionClass}>
-                <h2 className={titleClass}>Delta Temps</h2>
-                <p className="text-xs text-muted-foreground mb-3">Écart de temps cumulé entre vos tours et le meilleur tour. Si la courbe monte, vous perdez du temps. Concentrez votre travail sur les zones où la pente est la plus forte pour gagner des secondes.</p>
-                <TimeDeltaLapsChart
-                  data={plotData.time_delta_laps}
-                  selectedLaps={selectedLapNumbers}
-                  circuitName={circuitName}
-                  hideCta={currentHideCta}
-                  cornerOverlays={cornerOverlaysTimeDelta}
-                />
-              </section>
-            );
-          })()}
+          {plotData.time_delta_laps &&
+            plotData.time_delta_laps.laps?.length > 0 &&
+            (() => {
+              const isLocked = !isChartVisible("delta_time", circuitName);
+              const currentHideCta = isLocked ? ctaShown : false;
+              if (isLocked) ctaShown = true;
+              return (
+                <section className={sectionClass}>
+                  <h2 className={titleClass}>Delta Temps</h2>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Écart de temps cumulé entre vos tours et le meilleur tour. Si la courbe monte,
+                    vous perdez du temps. Concentrez votre travail sur les zones où la pente est la
+                    plus forte pour gagner des secondes.
+                  </p>
+                  <TimeDeltaLapsChart
+                    data={plotData.time_delta_laps}
+                    selectedLaps={selectedLapNumbers}
+                    circuitName={circuitName}
+                    hideCta={currentHideCta}
+                    cornerOverlays={cornerOverlaysTimeDelta}
+                  />
+                </section>
+              );
+            })()}
 
           {/* RADAR */}
-          {plotData.performance_radar && (() => {
-            const isLocked = !isChartVisible("radar", circuitName);
-            const currentHideCta = isLocked ? ctaShown : false;
-            if (isLocked) ctaShown = true;
-            return (
-              <section className={sectionClass}>
-                <h2 className={titleClass}>Radar de Performance</h2>
-                <p className="text-xs text-muted-foreground mb-3">Synthèse de votre pilotage (freinage, trajectoire, régularité…). Une zone faible (près du centre) indique un point à travailler spécifiquement lors de votre prochaine session.</p>
-                <PerformanceRadar 
-                  data={plotData.performance_radar} 
-                  circuitName={circuitName}
-                  hideCta={currentHideCta}
-                />
-              </section>
-            );
-          })()}
+          {plotData.performance_radar &&
+            (() => {
+              const isLocked = !isChartVisible("radar", circuitName);
+              const currentHideCta = isLocked ? ctaShown : false;
+              if (isLocked) ctaShown = true;
+              return (
+                <section className={sectionClass}>
+                  <h2 className={titleClass}>Radar de Performance</h2>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Synthèse de votre pilotage (freinage, trajectoire, régularité…). Une zone faible
+                    (près du centre) indique un point à travailler spécifiquement lors de votre
+                    prochaine session.
+                  </p>
+                  <PerformanceRadar
+                    data={plotData.performance_radar}
+                    circuitName={circuitName}
+                    hideCta={currentHideCta}
+                  />
+                </section>
+              );
+            })()}
 
           {/* APEX MARGIN */}
-          {plotData.apex_margin?.corners?.length > 0 && (() => {
-            const isLocked = !isChartVisible("apex_margin", circuitName);
-            const currentHideCta = isLocked ? ctaShown : false;
-            if (isLocked) ctaShown = true;
-            return (
-              <section className={sectionClass}>
-                <h2 className={titleClass}>Points de Corde (Apex)</h2>
-                <p className="text-xs text-muted-foreground mb-3">Écart de vitesse entre votre passage et l'idéal théorique au point de corde de chaque virage. Un écart positif signifie que vous portez trop de vitesse (souvent au détriment de la réaccélération), un écart négatif que vous pouvez passer plus fort.</p>
-                <ApexMarginChart 
-                  data={plotData.apex_margin.corners} 
-                  circuitName={circuitName}
-                  hideCta={currentHideCta}
-                />
-              </section>
-            );
-          })()}
+          {plotData.apex_margin?.corners?.length > 0 &&
+            (() => {
+              const isLocked = !isChartVisible("apex_margin", circuitName);
+              const currentHideCta = isLocked ? ctaShown : false;
+              if (isLocked) ctaShown = true;
+              return (
+                <section className={sectionClass}>
+                  <h2 className={titleClass}>Points de Corde (Apex)</h2>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Écart de vitesse entre votre passage et l'idéal théorique au point de corde de
+                    chaque virage. Un écart positif signifie que vous portez trop de vitesse
+                    (souvent au détriment de la réaccélération), un écart négatif que vous pouvez
+                    passer plus fort.
+                  </p>
+                  <ApexMarginChart
+                    data={plotData.apex_margin.corners}
+                    circuitName={circuitName}
+                    hideCta={currentHideCta}
+                  />
+                </section>
+              );
+            })()}
 
           {/* THROTTLE & BRAKE */}
-          {hasThrottleBrake && (() => {
-            const isLocked = !isChartVisible("throttle_brake", circuitName);
-            const currentHideCta = isLocked ? ctaShown : false;
-            if (isLocked) ctaShown = true;
-            return (
-              <section className={sectionClass}>
-                <h2 className={titleClass}>Accélérateur & Frein</h2>
-                <p className="text-xs text-muted-foreground mb-3">Usage des pédales en fonction de la distance. Recherchez des transitions franches entre frein et gaz. Évitez de garder du frein en phase de réaccélération pour ne pas étouffer le moteur.</p>
-                <ThrottleBrakeChart
-                  data={plotData.throttle_brake}
-                  selectedLaps={selectedLapNumbers}
-                  circuitName={circuitName}
-                  hideCta={currentHideCta}
-                  cornerOverlays={cornerOverlays}
-                />
-              </section>
-            );
-          })()}
+          {hasThrottleBrake &&
+            (() => {
+              const isLocked = !isChartVisible("throttle_brake", circuitName);
+              const currentHideCta = isLocked ? ctaShown : false;
+              if (isLocked) ctaShown = true;
+              return (
+                <section className={sectionClass}>
+                  <h2 className={titleClass}>Accélérateur & Frein</h2>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Usage des pédales en fonction de la distance. Recherchez des transitions
+                    franches entre frein et gaz. Évitez de garder du frein en phase de
+                    réaccélération pour ne pas étouffer le moteur.
+                  </p>
+                  <ThrottleBrakeChart
+                    data={plotData.throttle_brake}
+                    selectedLaps={selectedLapNumbers}
+                    circuitName={circuitName}
+                    hideCta={currentHideCta}
+                    cornerOverlays={cornerOverlays}
+                  />
+                </section>
+              );
+            })()}
 
           {/* CORNER DETAILS */}
           {plotData.apex_margin?.corners?.length > 0 && (
             <section className="mb-8">
               <h2 className={titleClass}>Détails des virages</h2>
-              <p className="text-xs text-muted-foreground mb-3">Analyse virage par virage : vitesse au point de corde, vitesse d'entrée/sortie, note et temps perdu. Concentrez-vous sur les virages les moins bien notés pour progresser.</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Analyse virage par virage : vitesse au point de corde, vitesse d'entrée/sortie, note
+                et temps perdu. Concentrez-vous sur les virages les moins bien notés pour
+                progresser.
+              </p>
               <CornerDetailsGrid
                 corners={enrichCornersWithCornerAnalysis(plotData, analysis)}
                 variant={embedded ? "app" : "racing"}

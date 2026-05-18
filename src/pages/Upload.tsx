@@ -3,7 +3,16 @@ import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { CSVUploader } from "@/components/upload/CSVUploader";
 import { PageMeta } from "@/components/seo/PageMeta";
-import { FileSpreadsheet, CheckCircle, Shield, Zap, BarChart3, TrendingUp, Car, FolderOpen } from "lucide-react";
+import {
+  FileSpreadsheet,
+  CheckCircle,
+  Shield,
+  Zap,
+  BarChart3,
+  TrendingUp,
+  Car,
+  FolderOpen,
+} from "lucide-react";
 
 const supportedFormats = [
   { name: "MyChron5", icon: BarChart3 },

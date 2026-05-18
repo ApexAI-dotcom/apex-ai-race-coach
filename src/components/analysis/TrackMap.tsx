@@ -30,7 +30,16 @@ function project(
   return [x, y] as const;
 }
 
-export function TrackMap({ corners, margins = [], laps, transparent = false, className = "", padding, hideLabels = false, onCornerClick }: TrackMapProps) {
+export function TrackMap({
+  corners,
+  margins = [],
+  laps,
+  transparent = false,
+  className = "",
+  padding,
+  hideLabels = false,
+  onCornerClick,
+}: TrackMapProps) {
   const [hoverId, setHoverId] = useState<number | null>(null);
   const PAD = padding ?? DEFAULT_PAD;
 
@@ -40,12 +49,24 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     if (laps && laps.length > 0) {
       const lap = laps[0];
       const validPts = lap.lat?.filter((v: any) => v != null && v !== 0).length ?? 0;
-      console.log("TrackMap: Lap 0 — keys:", Object.keys(lap), "lat[] length:", lap.lat?.length, "valid (non-null) pts:", validPts, "first valid:", lap.lat?.find((v: any) => v != null && v !== 0));
+      console.log(
+        "TrackMap: Lap 0 — keys:",
+        Object.keys(lap),
+        "lat[] length:",
+        lap.lat?.length,
+        "valid (non-null) pts:",
+        validPts,
+        "first valid:",
+        lap.lat?.find((v: any) => v != null && v !== 0)
+      );
     }
 
     // 2. Gather all points to find the real geographic center
-    let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
-    
+    let minLat = Infinity,
+      maxLat = -Infinity,
+      minLon = Infinity,
+      maxLon = -Infinity;
+
     const updateBoundsFromCoords = (lats: number[], lons: number[]) => {
       let hasValid = false;
       for (let i = 0; i < lats.length; i++) {
@@ -101,7 +122,7 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     const initialLonScale = Math.cos((midLat * Math.PI) / 180);
 
     // Enforce a minimum span (approx 250m) to prevent tiny noise from stretching
-    const MIN_SPAN_GPS = 0.002; 
+    const MIN_SPAN_GPS = 0.002;
     const currentLatSpan = maxLat - minLat;
     const currentLonSpan = (maxLon - minLon) * initialLonScale;
 
@@ -112,21 +133,24 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
     const finalBounds = {
       minLat: midLat - latSpan / 2,
       maxLat: midLat + latSpan / 2,
-      minLon: midLon - (lonSpan / initialLonScale) / 2,
-      maxLon: midLon + (lonSpan / initialLonScale) / 2,
+      minLon: midLon - lonSpan / initialLonScale / 2,
+      maxLon: midLon + lonSpan / initialLonScale / 2,
     };
 
-    console.log("TrackMap: Final Projection Bounds:", finalBounds, "Scale ScaleFactor:", { latSpan, lonSpan });
+    console.log("TrackMap: Final Projection Bounds:", finalBounds, "Scale ScaleFactor:", {
+      latSpan,
+      lonSpan,
+    });
 
     const availableW = W - PAD * 2;
     const availableH = H - PAD * 2;
     const scale = Math.min(availableW / lonSpan, availableH / latSpan);
     const offsetX = PAD + (availableW - lonSpan * scale) / 2;
     const offsetY = PAD + (availableH - latSpan * scale) / 2;
-    
+
     console.log("TrackMap: Scale Applied:", scale, "Offsets:", { offsetX, offsetY });
 
-    const projectPoint = (lt: number, ln: number) => 
+    const projectPoint = (lt: number, ln: number) =>
       project(lt, ln, finalBounds, scale, offsetX, offsetY, initialLonScale);
 
     // 4. Projections
@@ -135,17 +159,17 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
       // 1. Prioritize explicitly marked 'best' lap
       if (a.is_best) return -1;
       if (b.is_best) return 1;
-      
+
       // 2. Deprioritize Lap 1 (out-lap) if other laps exist
       const aIsT1 = a.lap_number === 1;
       const bIsT1 = b.lap_number === 1;
       if (aIsT1 && !bIsT1 && (laps?.length || 0) > 1) return 1;
       if (!aIsT1 && bIsT1 && (laps?.length || 0) > 1) return -1;
-      
+
       // 3. Fallback to lap with most GPS points
       return (b.lat?.length || 0) - (a.lat?.length || 0);
     });
-    
+
     const lap0 = sortedLaps[0];
     const lapRef = sortedLaps[1];
 
@@ -169,7 +193,7 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
       }
       trackPolyline = trackPoints.join(" ");
     }
-    
+
     if (lapRef && lapRef.lat?.length > 1) {
       const n = Math.min(lapRef.lat.length, lapRef.lon.length);
       const refPoints: string[] = [];
@@ -200,55 +224,134 @@ export function TrackMap({ corners, margins = [], laps, transparent = false, cla
   if (points.length === 0 && !trackPolyline) return null;
 
   return (
-    <div className={`w-full relative ${transparent ? "" : "glass-card p-4"} flex justify-center items-center overflow-hidden ${className}`} aria-label="Track map">
+    <div
+      className={`w-full relative ${transparent ? "" : "glass-card p-4"} flex justify-center items-center overflow-hidden ${className}`}
+      aria-label="Track map"
+    >
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className={hideLabels ? "w-full h-full max-h-full object-contain" : "w-full h-auto max-h-[600px] drop-shadow-2xl overflow-visible"}
+        className={
+          hideLabels
+            ? "w-full h-full max-h-full object-contain"
+            : "w-full h-auto max-h-[600px] drop-shadow-2xl overflow-visible"
+        }
         style={{ aspectRatio: `${width} / ${height}` }}
       >
-        {trackPolyline && (
-          hideLabels ? (
+        {trackPolyline &&
+          (hideLabels ? (
             /* Mini mode: clean, thin red line only */
-            <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+            <polyline
+              points={trackPolyline}
+              fill="none"
+              className="stroke-primary"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           ) : (
             /* Full mode: glow + road + dashes + main line */
             <>
-              <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth="30" strokeLinecap="round" strokeLinejoin="round" opacity={0.15} style={{ filter: "blur(8px)" }} />
-              <polyline points={trackPolyline} fill="none" className="stroke-secondary-foreground/20" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" />
-              <polyline points={trackPolyline} fill="none" className="stroke-border" strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" opacity={0.5} strokeDasharray="10 10" />
-              <polyline points={trackPolyline} fill="none" className="stroke-primary" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              <polyline
+                points={trackPolyline}
+                fill="none"
+                className="stroke-primary"
+                strokeWidth="30"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.15}
+                style={{ filter: "blur(8px)" }}
+              />
+              <polyline
+                points={trackPolyline}
+                fill="none"
+                className="stroke-secondary-foreground/20"
+                strokeWidth="24"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <polyline
+                points={trackPolyline}
+                fill="none"
+                className="stroke-border"
+                strokeWidth="26"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.5}
+                strokeDasharray="10 10"
+              />
+              <polyline
+                points={trackPolyline}
+                fill="none"
+                className="stroke-primary"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </>
-          )
-        )}
+          ))}
         {refPolyline && !hideLabels && (
-          <polyline points={refPolyline} fill="none" stroke="#38bdf8" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" strokeLinejoin="round" opacity={0.8} />
+          <polyline
+            points={refPolyline}
+            fill="none"
+            stroke="#38bdf8"
+            strokeWidth="2"
+            strokeDasharray="6 6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={0.8}
+          />
         )}
-        {!hideLabels && points.map((p) => {
-          const margin = marginByLabel[p.label];
-          const isHover = hoverId === p.id;
-          return (
-            <g
-              key={p.id}
-              onClick={() => onCornerClick?.(p.label)}
-              onMouseEnter={() => setHoverId(p.id)}
-              onMouseLeave={() => setHoverId(null)}
-              className="cursor-pointer"
-              style={{ transition: "all 0.2s ease" }}
-            >
-              <circle cx={p.x} cy={p.y} r={isHover ? 6 : 4} fill="#ffffff" className="pointer-events-none" />
-              <circle cx={p.x} cy={p.y - 20} r={isHover ? 14 : 12} fill="#000000" stroke={isHover ? "#ff6b35" : "#ffffff"} strokeWidth={isHover ? 3 : 2} />
-              <text x={p.x} y={p.y - 16} textAnchor="middle" fill="#ffffff" fontSize={isHover ? "12" : "10"} fontWeight="bold" className="font-display select-none pointer-events-none">
-                {p.label.replace('V', '')}
-              </text>
-              {isHover && margin && (
-                <title>
-                  Virage {p.label.replace('V', '')} | Vitesse: {p.apex_speed?.toFixed(1)} km/h | Grade: {p.grade}
-                  {margin.time_lost != null ? ` | Temps perdu: ${(margin.time_lost * 1000).toFixed(0)} ms` : ""}
-                </title>
-              )}
-            </g>
-          );
-        })}
+        {!hideLabels &&
+          points.map((p) => {
+            const margin = marginByLabel[p.label];
+            const isHover = hoverId === p.id;
+            return (
+              <g
+                key={p.id}
+                onClick={() => onCornerClick?.(p.label)}
+                onMouseEnter={() => setHoverId(p.id)}
+                onMouseLeave={() => setHoverId(null)}
+                className="cursor-pointer"
+                style={{ transition: "all 0.2s ease" }}
+              >
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={isHover ? 6 : 4}
+                  fill="#ffffff"
+                  className="pointer-events-none"
+                />
+                <circle
+                  cx={p.x}
+                  cy={p.y - 20}
+                  r={isHover ? 14 : 12}
+                  fill="#000000"
+                  stroke={isHover ? "#ff6b35" : "#ffffff"}
+                  strokeWidth={isHover ? 3 : 2}
+                />
+                <text
+                  x={p.x}
+                  y={p.y - 16}
+                  textAnchor="middle"
+                  fill="#ffffff"
+                  fontSize={isHover ? "12" : "10"}
+                  fontWeight="bold"
+                  className="font-display select-none pointer-events-none"
+                >
+                  {p.label.replace("V", "")}
+                </text>
+                {isHover && margin && (
+                  <title>
+                    Virage {p.label.replace("V", "")} | Vitesse: {p.apex_speed?.toFixed(1)} km/h |
+                    Grade: {p.grade}
+                    {margin.time_lost != null
+                      ? ` | Temps perdu: ${(margin.time_lost * 1000).toFixed(0)} ms`
+                      : ""}
+                  </title>
+                )}
+              </g>
+            );
+          })}
       </svg>
     </div>
   );

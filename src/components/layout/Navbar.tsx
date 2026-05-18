@@ -40,7 +40,11 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" replace className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer no-underline">
+          <Link
+            to="/"
+            replace
+            className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer no-underline"
+          >
             <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 group-hover:shadow-primary/50 transition-transform duration-200 cursor-pointer">
               <Zap className="w-5 h-5 text-primary-foreground" />
             </div>
@@ -84,9 +88,16 @@ export const Navbar = () => {
                   <Button variant="ghost" size="sm" className="gap-2">
                     {(user?.user_metadata?.avatar_url as string) ? (
                       <Avatar className="w-6 h-6 rounded-lg">
-                        <AvatarImage src={user.user_metadata.avatar_url as string} alt="" className="object-cover" />
+                        <AvatarImage
+                          src={user.user_metadata.avatar_url as string}
+                          alt=""
+                          className="object-cover"
+                        />
                         <AvatarFallback className="rounded-lg text-xs">
-                          {(user?.user_metadata?.full_name || user?.email || "U").toString().slice(0, 2).toUpperCase()}
+                          {(user?.user_metadata?.full_name || user?.email || "U")
+                            .toString()
+                            .slice(0, 2)
+                            .toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                     ) : (
@@ -104,10 +115,14 @@ export const Navbar = () => {
             ) : (
               <>
                 <Link to="/login">
-                  <Button variant="ghost" size="sm">Connexion</Button>
+                  <Button variant="ghost" size="sm">
+                    Connexion
+                  </Button>
                 </Link>
                 <Link to="/login?mode=signup">
-                  <Button variant="hero" size="sm">Inscription</Button>
+                  <Button variant="hero" size="sm">
+                    Inscription
+                  </Button>
                 </Link>
               </>
             )}

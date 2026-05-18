@@ -1,4 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef, createContext, useContext, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  createContext,
+  useContext,
+  useMemo,
+} from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/api";
@@ -51,17 +59,20 @@ function getCachedData(): Partial<SubscriptionResponse> & { _ts?: number } {
     const raw = localStorage.getItem(SUBSCRIPTION_STORAGE_KEY);
     if (!raw) return {};
     const data = JSON.parse(raw);
-    
+
     // Monthly reset check for cache to prevent flickering of old data
     if (data._ts && data.limits) {
       const cachedDate = new Date(data._ts);
       const now = new Date();
-      if (cachedDate.getMonth() !== now.getMonth() || cachedDate.getFullYear() !== now.getFullYear()) {
+      if (
+        cachedDate.getMonth() !== now.getMonth() ||
+        cachedDate.getFullYear() !== now.getFullYear()
+      ) {
         // Month changed, reset analyses_used in the cached object we return
         data.limits.analyses_used = 0;
       }
     }
-    
+
     return data;
   } catch {
     return {};
@@ -88,16 +99,20 @@ const SubscriptionContext = createContext<SubscriptionContextType | null>(null);
 export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, session, isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const [initialData] = useState(() => getCachedData());
 
   const [tier, setTier] = useState<SubscriptionTier>(() => initialData.tier || "visitor");
   const [status, setStatus] = useState<SubscriptionStatus>(initialData.status ?? null);
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>(initialData.billing_period ?? null);
-  const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | null>(initialData.subscription_end_date ?? null);
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>(
+    initialData.billing_period ?? null
+  );
+  const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | null>(
+    initialData.subscription_end_date ?? null
+  );
   const [limits, setLimits] = useState<SubscriptionLimits | null>(initialData.limits ?? null);
   const [isLoading, setIsLoading] = useState(!initialData.limits);
-  
+
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tokenRef = useRef(session?.access_token);
   tokenRef.current = session?.access_token;
@@ -128,23 +143,23 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {},
       });
       if (!res.ok) throw new Error("Failed to fetch subscription");
-      
+
       const data: SubscriptionResponse = await res.json();
       const processedTier = data.tier || "rookie";
-      
+
       let allowedCircuit = data.limits?.allowed_circuit;
       let realAnalysesUsed = data.limits?.analyses_used || 0;
-      
+
       if (processedTier === "rookie") {
         try {
           const { getAllAnalyses } = await import("@/lib/storage");
           const analyses = await getAllAnalyses(user?.id);
-          
+
           if (!allowedCircuit) {
             const firstWithCircuit = [...analyses].reverse().find((a: any) => a.circuit_name);
             allowedCircuit = firstWithCircuit?.circuit_name || null;
           }
-          
+
           // Calculer le vrai nombre d'analyses pour ce mois pour les "rookies"
           const now = new Date();
           const thisMonthAnalyses = analyses.filter((a: any) => {
@@ -160,11 +175,11 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         analyses_used: realAnalysesUsed,
         tier: processedTier,
         allowed_circuit: allowedCircuit,
-        visible_charts: data.limits?.visible_charts || (
-          processedTier === "racer" || processedTier === "team" 
+        visible_charts:
+          data.limits?.visible_charts ||
+          (processedTier === "racer" || processedTier === "team"
             ? ["track_map", "speed_trace", "throttle_brake", "delta_time", "apex_margin", "radar"]
-            : ["track_map", "speed_trace", "coaching_advice"]
-        )
+            : ["track_map", "speed_trace", "coaching_advice"]),
       };
 
       setTier(processedTier);
@@ -173,23 +188,29 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setSubscriptionEndDate(data.subscription_end_date ?? null);
       setLimits(processedLimits);
 
-      localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, JSON.stringify({ ...data, limits: processedLimits, _ts: Date.now() }));
+      localStorage.setItem(
+        SUBSCRIPTION_STORAGE_KEY,
+        JSON.stringify({ ...data, limits: processedLimits, _ts: Date.now() })
+      );
     } catch {
       // Fallback rookie
       setTier("rookie");
-      setLimits(prev => prev || {
-        tier: "rookie",
-        analyses_per_month: 3,
-        analyses_used: 0,
-        can_export_csv: false,
-        can_export_pdf: false,
-        can_compare: false,
-        max_members: 0,
-        max_circuits: 1,
-        max_cars: null,
-        allowed_circuit: null,
-        visible_charts: ["track_map", "speed_trace", "coaching_advice"],
-      });
+      setLimits(
+        (prev) =>
+          prev || {
+            tier: "rookie",
+            analyses_per_month: 3,
+            analyses_used: 0,
+            can_export_csv: false,
+            can_export_pdf: false,
+            can_compare: false,
+            max_members: 0,
+            max_circuits: 1,
+            max_cars: null,
+            allowed_circuit: null,
+            visible_charts: ["track_map", "speed_trace", "coaching_advice"],
+          }
+      );
     } finally {
       setIsLoading(false);
     }
@@ -197,7 +218,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   useEffect(() => {
     fetchSubscription();
-    
+
     // Si on vient de payer (success=true dans l'URL), on poll pendant quelques secondes
     // pour s'assurer que le webhook Stripe a bien mis à jour la BDD.
     if (searchParams.get("success") === "true") {
@@ -217,45 +238,99 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [fetchSubscription, searchParams, setSearchParams]);
 
   const incrementAnalysesUsed = useCallback(() => {
-    setLimits(prev => {
+    setLimits((prev) => {
       if (!prev) return prev;
       const newLimits = { ...prev, analyses_used: prev.analyses_used + 1 };
       try {
         const cached = getCachedData();
-        localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, JSON.stringify({ ...cached, limits: newLimits, _ts: Date.now() }));
+        localStorage.setItem(
+          SUBSCRIPTION_STORAGE_KEY,
+          JSON.stringify({ ...cached, limits: newLimits, _ts: Date.now() })
+        );
       } catch {}
       return newLimits;
     });
   }, []);
 
-  const isChartVisible = useCallback((chartId: string, circuitName?: string | null) => {
-    if (tier === "racer" || tier === "team") return true;
-    if (tier === "rookie" && circuitName && limits?.allowed_circuit && circuitName !== limits.allowed_circuit) {
-      if (chartId !== "track_map") return false;
-    }
-    if (chartId === "track_map") return true;
-    if (chartId === "performance_score" || chartId === "avg_speed" || chartId === "corners") {
-      return limits?.visible_charts?.includes("speed_trace") ?? false;
-    }
-    return limits?.visible_charts?.includes(chartId) ?? false;
-  }, [tier, limits]);
+  const isChartVisible = useCallback(
+    (chartId: string, circuitName?: string | null) => {
+      if (tier === "racer" || tier === "team") return true;
+      if (
+        tier === "rookie" &&
+        circuitName &&
+        limits?.allowed_circuit &&
+        circuitName !== limits.allowed_circuit
+      ) {
+        if (chartId !== "track_map") return false;
+      }
+      if (chartId === "track_map") return true;
+      if (chartId === "performance_score" || chartId === "avg_speed" || chartId === "corners") {
+        return limits?.visible_charts?.includes("speed_trace") ?? false;
+      }
+      return limits?.visible_charts?.includes(chartId) ?? false;
+    },
+    [tier, limits]
+  );
 
-  const getCtaDetails = useCallback((circuitName?: string | null) => {
-    if (tier === "visitor") {
-      return { title: "Crée ton compte pour voir tes résultats complets", buttonText: "Créer un compte" };
-    }
-    if (tier === "rookie" && circuitName && limits?.allowed_circuit && circuitName !== limits.allowed_circuit) {
-      return { title: `Passe à Racer pour analyser d'autres circuits (Circuit actuel: ${limits.allowed_circuit})`, buttonText: "Passer à Racer" };
-    }
-    return { title: "Passe à Racer pour débloquer toutes tes analyses", buttonText: "Débloquer avec Racer" };
-  }, [tier, limits]);
+  const getCtaDetails = useCallback(
+    (circuitName?: string | null) => {
+      if (tier === "visitor") {
+        return {
+          title: "Crée ton compte pour voir tes résultats complets",
+          buttonText: "Créer un compte",
+        };
+      }
+      if (
+        tier === "rookie" &&
+        circuitName &&
+        limits?.allowed_circuit &&
+        circuitName !== limits.allowed_circuit
+      ) {
+        return {
+          title: `Passe à Racer pour analyser d'autres circuits (Circuit actuel: ${limits.allowed_circuit})`,
+          buttonText: "Passer à Racer",
+        };
+      }
+      return {
+        title: "Passe à Racer pour débloquer toutes tes analyses",
+        buttonText: "Débloquer avec Racer",
+      };
+    },
+    [tier, limits]
+  );
 
   const plan = useMemo(() => tierToPlan(tier), [tier]);
 
-  const value = useMemo(() => ({
-    tier, status, billingPeriod, subscriptionEndDate, limits, isLoading, plan,
-    isChartVisible, getCtaDetails, isAuthenticated, fetchSubscription, incrementAnalysesUsed
-  }), [tier, status, billingPeriod, subscriptionEndDate, limits, isLoading, plan, isChartVisible, getCtaDetails, isAuthenticated, fetchSubscription, incrementAnalysesUsed]);
+  const value = useMemo(
+    () => ({
+      tier,
+      status,
+      billingPeriod,
+      subscriptionEndDate,
+      limits,
+      isLoading,
+      plan,
+      isChartVisible,
+      getCtaDetails,
+      isAuthenticated,
+      fetchSubscription,
+      incrementAnalysesUsed,
+    }),
+    [
+      tier,
+      status,
+      billingPeriod,
+      subscriptionEndDate,
+      limits,
+      isLoading,
+      plan,
+      isChartVisible,
+      getCtaDetails,
+      isAuthenticated,
+      fetchSubscription,
+      incrementAnalysesUsed,
+    ]
+  );
 
   return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;
 };

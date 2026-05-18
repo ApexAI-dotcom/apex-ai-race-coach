@@ -14,20 +14,17 @@ const TIER_CONFIG: Record<
   rookie: {
     Icon: Flag,
     label: "Rookie",
-    className:
-      "bg-secondary text-muted-foreground border-border hover:bg-secondary/80",
+    className: "bg-secondary text-muted-foreground border-border hover:bg-secondary/80",
   },
   racer: {
     Icon: Car,
     label: "Racer",
-    className:
-      "bg-primary/80 text-primary-foreground border-primary/60 hover:bg-primary",
+    className: "bg-primary/80 text-primary-foreground border-primary/60 hover:bg-primary",
   },
   team: {
     Icon: Trophy,
     label: "Team",
-    className:
-      "bg-primary text-primary-foreground border-primary hover:bg-primary/90",
+    className: "bg-primary text-primary-foreground border-primary hover:bg-primary/90",
   },
 };
 
@@ -44,8 +41,7 @@ export function SubscriptionBadge() {
         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-transparent bg-slate-800/60 text-slate-500 animate-pulse"
         aria-hidden
       >
-        <span className="inline-block w-3 h-3 rounded-full bg-slate-600" />
-        …
+        <span className="inline-block w-3 h-3 rounded-full bg-slate-600" />…
       </span>
     );
   }

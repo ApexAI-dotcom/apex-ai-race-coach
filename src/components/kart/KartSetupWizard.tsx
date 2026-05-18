@@ -1,10 +1,32 @@
 import { useState } from "react";
-import { Wrench, CheckCircle2, ChevronRight, ChevronLeft, Loader2, ChevronsUpDown, Check } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
+import {
+  Wrench,
+  CheckCircle2,
+  ChevronRight,
+  ChevronLeft,
+  Loader2,
+  ChevronsUpDown,
+  Check,
+} from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -44,7 +66,7 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
       setStep((s) => Math.max(s - 1, 1));
     }
   };
-  
+
   const updateData = (updates: Partial<KartProfile>) => {
     setData((prev) => ({ ...prev, ...updates }));
   };
@@ -76,12 +98,12 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
     <div className="py-12 px-4 container max-w-2xl mx-auto">
       <Card className="glass-card w-full relative overflow-hidden shadow-2xl shadow-primary/10">
         <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
-          <div 
-            className="h-full bg-primary transition-all duration-300" 
-            style={{ width: `${(step / 3) * 100}%` }} 
+          <div
+            className="h-full bg-primary transition-all duration-300"
+            style={{ width: `${(step / 3) * 100}%` }}
           />
         </div>
-        
+
         <CardHeader className="text-center pt-8">
           <Wrench className="w-12 h-12 text-primary mx-auto mb-4" />
           <CardTitle className="text-2xl font-display">
@@ -95,7 +117,7 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
             {step === 3 && "Vérifions le système de freinage."}
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-6 px-8">
           {step === 1 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -103,7 +125,12 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
                 <Label>Modèle du Moteur</Label>
                 <Popover open={openEngine} onOpenChange={setOpenEngine}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" aria-expanded={openEngine} className="w-full justify-between bg-black/20 text-left font-normal border-white/10 hover:bg-black/40 hover:text-white">
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openEngine}
+                      className="w-full justify-between bg-black/20 text-left font-normal border-white/10 hover:bg-black/40 hover:text-white"
+                    >
                       {data.engine_model ? data.engine_model : "Rechercher un modèle..."}
                       <ChevronsUpDown className="w-4 h-4 ml-2 shrink-0 opacity-50" />
                     </Button>
@@ -119,13 +146,24 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
                               key={p.id}
                               value={p.name}
                               onSelect={() => {
-                                updateData({ engine_model: p.name, engine_hours_life: p.default_life });
+                                updateData({
+                                  engine_model: p.name,
+                                  engine_hours_life: p.default_life,
+                                });
                                 setOpenEngine(false);
                               }}
                               className="text-white data-[selected=true]:bg-white/10 cursor-pointer"
                             >
-                              <Check className={cn("mr-2 h-4 w-4", data.engine_model === p.name ? "opacity-100" : "opacity-0")} />
-                              {p.name} <span className="ml-2 text-xs text-muted-foreground">({p.category})</span>
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  data.engine_model === p.name ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {p.name}{" "}
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                ({p.category})
+                              </span>
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -136,23 +174,25 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
               </div>
               <div className="space-y-2">
                 <Label>Seuil de révision (heures)</Label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   className="bg-black/20"
-                  value={data.engine_hours_life} 
+                  value={data.engine_hours_life}
                   onChange={(e) => updateData({ engine_hours_life: Number(e.target.value) })}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Heures actuelles cumulées</Label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   step="0.1"
                   className="bg-black/20"
-                  value={data.engine_hours_current} 
+                  value={data.engine_hours_current}
                   onChange={(e) => updateData({ engine_hours_current: Number(e.target.value) })}
                 />
-                <p className="text-xs text-muted-foreground">Si tu as déjà roulé avec ce piston, indique ses heures.</p>
+                <p className="text-xs text-muted-foreground">
+                  Si tu as déjà roulé avec ce piston, indique ses heures.
+                </p>
               </div>
             </div>
           )}
@@ -163,7 +203,12 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
                 <Label>Modèle / Type de Pneus</Label>
                 <Popover open={openTires} onOpenChange={setOpenTires}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" aria-expanded={openTires} className="w-full justify-between bg-black/20 text-left font-normal border-white/10 hover:bg-black/40 hover:text-white">
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openTires}
+                      className="w-full justify-between bg-black/20 text-left font-normal border-white/10 hover:bg-black/40 hover:text-white"
+                    >
                       {data.tires_model ? data.tires_model : "Rechercher un train de pneus..."}
                       <ChevronsUpDown className="w-4 h-4 ml-2 shrink-0 opacity-50" />
                     </Button>
@@ -179,13 +224,24 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
                               key={p.id}
                               value={p.name}
                               onSelect={() => {
-                                updateData({ tires_model: p.name, tires_sessions_life: p.default_life });
+                                updateData({
+                                  tires_model: p.name,
+                                  tires_sessions_life: p.default_life,
+                                });
                                 setOpenTires(false);
                               }}
                               className="text-white data-[selected=true]:bg-white/10 cursor-pointer"
                             >
-                              <Check className={cn("mr-2 h-4 w-4", data.tires_model === p.name ? "opacity-100" : "opacity-0")} />
-                              {p.name} <span className="ml-2 text-xs text-muted-foreground">({p.compound})</span>
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  data.tires_model === p.name ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {p.name}{" "}
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                ({p.compound})
+                              </span>
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -196,19 +252,19 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
               </div>
               <div className="space-y-2">
                 <Label>Durée de vie (Sessions)</Label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   className="bg-black/20"
-                  value={data.tires_sessions_life} 
+                  value={data.tires_sessions_life}
                   onChange={(e) => updateData({ tires_sessions_life: Number(e.target.value) })}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Sessions déjà roulées (Actuel)</Label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   className="bg-black/20"
-                  value={data.tires_sessions_current} 
+                  value={data.tires_sessions_current}
                   onChange={(e) => updateData({ tires_sessions_current: Number(e.target.value) })}
                 />
               </div>
@@ -221,7 +277,12 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
                 <Label>Système de Freinage</Label>
                 <Popover open={openBrakes} onOpenChange={setOpenBrakes}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" aria-expanded={openBrakes} className="w-full justify-between bg-black/20 text-left font-normal border-white/10 hover:bg-black/40 hover:text-white">
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openBrakes}
+                      className="w-full justify-between bg-black/20 text-left font-normal border-white/10 hover:bg-black/40 hover:text-white"
+                    >
                       {data.brakes_model ? data.brakes_model : "Rechercher un système..."}
                       <ChevronsUpDown className="w-4 h-4 ml-2 shrink-0 opacity-50" />
                     </Button>
@@ -237,12 +298,20 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
                               key={p.id}
                               value={p.name}
                               onSelect={() => {
-                                updateData({ brakes_model: p.name, brakes_sessions_life: p.default_life });
+                                updateData({
+                                  brakes_model: p.name,
+                                  brakes_sessions_life: p.default_life,
+                                });
                                 setOpenBrakes(false);
                               }}
                               className="text-white data-[selected=true]:bg-white/10 cursor-pointer"
                             >
-                              <Check className={cn("mr-2 h-4 w-4", data.brakes_model === p.name ? "opacity-100" : "opacity-0")} />
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  data.brakes_model === p.name ? "opacity-100" : "opacity-0"
+                                )}
+                              />
                               {p.name}
                             </CommandItem>
                           ))}
@@ -254,19 +323,19 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
               </div>
               <div className="space-y-2">
                 <Label>Seuil d'alerte plaquettes (Sessions)</Label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   className="bg-black/20"
-                  value={data.brakes_sessions_life} 
+                  value={data.brakes_sessions_life}
                   onChange={(e) => updateData({ brakes_sessions_life: Number(e.target.value) })}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Sessions depuis dernier changement</Label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   className="bg-black/20"
-                  value={data.brakes_sessions_current} 
+                  value={data.brakes_sessions_current}
                   onChange={(e) => updateData({ brakes_sessions_current: Number(e.target.value) })}
                 />
               </div>
@@ -279,15 +348,23 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
             <ChevronLeft className="w-4 h-4 mr-2" />
             Retour
           </Button>
-          
+
           {step < 3 ? (
             <Button onClick={handleNext}>
               Suivant
               <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
-            <Button onClick={handleSave} disabled={saving} className="gradient-primary text-primary-foreground">
-              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="gradient-primary text-primary-foreground"
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+              )}
               Terminer
             </Button>
           )}

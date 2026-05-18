@@ -36,11 +36,16 @@ export function CornerDetailsGrid({ corners, variant = "racing" }: CornerDetails
             </div>
             <div className={metaClass}>
               Pt. de corde : {c.apex_speed_real != null ? c.apex_speed_real.toFixed(1) : "—"} km/h
-              {((c.entry_speed != null && c.entry_speed > 1) || (c.exit_speed != null && c.exit_speed > 1)) ? (
+              {(c.entry_speed != null && c.entry_speed > 1) ||
+              (c.exit_speed != null && c.exit_speed > 1) ? (
                 <>
-                  <br/>
-                  <span className="text-[10px] opacity-70" title="Vitesse d'entrée (In) et de sortie (Out) du virage en km/h. Une vitesse de sortie supérieure à l'entrée indique une bonne relance.">
-                    In: {c.entry_speed && c.entry_speed > 1 ? Math.round(c.entry_speed) : "—"} | Out: {c.exit_speed && c.exit_speed > 1 ? Math.round(c.exit_speed) : "—"} km/h
+                  <br />
+                  <span
+                    className="text-[10px] opacity-70"
+                    title="Vitesse d'entrée (In) et de sortie (Out) du virage en km/h. Une vitesse de sortie supérieure à l'entrée indique une bonne relance."
+                  >
+                    In: {c.entry_speed && c.entry_speed > 1 ? Math.round(c.entry_speed) : "—"} |
+                    Out: {c.exit_speed && c.exit_speed > 1 ? Math.round(c.exit_speed) : "—"} km/h
                   </span>
                 </>
               ) : null}

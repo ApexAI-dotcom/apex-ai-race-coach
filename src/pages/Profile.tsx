@@ -58,7 +58,18 @@ export default function Profile() {
   const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
   const isFreeTier = !isPaidTier;
   if (typeof window !== "undefined") {
-    console.log("[Profile] TIER:", tier, "STATUS:", status, "COUNT:", limits?.analyses_used, "/", limits?.analyses_per_month, "isFreeTier:", isFreeTier);
+    console.log(
+      "[Profile] TIER:",
+      tier,
+      "STATUS:",
+      status,
+      "COUNT:",
+      limits?.analyses_used,
+      "/",
+      limits?.analyses_per_month,
+      "isFreeTier:",
+      isFreeTier
+    );
   }
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<AnalysisSummary[]>([]);
@@ -171,9 +182,7 @@ export default function Profile() {
       if (portal_url) window.location.href = portal_url;
     } catch (err) {
       console.error("Customer portal error:", err);
-      setError(
-        err instanceof Error ? err.message : "Erreur lors de l'ouverture du portail client"
-      );
+      setError(err instanceof Error ? err.message : "Erreur lors de l'ouverture du portail client");
     } finally {
       setLoadingPortal(false);
     }
@@ -217,10 +226,7 @@ export default function Profile() {
         .slice(0, 2);
     }
     if (user.email) {
-      return user.email
-        .split("@")[0]
-        .slice(0, 2)
-        .toUpperCase();
+      return user.email.split("@")[0].slice(0, 2).toUpperCase();
     }
     return "U";
   };
@@ -270,7 +276,10 @@ export default function Profile() {
         >
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             {/* Avatar */}
-            <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+            <div
+              className="relative group cursor-pointer"
+              onClick={() => avatarInputRef.current?.click()}
+            >
               <Avatar className="w-20 h-20 rounded-2xl border-2 border-primary/20 group-hover:border-primary/50 transition-colors">
                 {avatarUrl ? (
                   <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" />
@@ -302,7 +311,10 @@ export default function Profile() {
                   const userSettings = JSON.parse(
                     localStorage.getItem("apexai_settings") || "{}"
                   ) as { nomPilote?: string };
-                  const bonjourName = userSettings.nomPilote?.trim() || (user.user_metadata?.full_name as string) || user.email?.split("@")[0];
+                  const bonjourName =
+                    userSettings.nomPilote?.trim() ||
+                    (user.user_metadata?.full_name as string) ||
+                    user.email?.split("@")[0];
                   if (bonjourName) {
                     return (
                       <p className="text-lg font-medium text-primary mb-1">
@@ -457,9 +469,7 @@ export default function Profile() {
 
             {/* Plans */}
             <div className="glass-card p-6">
-              <h3 className="font-display font-semibold text-lg text-foreground mb-4">
-                Plans
-              </h3>
+              <h3 className="font-display font-semibold text-lg text-foreground mb-4">Plans</h3>
               {subscriptionLoading ? (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -472,8 +482,7 @@ export default function Profile() {
                   </div>
                   {billingPeriod && (
                     <p className="text-sm text-muted-foreground">
-                      Facturation{" "}
-                      {billingPeriod === "annual" ? "annuelle" : "mensuelle"}
+                      Facturation {billingPeriod === "annual" ? "annuelle" : "mensuelle"}
                     </p>
                   )}
                   {subscriptionEndDate && (
@@ -483,8 +492,8 @@ export default function Profile() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Changez de plan, mettez à jour vos moyens de paiement ou annulez
-                    depuis le portail Stripe.
+                    Changez de plan, mettez à jour vos moyens de paiement ou annulez depuis le
+                    portail Stripe.
                   </p>
                   <div className="flex flex-col gap-2">
                     {isFreeTier ? (
@@ -509,7 +518,9 @@ export default function Profile() {
                             if (portal_url) window.location.href = portal_url;
                           } catch (err) {
                             setError(
-                              err instanceof Error ? err.message : "Erreur lors de l'ouverture du portail"
+                              err instanceof Error
+                                ? err.message
+                                : "Erreur lors de l'ouverture du portail"
                             );
                           } finally {
                             setLoadingPortal(false);
@@ -645,7 +656,9 @@ export default function Profile() {
                       <tr>
                         <td colSpan={6} className="px-4 py-8 text-center">
                           <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
-                          <p className="text-sm text-muted-foreground">Chargement des sessions...</p>
+                          <p className="text-sm text-muted-foreground">
+                            Chargement des sessions...
+                          </p>
                         </td>
                       </tr>
                     ) : sessions.length === 0 ? (
@@ -668,17 +681,22 @@ export default function Profile() {
                           </td>
                           <td className="px-4 py-4">
                             <div className="text-sm font-medium text-foreground">
-                              {session.session_name || `Session du ${new Date(session.date).toLocaleDateString("fr-FR")}`}
+                              {session.session_name ||
+                                `Session du ${new Date(session.date).toLocaleDateString("fr-FR")}`}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
                               <div className="text-[10px] text-muted-foreground uppercase tracking-tighter">
                                 {session.circuit_name || "Circuit inconnu"}
                               </div>
-                              <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold ${
-                                session.session_type === 'race' ? 'bg-red-500/20 text-red-300' : 
-                                session.session_type === 'qualifying' ? 'bg-blue-500/20 text-blue-300' : 
-                                'bg-white/5 text-muted-foreground'
-                              }`}>
+                              <span
+                                className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold ${
+                                  session.session_type === "race"
+                                    ? "bg-red-500/20 text-red-300"
+                                    : session.session_type === "qualifying"
+                                      ? "bg-blue-500/20 text-blue-300"
+                                      : "bg-white/5 text-muted-foreground"
+                                }`}
+                              >
                                 {session.session_type || "Practice"}
                               </span>
                             </div>
@@ -746,25 +764,36 @@ export default function Profile() {
                             {format(new Date(session.date), "d MMM yyyy", { locale: fr })}
                           </div>
                           <div className="font-bold text-foreground line-clamp-1">
-                            {session.session_name || `Session du ${new Date(session.date).toLocaleDateString("fr-FR")}`}
+                            {session.session_name ||
+                              `Session du ${new Date(session.date).toLocaleDateString("fr-FR")}`}
                           </div>
                           <div className="flex items-center gap-2 mt-1">
-                             <span className="text-[10px] text-muted-foreground uppercase">{session.circuit_name || "Circuit"}</span>
-                             <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold ${
-                                session.session_type === 'race' ? 'bg-red-500/20 text-red-300' : 
-                                session.session_type === 'qualifying' ? 'bg-blue-500/20 text-blue-300' : 
-                                'bg-white/5 text-muted-foreground'
-                              }`}>
-                                {session.session_type || "Practice"}
-                             </span>
+                            <span className="text-[10px] text-muted-foreground uppercase">
+                              {session.circuit_name || "Circuit"}
+                            </span>
+                            <span
+                              className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold ${
+                                session.session_type === "race"
+                                  ? "bg-red-500/20 text-red-300"
+                                  : session.session_type === "qualifying"
+                                    ? "bg-blue-500/20 text-blue-300"
+                                    : "bg-white/5 text-muted-foreground"
+                              }`}
+                            >
+                              {session.session_type || "Practice"}
+                            </span>
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1">
-                          <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            session.score >= 80 ? "bg-success/20 text-success" : 
-                            session.score >= 70 ? "bg-primary/20 text-primary" : 
-                            "bg-warning/20 text-warning"
-                          }`}>
+                          <div
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              session.score >= 80
+                                ? "bg-success/20 text-success"
+                                : session.score >= 70
+                                  ? "bg-primary/20 text-primary"
+                                  : "bg-warning/20 text-warning"
+                            }`}
+                          >
                             {session.score}/100
                           </div>
                           <div className="text-[10px] font-black text-muted-foreground opacity-50 uppercase">
@@ -775,7 +804,10 @@ export default function Profile() {
                       <div className="flex items-center justify-between text-xs pt-2 border-t border-white/5">
                         <div className="flex gap-4">
                           <span className="text-muted-foreground">
-                            Virages: <span className="text-foreground font-medium">{session.corner_count}</span>
+                            Virages:{" "}
+                            <span className="text-foreground font-medium">
+                              {session.corner_count}
+                            </span>
                           </span>
                         </div>
                         <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1">

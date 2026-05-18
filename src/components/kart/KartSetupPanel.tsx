@@ -5,12 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Settings, Save, Loader2, Info, Download, CheckCircle2, Trash2, Check } from "lucide-react";
 import { KartProfile } from "@/lib/api";
 import { getSetupRecommendations } from "@/lib/kart-recommendations";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSave: (setup: any, saved_setups?: any[]) => Promise<void> }) {
+export function KartSetupPanel({
+  profile,
+  onSave,
+}: {
+  profile: KartProfile;
+  onSave: (setup: any, saved_setups?: any[]) => Promise<void>;
+}) {
   const setupJson = profile.setup_json || {};
   const savedSetups = profile.saved_setups || [];
-  
+
   const [setup, setSetup] = useState({
     name: setupJson?.name || "Défaut",
     pressure_f: setupJson?.pressure_f || "",
@@ -28,17 +40,21 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
 
   const handleSave = async () => {
     setSaving(true);
-    
+
     // Si c'est un nouveau nom, on l'ajoute à la liste des setups sauvegardés
     let newSavedSetups = [...savedSetups];
-    const existingIndex = newSavedSetups.findIndex(s => s.name === setup.name);
-    
+    const existingIndex = newSavedSetups.findIndex((s) => s.name === setup.name);
+
     if (existingIndex >= 0) {
       newSavedSetups[existingIndex] = { ...setup, updated_at: new Date().toISOString() };
     } else {
-      newSavedSetups.push({ ...setup, id: crypto.randomUUID(), created_at: new Date().toISOString() });
+      newSavedSetups.push({
+        ...setup,
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+      });
     }
-    
+
     await onSave(setup, newSavedSetups);
     setSaving(false);
   };
@@ -48,18 +64,18 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
     const pAV = recos.target_pressure.match(/AV: ([\d.]+)b/)?.[1] || "";
     const pAR = recos.target_pressure.match(/AR: ([\d.]+)b/)?.[1] || "";
     const [pign, cour] = recos.sprocket_ratio.split("/");
-    
+
     setSetup({
       ...setup,
       pressure_f: pAV,
       pressure_r: pAR,
       sprocket_front: pign || "",
-      sprocket_rear: cour || ""
+      sprocket_rear: cour || "",
     });
   };
 
   const handleLoadSetup = (setupName: string) => {
-    const s = savedSetups.find(x => x.name === setupName);
+    const s = savedSetups.find((x) => x.name === setupName);
     if (s) {
       setSetup({ ...s });
       setConfirmDelete(false);
@@ -68,9 +84,9 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
 
   const handleDelete = async () => {
     setSaving(true);
-    const newSavedSetups = savedSetups.filter(s => s.name !== setup.name);
+    const newSavedSetups = savedSetups.filter((s) => s.name !== setup.name);
     await onSave(setup, newSavedSetups);
-    setSetup(prev => ({ ...prev, name: "Nouveau Setup" }));
+    setSetup((prev) => ({ ...prev, name: "Nouveau Setup" }));
     setConfirmDelete(false);
     setSaving(false);
   };
@@ -89,8 +105,10 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
               <SelectValue placeholder="Charger un setup..." />
             </SelectTrigger>
             <SelectContent>
-              {savedSetups.map(s => (
-                <SelectItem key={s.id || s.name} value={s.name}>{s.name}</SelectItem>
+              {savedSetups.map((s) => (
+                <SelectItem key={s.id || s.name} value={s.name}>
+                  {s.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -102,41 +120,66 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
             <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
             <div className="space-y-1 flex-1">
               <p className="font-medium text-primary flex items-center justify-between">
-                <span>Recommandation ({profile.driving_profile === 'longevity' ? 'Longévité' : profile.driving_profile === 'performance' ? 'Performance' : profile.driving_profile === 'leisure' ? 'Loisir' : 'Équilibré'})</span>
+                <span>
+                  Recommandation (
+                  {profile.driving_profile === "longevity"
+                    ? "Longévité"
+                    : profile.driving_profile === "performance"
+                      ? "Performance"
+                      : profile.driving_profile === "leisure"
+                        ? "Loisir"
+                        : "Équilibré"}
+                  )
+                </span>
               </p>
               <p className="text-muted-foreground text-xs leading-relaxed">{recos.notes}</p>
-              <p className="text-xs text-muted-foreground mt-1">Pressions : {recos.target_pressure} | Rapport : {recos.sprocket_ratio}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Pressions : {recos.target_pressure} | Rapport : {recos.sprocket_ratio}
+              </p>
             </div>
           </div>
-          <Button variant="secondary" size="sm" className="w-full text-xs h-8 gap-2" onClick={handleApplyReco}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-full text-xs h-8 gap-2"
+            onClick={handleApplyReco}
+          >
             <Download className="w-3.5 h-3.5" /> Appliquer la recommandation
           </Button>
         </div>
-        
+
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground uppercase">Nom (Profil pour sauvegarde)</label>
+          <label className="text-xs text-muted-foreground uppercase">
+            Nom (Profil pour sauvegarde)
+          </label>
           <div className="flex gap-2">
-            <Input 
+            <Input
               name="name"
               placeholder="ex: Sec CIK FIA"
               value={setup.name}
               onChange={handleChange}
               className="bg-background border-border shadow-sm flex-1"
             />
-            {savedSetups.some(s => s.name === setup.name) && (
-              <Button 
-                variant={confirmDelete ? "destructive" : "outline"} 
-                size="icon" 
+            {savedSetups.some((s) => s.name === setup.name) && (
+              <Button
+                variant={confirmDelete ? "destructive" : "outline"}
+                size="icon"
                 onClick={() => {
                   if (confirmDelete) handleDelete();
                   else setConfirmDelete(true);
-                }} 
+                }}
                 onBlur={() => setTimeout(() => setConfirmDelete(false), 200)}
                 className="w-10 h-10 shrink-0 border-border"
                 title="Supprimer ce setup"
                 disabled={saving}
               >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : (confirmDelete ? <Check className="w-4 h-4" /> : <Trash2 className="w-4 h-4 text-red-500" />)}
+                {saving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : confirmDelete ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                )}
               </Button>
             )}
           </div>
@@ -145,7 +188,7 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground uppercase">Pression AV (b)</label>
-            <Input 
+            <Input
               name="pressure_f"
               placeholder="ex: 0.55"
               value={setup.pressure_f}
@@ -155,7 +198,7 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
           </div>
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground uppercase">Pression AR (b)</label>
-            <Input 
+            <Input
               name="pressure_r"
               placeholder="ex: 0.55"
               value={setup.pressure_r}
@@ -165,7 +208,7 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
           </div>
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground uppercase">Pignon</label>
-            <Input 
+            <Input
               name="sprocket_front"
               placeholder="ex: 12"
               value={setup.sprocket_front}
@@ -175,7 +218,7 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
           </div>
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground uppercase">Couronne</label>
-            <Input 
+            <Input
               name="sprocket_rear"
               placeholder="ex: 82"
               value={setup.sprocket_rear}
@@ -184,7 +227,12 @@ export function KartSetupPanel({ profile, onSave }: { profile: KartProfile, onSa
             />
           </div>
         </div>
-        <Button className="w-full mt-2 gap-2" variant="outline" onClick={handleSave} disabled={saving}>
+        <Button
+          className="w-full mt-2 gap-2"
+          variant="outline"
+          onClick={handleSave}
+          disabled={saving}
+        >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Enregistrer le setup
         </Button>

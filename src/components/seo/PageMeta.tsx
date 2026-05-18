@@ -3,12 +3,7 @@ import { useEffect } from "react";
 const BASE_URL = "https://apexai.racing";
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.svg`;
 
-function setMetaContent(
-  doc: Document,
-  type: "name" | "property",
-  key: string,
-  value: string
-) {
+function setMetaContent(doc: Document, type: "name" | "property", key: string, value: string) {
   const selector = `meta[${type}="${key}"]`;
   let el = doc.querySelector(selector) as HTMLMetaElement | null;
   if (!el) {

@@ -32,20 +32,27 @@ export function KartHealthStatus({ profile }: { profile: KartProfile }) {
   return (
     <Card className="bg-card border-border shadow-sm overflow-hidden relative">
       <div className="absolute top-0 left-0 w-full h-1 bg-muted">
-        <div className={`h-full ${healthBg} transition-all duration-1000`} style={{ width: `${globalHealth}%` }}></div>
+        <div
+          className={`h-full ${healthBg} transition-all duration-1000`}
+          style={{ width: `${globalHealth}%` }}
+        ></div>
       </div>
       <CardHeader className="py-4">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <HeartPulse className={`w-5 h-5 ${healthColor} animate-pulse`} /> 
+          <HeartPulse className={`w-5 h-5 ${healthColor} animate-pulse`} />
           Bilan Santé Global
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center justify-center mb-6">
-          <span className={`text-5xl font-black ${healthColor} tracking-tighter`}>{globalHealth}</span>
-          <span className="text-muted-foreground text-sm font-medium mt-1 uppercase tracking-widest">Score d'État</span>
+          <span className={`text-5xl font-black ${healthColor} tracking-tighter`}>
+            {globalHealth}
+          </span>
+          <span className="text-muted-foreground text-sm font-medium mt-1 uppercase tracking-widest">
+            Score d'État
+          </span>
         </div>
-        
+
         <div className="grid grid-cols-3 gap-2">
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border">
             <Flame className="w-4 h-4 text-red-500 mb-1" />

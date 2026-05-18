@@ -4,28 +4,33 @@
  */
 
 // ── Brand Colors ──
-export const APEX_ORANGE = '#f97316';
-export const APEX_RED = '#ff0000';
-export const MODEL_GOLD = '#facc15';    // Tour IA: Or vif
-export const TRACK_GREEN = '#00ff00';
-export const TRACK_YELLOW = '#ffee00';
-export const TRACK_GRAY = '#475569';
-export const TRACK_BG_DARK = '#0a0a0f';
-export const REF_WHITE = '#ffffff';
+export const APEX_ORANGE = "#f97316";
+export const APEX_RED = "#ff0000";
+export const MODEL_GOLD = "#facc15"; // Tour IA: Or vif
+export const TRACK_GREEN = "#00ff00";
+export const TRACK_YELLOW = "#ffee00";
+export const TRACK_GRAY = "#475569";
+export const TRACK_BG_DARK = "#0a0a0f";
+export const REF_WHITE = "#ffffff";
 
 // ── Speed gradient: MAXIMUM contrast Red ↔ Green ──
 // Both extremes are at full brightness and saturation
-export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, medianSpeed?: number): string {
-  if (maxSpeed <= minSpeed) return '#ff0000';
-  
+export function speedToColor(
+  speed: number,
+  minSpeed: number,
+  maxSpeed: number,
+  medianSpeed?: number
+): string {
+  if (maxSpeed <= minSpeed) return "#ff0000";
+
   let t = (speed - minSpeed) / (maxSpeed - minSpeed);
   t = Math.max(0, Math.min(1, t));
-  
+
   // Power curve to compress the middle and expand the edges.
   // We want < 50% speed to be VERY RED, and > 75% speed to be VERY GREEN.
-  
+
   let r: number, g: number, b: number;
-  
+
   if (t < 0.35) {
     // 0 to 35% of speed range is almost pure RED to dark ORANGE
     const p = t / 0.35;
@@ -34,7 +39,7 @@ export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, 
     b = 0;
   } else if (t < 0.65) {
     // 35% to 65% is ORANGE to YELLOW
-    const p = (t - 0.35) / 0.30;
+    const p = (t - 0.35) / 0.3;
     r = 255;
     g = 128 + Math.round(p * 127); // 128 to 255
     b = 0;
@@ -45,12 +50,12 @@ export function speedToColor(speed: number, minSpeed: number, maxSpeed: number, 
     g = 255;
     b = 0;
   }
-  
+
   return `rgb(${r}, ${g}, ${b})`;
 }
 
 // ── Braking segment color ──
-export type BrakingPhase = 'braking' | 'acceleration' | 'coasting';
+export type BrakingPhase = "braking" | "acceleration" | "coasting";
 
 export function brakingSegmentColor(throttlePct: number, brakePct: number): string {
   if (brakePct > 15) return APEX_RED;
@@ -59,19 +64,25 @@ export function brakingSegmentColor(throttlePct: number, brakePct: number): stri
 }
 
 export function brakingPhase(throttlePct: number, brakePct: number): BrakingPhase {
-  if (brakePct > 15) return 'braking';
-  if (throttlePct > 60) return 'acceleration';
-  return 'coasting';
+  if (brakePct > 15) return "braking";
+  if (throttlePct > 60) return "acceleration";
+  return "coasting";
 }
 
 // ── Grade → color ──
 export function gradeColor(grade: string): string {
   switch (grade.toUpperCase()) {
-    case 'A': return TRACK_GREEN;
-    case 'B': return '#3b82f6';
-    case 'C': return TRACK_YELLOW;
-    case 'D': return APEX_ORANGE;
-    case 'F': return APEX_RED;
-    default: return TRACK_GRAY;
+    case "A":
+      return TRACK_GREEN;
+    case "B":
+      return "#3b82f6";
+    case "C":
+      return TRACK_YELLOW;
+    case "D":
+      return APEX_ORANGE;
+    case "F":
+      return APEX_RED;
+    default:
+      return TRACK_GRAY;
   }
 }

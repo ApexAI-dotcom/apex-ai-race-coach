@@ -21,10 +21,8 @@ export const BlurOverlay: React.FC<BlurOverlayProps> = ({
 }) => {
   return (
     <div className="relative w-full overflow-hidden rounded-xl group">
-      <div className={isLocked ? "blur-md pointer-events-none select-none" : ""}>
-        {children}
-      </div>
-      
+      <div className={isLocked ? "blur-md pointer-events-none select-none" : ""}>{children}</div>
+
       {isLocked && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-md rounded-xl z-10 p-4 min-h-max text-center animate-in fade-in duration-500">
           <div className="bg-red-600/20 p-3 rounded-full mb-4 border border-red-500/50">
@@ -36,7 +34,7 @@ export const BlurOverlay: React.FC<BlurOverlayProps> = ({
               <p className="text-gray-300 text-sm mb-6 max-w-[250px]">
                 Débloquez toutes les analyses et visualisez vos performances complètes.
               </p>
-              <Button 
+              <Button
                 onClick={onCtaClick}
                 className="bg-red-600 hover:bg-red-700 text-white font-bold py-6 px-8 rounded-full shadow-lg shadow-red-900/40 transform transition hover:scale-105 active:scale-95"
               >

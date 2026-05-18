@@ -81,11 +81,11 @@ export interface TrajectoryLap {
   rpm?: number[];
   lateral_g?: number[];
   is_synthetic?: boolean;
-  reference_type?: 'model' | 'best_real';
+  reference_type?: "model" | "best_real";
   label?: string;
 }
 
-export type TrackMapProfile = 'speed' | 'braking' | 'compare' | 'complete';
+export type TrackMapProfile = "speed" | "braking" | "compare" | "complete";
 
 export interface CornerDetail {
   id: number;
@@ -155,8 +155,8 @@ export interface AnalysisResponse {
   plots: Record<string, string>;
   plot_data?: PlotData;
   statistics: unknown;
-  session_conditions?: { 
-    track_condition: string; 
+  session_conditions?: {
+    track_condition: string;
     track_temperature?: number;
     circuit_name?: string;
   };

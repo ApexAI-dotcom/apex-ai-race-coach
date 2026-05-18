@@ -1,20 +1,31 @@
 /**
  * TrackMapPro — Corner detail panel (opened on corner click)
  */
-import type { CornerDetail } from '@/types/analysis';
-import { gradeColor } from './trackMapColors';
+import type { CornerDetail } from "@/types/analysis";
+import { gradeColor } from "./trackMapColors";
 
 interface TrackMapCornerPanelProps {
   corner: CornerDetail | null;
   onClose: () => void;
 }
 
-function Row({ label, value, unit = '', color }: { label: string; value: string | number; unit?: string; color?: string }) {
+function Row({
+  label,
+  value,
+  unit = "",
+  color,
+}: {
+  label: string;
+  value: string | number;
+  unit?: string;
+  color?: string;
+}) {
   return (
     <div className="flex justify-between items-center py-0.5">
       <span className="text-muted-foreground text-[11px]">{label}</span>
-      <span className={`text-[11px] font-medium ${color || 'text-foreground'}`}>
-        {value}{unit}
+      <span className={`text-[11px] font-medium ${color || "text-foreground"}`}>
+        {value}
+        {unit}
       </span>
     </div>
   );
@@ -23,12 +34,17 @@ function Row({ label, value, unit = '', color }: { label: string; value: string 
 export function TrackMapCornerPanel({ corner, onClose }: TrackMapCornerPanelProps) {
   if (!corner) return null;
 
-  const typeLabel = corner.corner_type === 'left' ? '← Gauche' : corner.corner_type === 'right' ? 'Droite →' : 'Inconnu';
+  const typeLabel =
+    corner.corner_type === "left"
+      ? "← Gauche"
+      : corner.corner_type === "right"
+        ? "Droite →"
+        : "Inconnu";
   const timeLostMs = (corner.time_lost * 1000).toFixed(0);
   const gradeCol = gradeColor(corner.grade);
 
   return (
-    <div 
+    <div
       className="absolute right-2 top-2 z-40 w-52 trackmap-tooltip rounded-xl p-3 animate-in fade-in slide-in-from-right-2 duration-200"
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
@@ -40,7 +56,7 @@ export function TrackMapCornerPanel({ corner, onClose }: TrackMapCornerPanelProp
             className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
             style={{ background: `linear-gradient(135deg, #f97316, #dc2626)` }}
           >
-            {corner.label.replace('V', '')}
+            {corner.label.replace("V", "")}
           </div>
           <div>
             <div className="text-xs font-semibold text-foreground">{corner.label}</div>
@@ -62,7 +78,7 @@ export function TrackMapCornerPanel({ corner, onClose }: TrackMapCornerPanelProp
       <div className="flex items-center gap-2 mb-2">
         <span
           className="text-xs font-bold px-2 py-0.5 rounded-md"
-          style={{ background: gradeCol + '22', color: gradeCol }}
+          style={{ background: gradeCol + "22", color: gradeCol }}
         >
           {corner.grade}
         </span>
@@ -96,15 +112,19 @@ export function TrackMapCornerPanel({ corner, onClose }: TrackMapCornerPanelProp
             label="Temps perdu"
             value={`+${timeLostMs}`}
             unit=" ms"
-            color={Number(timeLostMs) > 100 ? 'text-red-400' : 'text-yellow-400'}
+            color={Number(timeLostMs) > 100 ? "text-red-400" : "text-yellow-400"}
           />
         )}
         {corner.margin_kmh !== undefined && (
           <Row
             label="Marge corde"
-            value={corner.margin_kmh > 0 ? `+${corner.margin_kmh.toFixed(1)}` : corner.margin_kmh.toFixed(1)}
+            value={
+              corner.margin_kmh > 0
+                ? `+${corner.margin_kmh.toFixed(1)}`
+                : corner.margin_kmh.toFixed(1)
+            }
             unit=" km/h"
-            color={corner.margin_kmh > 0 ? 'text-red-400' : 'text-green-400'}
+            color={corner.margin_kmh > 0 ? "text-red-400" : "text-green-400"}
           />
         )}
       </div>
