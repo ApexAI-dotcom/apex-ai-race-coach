@@ -7,7 +7,6 @@ interface Testimonial {
   quote: string;
   name: string;
   username: string;
-  avatar: string;
 }
 
 const testimonials: Testimonial[] = [
@@ -16,8 +15,6 @@ const testimonials: Testimonial[] = [
     quote: "J'ai gagné 0.8 seconde dès ma première analyse avec APEX AI. C'est magique !",
     name: "Lucas M.",
     username: "@lucas_rotaxdd2",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&q=80",
   },
   {
     id: 2,
@@ -25,8 +22,6 @@ const testimonials: Testimonial[] = [
       "L'analyse des trajectoires est incroyablement précise. Ça change tout pour mon pilotage.",
     name: "Marie D.",
     username: "@marie_dd2",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&q=80",
   },
   {
     id: 3,
@@ -34,8 +29,6 @@ const testimonials: Testimonial[] = [
       "Un boîtier MyChron 5 et ApexAI, c'est le combo parfait. Plus besoin de chercher nos erreurs, l'IA les surligne directement !",
     name: "Pierre G.",
     username: "@pierreg_racer",
-    avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&q=80",
   },
   {
     id: 4,
@@ -43,8 +36,6 @@ const testimonials: Testimonial[] = [
       "Le score de performance me permet de fixer des objectifs clairs. Une véritable révolution pour mon entraînement.",
     name: "Sébastien K.",
     username: "@seb_karter",
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&q=80",
   },
   {
     id: 5,
@@ -52,10 +43,26 @@ const testimonials: Testimonial[] = [
       "Incroyable. J'ai importé mon CSV, et j'ai instantanément compris pourquoi je perdais du temps dans le double gauche.",
     name: "Thomas B.",
     username: "@thomas_b_kart",
-    avatar:
-      "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&h=150&fit=crop&q=80",
   },
 ];
+
+const HelmetIcon: React.FC = () => (
+  <svg 
+    className="w-10 h-10 text-primary border border-primary/20 rounded-full p-2 bg-primary/5 shadow-inner"
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
+    <path d="M2 10a9 9 0 0 1 18 0v3a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3v-3z" />
+    <path d="M6 10h11a1 1 0 0 1 1 1v2a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-2a1 1 0 0 1 1-1z" fill="currentColor" fillOpacity="0.2" className="text-orange-500" />
+    <path d="M11 4a9 9 0 0 1 2 0" />
+    <path d="M12 2v2" />
+    <path d="M7 16h10" />
+  </svg>
+);
 
 const getVisibleCount = (width: number): number => {
   if (width >= 1024) return 3;
@@ -268,17 +275,7 @@ const TestimonialSlider: React.FC = () => {
                       <div className="pt-4 border-t border-white/5">
                         <div className="flex items-center">
                           <div className="relative flex-shrink-0">
-                            <img
-                              width={48}
-                              height={48}
-                              src={testimonial.avatar}
-                              alt={testimonial.name}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-white/10 shadow-sm"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src =
-                                  `https://images.unsplash.com/photo-1633332755192-727a05c4013d?fm=jpg&q=60&w=100`;
-                              }}
-                            />
+                            <HelmetIcon />
                             <motion.div
                               className="absolute inset-0 rounded-full bg-primary/20"
                               animate={{

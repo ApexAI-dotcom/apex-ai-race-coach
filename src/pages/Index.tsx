@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/accordion";
 import heroImage from "@/assets/hero-racing.jpg";
 import TestimonialSlider from "@/components/ui/testimonial-slider";
-import { SaaSToolsShowcase } from "@/components/dashboard/SaaSToolsShowcase";
 
 const stats = [
   { value: "12,847", label: "Tours analysés", icon: Target },
@@ -356,13 +355,6 @@ export default function Index() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* SaaS Tools Showcase Section */}
-      <section className="py-20 border-t border-b border-white/5 bg-secondary/5">
-        <div className="container mx-auto px-4">
-          <SaaSToolsShowcase />
         </div>
       </section>
 
