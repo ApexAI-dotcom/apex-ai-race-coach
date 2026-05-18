@@ -76,3 +76,11 @@ thumbs.db
 *.lnk
 NTUSER.DAT*
 ntuser.*
+
+# --- Node/Vite specific builds ---
+node_modules/
+dist/
+.env
+.env.local
+.env*.local
+
