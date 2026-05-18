@@ -290,4 +290,11 @@
 
 .dark {
   --muted-foreground: var(--light-100);
+  --gradient-color: #8350e8;
+  --sparkles-color: #ffffff;
+}
+
+:root {
+  --gradient-color: #8350e8;
+  --sparkles-color: #8350e8;
 }
