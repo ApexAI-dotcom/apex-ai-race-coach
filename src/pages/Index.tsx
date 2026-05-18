@@ -27,6 +27,7 @@ import {
 import heroImage from "@/assets/hero-racing.jpg";
 import TestimonialSlider from "@/components/ui/testimonial-slider";
 import { ThreeDMarquee } from "@/components/ui/3d-marquee";
+import { GetStartedButton } from "@/components/ui/get-started-button";
 
 const marqueeImages = [
   "/showcase/1.png",
@@ -247,62 +248,28 @@ export default function Index() {
               </span>
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Analyse ton fichier CSV MyChron et obtiens un{" "}
-              <span className="text-primary font-semibold">Score /100</span> +{" "}
-              <span className="text-success font-semibold">des conseils concrets</span> pour
-              progresser à chaque session.
-            </p>
-
             {/* CTA */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8"
             >
               <Link to={isAuthenticated ? "/upload" : "/login?mode=signup"} className="group">
-                <Button
-                  variant="hero"
-                  size="xl"
-                  className="group hover:bg-orange-500 hover:scale-105 hover:shadow-lg shadow-md transition-all duration-300"
-                >
-                  {isAuthenticated ? getCtaLabel(tier, subLoading) : "S'inscrire — 3 analyses"}
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
+                <GetStartedButton
+                  text={isAuthenticated ? getCtaLabel(tier, subLoading) : "S'inscrire"}
+                  className="bg-primary text-primary-foreground hover:bg-primary/95"
+                />
               </Link>
               <Link to={isAuthenticated ? "/dashboard" : "/upload"} className="group">
                 <Button
                   variant="heroOutline"
                   size="lg"
-                  className="group hover:scale-105 hover:shadow-lg transition-all duration-300"
+                  className="group hover:scale-105 hover:shadow-lg transition-all duration-300 h-12 rounded-xl"
                 >
                   Voir une démo
                 </Button>
               </Link>
-            </motion.div>
-
-            {/* Social proof */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="mt-12 flex items-center justify-center gap-2"
-            >
-              <div className="flex -space-x-2">
-                {["LM", "MD", "JP", "AK"].map((initials, i) => (
-                  <div
-                    key={i}
-                    className="w-8 h-8 rounded-full bg-secondary border-2 border-background flex items-center justify-center text-xs font-medium text-muted-foreground"
-                  >
-                    {initials}
-                  </div>
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">
-                Utilisé par <span className="text-foreground font-medium">127+ pilotes PRO</span>
-              </span>
             </motion.div>
           </motion.div>
         </div>
