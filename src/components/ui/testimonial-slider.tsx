@@ -48,59 +48,19 @@ const testimonials: Testimonial[] = [
 
 const HelmetIcon: React.FC = () => (
   <svg 
-    className="w-10 h-10 text-primary border border-primary/20 rounded-full p-1.5 bg-primary/5 shadow-inner"
-    viewBox="0 0 100 100" 
+    className="w-6 h-6 text-primary"
+    viewBox="0 0 24 24" 
     fill="none" 
     stroke="currentColor" 
-    strokeWidth="7" 
+    strokeWidth="2" 
     strokeLinecap="round" 
     strokeLinejoin="round"
   >
-    {/* Main outer shell contour */}
-    <path 
-      d="M78 37 A40 40 0 1 0 88 77" 
-      stroke="currentColor"
-      strokeWidth="7.5"
-    />
-    
-    {/* Bottom flat base curving up slightly at the front */}
-    <path 
-      d="M25 87 L75 87 C83 87 89 83 89 75" 
-      stroke="currentColor"
-      strokeWidth="7.5"
-    />
-
-    {/* Reflection highlights on top-left of shell */}
-    <path 
-      d="M26 48 A30 30 0 0 1 45 23" 
-      stroke="currentColor"
-      strokeWidth="6.5"
-    />
-
-    {/* Air vent dot */}
-    <circle 
-      cx="22" 
-      cy="59" 
-      r="4" 
-      fill="currentColor" 
-      stroke="none"
-    />
-
-    {/* F1 Visor (Filled shape with rounded corners, matching the image perfectly) */}
-    <path 
-      d="M 48,49 L 75,49 A 4,4 0 0,1 79,52 L 88,70 A 4,4 0 0,1 84,75 L 59,75 A 4,4 0 0,1 55,72 L 44,54 A 4,4 0 0,1 48,49 Z" 
-      fill="currentColor"
-      stroke="none"
-    />
-
-    {/* Small white pivot dot on the visor */}
-    <circle 
-      cx="51" 
-      cy="56" 
-      r="3.5" 
-      fill="white" 
-      stroke="none"
-    />
+    {/* Minimalist racing helmet without overlapping lines */}
+    <path d="M2 11a10 10 0 0 1 20 0v3a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" />
+    <path d="M5 16v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2" />
+    <path d="M10 10h8a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-8a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2z" fill="currentColor" fillOpacity="0.15" />
+    <circle cx="8" cy="12" r="1" fill="currentColor" />
   </svg>
 );
 
@@ -314,16 +274,16 @@ const TestimonialSlider: React.FC = () => {
 
                       <div className="pt-4 border-t border-white/5">
                         <div className="flex items-center">
-                          <div className="relative flex-shrink-0">
+                          <div className="relative flex-shrink-0 w-10 h-10 rounded-full border border-primary/20 bg-primary/5 shadow-inner flex items-center justify-center overflow-hidden">
                             <HelmetIcon />
                             <motion.div
-                              className="absolute inset-0 rounded-full bg-primary/20"
+                              className="absolute inset-0 rounded-full bg-primary/10"
                               animate={{
-                                scale: [1, 1.2, 1],
-                                opacity: [0, 0.3, 0],
+                                scale: [1, 1.3, 1],
+                                opacity: [0, 0.4, 0],
                               }}
                               transition={{
-                                duration: 2,
+                                duration: 2.5,
                                 repeat: Infinity,
                                 repeatDelay: 1,
                               }}
