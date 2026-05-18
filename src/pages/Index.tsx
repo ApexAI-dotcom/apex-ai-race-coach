@@ -26,6 +26,20 @@ import {
 } from "@/components/ui/accordion";
 import heroImage from "@/assets/hero-racing.jpg";
 import TestimonialSlider from "@/components/ui/testimonial-slider";
+import { ThreeDMarquee } from "@/components/ui/3d-marquee";
+
+const marqueeImages = [
+  "/showcase/1.png",
+  "/showcase/2.png",
+  "/showcase/3.png",
+  "/showcase/4.png",
+  "/showcase/5.png",
+  "/showcase/6.png",
+  "/showcase/7.png",
+  "/showcase/8.png",
+  "/showcase/9.png",
+  "/showcase/10.png"
+];
 
 const stats = [
   { value: "12,847", label: "Tours analysés", icon: Target },
@@ -195,14 +209,14 @@ export default function Index() {
       <section
         className={`relative min-h-screen flex items-center overflow-hidden ${success === "true" || canceled === "true" ? "pt-20" : ""}`}
       >
-        {/* Background image */}
-        <div className="absolute inset-0">
-          <img
-            src={heroImage}
-            alt="Piste de course"
-            className="w-full h-full object-cover opacity-40"
+        {/* Background 3D Marquee */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <ThreeDMarquee
+            className="pointer-events-none absolute inset-0 h-full w-full opacity-65"
+            images={marqueeImages}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background" />
+          {/* Overlay to dim the marquee and make text readable */}
+          <div className="absolute inset-0 z-10 bg-background/55 dark:bg-background/75 backdrop-blur-[1px]" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10 py-20">

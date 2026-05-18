@@ -298,3 +298,9 @@
   --gradient-color: #8350e8;
   --sparkles-color: #8350e8;
 }
+
+@layer utilities {
+  .transform-3d {
+    transform-style: preserve-3d;
+  }
+}
