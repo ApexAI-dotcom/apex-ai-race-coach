@@ -29,6 +29,7 @@ import Parametres from "./pages/Parametres";
 import AnalysisResultPage from "./pages/AnalysisResultPage";
 import NotFound from "./pages/NotFound";
 import MonKart from "./pages/MonKart";
+import DashboardTest from "./pages/DashboardTest";
 
 const queryClient = new QueryClient();
 
@@ -104,6 +105,7 @@ const App = () => (
                   }
                 />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="/dashboard-test" element={<DashboardTest />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </SubscriptionProvider>
