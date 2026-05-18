@@ -1,77 +1,80 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
-import { Layout } from '@/components/layout/Layout'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Helmet } from 'react-helmet-async'
-import { Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+import { Layout } from "@/components/layout/Layout";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Helmet } from "react-helmet-async";
+import { Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
 export default function ResetPassword() {
-  const navigate = useNavigate()
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [sessionReady, setSessionReady] = useState(false)
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
     // 1. Enregistrer le listener EN PREMIER, avant tout
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
-        setSessionReady(true)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
+        setSessionReady(true);
       }
-    })
+    });
 
     // 2. Ensuite vérifier si session déjà présente (cas refresh de page)
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true)
-    })
+      if (session) setSessionReady(true);
+    });
 
     // 3. Timeout fallback
     const timeout = setTimeout(() => {
       setSessionReady((prev) => {
-        if (!prev) setError('Lien invalide ou expiré. Demande un nouveau lien depuis la page de connexion.')
-        return prev
-      })
-    }, 5000)
+        if (!prev)
+          setError("Lien invalide ou expiré. Demande un nouveau lien depuis la page de connexion.");
+        return prev;
+      });
+    }, 5000);
 
     return () => {
-      subscription.unsubscribe()
-      clearTimeout(timeout)
-    }
-  }, [])
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
     if (password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères.')
-      return
+      setError("Le mot de passe doit contenir au moins 8 caractères.");
+      return;
     }
     if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas.')
-      return
+      setError("Les mots de passe ne correspondent pas.");
+      return;
     }
 
-    setLoading(true)
-    const { error } = await supabase.auth.updateUser({ password })
-    setLoading(false)
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setLoading(false);
 
     if (error) {
-      setError('Erreur lors de la modification. Réessaie ou demande un nouveau lien.')
+      setError("Erreur lors de la modification. Réessaie ou demande un nouveau lien.");
     } else {
-      setSuccess(true)
-      setTimeout(() => navigate('/dashboard'), 3000)
+      setSuccess(true);
+      setTimeout(() => navigate("/dashboard"), 3000);
     }
-  }
+  };
 
   return (
     <Layout>
@@ -108,8 +111,8 @@ export default function ResetPassword() {
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        {error}{' '}
-                        {error.includes('expiré') && (
+                        {error}{" "}
+                        {error.includes("expiré") && (
                           <a href="/login" className="underline text-primary">
                             Retour à la connexion
                           </a>
@@ -125,7 +128,7 @@ export default function ResetPassword() {
                     <div className="relative">
                       <Input
                         id="password"
-                        type={showPassword ? 'text' : 'password'}
+                        type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Minimum 8 caractères"
@@ -138,18 +141,25 @@ export default function ResetPassword() {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="confirmPassword" className="text-foreground text-sm font-medium">
+                    <Label
+                      htmlFor="confirmPassword"
+                      className="text-foreground text-sm font-medium"
+                    >
                       Confirmer le mot de passe
                     </Label>
                     <Input
                       id="confirmPassword"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Répète ton mot de passe"
@@ -176,7 +186,7 @@ export default function ResetPassword() {
                         Vérification du lien...
                       </>
                     ) : (
-                      'Enregistrer le nouveau mot de passe'
+                      "Enregistrer le nouveau mot de passe"
                     )}
                   </Button>
                 </form>
@@ -186,5 +196,5 @@ export default function ResetPassword() {
         </motion.div>
       </div>
     </Layout>
-  )
+  );
 }

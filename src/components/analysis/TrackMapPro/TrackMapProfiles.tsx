@@ -1,9 +1,9 @@
 /**
  * TrackMapPro — Profile selector bar
  */
-import type { TrackMapProfile, TrajectoryLap } from '@/types/analysis';
-import { Activity, Gauge, Map, GitCompare } from 'lucide-react';
-import React from 'react';
+import type { TrackMapProfile, TrajectoryLap } from "@/types/analysis";
+import { Activity, Gauge, Map, GitCompare } from "lucide-react";
+import React from "react";
 
 interface TrackMapProfilesProps {
   active: TrackMapProfile;
@@ -19,14 +19,13 @@ interface TrackMapProfilesProps {
 }
 
 const PROFILES: { id: TrackMapProfile; label: string; icon: React.ElementType }[] = [
-  { id: 'complete', label: 'Complet', icon: Map },
-  { id: 'speed', label: 'Vitesse', icon: Gauge },
-  { id: 'braking', label: 'Freinage', icon: Activity },
-  { id: 'compare', label: 'Comparaison', icon: GitCompare },
+  { id: "complete", label: "Complet", icon: Map },
+  { id: "speed", label: "Vitesse", icon: Gauge },
+  { id: "braking", label: "Freinage", icon: Activity },
+  { id: "compare", label: "Comparaison", icon: GitCompare },
 ];
 
 export function TrackMapProfiles({
-
   active,
   onChange,
   laps,
@@ -51,8 +50,8 @@ export function TrackMapProfiles({
               onClick={() => onChange(p.id)}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
                 active === p.id
-                  ? 'trackmap-profile-active text-white shadow-lg'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/80'
+                  ? "trackmap-profile-active text-white shadow-lg"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/80"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -63,10 +62,12 @@ export function TrackMapProfiles({
       </div>
 
       {/* Comparison mode: lap selectors */}
-      {active === 'compare' && (
+      {active === "compare" && (
         <div className="flex flex-wrap items-center gap-2 px-1 animate-in fade-in slide-in-from-top-1 duration-200">
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Tour</span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+              Tour
+            </span>
             <select
               value={selectedLapNumber}
               onChange={(e) => onSelectedLapChange(Number(e.target.value))}
@@ -74,7 +75,8 @@ export function TrackMapProfiles({
             >
               {realLaps.map((l) => (
                 <option key={l.lap_number} value={l.lap_number ?? 1}>
-                  T{l.lap_number}{l.lap_number === bestLapNumber ? ' ★' : ''}
+                  T{l.lap_number}
+                  {l.lap_number === bestLapNumber ? " ★" : ""}
                 </option>
               ))}
             </select>
@@ -83,12 +85,14 @@ export function TrackMapProfiles({
           <span className="text-muted-foreground text-xs">vs</span>
 
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Réf.</span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+              Réf.
+            </span>
             <select
-              value={comparisonLapNumber ?? ''}
+              value={comparisonLapNumber ?? ""}
               onChange={(e) => {
                 const val = e.target.value;
-                onComparisonLapChange(val === '' ? null : Number(val));
+                onComparisonLapChange(val === "" ? null : Number(val));
               }}
               className="bg-secondary/80 border border-white/10 rounded-md px-2 py-1 text-xs text-foreground focus:border-primary/50 focus:outline-none"
             >
@@ -102,7 +106,8 @@ export function TrackMapProfiles({
                 .filter((l) => l.lap_number !== selectedLapNumber)
                 .map((l) => (
                   <option key={l.lap_number} value={l.lap_number ?? 1}>
-                    T{l.lap_number}{l.lap_number === bestLapNumber ? ' ★ Meilleur' : ''}
+                    T{l.lap_number}
+                    {l.lap_number === bestLapNumber ? " ★ Meilleur" : ""}
                   </option>
                 ))}
             </select>

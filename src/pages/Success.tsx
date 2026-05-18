@@ -32,12 +32,14 @@ export default function Success() {
           </h1>
 
           <p className="text-xl text-muted-foreground mb-2">
-            Votre abonnement <span className="text-primary font-semibold">ApexAI Pro</span> est maintenant actif
+            Votre abonnement <span className="text-primary font-semibold">ApexAI Pro</span> est
+            maintenant actif
           </p>
 
           {sessionId && (
             <p className="text-sm text-muted-foreground mb-8">
-              ID de session : <code className="bg-muted px-2 py-1 rounded text-xs">{sessionId}</code>
+              ID de session :{" "}
+              <code className="bg-muted px-2 py-1 rounded text-xs">{sessionId}</code>
             </p>
           )}
 

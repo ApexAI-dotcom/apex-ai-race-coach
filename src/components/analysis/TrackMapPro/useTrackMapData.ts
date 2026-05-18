@@ -1,7 +1,13 @@
-import { useMemo, useState, useCallback } from 'react';
-import type { TrajectoryCorner, TrajectoryLap, CornerMargin, CornerDetail, TrackMapProfile } from '@/types/analysis';
-import { useTrackMapGeometry } from './useTrackMapGeometry';
-import { buildLapProjection, computeGlobalSpeedBounds } from './useTrackMapStyle';
+import { useMemo, useState, useCallback } from "react";
+import type {
+  TrajectoryCorner,
+  TrajectoryLap,
+  CornerMargin,
+  CornerDetail,
+  TrackMapProfile,
+} from "@/types/analysis";
+import { useTrackMapGeometry } from "./useTrackMapGeometry";
+import { buildLapProjection, computeGlobalSpeedBounds } from "./useTrackMapStyle";
 
 export function useTrackMap(
   corners: TrajectoryCorner[],
@@ -11,25 +17,35 @@ export function useTrackMap(
   initialSelectedLapNumber: number
 ) {
   // --- UI State ---
-  const [profile, setProfile] = useState<TrackMapProfile>('speed');
+  const [profile, setProfile] = useState<TrackMapProfile>("speed");
   const [selectedLap, setSelectedLap] = useState<number>(initialSelectedLapNumber);
   const [comparisonLap, setComparisonLap] = useState<number | null>(null);
   const [showSynthetic, setShowSynthetic] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  
+
   // Hover & Click states for tooltips and corners
-  const [hoveredPoint, setHoveredPoint] = useState<{ index: number; clientX: number; clientY: number } | null>(null);
+  const [hoveredPoint, setHoveredPoint] = useState<{
+    index: number;
+    clientX: number;
+    clientY: number;
+  } | null>(null);
   const [hoveredCornerId, setHoveredCornerId] = useState<number | null>(null);
   const [selectedCornerId, setSelectedCornerId] = useState<number | null>(null);
 
   // --- External handlers ---
-  const handleProfileChange = useCallback((p: TrackMapProfile, onReferenceChange?: (lapNumber: number | null, isSynthetic: boolean) => void) => {
-    setProfile(p);
-    if (p !== 'compare') {
-      setComparisonLap(null);
-      if (onReferenceChange) onReferenceChange(null, false);
-    }
-  }, []);
+  const handleProfileChange = useCallback(
+    (
+      p: TrackMapProfile,
+      onReferenceChange?: (lapNumber: number | null, isSynthetic: boolean) => void
+    ) => {
+      setProfile(p);
+      if (p !== "compare") {
+        setComparisonLap(null);
+        if (onReferenceChange) onReferenceChange(null, false);
+      }
+    },
+    []
+  );
 
   const handlePointHover = useCallback((index: number | null, clientX: number, clientY: number) => {
     if (index === null) setHoveredPoint(null);
@@ -51,23 +67,44 @@ export function useTrackMap(
     const realLaps = allLaps.filter((l) => !l.is_synthetic);
     const syntheticLap = allLaps.find((l) => l.is_synthetic) ?? null;
 
-    const { globalMin, globalMax, globalMedian } = computeGlobalSpeedBounds(realLaps.length > 0 ? realLaps : allLaps);
+    const { globalMin, globalMax, globalMedian } = computeGlobalSpeedBounds(
+      realLaps.length > 0 ? realLaps : allLaps
+    );
 
-    const primaryLap = realLaps.find((l) => l.lap_number === selectedLap) || realLaps.find((l) => l.is_best) || realLaps[0];
+    const primaryLap =
+      realLaps.find((l) => l.lap_number === selectedLap) ||
+      realLaps.find((l) => l.is_best) ||
+      realLaps[0];
 
     const primary = primaryLap
       ? buildLapProjection(primaryLap, project, profile, globalMin, globalMax, globalMedian)
       : null;
 
     let reference = null;
-    if (profile === 'compare' && comparisonLap !== null) {
-      const refLap = comparisonLap === -1 ? syntheticLap : realLaps.find((l) => l.lap_number === comparisonLap);
-      if (refLap) reference = buildLapProjection(refLap, project, profile, globalMin, globalMax, globalMedian);
+    if (profile === "compare" && comparisonLap !== null) {
+      const refLap =
+        comparisonLap === -1 ? syntheticLap : realLaps.find((l) => l.lap_number === comparisonLap);
+      if (refLap)
+        reference = buildLapProjection(
+          refLap,
+          project,
+          profile,
+          globalMin,
+          globalMax,
+          globalMedian
+        );
     }
 
     let syntheticProjection = null;
     if (syntheticLap) {
-       syntheticProjection = buildLapProjection(syntheticLap, project, profile, globalMin, globalMax, globalMedian);
+      syntheticProjection = buildLapProjection(
+        syntheticLap,
+        project,
+        profile,
+        globalMin,
+        globalMax,
+        globalMedian
+      );
     }
 
     // Combine corners details
@@ -85,8 +122,8 @@ export function useTrackMap(
       return {
         id: c.id,
         label: c.label,
-        corner_type: c.corner_type || ca?.corner_type || 'unknown',
-        grade: m?.grade || ca?.grade || c.grade || 'C',
+        corner_type: c.corner_type || ca?.corner_type || "unknown",
+        grade: m?.grade || ca?.grade || c.grade || "C",
         score: m?.score ?? ca?.score ?? 50,
         apex_speed_real: m?.apex_speed_real ?? ca?.apex_speed_real ?? c.apex_speed ?? 0,
         apex_speed_optimal: m?.apex_speed_optimal ?? ca?.apex_speed_optimal ?? 0,
@@ -114,16 +151,40 @@ export function useTrackMap(
       globalSpeedMin: globalMin,
       globalSpeedMax: globalMax,
     };
-  }, [project, bounds, laps, corners, profile, selectedLap, comparisonLap, margins, cornerAnalysis]);
+  }, [
+    project,
+    bounds,
+    laps,
+    corners,
+    profile,
+    selectedLap,
+    comparisonLap,
+    margins,
+    cornerAnalysis,
+  ]);
 
   return {
     state: {
-      profile, selectedLap, comparisonLap, showSynthetic, isFullscreen,
-      hoveredPoint, hoveredCornerId, selectedCornerId,
-      setProfile, setSelectedLap, setComparisonLap, setShowSynthetic, setIsFullscreen, setHoveredCornerId, setSelectedCornerId
+      profile,
+      selectedLap,
+      comparisonLap,
+      showSynthetic,
+      isFullscreen,
+      hoveredPoint,
+      hoveredCornerId,
+      selectedCornerId,
+      setProfile,
+      setSelectedLap,
+      setComparisonLap,
+      setShowSynthetic,
+      setIsFullscreen,
+      setHoveredCornerId,
+      setSelectedCornerId,
     },
     handlers: {
-      handleProfileChange, handlePointHover, handleCornerClick
+      handleProfileChange,
+      handlePointHover,
+      handleCornerClick,
     },
     data,
   };

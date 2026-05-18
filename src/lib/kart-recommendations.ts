@@ -20,9 +20,11 @@ export function getSetupRecommendations(profile: KartProfile): SetupRecommendati
 
   // Ajustement Pneus
   if (tires.includes("komet") || tires.includes("k2h")) {
-    basePresF = 0.60; basePresR = 0.60;
+    basePresF = 0.6;
+    basePresR = 0.6;
   } else if (tires.includes("vega")) {
-    basePresF = 0.45; basePresR = 0.45;
+    basePresF = 0.45;
+    basePresR = 0.45;
   }
 
   // Ajustement Moteur
@@ -37,12 +39,16 @@ export function getSetupRecommendations(profile: KartProfile): SetupRecommendati
   // Ajustement Profil de Pilotage
   switch (drivingProfile) {
     case "longevity":
-      notes = "Privilégie une pression légèrement plus haute pour limiter l'usure de la gomme. Évite les sur-régimes.";
-      basePresF += 0.05; basePresR += 0.05;
+      notes =
+        "Privilégie une pression légèrement plus haute pour limiter l'usure de la gomme. Évite les sur-régimes.";
+      basePresF += 0.05;
+      basePresR += 0.05;
       break;
     case "performance":
-      notes = "Pression optimale pour le grip max (chrono). Surveille la montée en température. Rapport agressif.";
-      basePresF -= 0.05; basePresR -= 0.05;
+      notes =
+        "Pression optimale pour le grip max (chrono). Surveille la montée en température. Rapport agressif.";
+      basePresF -= 0.05;
+      basePresR -= 0.05;
       // Optionnel: baisser une dent de couronne pour plus de pointe ou inversement.
       break;
     case "leisure":
@@ -64,13 +70,13 @@ export function getAlertThresholds(drivingProfile: DrivingProfile = "balanced") 
   // Return warning threshold ratio, critical threshold ratio, max EGT
   switch (drivingProfile) {
     case "longevity":
-      return { warnLimit: 0.70, critLimit: 0.85, maxEgt: 580 };
+      return { warnLimit: 0.7, critLimit: 0.85, maxEgt: 580 };
     case "performance":
       return { warnLimit: 0.85, critLimit: 0.95, maxEgt: 620 };
     case "leisure":
-      return { warnLimit: 0.75, critLimit: 0.90, maxEgt: 550 };
+      return { warnLimit: 0.75, critLimit: 0.9, maxEgt: 550 };
     case "balanced":
     default:
-      return { warnLimit: 0.80, critLimit: 0.95, maxEgt: 600 };
+      return { warnLimit: 0.8, critLimit: 0.95, maxEgt: 600 };
   }
 }

@@ -18,10 +18,11 @@ export default function AnalysisResultPage() {
   const stateAnalysis = stateAnalysisRaw
     ? mapApiResultToResponse(stateAnalysisRaw as Parameters<typeof mapApiResultToResponse>[0])
     : undefined;
-  const { analysis: fetchedAnalysis, loading, error } = useAnalysis(
-    stateAnalysis ? null : analysisId ?? null,
-    user?.id
-  );
+  const {
+    analysis: fetchedAnalysis,
+    loading,
+    error,
+  } = useAnalysis(stateAnalysis ? null : (analysisId ?? null), user?.id);
 
   const analysis = stateAnalysis ?? fetchedAnalysis;
 

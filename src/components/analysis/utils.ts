@@ -65,10 +65,11 @@ export interface CornerMarker {
 
 function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2
-    + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
@@ -85,14 +86,14 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
 export function computeCornerMarkersFromGPS(
   laps: Array<{ lat: number[]; lon: number[]; is_synthetic?: boolean }> | null | undefined,
   corners: Array<{ lat: number; lon: number; label: string }> | null | undefined,
-  lapStartOffset: number,
+  lapStartOffset: number
 ): CornerMarker[] | null {
   if (!laps?.length || !corners?.length) return null;
 
   // Prefer a real lap; fall back to synthetic as last resort
   const lap =
-    laps.find(l => !l.is_synthetic && (l.lat?.length ?? 0) > 5) ??
-    laps.find(l => (l.lat?.length ?? 0) > 5);
+    laps.find((l) => !l.is_synthetic && (l.lat?.length ?? 0) > 5) ??
+    laps.find((l) => (l.lat?.length ?? 0) > 5);
   if (!lap) return null;
 
   const n = Math.min(lap.lat.length, lap.lon.length);
@@ -100,7 +101,8 @@ export function computeCornerMarkersFromGPS(
   // Cumulative haversine distance along the GPS path (0-based, relative)
   const cumDist = new Array<number>(n).fill(0);
   for (let i = 1; i < n; i++) {
-    cumDist[i] = cumDist[i - 1] + haversineMeters(lap.lat[i - 1], lap.lon[i - 1], lap.lat[i], lap.lon[i]);
+    cumDist[i] =
+      cumDist[i - 1] + haversineMeters(lap.lat[i - 1], lap.lon[i - 1], lap.lat[i], lap.lon[i]);
   }
 
   return corners.map((c, i) => {
@@ -108,7 +110,10 @@ export function computeCornerMarkersFromGPS(
     let minIdx = 0;
     for (let j = 0; j < n; j++) {
       const d = haversineMeters(c.lat, c.lon, lap.lat[j], lap.lon[j]);
-      if (d < minD) { minD = d; minIdx = j; }
+      if (d < minD) {
+        minD = d;
+        minIdx = j;
+      }
     }
     return {
       id: i + 1,
@@ -125,7 +130,7 @@ export function computeCornerMarkersFromGPS(
 export function computeCornerMarkersFromSpeed(
   distArr: number[],
   speedArr: number[],
-  cornerLabels: string[],
+  cornerLabels: string[]
 ): CornerMarker[] {
   const n = Math.min(distArr.length, speedArr.length);
   if (n < 5 || cornerLabels.length === 0) return [];
@@ -133,9 +138,14 @@ export function computeCornerMarkersFromSpeed(
   // 5-point moving-average smoothing to suppress GPS/telemetry jitter
   const smoothed = new Array<number>(n);
   for (let i = 0; i < n; i++) {
-    const lo = Math.max(0, i - 2), hi = Math.min(n - 1, i + 2);
-    let s = 0, c = 0;
-    for (let j = lo; j <= hi; j++) { s += speedArr[j]; c++; }
+    const lo = Math.max(0, i - 2),
+      hi = Math.min(n - 1, i + 2);
+    let s = 0,
+      c = 0;
+    for (let j = lo; j <= hi; j++) {
+      s += speedArr[j];
+      c++;
+    }
     smoothed[i] = s / c;
   }
 

@@ -26,7 +26,11 @@ interface ApexMarginChartProps {
   hideCta?: boolean;
 }
 
-export function ApexMarginChart({ data, circuitName = null, hideCta = false }: ApexMarginChartProps) {
+export function ApexMarginChart({
+  data,
+  circuitName = null,
+  hideCta = false,
+}: ApexMarginChartProps) {
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
   const visible = isChartVisible("apex_margin", circuitName);
@@ -54,15 +58,14 @@ export function ApexMarginChart({ data, circuitName = null, hideCta = false }: A
       isLocked={!visible}
       ctaTitle={cta.title}
       ctaButtonText={cta.buttonText}
-      onCtaClick={() => navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")}
+      onCtaClick={() =>
+        navigate(cta.buttonText.includes("compte") ? "/login?mode=register" : "/pricing")
+      }
       hideButton={hideCta}
     >
       <div className="h-[260px] w-full" aria-label="Apex margin by corner">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={series}
-            margin={{ top: 8, right: 8, left: 8, bottom: 24 }}
-          >
+          <BarChart data={series} margin={{ top: 8, right: 8, left: 8, bottom: 24 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               type="category"
@@ -78,7 +81,12 @@ export function ApexMarginChart({ data, circuitName = null, hideCta = false }: A
               width={36}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: 8,
+                color: "hsl(var(--foreground))",
+              }}
               itemStyle={{ color: "hsl(var(--foreground))" }}
               labelStyle={{ color: "hsl(var(--muted-foreground))" }}
               formatter={(value: number, _name: string, props: { payload: (typeof series)[0] }) => {

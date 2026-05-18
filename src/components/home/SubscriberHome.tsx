@@ -1,21 +1,21 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
-  Cell
+  Cell,
 } from "recharts";
-import { 
-  TrendingUp, 
-  AlertTriangle, 
-  Plus, 
-  Zap, 
+import {
+  TrendingUp,
+  AlertTriangle,
+  Plus,
+  Zap,
   ChevronRight,
   RotateCcw,
   Lightbulb,
@@ -37,14 +37,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { 
-  getAllAnalyses, 
-  getObjectives, 
-  saveObjectives, 
-  type AnalysisSummary, 
-  type UserObjective 
+import {
+  getAllAnalyses,
+  getObjectives,
+  saveObjectives,
+  type AnalysisSummary,
+  type UserObjective,
 } from "@/lib/storage";
-import { 
+import {
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -66,6 +66,7 @@ import {
 } from "@/lib/api";
 import { API_BASE_URL } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
+import { SaaSToolsShowcase } from "@/components/dashboard/SaaSToolsShowcase";
 
 // Badge color map
 const BADGE_COLORS: Record<string, string> = {
@@ -94,7 +95,8 @@ export default function SubscriberHome() {
   const [insightsError, setInsightsError] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
 
-  const firstName = user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Pilote";
+  const firstName =
+    user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Pilote";
   const accessToken = session?.access_token;
 
   // Load analyses + objectives (localStorage)
@@ -124,7 +126,7 @@ export default function SubscriberHome() {
       {
         loading: "Synchronisation avec Stripe...",
         success: "Statut mis à jour",
-        error: "Erreur lors de la synchronisation"
+        error: "Erreur lors de la synchronisation",
       }
     );
   };
@@ -161,18 +163,28 @@ export default function SubscriberHome() {
   const chartData = useMemo(() => {
     const sorted = [...analyses].sort((a, b) => a.timestamp - b.timestamp);
     const dateCounts: Record<string, number> = {};
-    
-    return sorted.map(a => {
-      const d = new Date(a.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-      dateCounts[d] = (dateCounts[d] || 0) + 1;
-      return { ...a, dateLabel: d, daySessionIdx: dateCounts[d] };
-    })
-    .slice(-7)
-    .map((a) => ({
-      name: dateCounts[a.dateLabel] > 1 ? `${a.dateLabel} (#${a.daySessionIdx})` : a.dateLabel,
-      score: a.score,
-      fullDate: new Date(a.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-    }));
+
+    return sorted
+      .map((a) => {
+        const d = new Date(a.date).toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+        });
+        dateCounts[d] = (dateCounts[d] || 0) + 1;
+        return { ...a, dateLabel: d, daySessionIdx: dateCounts[d] };
+      })
+      .slice(-7)
+      .map((a) => ({
+        name: dateCounts[a.dateLabel] > 1 ? `${a.dateLabel} (#${a.daySessionIdx})` : a.dateLabel,
+        score: a.score,
+        fullDate: new Date(a.date).toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      }));
   }, [analyses]);
 
   // Color logic for bars
@@ -193,8 +205,8 @@ export default function SubscriberHome() {
 
   const handleSaveObjective = () => {
     if (!editingObjective || isNaN(Number(tempValue))) return;
-    
-    const updated = objectives.map(obj => 
+
+    const updated = objectives.map((obj) =>
       obj.id === editingObjective.id ? { ...obj, targetValue: Number(tempValue) } : obj
     );
     setObjectives(updated);
@@ -212,9 +224,9 @@ export default function SubscriberHome() {
 
       // Reset local objectives baseline
       const now = Date.now();
-      const updated = objectives.map(obj => ({
+      const updated = objectives.map((obj) => ({
         ...obj,
-        baselineTimestamp: now
+        baselineTimestamp: now,
       }));
       setObjectives(updated);
       saveObjectives(updated, user?.id);
@@ -229,7 +241,12 @@ export default function SubscriberHome() {
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center min-h-[400px]"><Zap className="animate-pulse text-primary w-12 h-12" /></div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Zap className="animate-pulse text-primary w-12 h-12" />
+      </div>
+    );
 
   return (
     <div className="space-y-8 pb-12">
@@ -241,15 +258,20 @@ export default function SubscriberHome() {
           <div>
             <h1 className="text-2xl font-display font-bold text-foreground">Salut {firstName}</h1>
             <div className="flex items-center gap-2 mt-0.5">
-              <Badge variant="outline" className={`text-[10px] uppercase border-white/10 ${tier === 'racer' || tier === 'team' ? 'bg-primary/20 text-primary border-primary/30' : 'bg-white/5 text-muted-foreground'}`}>
-                {tier === 'racer' ? 'RACER' : tier === 'team' ? 'TEAM' : 'ROOKIE'}
+              <Badge
+                variant="outline"
+                className={`text-[10px] uppercase border-white/10 ${tier === "racer" || tier === "team" ? "bg-primary/20 text-primary border-primary/30" : "bg-white/5 text-muted-foreground"}`}
+              >
+                {tier === "racer" ? "RACER" : tier === "team" ? "TEAM" : "ROOKIE"}
               </Badge>
-              <button 
+              <button
                 onClick={handleRefreshStatus}
                 className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors group"
                 disabled={subLoading}
               >
-                <RotateCcw className={`w-3 h-3 ${subLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+                <RotateCcw
+                  className={`w-3 h-3 ${subLoading ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500"}`}
+                />
                 Rafraîchir
               </button>
             </div>
@@ -261,15 +283,27 @@ export default function SubscriberHome() {
         </div>
       </div>
 
+      {/* SaaS Tools Showcase Control Deck */}
+      <SaaSToolsShowcase />
+
       {/* Progression Chart */}
       <Card className="glass-card overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Ta Progression</CardTitle>
-            <CardDescription className="text-lg font-bold text-foreground mt-1">Évolution du score</CardDescription>
+            <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+              Ta Progression
+            </CardTitle>
+            <CardDescription className="text-lg font-bold text-foreground mt-1">
+              Évolution du score
+            </CardDescription>
           </div>
           <div className="flex flex-col items-end">
-            <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => navigate("/dashboard")}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs gap-1"
+              onClick={() => navigate("/dashboard")}
+            >
               Voir le tableau de bord <ChevronRight className="w-3 h-3" />
             </Button>
             <div className="text-[9px] font-bold text-muted-foreground mt-1 bg-white/5 px-2 py-0.5 rounded border border-white/5 uppercase tracking-tighter">
@@ -281,18 +315,26 @@ export default function SubscriberHome() {
           <div className="h-[250px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="rgba(255,255,255,0.05)"
+                />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fill: "#ffffff", opacity: 0.6, fontSize: 12 }}
                   dy={10}
                 />
                 <YAxis hide domain={[0, 100]} />
-                <Tooltip 
+                <Tooltip
                   cursor={{ fill: "rgba(255,255,255,0.05)" }}
-                  contentStyle={{ backgroundColor: "#0d1117", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+                  contentStyle={{
+                    backgroundColor: "#0d1117",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "8px",
+                  }}
                   itemStyle={{ color: "#ffffff" }}
                   labelStyle={{ color: "#ef4444", fontWeight: "bold", marginBottom: "4px" }}
                   labelFormatter={(value, items) => {
@@ -341,7 +383,9 @@ export default function SubscriberHome() {
               </div>
               <div>
                 <h3 className="font-bold text-foreground">Temps gagné</h3>
-                <p className="text-sm text-muted-foreground">Données insuffisantes — lance au moins 2 analyses pour voir ta progression.</p>
+                <p className="text-sm text-muted-foreground">
+                  Données insuffisantes — lance au moins 2 analyses pour voir ta progression.
+                </p>
               </div>
             </div>
           ) : (
@@ -351,10 +395,9 @@ export default function SubscriberHome() {
                   <TrendingUp className="w-5 h-5" />
                 </div>
                 <span className="text-2xl font-bold text-green-500">
-                  {insights && insights.time_gained !== null 
+                  {insights && insights.time_gained !== null
                     ? `${insights.time_gained > 0 ? "+" : ""}${insights.time_gained}s`
-                    : "—"
-                  }
+                    : "—"}
                 </span>
               </div>
               <div>
@@ -364,8 +407,7 @@ export default function SubscriberHome() {
                     ? "Tu progresses régulièrement, continue comme ça !"
                     : insights && insights.time_gained !== null && insights.time_gained < 0
                       ? "Petit recul — analyse tes dernières sessions pour identifier les régressions."
-                      : "Progression stable, maintiens tes efforts !"
-                  }
+                      : "Progression stable, maintiens tes efforts !"}
                 </p>
               </div>
             </>
@@ -400,7 +442,10 @@ export default function SubscriberHome() {
               </div>
               <div>
                 <h3 className="font-bold text-foreground">Ton point faible</h3>
-                <p className="text-sm text-muted-foreground">Données insuffisantes — continue à analyser pour identifier tes axes d'amélioration.</p>
+                <p className="text-sm text-muted-foreground">
+                  Données insuffisantes — continue à analyser pour identifier tes axes
+                  d'amélioration.
+                </p>
               </div>
             </div>
           ) : (
@@ -418,8 +463,7 @@ export default function SubscriberHome() {
                 <p className="text-sm text-muted-foreground mt-1">
                   {insights?.weak_point?.corners && insights.weak_point.corners.length > 0
                     ? `Virages ${insights.weak_point.corners.join(", ")} — travaille ces passages pour progresser.`
-                    : "Continue à analyser tes sessions pour affiner ce diagnostic."
-                  }
+                    : "Continue à analyser tes sessions pour affiner ce diagnostic."}
                 </p>
               </div>
             </>
@@ -428,9 +472,9 @@ export default function SubscriberHome() {
       </div>
 
       {/* Main CTA */}
-      <Button 
-        variant="hero" 
-        size="lg" 
+      <Button
+        variant="hero"
+        size="lg"
         className="w-full h-16 text-lg font-bold uppercase tracking-wider shadow-xl shadow-primary/20"
         onClick={() => navigate("/upload")}
       >
@@ -440,10 +484,17 @@ export default function SubscriberHome() {
       {/* Objectives */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Mes Objectifs</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+            Mes Objectifs
+          </h2>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-foreground" disabled={resetting}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                disabled={resetting}
+              >
                 <RotateCcw className={`w-3.5 h-3.5 ${resetting ? "animate-spin" : ""}`} />
                 Réinitialiser
               </Button>
@@ -452,17 +503,14 @@ export default function SubscriberHome() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Réinitialiser mes objectifs ?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Ton score de référence et ton temps de référence seront mis à jour avec tes meilleurs résultats actuels.
-                  L'historique de progression sera recalculé à partir de ce nouveau point de départ.
-                  Tes analyses brutes ne seront pas supprimées.
+                  Ton score de référence et ton temps de référence seront mis à jour avec tes
+                  meilleurs résultats actuels. L'historique de progression sera recalculé à partir
+                  de ce nouveau point de départ. Tes analyses brutes ne seront pas supprimées.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleReset}
-                  className="bg-primary hover:bg-primary/90"
-                >
+                <AlertDialogAction onClick={handleReset} className="bg-primary hover:bg-primary/90">
                   Confirmer la réinitialisation
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -471,36 +519,55 @@ export default function SubscriberHome() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {objectives.map((obj) => {
-            const relevantAnalyses = obj.baselineTimestamp 
-              ? analyses.filter(a => a.timestamp >= obj.baselineTimestamp!) 
+            const relevantAnalyses = obj.baselineTimestamp
+              ? analyses.filter((a) => a.timestamp >= obj.baselineTimestamp!)
               : analyses;
-            
-            const objBestScore = relevantAnalyses.length > 0 ? Math.max(...relevantAnalyses.map(a => a.score)) : 0;
-            const validTimes = relevantAnalyses.map(a => a.lap_time).filter(t => t > 0);
+
+            const objBestScore =
+              relevantAnalyses.length > 0 ? Math.max(...relevantAnalyses.map((a) => a.score)) : 0;
+            const validTimes = relevantAnalyses.map((a) => a.lap_time).filter((t) => t > 0);
             const objBestLapTime = validTimes.length > 0 ? Math.min(...validTimes) : 0;
 
-            const current = obj.id === "score" ? objBestScore : 
-                            obj.id === "laptime" ? objBestLapTime : obj.currentValue;
-            
+            const current =
+              obj.id === "score"
+                ? objBestScore
+                : obj.id === "laptime"
+                  ? objBestLapTime
+                  : obj.currentValue;
+
             let progress = 0;
             if (obj.id === "laptime") {
               progress = current > 0 ? (obj.targetValue / current) * 100 : 0;
             } else {
               progress = obj.targetValue > 0 ? (current / obj.targetValue) * 100 : 0;
             }
-            
+
             return (
               <Card key={obj.id} className="glass-card p-5">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="font-bold text-lg text-foreground">{obj.label} {obj.targetValue}{obj.unit}</span>
-                  <Button variant="ghost" size="sm" className="text-primary text-xs h-9 px-3 rounded-lg hover:bg-primary/10 transition-colors" onClick={() => handleEditObjective(obj)}>
+                  <span className="font-bold text-lg text-foreground">
+                    {obj.label} {obj.targetValue}
+                    {obj.unit}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-primary text-xs h-9 px-3 rounded-lg hover:bg-primary/10 transition-colors"
+                    onClick={() => handleEditObjective(obj)}
+                  >
                     Modifier
                   </Button>
                 </div>
                 <Progress value={Math.min(100, progress)} className="h-2 bg-secondary" />
                 <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                  <span>{current > 0 ? current.toFixed(2) : "—"}{obj.unit} actuel</span>
-                  <span>{obj.targetValue}{obj.unit} cible</span>
+                  <span>
+                    {current > 0 ? current.toFixed(2) : "—"}
+                    {obj.unit} actuel
+                  </span>
+                  <span>
+                    {obj.targetValue}
+                    {obj.unit} cible
+                  </span>
                 </div>
               </Card>
             );
@@ -510,7 +577,9 @@ export default function SubscriberHome() {
 
       {/* Tips — Dynamic */}
       <div>
-        <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">Tips de pilotage</h2>
+        <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
+          Tips de pilotage
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {tipsLoading ? (
             <>
@@ -536,11 +605,16 @@ export default function SubscriberHome() {
             </Card>
           ) : (
             tips.map((tip, i) => (
-              <Card key={i} className="glass-card p-5 group cursor-pointer hover:border-primary/30 transition-colors">
+              <Card
+                key={i}
+                className="glass-card p-5 group cursor-pointer hover:border-primary/30 transition-colors"
+              >
                 <Badge className={BADGE_COLORS[tip.badge_color] || BADGE_COLORS.blue + " mb-3"}>
                   {tip.badge}
                 </Badge>
-                <h3 className="font-bold text-xl text-foreground mb-2 group-hover:text-primary transition-colors">{tip.title}</h3>
+                <h3 className="font-bold text-xl text-foreground mb-2 group-hover:text-primary transition-colors">
+                  {tip.title}
+                </h3>
                 <p className="text-sm text-muted-foreground">{tip.body}</p>
               </Card>
             ))
@@ -562,24 +636,30 @@ export default function SubscriberHome() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="target">Valeur cible ({editingObjective?.unit})</Label>
-                    <Input
-                      id="target"
-                      type="number"
-                      value={tempValue}
+                  <Input
+                    id="target"
+                    type="number"
+                    value={tempValue}
                     onChange={(e) => setTempValue(e.target.value)}
                     placeholder="Ex: 85"
                     className="text-lg h-12 bg-secondary/20 border-white/10"
-                    onKeyDown={(e) => e.key === 'Enter' && handleSaveObjective()}
+                    onKeyDown={(e) => e.key === "Enter" && handleSaveObjective()}
                   />
                 </div>
               </div>
             </div>
             <DrawerFooter className="pt-8">
-              <Button variant="hero" className="h-12 text-lg font-bold" onClick={handleSaveObjective}>
+              <Button
+                variant="hero"
+                className="h-12 text-lg font-bold"
+                onClick={handleSaveObjective}
+              >
                 Sauvegarder
               </Button>
               <DrawerClose asChild>
-                <Button variant="outline" className="h-12">Annuler</Button>
+                <Button variant="outline" className="h-12">
+                  Annuler
+                </Button>
               </DrawerClose>
             </DrawerFooter>
           </div>

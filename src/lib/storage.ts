@@ -7,11 +7,7 @@
  */
 
 import { supabase } from "./supabase";
-import {
-  uploadPlotImages,
-  getPlotSignedUrls,
-  deletePlotImages,
-} from "./supabase-storage";
+import { uploadPlotImages, getPlotSignedUrls, deletePlotImages } from "./supabase-storage";
 import type { AnalysisResult } from "./api";
 
 // ============================================================================
@@ -53,12 +49,14 @@ const MIGRATION_KEY_PREFIX = "apex_migrated_";
 // ============================================================================
 
 function getStorageSuffix(userId: string | null | undefined): string {
-  return userId && typeof userId === "string" && userId.trim()
-    ? userId.trim()
-    : STORAGE_GUEST;
+  return userId && typeof userId === "string" && userId.trim() ? userId.trim() : STORAGE_GUEST;
 }
-function getIndexKey(s: string) { return `${STORAGE_INDEX_PREFIX}${s}`; }
-function getItemKey(s: string, id: string) { return `${STORAGE_ITEM_PREFIX}${s}_${id}`; }
+function getIndexKey(s: string) {
+  return `${STORAGE_INDEX_PREFIX}${s}`;
+}
+function getItemKey(s: string, id: string) {
+  return `${STORAGE_ITEM_PREFIX}${s}_${id}`;
+}
 
 function generateAnalysisId(): string {
   return `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -70,18 +68,24 @@ function isLocalStorageAvailable(): boolean {
     localStorage.setItem(t, t);
     localStorage.removeItem(t);
     return true;
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
 
 function getAnalysesIndexLS(suffix: string): string[] {
   try {
     const raw = localStorage.getItem(getIndexKey(suffix));
     return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 function saveAnalysesIndexLS(index: string[], suffix: string): void {
-  try { localStorage.setItem(getIndexKey(suffix), JSON.stringify(index)); } catch {}
+  try {
+    localStorage.setItem(getIndexKey(suffix), JSON.stringify(index));
+  } catch {}
 }
 
 function cleanupOldAnalysesLS(suffix: string): void {
@@ -92,13 +96,19 @@ function cleanupOldAnalysesLS(suffix: string): void {
     const items = index.map((id) => {
       const s = localStorage.getItem(prefix + id);
       if (!s) return { id, timestamp: 0 };
-      try { return { id, timestamp: (JSON.parse(s) as StoredAnalysis).timestamp }; }
-      catch { return { id, timestamp: 0 }; }
+      try {
+        return { id, timestamp: (JSON.parse(s) as StoredAnalysis).timestamp };
+      } catch {
+        return { id, timestamp: 0 };
+      }
     });
     items.sort((a, b) => a.timestamp - b.timestamp);
     const toRemove = items.slice(0, items.length - MAX_STORED_ANALYSES);
     for (const item of toRemove) localStorage.removeItem(prefix + item.id);
-    saveAnalysesIndexLS(items.slice(items.length - MAX_STORED_ANALYSES).map((i) => i.id), suffix);
+    saveAnalysesIndexLS(
+      items.slice(items.length - MAX_STORED_ANALYSES).map((i) => i.id),
+      suffix
+    );
   } catch {}
 }
 
@@ -136,7 +146,7 @@ async function rowToAnalysisResult(row: any, userId: string): Promise<AnalysisRe
     statistics: row.statistics ?? {},
     session_conditions: row.session_conditions || {
       session_name: row.session_name,
-      circuit_name: row.circuit_name
+      circuit_name: row.circuit_name,
     },
     session_type: row.session_type || "practice",
     plot_data: row.plot_data,
@@ -152,7 +162,10 @@ async function rowToAnalysisResult(row: any, userId: string): Promise<AnalysisRe
  * - Authenticated user → Supabase DB + Storage
  * - Guest → localStorage
  */
-export async function saveAnalysis(result: AnalysisResult, userId?: string | null): Promise<string> {
+export async function saveAnalysis(
+  result: AnalysisResult,
+  userId?: string | null
+): Promise<string> {
   const supaUserId = await getSupabaseUserId();
 
   // ─── Supabase path ───
@@ -163,7 +176,11 @@ export async function saveAnalysis(result: AnalysisResult, userId?: string | nul
     // 1. Upload plot images to Storage bucket
     let plotKeys: string[] = [];
     if (result.plots && typeof result.plots === "object") {
-      plotKeys = await uploadPlotImages(supaUserId, analysisId, result.plots as Record<string, string>);
+      plotKeys = await uploadPlotImages(
+        supaUserId,
+        analysisId,
+        result.plots as Record<string, string>
+      );
     }
 
     // 2. Insert row into analyses table
@@ -186,7 +203,7 @@ export async function saveAnalysis(result: AnalysisResult, userId?: string | nul
       statistics: result.statistics,
       session_conditions: {
         ...result.session_conditions,
-        session_name: result.session_conditions?.session_name || defaultName
+        session_name: result.session_conditions?.session_name || defaultName,
       },
       lap_times: result.lap_times,
       plot_keys: plotKeys,
@@ -247,7 +264,9 @@ export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSu
   if (supaUserId) {
     const { data, error } = await supabase
       .from("analyses")
-      .select("id, created_at, score, grade, lap_time, corners_detected, circuit_name, session_name, session_type")
+      .select(
+        "id, created_at, score, grade, lap_time, corners_detected, circuit_name, session_name, session_type"
+      )
       .eq("user_id", supaUserId)
       .order("created_at", { ascending: false });
 
@@ -257,7 +276,9 @@ export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSu
       try {
         const cache = JSON.parse(localStorage.getItem(`apex_cache_${supaUserId}`) || "[]");
         return cache as AnalysisSummary[];
-      } catch { return []; }
+      } catch {
+        return [];
+      }
     }
 
     const summaries: AnalysisSummary[] = (data || []).map((row: any) => ({
@@ -302,7 +323,9 @@ export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSu
         lap_time: r.lap_time,
         grade: r.performance_score.grade,
         circuit_name: r.session_conditions?.circuit_name || undefined,
-        session_name: r.session_conditions?.session_name || `Session du ${new Date(stored.timestamp).toLocaleDateString("fr-FR")}`,
+        session_name:
+          r.session_conditions?.session_name ||
+          `Session du ${new Date(stored.timestamp).toLocaleDateString("fr-FR")}`,
         session_type: (r as any).session_type || "practice",
       });
     } catch {}
@@ -314,7 +337,10 @@ export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSu
 /**
  * Get a full analysis by ID.
  */
-export async function getAnalysisById(id: string, userId?: string | null): Promise<AnalysisResult | null> {
+export async function getAnalysisById(
+  id: string,
+  userId?: string | null
+): Promise<AnalysisResult | null> {
   if (!id || !id.trim()) return null;
 
   const supaUserId = await getSupabaseUserId();
@@ -343,7 +369,9 @@ export async function getAnalysisById(id: string, userId?: string | null): Promi
     const raw = localStorage.getItem(getItemKey(suffix, id));
     if (!raw) return null;
     return (JSON.parse(raw) as StoredAnalysis).result;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -399,9 +427,14 @@ export async function deleteAnalysis(id: string, userId?: string | null): Promis
     if (!localStorage.getItem(key)) return false;
     localStorage.removeItem(key);
     const index = getAnalysesIndexLS(suffix);
-    saveAnalysesIndexLS(index.filter((x) => x !== id), suffix);
+    saveAnalysesIndexLS(
+      index.filter((x) => x !== id),
+      suffix
+    );
     return true;
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
 
 export async function exportAnalysisAsJSON(id: string, userId?: string | null): Promise<Blob> {
@@ -431,7 +464,9 @@ export async function updateAnalysis(
         session_type: updates.session_type,
         folder_id: updates.folder_id,
         // Update JSONB too if it exists
-        session_conditions: updates.session_name ? { session_name: updates.session_name } : undefined
+        session_conditions: updates.session_name
+          ? { session_name: updates.session_name }
+          : undefined,
       })
       .eq("id", id)
       .eq("user_id", supaUserId);
@@ -445,7 +480,7 @@ export async function updateAnalysis(
     try {
       const cacheKey = `apex_cache_${supaUserId}`;
       const cache = JSON.parse(localStorage.getItem(cacheKey) || "[]") as AnalysisSummary[];
-      const idx = cache.findIndex(a => a.id === id);
+      const idx = cache.findIndex((a) => a.id === id);
       if (idx !== -1) {
         if (updates.session_name) cache[idx].session_name = updates.session_name;
         if (updates.session_type) cache[idx].session_type = updates.session_type;
@@ -464,25 +499,31 @@ export async function updateAnalysis(
     const raw = localStorage.getItem(key);
     if (!raw) return false;
     const stored = JSON.parse(raw) as StoredAnalysis;
-    
+
     if (updates.session_name) {
       stored.result.session_conditions = {
         ...stored.result.session_conditions,
         session_name: updates.session_name,
-        track_condition: stored.result.session_conditions?.track_condition || "dry"
+        track_condition: stored.result.session_conditions?.track_condition || "dry",
       };
     }
     if (updates.session_type) (stored.result as any).session_type = updates.session_type;
-    
+
     localStorage.setItem(key, JSON.stringify(stored));
     return true;
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Download analysis as JSON file.
  */
-export async function downloadAnalysis(id: string, filename?: string, userId?: string | null): Promise<void> {
+export async function downloadAnalysis(
+  id: string,
+  filename?: string,
+  userId?: string | null
+): Promise<void> {
   const blob = await exportAnalysisAsJSON(id, userId);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -535,7 +576,9 @@ export async function clearAllAnalyses(userId?: string | null): Promise<number> 
       await supabase.from("analyses").delete().eq("user_id", supaUserId);
     }
 
-    try { localStorage.removeItem(`apex_cache_${supaUserId}`); } catch {}
+    try {
+      localStorage.removeItem(`apex_cache_${supaUserId}`);
+    } catch {}
     return data?.length ?? 0;
   }
 
@@ -545,7 +588,10 @@ export async function clearAllAnalyses(userId?: string | null): Promise<number> 
   let count = 0;
   const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
   for (const id of index) {
-    try { localStorage.removeItem(prefix + id); count++; } catch {}
+    try {
+      localStorage.removeItem(prefix + id);
+      count++;
+    } catch {}
   }
   localStorage.removeItem(getIndexKey(suffix));
   return count;
@@ -595,7 +641,9 @@ export function getAllFolders(userId?: string | null): AnalysisFolder[] {
   try {
     const raw = localStorage.getItem(getFoldersKeyLS(userId));
     return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 export function saveFolders(folders: AnalysisFolder[], userId?: string | null): void {
@@ -623,7 +671,11 @@ async function syncFoldersToSupabase(folders: AnalysisFolder[]): Promise<void> {
   }
 }
 
-export function createFolder(name: string, parentId: string | null, userId?: string | null): AnalysisFolder {
+export function createFolder(
+  name: string,
+  parentId: string | null,
+  userId?: string | null
+): AnalysisFolder {
   const folders = getAllFolders(userId);
   const folder: AnalysisFolder = {
     id: `folder_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -640,7 +692,10 @@ export function createFolder(name: string, parentId: string | null, userId?: str
 export function renameFolder(folderId: string, newName: string, userId?: string | null): void {
   const folders = getAllFolders(userId);
   const f = folders.find((x) => x.id === folderId);
-  if (f) { f.name = newName; saveFolders(folders, userId); }
+  if (f) {
+    f.name = newName;
+    saveFolders(folders, userId);
+  }
 }
 
 export function deleteFolder(folderId: string, userId?: string | null): void {
@@ -665,7 +720,11 @@ export function deleteFolder(folderId: string, userId?: string | null): void {
   })().catch(() => {});
 }
 
-export function moveAnalysisToFolder(analysisId: string, folderId: string | null, userId?: string | null): void {
+export function moveAnalysisToFolder(
+  analysisId: string,
+  folderId: string | null,
+  userId?: string | null
+): void {
   const folders = getAllFolders(userId);
   for (const f of folders) f.analysisIds = f.analysisIds.filter((id) => id !== analysisId);
   if (folderId) {
@@ -678,7 +737,11 @@ export function moveAnalysisToFolder(analysisId: string, folderId: string | null
   (async () => {
     const supaUserId = await getSupabaseUserId();
     if (supaUserId) {
-      await supabase.from("analyses").update({ folder_id: folderId }).eq("id", analysisId).eq("user_id", supaUserId);
+      await supabase
+        .from("analyses")
+        .update({ folder_id: folderId })
+        .eq("id", analysisId)
+        .eq("user_id", supaUserId);
     }
   })().catch(() => {});
 }
@@ -701,16 +764,22 @@ const OBJECTIVES_KEY_PREFIX = "apex_objectives_";
 export function getObjectives(userId?: string | null): UserObjective[] {
   try {
     const raw = localStorage.getItem(`${OBJECTIVES_KEY_PREFIX}${getStorageSuffix(userId)}`);
-    if (!raw) return [
-      { id: "score", label: "Score de", targetValue: 85, currentValue: 0, unit: "/100" },
-      { id: "laptime", label: "Passer sous", targetValue: 49, currentValue: 0, unit: "s" },
-    ];
+    if (!raw)
+      return [
+        { id: "score", label: "Score de", targetValue: 85, currentValue: 0, unit: "/100" },
+        { id: "laptime", label: "Passer sous", targetValue: 49, currentValue: 0, unit: "s" },
+      ];
     return JSON.parse(raw) as UserObjective[];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 export function saveObjectives(objectives: UserObjective[], userId?: string | null): void {
-  localStorage.setItem(`${OBJECTIVES_KEY_PREFIX}${getStorageSuffix(userId)}`, JSON.stringify(objectives));
+  localStorage.setItem(
+    `${OBJECTIVES_KEY_PREFIX}${getStorageSuffix(userId)}`,
+    JSON.stringify(objectives)
+  );
 }
 
 // ============================================================================

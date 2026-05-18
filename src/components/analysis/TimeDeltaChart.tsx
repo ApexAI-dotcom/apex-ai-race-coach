@@ -60,7 +60,12 @@ export function TimeDeltaChart({ data, circuitName = null }: TimeDeltaChartProps
               tickFormatter={(v) => `${v >= 0 ? "+" : ""}${v}s`}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: 8,
+                color: "hsl(var(--foreground))",
+              }}
               itemStyle={{ color: "hsl(var(--foreground))" }}
               labelStyle={{ color: "hsl(var(--muted-foreground))" }}
               formatter={(value: number) => [

@@ -26,7 +26,7 @@ import {
   Droplets,
   CloudDrizzle,
   Flag,
-  Car
+  Car,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -37,7 +37,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell
+  Cell,
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,11 +88,11 @@ function formatLapTime(seconds: number): string {
 
 // Étapes de progression affichées pendant l'analyse
 const ANALYSIS_STEPS = [
-  { icon: Wifi,      message: "Connexion au serveur…",              duration: 1200 },
-  { icon: Upload,    message: "Téléchargement du fichier CSV…",     duration: 1500 },
-  { icon: Brain,     message: "L'IA analyse vos apices…",           duration: 3000 },
-  { icon: BarChart3, message: "Calcul du score de performance…",    duration: 2000 },
-  { icon: Target,    message: "Génération des graphiques…",         duration: 1500 },
+  { icon: Wifi, message: "Connexion au serveur…", duration: 1200 },
+  { icon: Upload, message: "Téléchargement du fichier CSV…", duration: 1500 },
+  { icon: Brain, message: "L'IA analyse vos apices…", duration: 3000 },
+  { icon: BarChart3, message: "Calcul du score de performance…", duration: 2000 },
+  { icon: Target, message: "Génération des graphiques…", duration: 1500 },
 ];
 
 function mapApiResultToResponse(result: AnalysisResult | null): any {
@@ -102,35 +102,43 @@ function mapApiResultToResponse(result: AnalysisResult | null): any {
     performance_score: {
       ...result.performance_score,
       breakdown: result.performance_score.breakdown || {},
-      percentile: result.performance_score.percentile || 0
+      percentile: result.performance_score.percentile || 0,
     },
     best_lap_time: result.best_lap_time || result.lap_time || 0,
     lap_times: result.lap_times || [result.lap_time],
-    statistics: result.statistics || {}
+    statistics: result.statistics || {},
   };
 }
 
 // ─── Composant ────────────────────────────────────────────────────────────────
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const navigate = useNavigate();
-  const { user, session, isAuthenticated, canUploadFree, guestUsed, guestUpload, consumeGuestSlot } = useAuth();
+  const {
+    user,
+    session,
+    isAuthenticated,
+    canUploadFree,
+    guestUsed,
+    guestUpload,
+    consumeGuestSlot,
+  } = useAuth();
   const { tier, status, limits, fetchSubscription, incrementAnalysesUsed } = useSubscription();
   const canUpload = isAuthenticated || canUploadFree;
   const storageUserId = user?.id ?? undefined;
 
   const isPaidTier = tier === "racer" || tier === "team";
-  
+
   // Bloqué si Rookie (ou visitor) & limite atteinte
-  const isFreeAtLimit = 
-    !isPaidTier && 
-    limits?.analyses_per_month != null && 
-    (limits.analyses_used >= limits.analyses_per_month);
+  const isFreeAtLimit =
+    !isPaidTier &&
+    limits?.analyses_per_month != null &&
+    limits.analyses_used >= limits.analyses_per_month;
 
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [laps, setLaps] = useState<LapInfo[] | null>(null);
   const [lapsLoading, setLapsLoading] = useState(false);
-  
+
   // Nouveaux champs pour la session
   const [sessionName, setSessionName] = useState<string>(() => {
     const today = new Date();
@@ -176,7 +184,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   // ─── Chargement initial du compteur ──────────────────────────────────────
 
   useEffect(() => {
-    getAnalysesCount(storageUserId).then(setAnalysesCount).catch(() => {});
+    getAnalysesCount(storageUserId)
+      .then(setAnalysesCount)
+      .catch(() => {});
   }, [storageUserId]);
 
   // ─── Détection des tours (parse-laps) à la sélection du fichier ───────────
@@ -274,7 +284,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     setSavedAnalysisId(null);
     setSaveSuccess(null);
     setAnalysisStepIndex(0);
-    getAnalysesCount(storageUserId).then(setAnalysesCount).catch(() => {});
+    getAnalysesCount(storageUserId)
+      .then(setAnalysesCount)
+      .catch(() => {});
   };
 
   // ─── Sauvegarde manuelle (si l'auto-save a échoué) ───────────────────────
@@ -371,9 +383,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
       // Upload + analyse
       const tempNum =
-        trackTemperature === "" || trackTemperature == null
-          ? undefined
-          : Number(trackTemperature);
+        trackTemperature === "" || trackTemperature == null ? undefined : Number(trackTemperature);
 
       const analysisResult = await uploadAndAnalyzeCSV(file, {
         lapFilter: undefined, // Analysis operates on full session now
@@ -385,7 +395,11 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       } as any);
 
       // 2. Circuit check for Rookie
-      if (tier === "rookie" && limits?.allowed_circuit && analysisResult.session_conditions?.circuit_name) {
+      if (
+        tier === "rookie" &&
+        limits?.allowed_circuit &&
+        analysisResult.session_conditions?.circuit_name
+      ) {
         if (analysisResult.session_conditions.circuit_name !== limits.allowed_circuit) {
           // If different circuit, we still save it but it will be blurred in results
           toast({
@@ -428,7 +442,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         setShowLimitReachedModal(true);
       } else {
         setError(
-          apiError?.message ?? "Une erreur inattendue s'est produite. Réessayez dans quelques instants."
+          apiError?.message ??
+            "Une erreur inattendue s'est produite. Réessayez dans quelques instants."
         );
       }
     }
@@ -478,19 +493,26 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   {limits.analyses_used}/{limits.analyses_per_month}
                 </span>
               </div>
-              <Progress value={(limits.analyses_used / (limits.analyses_per_month || 1)) * 100} className="h-1" />
-              {limits.analyses_per_month != null && (limits.analyses_per_month - (limits.analyses_used)) > 0 && (
-                <span className="text-[10px] italic">
-                  {limits.analyses_per_month - (limits.analyses_used)} analyse{limits.analyses_per_month - (limits.analyses_used) > 1 ? 's' : ''} restante{limits.analyses_per_month - (limits.analyses_used) > 1 ? 's' : ''}
-                </span>
-              )}
+              <Progress
+                value={(limits.analyses_used / (limits.analyses_per_month || 1)) * 100}
+                className="h-1"
+              />
+              {limits.analyses_per_month != null &&
+                limits.analyses_per_month - limits.analyses_used > 0 && (
+                  <span className="text-[10px] italic">
+                    {limits.analyses_per_month - limits.analyses_used} analyse
+                    {limits.analyses_per_month - limits.analyses_used > 1 ? "s" : ""} restante
+                    {limits.analyses_per_month - limits.analyses_used > 1 ? "s" : ""}
+                  </span>
+                )}
             </div>
           )}
-          
+
           <div className="flex items-center gap-2">
             <Database className="w-4 h-4" />
             <span>
-              {analysesCount} analyse{analysesCount > 1 ? "s" : ""} sauvegardée{analysesCount > 1 ? "s" : ""} total
+              {analysesCount} analyse{analysesCount > 1 ? "s" : ""} sauvegardée
+              {analysesCount > 1 ? "s" : ""} total
             </span>
           </div>
         </motion.div>
@@ -519,12 +541,11 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Limite atteinte</DialogTitle>
-            <DialogDescription>
-              Passez à Racer pour des analyses illimitées.
-            </DialogDescription>
+            <DialogDescription>Passez à Racer pour des analyses illimitées.</DialogDescription>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Vous avez utilisé vos 3 analyses du mois. Passez au plan Racer pour analyser sans limite.
+            Vous avez utilisé vos 3 analyses du mois. Passez au plan Racer pour analyser sans
+            limite.
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowLimitReachedModal(false)}>
@@ -567,7 +588,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
       {/* ── Contenu principal ── */}
       <AnimatePresence mode="wait">
-
         {/* État : Résultats affichés */}
         {isComplete && result ? (
           <motion.div
@@ -597,8 +617,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     {result.session_conditions.track_condition === "rain" && "🌧️"}
                   </span>
                   <span>
-                    Conditions :{" "}
-                    {result.session_conditions.track_condition === "dry" && "Sec"}
+                    Conditions : {result.session_conditions.track_condition === "dry" && "Sec"}
                     {result.session_conditions.track_condition === "damp" && "Humide"}
                     {result.session_conditions.track_condition === "wet" && "Mouillée"}
                     {result.session_conditions.track_condition === "rain" && "Pluie"}
@@ -652,10 +671,26 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
-                    { label: "Précision Apex", value: result.performance_score.breakdown.apex_precision, max: 30 },
-                    { label: "Régularité",     value: result.performance_score.breakdown.trajectory_consistency, max: 25 },
-                    { label: "Vitesse Apex",   value: result.performance_score.breakdown.apex_speed, max: 25 },
-                    { label: "Temps Secteurs", value: result.performance_score.breakdown.sector_times, max: 20 },
+                    {
+                      label: "Précision Apex",
+                      value: result.performance_score.breakdown.apex_precision,
+                      max: 30,
+                    },
+                    {
+                      label: "Régularité",
+                      value: result.performance_score.breakdown.trajectory_consistency,
+                      max: 25,
+                    },
+                    {
+                      label: "Vitesse Apex",
+                      value: result.performance_score.breakdown.apex_speed,
+                      max: 25,
+                    },
+                    {
+                      label: "Temps Secteurs",
+                      value: result.performance_score.breakdown.sector_times,
+                      max: 20,
+                    },
                   ].map(({ label, value, max }) => (
                     <div key={label} className="text-center p-3 rounded-lg bg-secondary/50">
                       <div className="text-xs text-muted-foreground mb-1">{label}</div>
@@ -679,13 +714,17 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-2xl font-bold text-green-500">
-                      {(result.statistics.fastest_lap_number != null ? 
-                         result.lap_times?.[result.statistics.fastest_lap_number - 1] ?? result.best_lap_time :
-                         result.best_lap_time
-                      )?.toFixed(3) ?? "—"}s
+                      {(result.statistics.fastest_lap_number != null
+                        ? (result.lap_times?.[result.statistics.fastest_lap_number - 1] ??
+                          result.best_lap_time)
+                        : result.best_lap_time
+                      )?.toFixed(3) ?? "—"}
+                      s
                     </span>
                     <span className="text-sm text-muted-foreground">
-                      {result.statistics.fastest_lap_number ? `Tour ${result.statistics.fastest_lap_number}` : ""}
+                      {result.statistics.fastest_lap_number
+                        ? `Tour ${result.statistics.fastest_lap_number}`
+                        : ""}
                     </span>
                   </div>
                 </CardContent>
@@ -721,7 +760,9 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                       })()}
                     </span>
                     <span className="text-sm text-muted-foreground">
-                      {result.statistics.max_speed_lap ? `Tour ${result.statistics.max_speed_lap}` : ""}
+                      {result.statistics.max_speed_lap
+                        ? `Tour ${result.statistics.max_speed_lap}`
+                        : ""}
                     </span>
                   </div>
                 </CardContent>
@@ -776,12 +817,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
             </div>
 
             {/* Graphiques Recharts — sans wrapper Card */}
-            <AnalysisDashboardContent
-              analysis={mapApiResultToResponse(result)}
-              embedded
-            />
+            <AnalysisDashboardContent analysis={mapApiResultToResponse(result)} embedded />
           </motion.div>
-
         ) : isAnalyzing ? (
           /* ── État : Analyse en cours ── */
           <motion.div
@@ -838,7 +875,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               </p>
             </div>
           </motion.div>
-
         ) : (
           /* ── État : Upload ── */
           <motion.div
@@ -890,13 +926,16 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 <div className="flex flex-col items-center">
                   <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center mb-4">
                     <Upload className="w-8 h-8 text-muted-foreground" />
-                  </div>      <p className="text-lg font-medium text-foreground mb-1">
+                  </div>{" "}
+                  <p className="text-lg font-medium text-foreground mb-1">
                     Glissez votre fichier CSV ici
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">ou cliquez pour sélectionner</p>
                   <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground mb-3">
                     {["MyChron 5", "MyChron 6", "AiM", "RaceBox"].map((label) => (
-                      <span key={label} className="px-2 py-1 rounded bg-secondary">{label}</span>
+                      <span key={label} className="px-2 py-1 rounded bg-secondary">
+                        {label}
+                      </span>
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground/80 max-w-sm text-balance">
@@ -911,9 +950,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               <Card className="mt-6 glass-card border-white/10 w-full max-w-2xl mx-auto">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Informations de Session</CardTitle>
-                  <CardDescription>
-                    Configurez l'analyse avant le lancement
-                  </CardDescription>
+                  <CardDescription>Configurez l'analyse avant le lancement</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0 space-y-6">
                   {/* Nom de Session */}
@@ -973,20 +1010,18 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                         className="w-full max-w-[150px] p-2 rounded-lg bg-secondary/50 border border-white/10 text-foreground placeholder:text-muted-foreground"
                       />
                     </div>
-                    
+
                     {/* Type de session */}
                     <div className="mt-6">
                       <label className="text-sm font-medium text-foreground block mb-3">
                         Type de session
                       </label>
                       <div className="flex flex-wrap gap-2">
-                        {(
-                          [
-                            { value: "practice", label: "Essais", Icon: Car },
-                            { value: "qualifying", label: "Qualifications", Icon: Clock },
-                            { value: "race", label: "Course", Icon: Flag },
-                          ]
-                        ).map(({ value, label, Icon }) => (
+                        {[
+                          { value: "practice", label: "Essais", Icon: Car },
+                          { value: "qualifying", label: "Qualifications", Icon: Clock },
+                          { value: "race", label: "Course", Icon: Flag },
+                        ].map(({ value, label, Icon }) => (
                           <button
                             key={value}
                             type="button"
@@ -1081,94 +1116,99 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       </AnimatePresence>
 
       {/* Modal lightbox pour graphiques */}
-      {modalImage && createPortal(
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 99999,
-            backgroundColor: 'rgba(0, 0, 0, 0.88)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onClick={() => setModalImage(null)}
-        >
+      {modalImage &&
+        createPortal(
           <div
             style={{
-              position: 'relative',
-              maxWidth: '95vw',
-              maxHeight: '92vh',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '16px',
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 99999,
+              backgroundColor: "rgba(0, 0, 0, 0.88)",
+              backdropFilter: "blur(6px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={() => setModalImage(null)}
           >
-            {/* Barre titre + bouton fermer */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
-              minWidth: '300px',
-            }}>
-              <p style={{
-                color: '#e2e8f0',
-                fontWeight: 600,
-                fontSize: '15px',
-                margin: 0,
-                flex: 1,
-              }}>
-                {modalTitle}
-              </p>
-              <button
-                style={{
-                  background: '#374151',
-                  border: 'none',
-                  color: 'white',
-                  borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
-                  cursor: 'pointer',
-                  fontSize: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: '12px',
-                  flexShrink: 0,
-                }}
-                onClick={() => setModalImage(null)}
-              >
-                ✕
-              </button>
-            </div>
-            {/* Image */}
-            <img
-              src={modalImage}
-              alt={modalTitle}
+            <div
               style={{
-                maxWidth: '100%',
-                maxHeight: '80vh',
-                objectFit: 'contain',
-                borderRadius: '8px',
-                boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+                position: "relative",
+                maxWidth: "95vw",
+                maxHeight: "92vh",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "12px",
+                padding: "16px",
               }}
               onClick={(e) => e.stopPropagation()}
-            />
-            <p style={{ color: '#64748b', fontSize: '11px', margin: 0 }}>
-              Cliquer en dehors pour fermer · ESC pour fermer
-            </p>
-          </div>
-        </div>,
-        document.body
-      )}
+            >
+              {/* Barre titre + bouton fermer */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                  minWidth: "300px",
+                }}
+              >
+                <p
+                  style={{
+                    color: "#e2e8f0",
+                    fontWeight: 600,
+                    fontSize: "15px",
+                    margin: 0,
+                    flex: 1,
+                  }}
+                >
+                  {modalTitle}
+                </p>
+                <button
+                  style={{
+                    background: "#374151",
+                    border: "none",
+                    color: "white",
+                    borderRadius: "50%",
+                    width: "32px",
+                    height: "32px",
+                    cursor: "pointer",
+                    fontSize: "18px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginLeft: "12px",
+                    flexShrink: 0,
+                  }}
+                  onClick={() => setModalImage(null)}
+                >
+                  ✕
+                </button>
+              </div>
+              {/* Image */}
+              <img
+                src={modalImage}
+                alt={modalTitle}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "80vh",
+                  objectFit: "contain",
+                  borderRadius: "8px",
+                  boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <p style={{ color: "#64748b", fontSize: "11px", margin: 0 }}>
+                Cliquer en dehors pour fermer · ESC pour fermer
+              </p>
+            </div>
+          </div>,
+          document.body
+        )}
     </motion.div>
   );
 };

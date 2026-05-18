@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import type { TrajectoryCorner, TrajectoryLap } from '@/types/analysis';
+import { useMemo } from "react";
+import type { TrajectoryCorner, TrajectoryLap } from "@/types/analysis";
 
 export const SVG_W = 900;
 export const SVG_H = 650;
@@ -30,8 +30,14 @@ export interface TrackBounds {
   lonScale: number;
 }
 
-export function computeBounds(laps: TrajectoryLap[], corners: TrajectoryCorner[]): TrackBounds | null {
-  let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
+export function computeBounds(
+  laps: TrajectoryLap[],
+  corners: TrajectoryCorner[]
+): TrackBounds | null {
+  let minLat = Infinity,
+    maxLat = -Infinity,
+    minLon = Infinity,
+    maxLon = -Infinity;
   let hasData = false;
 
   const update = (lat: number | null | undefined, lon: number | null | undefined) => {
@@ -65,8 +71,8 @@ export function computeBounds(laps: TrajectoryLap[], corners: TrajectoryCorner[]
   return {
     minLat: midLat - latSpan / 2,
     maxLat: midLat + latSpan / 2,
-    minLon: midLon - (lonSpan / lonScale) / 2,
-    maxLon: midLon + (lonSpan / lonScale) / 2,
+    minLon: midLon - lonSpan / lonScale / 2,
+    maxLon: midLon + lonSpan / lonScale / 2,
     latSpan,
     lonSpan,
     lonScale,
@@ -94,7 +100,7 @@ export function useTrackMapGeometry(laps: TrajectoryLap[], corners: TrajectoryCo
       return {
         bounds: null,
         project: () => [0, 0] as [number, number],
-        projectedCorners: [] as ProjectedCorner[]
+        projectedCorners: [] as ProjectedCorner[],
       };
     }
 

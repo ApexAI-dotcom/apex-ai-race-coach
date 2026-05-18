@@ -1,8 +1,15 @@
 /**
  * TrackMapPro — Dynamic legend
  */
-import type { TrackMapProfile } from '@/types/analysis';
-import { APEX_ORANGE, APEX_RED, TRACK_GREEN, TRACK_GRAY, TRACK_YELLOW, MODEL_GOLD } from './trackMapColors';
+import type { TrackMapProfile } from "@/types/analysis";
+import {
+  APEX_ORANGE,
+  APEX_RED,
+  TRACK_GREEN,
+  TRACK_GRAY,
+  TRACK_YELLOW,
+  MODEL_GOLD,
+} from "./trackMapColors";
 
 interface TrackMapLegendProps {
   profile: TrackMapProfile;
@@ -24,7 +31,7 @@ export function TrackMapLegend({
   return (
     <div className="flex flex-wrap items-center gap-3 px-2 py-1.5 text-[10px] text-muted-foreground">
       {/* Speed legend */}
-      {(profile === 'speed' || profile === 'complete') && (
+      {(profile === "speed" || profile === "complete") && (
         <div className="flex items-center gap-2">
           <span>{Math.round(speedMin)} km/h</span>
           <div
@@ -38,7 +45,7 @@ export function TrackMapLegend({
       )}
 
       {/* Braking legend */}
-      {profile === 'braking' && (
+      {profile === "braking" && (
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: APEX_RED }} />
@@ -56,7 +63,7 @@ export function TrackMapLegend({
       )}
 
       {/* Complete mode legend addon */}
-      {profile === 'complete' && (
+      {profile === "complete" && (
         <div className="flex items-center gap-3 border-l border-white/10 pl-3">
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-1.5 rounded-full" style={{ background: APEX_RED }} />
@@ -66,7 +73,7 @@ export function TrackMapLegend({
       )}
 
       {/* Compare legend */}
-      {profile === 'compare' && (
+      {profile === "compare" && (
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: APEX_ORANGE }} />
@@ -79,7 +86,10 @@ export function TrackMapLegend({
             </div>
           ) : comparisonLabel ? (
             <div className="flex items-center gap-1">
-              <div className="w-2.5 h-2.5 rounded-sm border border-white/30" style={{ background: 'rgba(255,255,255,0.3)' }} />
+              <div
+                className="w-2.5 h-2.5 rounded-sm border border-white/30"
+                style={{ background: "rgba(255,255,255,0.3)" }}
+              />
               <span>{comparisonLabel}</span>
             </div>
           ) : null}
@@ -87,7 +97,7 @@ export function TrackMapLegend({
       )}
 
       {/* Persistent AI Lap legend if synthetic overlay is active */}
-      {showSynthetic && profile !== 'compare' && (
+      {showSynthetic && profile !== "compare" && (
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: MODEL_GOLD }} />

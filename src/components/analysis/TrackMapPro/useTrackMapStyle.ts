@@ -1,7 +1,15 @@
-import { useMemo } from 'react';
-import type { TrajectoryLap, TrackMapProfile } from '@/types/analysis';
-import { speedToColor, brakingSegmentColor, brakingPhase, type BrakingPhase, APEX_RED, TRACK_GREEN, TRACK_GRAY } from './trackMapColors';
-import type { ProjectedPoint, ColoredSegment } from './useTrackMapGeometry';
+import { useMemo } from "react";
+import type { TrajectoryLap, TrackMapProfile } from "@/types/analysis";
+import {
+  speedToColor,
+  brakingSegmentColor,
+  brakingPhase,
+  type BrakingPhase,
+  APEX_RED,
+  TRACK_GREEN,
+  TRACK_GRAY,
+} from "./trackMapColors";
+import type { ProjectedPoint, ColoredSegment } from "./useTrackMapGeometry";
 
 export interface LapProjection {
   lap: TrajectoryLap;
@@ -19,7 +27,7 @@ export function buildLapProjection(
   profile: TrackMapProfile,
   globalSpeedMin: number,
   globalSpeedMax: number,
-  globalSpeedMedian?: number,
+  globalSpeedMedian?: number
 ): LapProjection {
   const pts: ProjectedPoint[] = [];
   const segments: ColoredSegment[] = [];
@@ -30,7 +38,8 @@ export function buildLapProjection(
   const throttles = lap.throttle_pct ?? [];
   const brakes = lap.brake_pct ?? [];
 
-  let sMin = Infinity, sMax = -Infinity;
+  let sMin = Infinity,
+    sMax = -Infinity;
 
   for (let i = 0; i < n; i++) {
     const lt = lap.lat[i];
@@ -60,30 +69,39 @@ export function buildLapProjection(
     const s1 = speeds[i] ?? 0;
     const s2 = speeds[Math.min(i + 2, speeds.length - 1)] ?? s1;
     const dv = s2 - s1;
-    
-    const hasPedals = throttles.some(t => t > 0) || brakes.some(b => b > 0);
 
-    if (profile === 'speed' || profile === 'complete') {
+    const hasPedals = throttles.some((t) => t > 0) || brakes.some((b) => b > 0);
+
+    if (profile === "speed" || profile === "complete") {
       color = speedToColor(avgSpeed, globalSpeedMin, globalSpeedMax, globalSpeedMedian);
-      phase = dv < -0.3 ? 'braking' : dv > 0.3 ? 'acceleration' : 'coasting';
-    } else if (profile === 'braking') {
+      phase = dv < -0.3 ? "braking" : dv > 0.3 ? "acceleration" : "coasting";
+    } else if (profile === "braking") {
       if (hasPedals) {
         const thr = ((throttles[i] ?? 0) + (throttles[i + 1] ?? 0)) / 2;
         const brk = ((brakes[i] ?? 0) + (brakes[i + 1] ?? 0)) / 2;
         color = brakingSegmentColor(thr, brk);
         phase = brakingPhase(thr, brk);
       } else {
-        if (dv < -0.5) { phase = 'braking'; color = APEX_RED; }
-        else if (dv > 0.5) { phase = 'acceleration'; color = TRACK_GREEN; }
-        else { phase = 'coasting'; color = TRACK_GRAY; }
+        if (dv < -0.5) {
+          phase = "braking";
+          color = APEX_RED;
+        } else if (dv > 0.5) {
+          phase = "acceleration";
+          color = TRACK_GREEN;
+        } else {
+          phase = "coasting";
+          color = TRACK_GRAY;
+        }
       }
     } else {
-      color = '#f97316'; // orange default for reference lines
+      color = "#f97316"; // orange default for reference lines
     }
 
     segments.push({
-      x1: p1.x, y1: p1.y,
-      x2: p2.x, y2: p2.y,
+      x1: p1.x,
+      y1: p1.y,
+      x2: p2.x,
+      y2: p2.y,
       color,
       speed: avgSpeed,
       phase,
@@ -94,7 +112,7 @@ export function buildLapProjection(
   return {
     lap,
     points: pts,
-    polyline: polyParts.join(' '),
+    polyline: polyParts.join(" "),
     segments,
     speedMin: sMin === Infinity ? 0 : sMin,
     speedMax: sMax === -Infinity ? 100 : sMax,
@@ -103,7 +121,9 @@ export function buildLapProjection(
 }
 
 export function computeGlobalSpeedBounds(laps: TrajectoryLap[]) {
-  let globalMin = 40, globalMax = 100, globalMedian = 70;
+  let globalMin = 40,
+    globalMax = 100,
+    globalMedian = 70;
   const allSpeeds: number[] = [];
   for (const lap of laps) {
     if (!lap.speed_kmh) continue;

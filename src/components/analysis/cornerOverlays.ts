@@ -57,7 +57,11 @@ function normalizeDistance(rawDistance: number, lapMin: number, lapMax: number):
   return null;
 }
 
-function buildZonesFromApexes(apexes: Array<{ id: string; label: string; apexX: number }>, lapMin: number, lapMax: number): CornerOverlay[] {
+function buildZonesFromApexes(
+  apexes: Array<{ id: string; label: string; apexX: number }>,
+  lapMin: number,
+  lapMax: number
+): CornerOverlay[] {
   if (apexes.length === 0 || lapMax <= lapMin) return [];
 
   const overlays: CornerOverlay[] = [];
@@ -139,14 +143,16 @@ export function buildCornerOverlays(params: {
   // (e.g. 5026..6236), project speed distances into the chart domain.
   const speedStart = lapDistance[0];
   const speedEnd = lapDistance[lapDistance.length - 1];
-  const speedSpan = Number.isFinite(speedStart) && Number.isFinite(speedEnd) ? speedEnd - speedStart : NaN;
+  const speedSpan =
+    Number.isFinite(speedStart) && Number.isFinite(speedEnd) ? speedEnd - speedStart : NaN;
   const domainSpan = lapMax - lapMin;
   const shouldAlignByOffset =
     Number.isFinite(speedSpan) &&
     Math.abs(speedSpan - domainSpan) < 120 &&
     Number.isFinite(speedStart) &&
     Math.abs(speedStart - lapMin) > 120;
-  const speedDistanceOffset = shouldAlignByOffset && Number.isFinite(speedStart) ? speedStart - lapMin : 0;
+  const speedDistanceOffset =
+    shouldAlignByOffset && Number.isFinite(speedStart) ? speedStart - lapMin : 0;
   const toChartDistance = (value: number): number => value - speedDistanceOffset;
 
   const apexes: Array<{ id: string; label: string; apexX: number; order: number }> = [];
@@ -199,7 +205,11 @@ export function buildCornerOverlays(params: {
   }
 
   const gpsMarkers = computeCornerMarkersFromGPS(
-    trajectoryLaps.map((lap) => ({ lat: lap.lat ?? [], lon: lap.lon ?? [], is_synthetic: lap.is_synthetic })),
+    trajectoryLaps.map((lap) => ({
+      lat: lap.lat ?? [],
+      lon: lap.lon ?? [],
+      is_synthetic: lap.is_synthetic,
+    })),
     trajectoryCorners.map((corner) => ({ lat: corner.lat, lon: corner.lon, label: corner.label })),
     lapMin
   );
@@ -216,7 +226,12 @@ export function buildCornerOverlays(params: {
     });
   }
 
-  if (apexes.length === 0 && lapDistance.length > 5 && lapSpeeds.length > 5 && trajectoryCorners.length > 0) {
+  if (
+    apexes.length === 0 &&
+    lapDistance.length > 5 &&
+    lapSpeeds.length > 5 &&
+    trajectoryCorners.length > 0
+  ) {
     const speedMarkers = computeCornerMarkersFromSpeed(
       lapDistance,
       lapSpeeds,
@@ -252,12 +267,17 @@ export function buildCornerOverlays(params: {
 
   if (apexes.length === 0) return [];
 
-  const uniqueByLabel = new Map<string, { id: string; label: string; apexX: number; order: number }>();
+  const uniqueByLabel = new Map<
+    string,
+    { id: string; label: string; apexX: number; order: number }
+  >();
   for (const apex of apexes) {
     if (!uniqueByLabel.has(apex.label)) uniqueByLabel.set(apex.label, apex);
   }
 
-  const sorted = Array.from(uniqueByLabel.values()).sort((a, b) => a.apexX - b.apexX || a.order - b.order);
+  const sorted = Array.from(uniqueByLabel.values()).sort(
+    (a, b) => a.apexX - b.apexX || a.order - b.order
+  );
   return buildZonesFromApexes(
     sorted.map(({ id, label, apexX }) => ({ id, label, apexX })),
     lapMin,

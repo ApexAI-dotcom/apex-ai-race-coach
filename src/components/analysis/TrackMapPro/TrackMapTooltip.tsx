@@ -58,7 +58,9 @@ export function TrackMapTooltip({
       <div className="space-y-0.5 text-[11px]">
         {speed !== undefined && (
           <div className="flex justify-between gap-4">
-            <span className="text-muted-foreground">{isSynthetic ? 'Vitesse cible' : 'Vitesse'}</span>
+            <span className="text-muted-foreground">
+              {isSynthetic ? "Vitesse cible" : "Vitesse"}
+            </span>
             <span className="font-medium text-foreground">{speed.toFixed(1)} km/h</span>
           </div>
         )}

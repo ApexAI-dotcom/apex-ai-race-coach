@@ -96,9 +96,18 @@ export interface CornerAnalysis {
 }
 
 const CORNER_KEYS: (keyof CornerAnalysis)[] = [
-  "corner_id", "corner_number", "corner_type", "apex_speed_real", "apex_speed_optimal",
-  "speed_efficiency", "apex_distance_error", "apex_direction_error", "lateral_g_max",
-  "time_lost", "grade", "score"
+  "corner_id",
+  "corner_number",
+  "corner_type",
+  "apex_speed_real",
+  "apex_speed_optimal",
+  "speed_efficiency",
+  "apex_distance_error",
+  "apex_direction_error",
+  "lateral_g_max",
+  "time_lost",
+  "grade",
+  "score",
 ];
 
 /**
@@ -118,7 +127,10 @@ export function mapCornerData(raw: Record<string, unknown>): CornerAnalysis {
   }
   for (const k of CORNER_KEYS) {
     if (k === "corner_type" || k === "apex_distance_error" || k === "time_lost") continue;
-    if (raw[k] === undefined && (k === "corner_id" || k === "corner_number" || k === "grade" || k === "score")) {
+    if (
+      raw[k] === undefined &&
+      (k === "corner_id" || k === "corner_number" || k === "grade" || k === "score")
+    ) {
       console.warn("[ApexAI] corner: missing expected key", k);
     }
   }
@@ -141,10 +153,13 @@ export function mapCornerData(raw: Record<string, unknown>): CornerAnalysis {
     target_exit_speed: raw.target_exit_speed != null ? Number(raw.target_exit_speed) : undefined,
     label: raw.label != null ? String(raw.label) : undefined,
     avg_note: raw.avg_note != null ? String(raw.avg_note) : undefined,
-    per_lap_data: Array.isArray(raw.per_lap_data) ? (raw.per_lap_data as PerLapCornerData[]) : undefined,
+    per_lap_data: Array.isArray(raw.per_lap_data)
+      ? (raw.per_lap_data as PerLapCornerData[])
+      : undefined,
     apex_lat: raw.apex_lat != null ? Number(raw.apex_lat) : undefined,
     apex_lon: raw.apex_lon != null ? Number(raw.apex_lon) : undefined,
-    avg_cumulative_distance: raw.avg_cumulative_distance != null ? Number(raw.avg_cumulative_distance) : undefined,
+    avg_cumulative_distance:
+      raw.avg_cumulative_distance != null ? Number(raw.avg_cumulative_distance) : undefined,
   };
 }
 
@@ -334,7 +349,8 @@ function handleFetchError(error: unknown, context: string): ApiError {
       return {
         success: false,
         error: "timeout",
-        message: "L'analyse a pris trop de temps (timeout adaptatif 30-120s). Le fichier est peut-être extrêmement volumineux ou le serveur est saturé.",
+        message:
+          "L'analyse a pris trop de temps (timeout adaptatif 30-120s). Le fichier est peut-être extrêmement volumineux ou le serveur est saturé.",
       };
     }
 
@@ -417,9 +433,10 @@ export async function uploadAndAnalyzeCSV(
   if (options?.lapFilter && options.lapFilter.length > 0) {
     formData.append("lap_filter", JSON.stringify(options.lapFilter));
   }
-  const cond = options?.track_condition && ["dry", "damp", "wet", "rain"].includes(options.track_condition)
-    ? options.track_condition
-    : "dry";
+  const cond =
+    options?.track_condition && ["dry", "damp", "wet", "rain"].includes(options.track_condition)
+      ? options.track_condition
+      : "dry";
   formData.append("track_condition", cond);
   if (options?.track_temperature != null && Number.isFinite(options.track_temperature)) {
     formData.append("track_temperature", String(options.track_temperature));
@@ -458,14 +475,14 @@ export async function uploadAndAnalyzeCSV(
         const errorJson = await parseJSONResponse<{ detail?: ApiError } & ApiError>(response);
         const d = errorJson.detail ?? errorJson;
         const isRateLimit = response.status === 429;
-        const defaultMsg = typeof d.error === 'string' && !d.message ? d.error : d.message;
-        
+        const defaultMsg = typeof d.error === "string" && !d.message ? d.error : d.message;
+
         errorData = {
           success: false,
-          error: isRateLimit ? "rate_limit" : (d.error || "http_error"),
-          message: isRateLimit 
-            ? "Limite de requêtes atteinte. Veuillez patienter un instant avant de réessayer." 
-            : (defaultMsg || `Erreur HTTP ${response.status}`),
+          error: isRateLimit ? "rate_limit" : d.error || "http_error",
+          message: isRateLimit
+            ? "Limite de requêtes atteinte. Veuillez patienter un instant avant de réessayer."
+            : defaultMsg || `Erreur HTTP ${response.status}`,
           details: d.details,
         };
       } catch {
@@ -485,10 +502,14 @@ export async function uploadAndAnalyzeCSV(
 
     // Normaliser les clés backend (corner_type, apex_distance_error, time_lost)
     if (Array.isArray(result.corner_analysis)) {
-      result.corner_analysis = (result.corner_analysis as unknown[]).map((c) => mapCornerData(c as Record<string, unknown>));
+      result.corner_analysis = (result.corner_analysis as unknown[]).map((c) =>
+        mapCornerData(c as Record<string, unknown>)
+      );
     }
     if (Array.isArray(result.coaching_advice)) {
-      result.coaching_advice = (result.coaching_advice as unknown[]).map((a) => mapAdviceData(a as Record<string, unknown>));
+      result.coaching_advice = (result.coaching_advice as unknown[]).map((a) =>
+        mapAdviceData(a as Record<string, unknown>)
+      );
     }
 
     // Vérifier que la réponse contient success: true
@@ -537,21 +558,25 @@ export async function parseLaps(file: File): Promise<ParseLapsResponse> {
     signal: controller.signal,
   });
   if (!response.ok) {
-    const err = (await parseJSONResponse<ApiError>(response).catch(() => ({ }))) as any;
+    const err = (await parseJSONResponse<ApiError>(response).catch(() => ({}))) as any;
     const isRateLimit = response.status === 429;
-    const defaultMsg = typeof err.error === 'string' && !err.message ? err.error : err.message;
+    const defaultMsg = typeof err.error === "string" && !err.message ? err.error : err.message;
 
     throw {
       success: false,
-      error: isRateLimit ? "rate_limit" : (err.error || "http_error"),
-      message: isRateLimit 
+      error: isRateLimit ? "rate_limit" : err.error || "http_error",
+      message: isRateLimit
         ? "Limite de requêtes atteinte. Veuillez patienter un instant."
-        : (defaultMsg || `Erreur ${response.status}`),
+        : defaultMsg || `Erreur ${response.status}`,
     } as ApiError;
   }
   const data = await parseJSONResponse<ParseLapsResponse>(response);
   if (!data.success || !Array.isArray(data.laps)) {
-    throw { success: false, error: "invalid_response", message: "Réponse parse-laps invalide" } as ApiError;
+    throw {
+      success: false,
+      error: "invalid_response",
+      message: "Réponse parse-laps invalide",
+    } as ApiError;
   }
   return data;
 }
@@ -649,11 +674,7 @@ export async function checkBackendConnection(): Promise<boolean> {
 }
 
 /** Clés price_id acceptées par le backend Stripe */
-export type StripePriceId =
-  | "racer_monthly"
-  | "racer_annual"
-  | "team_monthly"
-  | "team_annual";
+export type StripePriceId = "racer_monthly" | "racer_annual" | "team_monthly" | "team_annual";
 
 export interface CreateCheckoutSessionResponse {
   checkout_url: string;
@@ -694,7 +715,9 @@ export interface CreatePortalSessionResponse {
  * Crée une session Stripe Customer Portal pour gérer l'abonnement.
  * Rediriger l'utilisateur vers portal_url après appel réussi.
  */
-export async function createPortalSession(accessToken: string): Promise<CreatePortalSessionResponse> {
+export async function createPortalSession(
+  accessToken: string
+): Promise<CreatePortalSessionResponse> {
   const controller = createTimeoutController(15000);
   const response = await fetch(`${API_BASE_URL}/api/stripe/create-portal-session`, {
     method: "POST",
@@ -802,8 +825,18 @@ export async function fetchHomeTips(): Promise<HomeTipsResponse> {
     return {
       week: 0,
       tips: [
-        { badge: "Nouveau", badge_color: "blue", title: "Optimise tes freinages", body: "Un freinage progressif en 3 temps permet de gagner 0.3s par virage en moyenne." },
-        { badge: "Populaire", badge_color: "purple", title: "Le regard en sortie", body: "Regarde toujours la sortie du virage, pas l'apex. Ta trajectoire suivra ton regard." },
+        {
+          badge: "Nouveau",
+          badge_color: "blue",
+          title: "Optimise tes freinages",
+          body: "Un freinage progressif en 3 temps permet de gagner 0.3s par virage en moyenne.",
+        },
+        {
+          badge: "Populaire",
+          badge_color: "purple",
+          title: "Le regard en sortie",
+          body: "Regarde toujours la sortie du virage, pas l'apex. Ta trajectoire suivra ton regard.",
+        },
       ],
     };
   }
@@ -862,20 +895,20 @@ export interface KartProfile {
   battery_voltage_last: number | null;
   battery_voltage_min_ever: number | null;
   mon_kart_enabled: boolean;
-  driving_profile?: 'longevity' | 'performance' | 'balanced' | 'leisure';
-  
+  driving_profile?: "longevity" | "performance" | "balanced" | "leisure";
+
   engine_model?: string | null;
   engine_preset?: string | null;
   engine_hours_life?: number;
-  
+
   tires_model?: string | null;
   tires_preset?: string | null;
   tires_sessions_life?: number;
-  
+
   brakes_model?: string | null;
   brakes_preset?: string | null;
   brakes_sessions_life?: number;
-  
+
   setup_json?: any;
   saved_setups?: any[];
 }
@@ -903,7 +936,10 @@ export async function getKartProfile(accessToken: string): Promise<KartProfileRe
   return await parseJSONResponse<KartProfileResponse>(response);
 }
 
-export async function updateKartProfile(accessToken: string, updates: Partial<KartProfile>): Promise<{ profile: KartProfile }> {
+export async function updateKartProfile(
+  accessToken: string,
+  updates: Partial<KartProfile>
+): Promise<{ profile: KartProfile }> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/kart/profile`, {
     method: "PUT",
@@ -921,7 +957,11 @@ export async function updateKartProfile(accessToken: string, updates: Partial<Ka
   return await parseJSONResponse<{ profile: KartProfile }>(response);
 }
 
-export async function resetKartComponent(accessToken: string, componentType: "engine" | "tires" | "brakes", notes?: string): Promise<{ profile: KartProfile }> {
+export async function resetKartComponent(
+  accessToken: string,
+  componentType: "engine" | "tires" | "brakes",
+  notes?: string
+): Promise<{ profile: KartProfile }> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/kart/component-reset`, {
     method: "POST",
@@ -939,7 +979,12 @@ export async function resetKartComponent(accessToken: string, componentType: "en
   return await parseJSONResponse<{ profile: KartProfile }>(response);
 }
 
-export async function addKartHistoryEntry(accessToken: string, componentType: string, notes: string, date?: string): Promise<{ entry: any }> {
+export async function addKartHistoryEntry(
+  accessToken: string,
+  componentType: string,
+  notes: string,
+  date?: string
+): Promise<{ entry: any }> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/kart/history/add`, {
     method: "POST",

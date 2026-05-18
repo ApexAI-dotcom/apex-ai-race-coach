@@ -75,10 +75,10 @@ export const PricingCard = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: `${variant}_monthly` }), // pro_monthly, team_monthly
       });
-      
+
       const data = await response.json();
       console.log("Response:", data);
-      
+
       if (data.url) {
         window.location.href = data.url;
       } else {

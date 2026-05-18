@@ -2,13 +2,13 @@
  * TrackMapPro — SVG canvas with profile-aware rendering
  * Renders the main track visualization: colored segments, corners, direction arrows
  */
-import { useCallback, type MouseEvent } from 'react';
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import type { TrackMapProfile } from '@/types/analysis';
-import type { ProjectedCorner } from './useTrackMapGeometry';
-import type { LapProjection, ColoredSegment } from './useTrackMapStyle';
-import { SVG_W, SVG_H } from './useTrackMapGeometry';
-import { APEX_ORANGE, APEX_RED, MODEL_GOLD, TRACK_BG_DARK, REF_WHITE } from './trackMapColors';
+import React, { useCallback, useMemo, type MouseEvent } from "react";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import type { TrackMapProfile } from "@/types/analysis";
+import type { ProjectedCorner } from "./useTrackMapGeometry";
+import type { LapProjection, ColoredSegment } from "./useTrackMapStyle";
+import { SVG_W, SVG_H } from "./useTrackMapGeometry";
+import { APEX_ORANGE, APEX_RED, MODEL_GOLD, TRACK_BG_DARK, REF_WHITE } from "./trackMapColors";
 
 interface TrackMapCanvasProps {
   primary: LapProjection | null;
@@ -33,13 +33,15 @@ function renderSegments(segments: ColoredSegment[], strokeWidth: number, opacity
   const groups: Record<string, string[]> = {};
   for (const seg of segments) {
     if (!groups[seg.color]) groups[seg.color] = [];
-    groups[seg.color].push(`M${seg.x1.toFixed(1)},${seg.y1.toFixed(1)}L${seg.x2.toFixed(1)},${seg.y2.toFixed(1)}`);
+    groups[seg.color].push(
+      `M${seg.x1.toFixed(1)},${seg.y1.toFixed(1)}L${seg.x2.toFixed(1)},${seg.y2.toFixed(1)}`
+    );
   }
 
   return Object.entries(groups).map(([color, paths]) => (
     <path
       key={color}
-      d={paths.join('')}
+      d={paths.join("")}
       fill="none"
       stroke={color}
       strokeWidth={strokeWidth}
@@ -50,7 +52,7 @@ function renderSegments(segments: ColoredSegment[], strokeWidth: number, opacity
   ));
 }
 
-// Restore Apex ADN glow effects 
+// Restore Apex ADN glow effects
 function renderGlow(polyline: string, color: string) {
   return (
     <polyline
@@ -61,18 +63,18 @@ function renderGlow(polyline: string, color: string) {
       strokeLinecap="round"
       strokeLinejoin="round"
       opacity={0.12}
-      style={{ filter: 'blur(10px)' }}
+      style={{ filter: "blur(10px)" }}
     />
   );
 }
 
 function renderBrakingMarkers(segments: ColoredSegment[], isSynthetic: boolean) {
   const markers = [];
-  // Skip first and last few segments to prevent false positives near start/finish overlap 
+  // Skip first and last few segments to prevent false positives near start/finish overlap
   const exclusionRange = 10;
-  
+
   for (let i = exclusionRange; i < segments.length - exclusionRange; i++) {
-    if (segments[i].phase === 'braking' && segments[i - 1].phase !== 'braking') {
+    if (segments[i].phase === "braking" && segments[i - 1].phase !== "braking") {
       const dx = segments[i].x2 - segments[i].x1;
       const dy = segments[i].y2 - segments[i].y1;
       const angle = Math.atan2(dy, dx) * (180 / Math.PI);
@@ -80,7 +82,7 @@ function renderBrakingMarkers(segments: ColoredSegment[], isSynthetic: boolean) 
     }
   }
 
-  const color = isSynthetic ? MODEL_GOLD : '#ef4444';
+  const color = isSynthetic ? MODEL_GOLD : "#ef4444";
 
   return (
     <g className="pointer-events-none z-20">
@@ -129,7 +131,7 @@ function renderCorners(
   corners: ProjectedCorner[],
   hoveredCornerId: number | null,
   onCornerClick: (id: number) => void,
-  onCornerHover: (id: number | null) => void,
+  onCornerHover: (id: number | null) => void
 ) {
   return corners.map((c) => {
     const isHovered = hoveredCornerId === c.id;
@@ -148,7 +150,7 @@ function renderCorners(
           cy={c.y}
           r={r + 3}
           fill="none"
-          stroke={isHovered ? APEX_ORANGE : 'rgba(249,115,22,0.3)'}
+          stroke={isHovered ? APEX_ORANGE : "rgba(249,115,22,0.3)"}
           strokeWidth={isHovered ? 2 : 1}
           opacity={isHovered ? 0.8 : 0.4}
         />
@@ -169,21 +171,24 @@ function renderCorners(
           y={c.y + 3.5}
           textAnchor="middle"
           fill="#ffffff"
-          fontSize={isHovered ? '9' : '8'}
+          fontSize={isHovered ? "9" : "8"}
           fontWeight="800"
           fontFamily="'Space Grotesk', sans-serif"
           className="select-none pointer-events-none"
         >
-          {c.label.replace('V', '')}
+          {c.label.replace("V", "")}
         </text>
         {/* Apex tip mark */}
-        <polygon points={`${c.x},${c.y - r - 4} ${c.x - 3},${c.y - r - 7} ${c.x + 3},${c.y - r - 7}`} fill="#ffffff" />
+        <polygon
+          points={`${c.x},${c.y - r - 4} ${c.x - 3},${c.y - r - 7} ${c.x + 3},${c.y - r - 7}`}
+          fill="#ffffff"
+        />
       </g>
     );
   });
 }
 
-export function TrackMapCanvas({
+function TrackMapCanvasComponent({
   primary,
   reference,
   syntheticProjection,
@@ -223,7 +228,8 @@ export function TrackMapCanvas({
         }
       }
 
-      if (bestDist < 900) { // ~30px radius
+      if (bestDist < 900) {
+        // ~30px radius
         onPointHover(bestIdx, e.clientX, e.clientY);
       } else {
         onPointHover(null, 0, 0);
@@ -236,6 +242,138 @@ export function TrackMapCanvas({
     onPointHover(null, 0, 0);
   }, [onPointHover]);
 
+  // Memoize static layers to prevent heavy recalculations during hover
+  const referenceLayer = useMemo(() => {
+    if (!reference || profile !== "compare") return null;
+    return (
+      <g className="reference-layer pointer-events-none">
+        {renderGlow(reference.polyline, reference.isSynthetic ? MODEL_GOLD : REF_WHITE)}
+        <polyline
+          points={reference.polyline}
+          fill="none"
+          stroke={reference.isSynthetic ? MODEL_GOLD : REF_WHITE}
+          strokeWidth={reference.isSynthetic ? 3 : 2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={reference.isSynthetic ? 0.85 : 0.45}
+          strokeDasharray={reference.isSynthetic ? "none" : "8 4"}
+        />
+      </g>
+    );
+  }, [reference, profile]);
+
+  const primaryLayer = useMemo(() => {
+    if (!primary) return null;
+
+    // Batch braking segments into a single optimized path to reduce DOM elements from hundreds to 1
+    const brakingSegments = primary.segments.filter((s) => s.phase === "braking");
+    const brakingSegmentsPath = brakingSegments
+      .map((seg) => `M${seg.x1.toFixed(1)},${seg.y1.toFixed(1)}L${seg.x2.toFixed(1)},${seg.y2.toFixed(1)}`)
+      .join("");
+
+    return (
+      <g className="primary-layer pointer-events-none">
+        {/* Apex Glow layer */}
+        {renderGlow(primary.polyline, APEX_ORANGE)}
+
+        {/* Colored segments (speed or braking profile) */}
+        {profile !== "compare" ? (
+          renderSegments(primary.segments, 3)
+        ) : (
+          <polyline
+            points={primary.polyline}
+            fill="none"
+            stroke={APEX_ORANGE}
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+
+        {/* Synthetic Perfect Lap overlay - Bright Cyan, unmissable */}
+        {showSynthetic && syntheticProjection && (
+          <g className="ai-lap-group">
+            {/* Soft glow behind */}
+            <polyline
+              points={syntheticProjection.polyline}
+              fill="none"
+              stroke={MODEL_GOLD}
+              strokeWidth={12}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={0.2}
+              style={{ filter: "blur(6px)" }}
+            />
+            {/* Core dashed line */}
+            <polyline
+              points={syntheticProjection.polyline}
+              fill="none"
+              stroke={MODEL_GOLD}
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray="14 7"
+              opacity={1}
+            />
+          </g>
+        )}
+
+        {/* Braking profile overlay in Complete mode - optimized as single path */}
+        {profile === "complete" && brakingSegments.length > 0 && (
+          <path
+            d={brakingSegmentsPath}
+            stroke="#ef4444"
+            strokeWidth={6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            opacity={0.25}
+          />
+        )}
+
+        {/* Explicit Braking Start Points in Complete mode */}
+        {profile === "complete" &&
+          primary.segments.some((s) => s.phase) &&
+          renderBrakingMarkers(primary.segments, false)}
+        {profile === "complete" &&
+          showSynthetic &&
+          syntheticProjection &&
+          renderBrakingMarkers(syntheticProjection.segments, true)}
+
+        {/* Direction arrows */}
+        {renderDirectionArrows(primary.segments)}
+      </g>
+    );
+  }, [primary, profile, showSynthetic, syntheticProjection]);
+
+  const cornersLayer = useMemo(() => {
+    return renderCorners(corners, hoveredCornerId, onCornerClick, onCornerHover);
+  }, [corners, hoveredCornerId, onCornerClick, onCornerHover]);
+
+  const startFinishMarkers = useMemo(() => {
+    if (!primary || primary.points.length <= 2) return null;
+    return (
+      <g className="pointer-events-none">
+        <circle
+          cx={primary.points[0].x}
+          cy={primary.points[0].y}
+          r={5}
+          fill="#22c55e"
+          stroke={TRACK_BG_DARK}
+          strokeWidth={2}
+        />
+        <circle
+          cx={primary.points[primary.points.length - 1].x}
+          cy={primary.points[primary.points.length - 1].y}
+          r={5}
+          fill="#ef4444"
+          stroke={TRACK_BG_DARK}
+          strokeWidth={2}
+        />
+      </g>
+    );
+  }, [primary]);
+
   return (
     <TransformWrapper
       initialScale={1}
@@ -243,201 +381,130 @@ export function TrackMapCanvas({
       maxScale={6}
       centerOnInit={true}
       wheel={{ step: 0.1 }}
-      doubleClick={{ mode: 'zoomIn' }}
-      zoomAnimation={{ animationType: 'easeOut' }}
+      doubleClick={{ mode: "zoomIn" }}
+      zoomAnimation={{ animationType: "easeOut" }}
       panning={{ velocityDisabled: true }}
       onZoom={() => onPointHover(null, 0, 0)}
       onPanning={() => onPointHover(null, 0, 0)}
     >
-        {({ zoomIn, zoomOut, resetTransform }) => (
-          <div className={`relative w-full ${isFullscreen ? 'flex-1 h-full' : 'h-full max-h-[600px]'}`}>
-            {/* Zoom Controls */}
-            <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-secondary/80 p-1.5 rounded-md border border-white/10 backdrop-blur-sm shadow-xl">
-              <button onClick={() => zoomIn()} className="p-1.5 hover:bg-white/10 rounded transition-colors text-white" aria-label="Zoom In">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
-              <button onClick={() => zoomOut()} className="p-1.5 hover:bg-white/10 rounded transition-colors text-white" aria-label="Zoom Out">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/></svg>
-              </button>
-              <button onClick={() => resetTransform()} className="p-1.5 hover:bg-white/10 rounded transition-colors text-white" aria-label="Reset Zoom">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-              </button>
-            </div>
-
-            <TransformComponent 
-              wrapperClass={`w-full overflow-hidden ${isFullscreen ? 'h-full flex-1' : 'h-auto max-h-[600px]'} flex justify-center items-center min-h-[300px]`} 
-              contentClass="w-full h-full flex justify-center items-center"
-              wrapperStyle={{ width: '100%', height: isFullscreen ? '100%' : 'auto' }}
-              contentStyle={{ width: '100%', height: '100%' }}
+      {({ zoomIn, zoomOut, resetTransform }) => (
+        <div
+          className={`relative w-full ${isFullscreen ? "flex-1 h-full" : "h-full max-h-[600px]"}`}
+        >
+          {/* Zoom Controls */}
+          <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-secondary/80 p-1.5 rounded-md border border-white/10 backdrop-blur-sm shadow-xl">
+            <button
+              onClick={() => zoomIn()}
+              className="p-1.5 hover:bg-white/10 rounded transition-colors text-white"
+              aria-label="Zoom In"
             >
               <svg
-                viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-                className={`w-full overflow-visible ${isFullscreen ? 'max-h-full' : 'max-h-[600px]'}`}
-                style={{ aspectRatio: `${SVG_W} / ${SVG_H}`, minHeight: '300px' }}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
               >
-      <defs>
-        {/* E-Sport corner gradient border */}
-        <linearGradient id="corner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={APEX_ORANGE} />
-          <stop offset="100%" stopColor={APEX_RED} />
-        </linearGradient>
-      </defs>
-
-      {/* Background purely transparent so the CSS container gradient shines through */}
-
-
-      {/* Reference/comparison lap (behind primary) */}
-      {reference && profile === 'compare' && (
-        <>
-          {renderGlow(
-            reference.polyline,
-            reference.isSynthetic ? MODEL_GOLD : REF_WHITE
-          )}
-          <polyline
-            points={reference.polyline}
-            fill="none"
-            stroke={reference.isSynthetic ? MODEL_GOLD : REF_WHITE}
-            strokeWidth={reference.isSynthetic ? 3 : 2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity={reference.isSynthetic ? 0.85 : 0.45}
-            strokeDasharray={reference.isSynthetic ? 'none' : '8 4'}
-          />
-        </>
-      )}
-
-      {/* Primary lap */}
-      {primary && (
-        <>
-          {/* Apex Glow layer */}
-          {renderGlow(primary.polyline, APEX_ORANGE)}
-
-          {/* Colored segments (speed or braking profile) */}
-          {profile !== 'compare'
-            ? renderSegments(primary.segments, 3)
-            : (
-              /* Compare mode: solid orange primary line */
-              <polyline
-                points={primary.polyline}
-                fill="none"
-                stroke={APEX_ORANGE}
-                strokeWidth={3}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            )
-          }
-
-          {/* Synthetic Perfect Lap overlay - Bright Cyan, unmissable */}
-          {showSynthetic && syntheticProjection && (
-            <g className="ai-lap-group">
-              {/* Soft glow behind */}
-              <polyline
-                points={syntheticProjection.polyline}
-                fill="none"
-                stroke={MODEL_GOLD}
-                strokeWidth={12}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity={0.2}
-                style={{ filter: 'blur(6px)' }}
-              />
-              {/* Core dashed line */}
-              <polyline
-                points={syntheticProjection.polyline}
-                fill="none"
-                stroke={MODEL_GOLD}
-                strokeWidth={3}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeDasharray="14 7"
-                opacity={1}
-              />
-            </g>
-          )}
-
-          {/* Braking profile overlay in Complete mode */}
-          {profile === 'complete' && primary.segments.some(s => s.phase) && (
-            <g opacity={0.5}>
-              {primary.segments
-                .filter(s => s.phase === 'braking')
-                .map((seg) => (
-                  <line
-                    key={`brake-${seg.index}`}
-                    x1={seg.x1}
-                    y1={seg.y1}
-                    x2={seg.x2}
-                    y2={seg.y2}
-                    stroke="#ef4444"
-                    strokeWidth={6}
-                    strokeLinecap="round"
-                    opacity={0.5}
-                  />
-                ))}
-            </g>
-          )}
-
-          {/* Explicit Braking Start Points in Complete mode */}
-          {profile === 'complete' && primary.segments.some(s => s.phase) && renderBrakingMarkers(primary.segments, false)}
-          {profile === 'complete' && showSynthetic && syntheticProjection && renderBrakingMarkers(syntheticProjection.segments, true)}
-
-          {/* Direction arrows */}
-          {renderDirectionArrows(primary.segments)}
-
-          {/* Hovered point indicator */}
-          {hoveredIndex !== null && hoveredIndex < primary.points.length && (
-            <circle
-              cx={primary.points[hoveredIndex].x}
-              cy={primary.points[hoveredIndex].y}
-              r={6}
-              fill={APEX_ORANGE}
-              stroke="#ffffff"
-              strokeWidth={2}
-              className="pointer-events-none"
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+            <button
+              onClick={() => zoomOut()}
+              className="p-1.5 hover:bg-white/10 rounded transition-colors text-white"
+              aria-label="Zoom Out"
             >
-              <animate
-                attributeName="r"
-                values="5;7;5"
-                dur="1.5s"
-                repeatCount="indefinite"
-              />
-            </circle>
-          )}
-        </>
-      )}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+            <button
+              onClick={() => resetTransform()}
+              className="p-1.5 hover:bg-white/10 rounded transition-colors text-white"
+              aria-label="Reset Zoom"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+          </div>
 
-      {/* Corner markers */}
-      {renderCorners(corners, hoveredCornerId, onCornerClick, onCornerHover)}
+          <TransformComponent
+            wrapperClass={`w-full overflow-hidden ${isFullscreen ? "h-full flex-1" : "h-auto max-h-[600px]"} flex justify-center items-center min-h-[300px]`}
+            contentClass="w-full h-full flex justify-center items-center"
+            wrapperStyle={{ width: "100%", height: isFullscreen ? "100%" : "auto" }}
+            contentStyle={{ width: "100%", height: "100%" }}
+          >
+            <svg
+              viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+              className={`w-full overflow-visible ${isFullscreen ? "max-h-full" : "max-h-[600px]"}`}
+              style={{ aspectRatio: `${SVG_W} / ${SVG_H}`, minHeight: "300px" }}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+            >
+              <defs>
+                {/* E-Sport corner gradient border */}
+                <linearGradient id="corner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={APEX_ORANGE} />
+                  <stop offset="100%" stopColor={APEX_RED} />
+                </linearGradient>
+              </defs>
 
-      {/* Start / Finish markers */}
-      {primary && primary.points.length > 2 && (
-        <>
-          <circle
-            cx={primary.points[0].x}
-            cy={primary.points[0].y}
-            r={5}
-            fill="#22c55e"
-            stroke={TRACK_BG_DARK}
-            strokeWidth={2}
-            className="pointer-events-none"
-          />
-          <circle
-            cx={primary.points[primary.points.length - 1].x}
-            cy={primary.points[primary.points.length - 1].y}
-            r={5}
-            fill="#ef4444"
-            stroke={TRACK_BG_DARK}
-            strokeWidth={2}
-            className="pointer-events-none"
-          />
-        </>
+              {/* Background purely transparent so the CSS container gradient shines through */}
+
+              {/* Reference/comparison lap */}
+              {referenceLayer}
+
+              {/* Primary lap */}
+              {primaryLayer}
+
+              {/* Hovered point indicator */}
+              {primary && hoveredIndex !== null && hoveredIndex < primary.points.length && (
+                <circle
+                  cx={primary.points[hoveredIndex].x}
+                  cy={primary.points[hoveredIndex].y}
+                  r={6}
+                  fill={APEX_ORANGE}
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                  className="pointer-events-none"
+                >
+                  <animate
+                    attributeName="r"
+                    values="5;7;5"
+                    dur="1.5s"
+                    repeatCount="indefinite"
+                  />
+                </circle>
+              )}
+
+              {/* Corner markers */}
+              {cornersLayer}
+
+              {/* Start / Finish markers */}
+              {startFinishMarkers}
+            </svg>
+          </TransformComponent>
+        </div>
       )}
-    </svg>
-    </TransformComponent>
-    </div>
-    )}
-  </TransformWrapper>
+    </TransformWrapper>
   );
 }
+
+export const TrackMapCanvas = React.memo(TrackMapCanvasComponent);
+
