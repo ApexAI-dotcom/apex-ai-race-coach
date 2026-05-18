@@ -48,22 +48,59 @@ const testimonials: Testimonial[] = [
 
 const HelmetIcon: React.FC = () => (
   <svg 
-    className="w-10 h-10 text-primary border border-primary/20 rounded-full p-2 bg-primary/5 shadow-inner"
-    viewBox="0 0 24 24" 
+    className="w-10 h-10 text-primary border border-primary/20 rounded-full p-1.5 bg-primary/5 shadow-inner"
+    viewBox="0 0 100 100" 
     fill="none" 
     stroke="currentColor" 
-    strokeWidth="2" 
+    strokeWidth="7" 
     strokeLinecap="round" 
     strokeLinejoin="round"
   >
-    {/* Clean side-profile F1 helmet shell */}
-    <path d="M3 14a8.5 8.5 0 0 1 14.5-6l3 3v2a3 3 0 0 1-3 3H4a1 1 0 0 1-1-1z" />
-    {/* Distinctive F1 visor */}
-    <path d="M10 8h9.5c.3 0 .5.2.5.5v1.5c0 .3-.2.5-.5.5H11" fill="currentColor" fillOpacity="0.25" className="text-orange-500" />
-    {/* Chin guard air vents / details */}
-    <path d="M12 14h5" />
-    {/* Aerodynamic rear spoiler typical of F1 helmets */}
-    <path d="M4.5 7.5C5.5 6.5 7 6 8 6" />
+    {/* Main outer shell contour */}
+    <path 
+      d="M78 37 A40 40 0 1 0 88 77" 
+      stroke="currentColor"
+      strokeWidth="7.5"
+    />
+    
+    {/* Bottom flat base curving up slightly at the front */}
+    <path 
+      d="M25 87 L75 87 C83 87 89 83 89 75" 
+      stroke="currentColor"
+      strokeWidth="7.5"
+    />
+
+    {/* Reflection highlights on top-left of shell */}
+    <path 
+      d="M26 48 A30 30 0 0 1 45 23" 
+      stroke="currentColor"
+      strokeWidth="6.5"
+    />
+
+    {/* Air vent dot */}
+    <circle 
+      cx="22" 
+      cy="59" 
+      r="4" 
+      fill="currentColor" 
+      stroke="none"
+    />
+
+    {/* F1 Visor (Filled shape with rounded corners, matching the image perfectly) */}
+    <path 
+      d="M 48,49 L 75,49 A 4,4 0 0,1 79,52 L 88,70 A 4,4 0 0,1 84,75 L 59,75 A 4,4 0 0,1 55,72 L 44,54 A 4,4 0 0,1 48,49 Z" 
+      fill="currentColor"
+      stroke="none"
+    />
+
+    {/* Small white pivot dot on the visor */}
+    <circle 
+      cx="51" 
+      cy="56" 
+      r="3.5" 
+      fill="white" 
+      stroke="none"
+    />
   </svg>
 );
 
