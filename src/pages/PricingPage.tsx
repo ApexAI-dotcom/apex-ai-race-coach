@@ -172,38 +172,45 @@ export default function PricingPage() {
         description="Choisissez votre plan : Rookie gratuit, Racer illimité, Team avec comparaison. Paiement sécurisé Stripe."
         path="/pricing"
       />
-      <div className="min-h-screen bg-[#0a0a0b] text-slate-100">
-        <div className="container mx-auto px-4 py-12 md:py-16">
-          {canceled === "true" && (
-            <Alert className="mb-8 border-amber-500/40 bg-amber-500/10 max-w-xl mx-auto">
-              <X className="h-4 w-4 text-amber-500" />
-              <AlertTitle className="text-amber-500">Paiement annulé</AlertTitle>
-              <AlertDescription className="text-amber-500/90">
-                Vous pouvez réessayer quand vous le souhaitez.
-              </AlertDescription>
-            </Alert>
-          )}
+      <div className="min-h-screen bg-[#0a0a0b] text-slate-100 pt-0 relative overflow-hidden">
+        {/* Full-page seamless top radial glow starting behind navbar */}
+        <div className="absolute top-0 left-0 right-0 h-[500px] bg-[radial-gradient(circle_at_top_center,hsl(var(--primary)/0.12)_0%,transparent_100%)] pointer-events-none z-0" />
+        {/* Alerts container (centered) */}
+        {(canceled === "true" || error) && (
+          <div className="container mx-auto px-4 mb-6">
+            {canceled === "true" && (
+              <Alert className="mb-4 border-amber-500/40 bg-amber-500/10 max-w-xl mx-auto">
+                <X className="h-4 w-4 text-amber-500" />
+                <AlertTitle className="text-amber-500">Paiement annulé</AlertTitle>
+                <AlertDescription className="text-amber-500/90">
+                  Vous pouvez réessayer quand vous le souhaitez.
+                </AlertDescription>
+              </Alert>
+            )}
 
-          {error && (
-            <Alert className="mb-8 border-red-500/40 bg-red-500/10 max-w-xl mx-auto">
-              <X className="h-4 w-4 text-red-500" />
-              <AlertTitle className="text-red-500">Erreur</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+            {error && (
+              <Alert className="mb-4 border-red-500/40 bg-red-500/10 max-w-xl mx-auto">
+                <X className="h-4 w-4 text-red-500" />
+                <AlertTitle className="text-red-500">Erreur</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
 
-          {/* Custom Pricing Section */}
-          <PricingSection4
-            onSubscribe={handleSubscribe}
-            currentPlanId={currentPlanId}
-            loadingPriceId={loadingPriceId}
-            period={period}
-            setPeriod={setPeriod}
-            isAuthenticated={!!user}
-          />
+        {/* Custom Pricing Section (full bleed) */}
+        <PricingSection4
+          onSubscribe={handleSubscribe}
+          currentPlanId={currentPlanId}
+          loadingPriceId={loadingPriceId}
+          period={period}
+          setPeriod={setPeriod}
+          isAuthenticated={!!user}
+        />
 
-          {/* Paiement sécurisé */}
-          <div className="text-center py-8 border-t border-border">
+        {/* Paiement sécurisé (centered) */}
+        <div className="container mx-auto px-4 pb-16">
+          <div className="text-center py-8 border-t border-white/5">
             <p className="text-muted-foreground text-sm mb-3">Paiement sécurisé par Stripe</p>
             <div className="flex justify-center items-center gap-6 text-muted-foreground">
               <CreditCard className="w-6 h-6" />
