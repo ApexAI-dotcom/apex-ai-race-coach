@@ -49,18 +49,47 @@ const testimonials: Testimonial[] = [
 const HelmetIcon: React.FC = () => (
   <svg 
     className="w-6 h-6 text-primary"
-    viewBox="0 0 24 24" 
+    viewBox="0 0 100 100" 
     fill="none" 
     stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round"
   >
-    {/* Minimalist racing helmet without overlapping lines */}
-    <path d="M2 11a10 10 0 0 1 20 0v3a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" />
-    <path d="M5 16v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2" />
-    <path d="M10 10h8a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-8a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2z" fill="currentColor" fillOpacity="0.15" />
-    <circle cx="8" cy="12" r="1" fill="currentColor" />
+    <defs>
+      {/* Mask to create the transparent cutout circle on the visor */}
+      <mask id="visor-mask">
+        <rect width="100" height="100" fill="white" />
+        <circle cx="49" cy="62" r="4.5" fill="black" />
+      </mask>
+    </defs>
+
+    {/* Main outer shell contour */}
+    <path 
+      d="M 78,45 A 36,36 0 1,1 24,84 L 84,84 A 6,6 0 0,0 90,78" 
+      stroke="currentColor" 
+      strokeWidth="7.5" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      fill="none" 
+    />
+
+    {/* Visor (Solid shape matching the tilted polygon in the image) */}
+    <path 
+      d="M 43,54 L 78,54 C 81,54 83,56 82,59 L 88,71 C 89,74 87,76 84,76 L 52,76 C 49,76 47,74 46,71 L 40,59 C 39,56 41,54 43,54 Z" 
+      fill="currentColor"
+      stroke="none"
+      mask="url(#visor-mask)"
+    />
+
+    {/* Reflection highlights on top-left of shell */}
+    <path 
+      d="M 28,47 A 26,26 0 0,1 48,25" 
+      stroke="currentColor" 
+      strokeWidth="6" 
+      strokeLinecap="round" 
+      fill="none" 
+    />
+
+    {/* Air vent dot */}
+    <circle cx="21" cy="59" r="4" fill="currentColor" stroke="none" />
   </svg>
 );
 
