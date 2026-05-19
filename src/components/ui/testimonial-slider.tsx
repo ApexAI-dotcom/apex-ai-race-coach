@@ -49,47 +49,41 @@ const testimonials: Testimonial[] = [
 const HelmetIcon: React.FC = () => (
   <svg 
     className="w-6 h-6 text-primary"
-    viewBox="0 0 100 100" 
+    viewBox="0 0 24 24" 
     fill="none" 
     stroke="currentColor" 
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
-    <defs>
-      {/* Mask to create the transparent cutout circle on the visor */}
-      <mask id="visor-mask">
-        <rect width="100" height="100" fill="white" />
-        <circle cx="49" cy="62" r="4.5" fill="black" />
-      </mask>
-    </defs>
-
     {/* Main outer shell contour */}
     <path 
-      d="M 78,45 A 36,36 0 1,1 24,84 L 84,84 A 6,6 0 0,0 90,78" 
+      d="M 18.5,10 C 18.5,4.5 5.5,4.5 4,12 C 3.2,16 5.5,19 7,19 L 20,19 C 21.5,19 22.2,17.5 21.5,16" 
       stroke="currentColor" 
-      strokeWidth="7.5" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
+      strokeWidth="2" 
       fill="none" 
     />
 
     {/* Visor (Solid shape matching the tilted polygon in the image) */}
     <path 
-      d="M 43,54 L 78,54 C 81,54 83,56 82,59 L 88,71 C 89,74 87,76 84,76 L 52,76 C 49,76 47,74 46,71 L 40,59 C 39,56 41,54 43,54 Z" 
+      d="M 11,12 L 19,12 C 19.8,12 20.2,12.5 20,13.2 L 21.2,16 C 21.5,16.8 21,17.5 20.2,17.5 L 13.5,17.5 C 12.8,17.5 12.2,17 12,16.2 L 11,13.2 C 10.8,12.5 11,12 11,12 Z" 
       fill="currentColor"
       stroke="none"
-      mask="url(#visor-mask)"
     />
+
+    {/* Small pivot dot inside the visor (using --background to act as a cutout) */}
+    <circle cx="12.8" cy="14.2" r="1.1" fill="var(--background)" stroke="none" />
 
     {/* Reflection highlights on top-left of shell */}
     <path 
-      d="M 28,47 A 26,26 0 0,1 48,25" 
+      d="M 6.5,12 C 6.5,8.2 9.5,6.2 12,6.2" 
       stroke="currentColor" 
-      strokeWidth="6" 
-      strokeLinecap="round" 
+      strokeWidth="1.5" 
       fill="none" 
     />
 
     {/* Air vent dot */}
-    <circle cx="21" cy="59" r="4" fill="currentColor" stroke="none" />
+    <circle cx="5" cy="15" r="0.9" fill="currentColor" stroke="none" />
   </svg>
 );
 
