@@ -23,11 +23,12 @@ import api, {
 } from "@/lib/api";
 import { AlertBanner } from "@/components/kart/AlertBanner";
 import { KartSchematic } from "@/components/kart/KartSchematic";
-import { WearGauge } from "@/components/kart/WearGauge";
 import { KartSetupWizard } from "@/components/kart/KartSetupWizard";
-import { KartTrendsChart } from "@/components/kart/KartTrendsChart";
 import { KartMaintenanceLog } from "@/components/kart/KartMaintenanceLog";
-import { KartSetupPanel } from "@/components/kart/KartSetupPanel";
+import { GarageHeader } from "@/components/kart/GarageHeader";
+import { KartIdentityCard } from "@/components/kart/KartIdentityCard";
+import { WeightCard } from "@/components/kart/WeightCard";
+import { MaintenanceTracker } from "@/components/kart/MaintenanceTracker";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { DrivingProfile } from "@/lib/kart-recommendations";
@@ -262,37 +263,15 @@ export default function MonKart() {
         path="/kart"
       />
       <div className="container max-w-6xl mx-auto py-8 px-4 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <div>
-            <h1 className="text-3xl font-display font-bold">Mon Kart</h1>
-            <p className="text-muted-foreground mt-2">Vue détaillée, usure et recommandations</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="w-[200px]">
-              <Select
-                value={prof?.driving_profile || "balanced"}
-                onValueChange={(val) => handleUpdateCounter("driving_profile", val)}
-              >
-                <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="Profil de pilotage" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="longevity">Longévité / Économie</SelectItem>
-                  <SelectItem value="balanced">Équilibré</SelectItem>
-                  <SelectItem value="performance">Performance Max</SelectItem>
-                  <SelectItem value="leisure">Loisir / Rodage</SelectItem>
-                </SelectContent>
-              </Select>
+        {prof && <GarageHeader profile={prof} onUpdate={handleUpdateCounter} />}
+        {!prof && (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-3xl font-display font-bold">Mon Kart</h1>
+              <p className="text-muted-foreground mt-2">Vue détaillée, usure et recommandations</p>
             </div>
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => handleUpdateCounter("engine_model", null as any)}
-            >
-              <Wrench className="w-4 h-4" /> Relancer la config
-            </Button>
           </div>
-        </div>
+        )}
 
         <div className="text-xs text-muted-foreground/80 mb-2 italic">
           * Les recommandations affichées ci-dessous sont indicatives et s'adaptent au profil de
@@ -313,65 +292,14 @@ export default function MonKart() {
 
           {/* Right Column: Gauges & Actions (Spans 8 columns) */}
           <div className="lg:col-span-7 xl:col-span-8 order-2 space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <WearGauge
-                current={prof?.engine_hours_current || 0}
-                max={prof?.engine_hours_life || 15}
-                icon={<Flame className="w-5 h-5 text-red-500" />}
-                label={`Moteur (${prof?.engine_model || "NC"})`}
-                unit="h"
-                onAction={() => handleReset("engine")}
-                actionLabel="Réviser le moteur"
-              />
-              <WearGauge
-                current={prof?.tires_sessions_current || 0}
-                max={prof?.tires_sessions_life || 50}
-                icon={<Disc className="w-5 h-5 text-purple-500" />}
-                label={`Pneus (${prof?.tires_model || "NC"})`}
-                unit="sess."
-                onAction={() => handleReset("tires")}
-                actionLabel="Remplacer le train"
-              />
-              <WearGauge
-                current={prof?.brakes_sessions_current || 0}
-                max={prof?.brakes_sessions_life || 100}
-                icon={<Loader2 className="w-5 h-5 text-orange-500" />}
-                label={`Freins (${prof?.brakes_model || "NC"})`}
-                unit="sess."
-                onAction={() => handleReset("brakes")}
-                actionLabel="Changer plaquettes"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {prof && <KartIdentityCard profile={prof} onUpdate={handleUpdateCounter} />}
+              {prof && <WeightCard profile={prof} onUpdate={handleUpdateCounter} />}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="bg-card border-border shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">Ajustement Manuel (Moteur)</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      step="0.1"
-                      defaultValue={prof?.engine_hours_current || 0}
-                      id="engine-hours-input"
-                      className="bg-background border-border"
-                    />
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        const val = parseFloat(
-                          (document.getElementById("engine-hours-input") as HTMLInputElement).value
-                        );
-                        if (!isNaN(val)) handleUpdateCounter("engine_hours_current", val);
-                      }}
-                    >
-                      Mettre à jour
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            {prof && <MaintenanceTracker profile={prof} onUpdate={handleUpdateCounter} />}
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
               <Card className="bg-card border-border shadow-sm">
                 <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2 text-lg">
@@ -398,19 +326,12 @@ export default function MonKart() {
                   </Button>
                 </CardContent>
               </Card>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-              <KartSetupPanel profile={prof} onSave={handleUpdateSetup} />
               <KartMaintenanceLog
                 history={history}
                 onAddEntry={handleAddHistory}
                 onDeleteEntry={handleDeleteHistoryEntry}
               />
-            </div>
-
-            <div className="mt-6">
-              <KartTrendsChart sessions={sessions} />
             </div>
           </div>
         </div>

@@ -911,6 +911,29 @@ export interface KartProfile {
 
   setup_json?: any;
   saved_setups?: any[];
+
+  chassis_brand?: string | null;
+  chassis_model?: string | null;
+  chassis_year?: number | null;
+
+  engine_category?: string | null;
+  acquisition_device?: string | null;
+
+  race_number?: string | null;
+  transponder_number?: string | null;
+
+  weight_empty_kg?: number | null;
+  driver_weight_kg?: number | null;
+  ballast_kg?: number | null;
+  category_min_weight_kg?: number | null;
+
+  chain_hours_current?: number;
+  chain_hours_life?: number;
+
+  tires_laps_current?: number;
+  tires_laps_life?: number;
+
+  kart_nickname?: string | null;
 }
 
 export interface KartProfileResponse {
