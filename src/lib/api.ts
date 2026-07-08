@@ -933,6 +933,9 @@ export interface KartProfile {
   tires_laps_current?: number;
   tires_laps_life?: number;
 
+  brakes_hours_current?: number;
+  brakes_hours_life?: number;
+
   kart_nickname?: string | null;
 }
 

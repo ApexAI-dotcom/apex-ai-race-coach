@@ -1,44 +1,39 @@
 import { KartProfile } from "@/lib/api";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Wrench } from "lucide-react";
 
-export function GarageHeader({
-  profile,
-  onUpdate,
-}: {
-  profile: KartProfile;
+interface GarageHeaderProps {
+  profile?: KartProfile;
   onUpdate: (field: keyof KartProfile, value: any) => void;
-}) {
+  onRelaunchConfig: () => void;
+}
+
+export function GarageHeader({ profile, onUpdate, onRelaunchConfig }: GarageHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
       <div>
-        <div className="flex items-center gap-2">
-          <Input 
-            className="text-3xl font-display font-bold border-transparent hover:border-border bg-transparent p-0 h-auto focus-visible:ring-0 max-w-[300px] shadow-none"
-            value={profile.kart_nickname || ""}
-            onChange={(e) => onUpdate("kart_nickname", e.target.value)}
-            placeholder="Mon Kart"
-          />
-        </div>
-        <div className="flex gap-4 text-muted-foreground mt-2 items-center">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">N° Course:</span>
-            <Input 
-              className="w-16 h-8 bg-transparent border-transparent hover:border-border shadow-none text-sm"
-              value={profile.race_number || ""}
-              onChange={(e) => onUpdate("race_number", e.target.value)}
-              placeholder="00"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Transpondeur:</span>
-            <Input 
-              className="w-24 h-8 bg-transparent border-transparent hover:border-border shadow-none text-sm"
-              value={profile.transponder_number || ""}
-              onChange={(e) => onUpdate("transponder_number", e.target.value)}
-              placeholder="123456"
-            />
-          </div>
-        </div>
+        <h1 className="text-3xl font-display font-bold">Mon Garage</h1>
+        <p className="text-muted-foreground mt-2">Vue détaillée, usure et recommandations</p>
+      </div>
+      <div className="flex items-center gap-4">
+        {profile?.race_number && (
+          <Badge variant="outline" className="text-sm px-3 py-1 bg-black/40 border-white/10">
+            N°{profile.race_number}
+          </Badge>
+        )}
+        {profile?.transponder_number && (
+          <Badge variant="outline" className="text-sm px-3 py-1 bg-black/40 border-white/10">
+            Transpondeur {profile.transponder_number}
+          </Badge>
+        )}
+        <Button
+          variant="outline"
+          className="gap-2 bg-black/40 border-white/10 hover:bg-black/60"
+          onClick={onRelaunchConfig}
+        >
+          <Wrench className="w-4 h-4" /> Relancer la config
+        </Button>
       </div>
     </div>
   );

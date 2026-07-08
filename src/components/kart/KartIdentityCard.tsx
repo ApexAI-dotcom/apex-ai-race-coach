@@ -2,6 +2,15 @@ import { KartProfile } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Edit2 } from "lucide-react";
 
 const CATEGORY_WEIGHTS: Record<string, number> = {
   "X30 Senior": 162,
@@ -12,55 +21,71 @@ const CATEGORY_WEIGHTS: Record<string, number> = {
   "KA100": 150
 };
 
-export function KartIdentityCard({
-  profile,
-  onUpdate,
-}: {
+interface KartIdentityCardProps {
   profile: KartProfile;
   onUpdate: (field: keyof KartProfile, value: any) => void;
-}) {
+}
+
+export function KartIdentityCard({ profile, onUpdate }: KartIdentityCardProps) {
+  const handleEngineChange = (val: string) => {
+    onUpdate("engine_category", val);
+    const weight = CATEGORY_WEIGHTS[val as keyof typeof CATEGORY_WEIGHTS];
+    if (weight) {
+      onUpdate("category_min_weight_kg", weight);
+    }
+  };
+
   return (
-    <Card className="bg-card border-border shadow-sm h-full">
+    <Card className="bg-card border border-border shadow-sm rounded-2xl">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg">Identité du Kart</CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Edit2 className="w-5 h-5 text-primary" />
+          Identité du Kart
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-3">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Châssis</h3>
-          <div className="grid grid-cols-3 gap-2">
-            <Input 
-              placeholder="Marque" 
-              value={profile.chassis_brand || ""}
-              onChange={(e) => onUpdate("chassis_brand", e.target.value)}
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Châssis Marque</Label>
+            <Input
+              defaultValue={profile.chassis_brand || ""}
+              onBlur={(e) => onUpdate("chassis_brand", e.target.value)}
+              className="bg-background border-border"
+              placeholder="Ex: Tony Kart"
             />
-            <Input 
-              placeholder="Modèle" 
-              value={profile.chassis_model || ""}
-              onChange={(e) => onUpdate("chassis_model", e.target.value)}
-            />
-            <Input 
-              type="number"
-              placeholder="Année" 
-              value={profile.chassis_year || ""}
-              onChange={(e) => onUpdate("chassis_year", parseInt(e.target.value) || null)}
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Modèle Châssis</Label>
+            <Input
+              defaultValue={profile.chassis_model || ""}
+              onBlur={(e) => onUpdate("chassis_model", e.target.value)}
+              className="bg-background border-border"
+              placeholder="Ex: Racer 401R"
             />
           </div>
         </div>
 
-        <div className="space-y-3">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Moteur</h3>
-          <div className="grid grid-cols-2 gap-2">
-            <Select 
-              value={profile.engine_category || ""} 
-              onValueChange={(v) => {
-                onUpdate("engine_category", v);
-                if (CATEGORY_WEIGHTS[v]) {
-                  // Wait a tick to avoid race condition with state if possible, but standard react is fine
-                  setTimeout(() => {
-                    onUpdate("category_min_weight_kg", CATEGORY_WEIGHTS[v]);
-                  }, 50);
-                }
-              }}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Catégorie Moteur</Label>
+            <Select value={profile.engine_category || ""} onValueChange={handleEngineChange}>
+              <SelectTrigger className="bg-background border-border">
+                <SelectValue placeholder="Catégorie..." />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(CATEGORY_WEIGHTS).map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Boîtier d'Acquisition</Label>
+            <Select
+              value={profile.acquisition_device || ""}
+              onValueChange={(val) => onUpdate("acquisition_device", val)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Catégorie" />

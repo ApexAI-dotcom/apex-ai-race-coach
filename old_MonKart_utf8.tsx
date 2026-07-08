@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Wrench, UploadCloud, Trash2, Battery, Disc, Flame, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,12 +23,11 @@ import api, {
 } from "@/lib/api";
 import { AlertBanner } from "@/components/kart/AlertBanner";
 import { KartSchematic } from "@/components/kart/KartSchematic";
-import { KartSetupWizard } from "@/components/kart/KartSetupWizard";
-import { KartMaintenanceLog } from "@/components/kart/KartMaintenanceLog";
-import { GarageHeader } from "@/components/kart/GarageHeader";
-import { KartIdentityCard } from "@/components/kart/KartIdentityCard";
-import { WeightCard } from "@/components/kart/WeightCard";
 import { WearGauge } from "@/components/kart/WearGauge";
+import { KartSetupWizard } from "@/components/kart/KartSetupWizard";
+import { KartTrendsChart } from "@/components/kart/KartTrendsChart";
+import { KartMaintenanceLog } from "@/components/kart/KartMaintenanceLog";
+import { KartSetupPanel } from "@/components/kart/KartSetupPanel";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { DrivingProfile } from "@/lib/kart-recommendations";
@@ -51,7 +50,7 @@ export default function MonKart() {
       if (e.message?.includes("403") || e.message?.includes("Forbidden") || tier === "rookie") {
         // Handled by tier check
       } else {
-        toast.error("Erreur lors de la récupération du profil Mon Kart.");
+        toast.error("Erreur lors de la r├®cup├®ration du profil Mon Kart.");
       }
     } finally {
       setLoading(false);
@@ -81,13 +80,13 @@ export default function MonKart() {
             <Wrench className="w-16 h-16 text-primary mb-6 animate-pulse" />
             <h1 className="text-3xl font-display font-bold mb-4">Mon Kart</h1>
             <p className="text-muted-foreground mb-8 max-w-md">
-              La fonctionnalité "Mon Kart" permet de tracker l'usure de ton moteur, tes pneus, tes
-              freins et ta batterie automatiquement depuis tes logs. Débloque-la en passant au plan
+              La fonctionnalit├® "Mon Kart" permet de tracker l'usure de ton moteur, tes pneus, tes
+              freins et ta batterie automatiquement depuis tes logs. D├®bloque-la en passant au plan
               Racer !
             </p>
             <Link to="/pricing">
               <Button size="lg" className="gradient-primary text-primary-foreground font-semibold">
-                Découvrir les plans
+                D├®couvrir les plans
               </Button>
             </Link>
           </div>
@@ -119,7 +118,7 @@ export default function MonKart() {
       res.results.forEach((r: any) => {
         if (r.success && r.is_new) successCount++;
       });
-      toast.success(`${successCount} sessions importées avec succès.`);
+      toast.success(`${successCount} sessions import├®es avec succ├¿s.`);
       setFiles(null);
       fetchProfile();
     } catch (error: any) {
@@ -129,17 +128,17 @@ export default function MonKart() {
     }
   };
 
-  const handleReset = async (component: "engine" | "tires" | "brakes" | "chain") => {
-    if (!confirm(`Es-tu sûr de vouloir réinitialiser l'usure pour : ${component} ?`)) return;
+  const handleReset = async (component: "engine" | "tires" | "brakes") => {
+    if (!confirm(`Es-tu s├╗r de vouloir r├®initialiser l'usure pour : ${component} ?`)) return;
     if (!session?.access_token) return;
     try {
       console.log(`Resetting ${component}...`);
-      await api.resetKartComponent(session.access_token, component, "Réinitialisation manuelle");
-      toast.success("Compteur réinitialisé.");
+      await api.resetKartComponent(session.access_token, component, "R├®initialisation manuelle");
+      toast.success("Compteur r├®initialis├®.");
       fetchProfile();
     } catch (e: any) {
       console.error("Reset component failed:", e);
-      toast.error("Erreur réinitialisation : " + e.message);
+      toast.error("Erreur r├®initialisation : " + e.message);
     }
   };
 
@@ -149,7 +148,7 @@ export default function MonKart() {
     try {
       console.log(`[MonKart] Deleting session with ID: ${id}`);
       await api.deleteKartSession(session.access_token, id);
-      toast.success("Session supprimée.");
+      toast.success("Session supprim├®e.");
       fetchProfile();
     } catch (e: any) {
       console.error("[MonKart] Delete session failed:", id, e);
@@ -161,7 +160,7 @@ export default function MonKart() {
     if (!session?.access_token) return;
     try {
       await api.updateKartProfile(session.access_token, { [field]: value });
-      toast.success("Mise à jour effectuée.");
+      toast.success("Mise ├á jour effectu├®e.");
       fetchProfile();
     } catch (e: any) {
       toast.error("Erreur modification : " + e.message);
@@ -204,7 +203,7 @@ export default function MonKart() {
       if (saved_setups) updates.saved_setups = saved_setups;
 
       await api.updateKartProfile(session.access_token, updates);
-      toast.success("Setup enregistré avec succès.");
+      toast.success("Setup enregistr├® avec succ├¿s.");
       fetchProfile();
     } catch (e: any) {
       toast.error("Erreur d'enregistrement du setup : " + e.message);
@@ -215,20 +214,20 @@ export default function MonKart() {
     if (!session?.access_token) return;
     try {
       await addKartHistoryEntry(session.access_token, type, notes, date);
-      toast.success("Intervention ajoutée au journal.");
+      toast.success("Intervention ajout├®e au journal.");
       fetchProfile();
     } catch (e: any) {
-      toast.error("Erreur d'ajout à l'historique : " + e.message);
+      toast.error("Erreur d'ajout ├á l'historique : " + e.message);
     }
   };
 
   const handleDeleteHistoryEntry = async (entryId: string) => {
-    if (!confirm("Supprimer cette entrée d'entretien ?")) return;
+    if (!confirm("Supprimer cette entr├®e d'entretien ?")) return;
     if (!session?.access_token) return;
     try {
       console.log(`[MonKart] Deleting history entry: ${entryId}`);
       await deleteKartHistoryEntry(session.access_token, entryId);
-      toast.success("Entrée d'entretien supprimée.");
+      toast.success("Entr├®e d'entretien supprim├®e.");
       fetchProfile();
     } catch (e: any) {
       console.error("[MonKart] Delete history entry failed:", entryId, e);
@@ -239,7 +238,7 @@ export default function MonKart() {
   const handleDeleteDay = async (date: string) => {
     if (
       !confirm(
-        `Supprimer toutes les sessions du ${new Date(date).toLocaleDateString("fr-FR")} ? Cette action est irréversible.`
+        `Supprimer toutes les sessions du ${new Date(date).toLocaleDateString("fr-FR")} ? Cette action est irr├®versible.`
       )
     )
       return;
@@ -247,7 +246,7 @@ export default function MonKart() {
     try {
       console.log(`[MonKart] Deleting all sessions for day: ${date}`);
       await deleteKartSessionDay(session.access_token, date);
-      toast.success("Journée supprimée.");
+      toast.success("Journ├®e supprim├®e.");
       fetchProfile();
     } catch (e: any) {
       console.error("[MonKart] Delete day failed:", date, e);
@@ -262,91 +261,122 @@ export default function MonKart() {
         description="Suivi de l'usure de ton kart (cockpit interactif)."
         path="/kart"
       />
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        <GarageHeader
-          profile={prof}
-          onUpdate={handleUpdateCounter}
-          onRelaunchConfig={() => handleUpdateCounter("engine_model", null)}
-        />
+      <div className="container max-w-6xl mx-auto py-8 px-4 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-3xl font-display font-bold">Mon Kart</h1>
+            <p className="text-muted-foreground mt-2">Vue d├®taill├®e, usure et recommandations</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-[200px]">
+              <Select
+                value={prof?.driving_profile || "balanced"}
+                onValueChange={(val) => handleUpdateCounter("driving_profile", val)}
+              >
+                <SelectTrigger className="bg-black/40 border-white/10">
+                  <SelectValue placeholder="Profil de pilotage" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="longevity">Long├®vit├® / ├ëconomie</SelectItem>
+                  <SelectItem value="balanced">├ëquilibr├®</SelectItem>
+                  <SelectItem value="performance">Performance Max</SelectItem>
+                  <SelectItem value="leisure">Loisir / Rodage</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => handleUpdateCounter("engine_model", null as any)}
+            >
+              <Wrench className="w-4 h-4" /> Relancer la config
+            </Button>
+          </div>
+        </div>
+
+        <div className="text-xs text-muted-foreground/80 mb-2 italic">
+          * Les recommandations affich├®es ci-dessous sont indicatives et s'adaptent au profil de
+          pilotage s├®lectionn├®. La responsabilit├® finale des r├®glages t'appartient.
+        </div>
 
         {prof && <AlertBanner profile={prof} recent_sessions={sessions} />}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* COLONNE GAUCHE — INTACTE, ne rien toucher */}
+          {/* Left Column: Cockpit Schematic (Spans 4 columns) */}
           <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 order-1 h-fit">
             <div className="flex items-center justify-center p-4 bg-card border border-border shadow-sm rounded-2xl">
               {prof && <KartSchematic profile={prof} recent_sessions={sessions} />}
             </div>
+
             {prof && <KartHealthStatus profile={prof} />}
           </div>
 
-          {/* COLONNE DROITE — grille de contenu */}
+          {/* Right Column: Gauges & Actions (Spans 8 columns) */}
           <div className="lg:col-span-7 xl:col-span-8 order-2 space-y-6">
-            {/* LIGNE 1 : nouvelles cartes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {prof && <KartIdentityCard profile={prof} onUpdate={handleUpdateCounter} />}
-              {prof && <WeightCard profile={prof} onUpdate={handleUpdateCounter} />}
-            </div>
-
-            {/* LIGNE 2 : les 4 jauges d'usure en 2×2 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <WearGauge 
-                component="engine" 
-                label="Moteur" 
-                unit="h"
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <WearGauge
+                current={prof?.engine_hours_current || 0}
+                max={prof?.engine_hours_life || 15}
                 icon={<Flame className="w-5 h-5 text-red-500" />}
-                current={prof?.engine_hours_current} 
-                max={prof?.engine_hours_life}
-                field="engine_hours_current" 
-                onUpdate={handleUpdateCounter}
-                onAction={() => handleReset("engine")} 
-                actionLabel="Réviser le moteur" 
+                label={`Moteur (${prof?.engine_model || "NC"})`}
+                unit="h"
+                onAction={() => handleReset("engine")}
+                actionLabel="R├®viser le moteur"
               />
-              <WearGauge 
-                component="tires" 
-                label="Pneus" 
-                unit="tours"
+              <WearGauge
+                current={prof?.tires_sessions_current || 0}
+                max={prof?.tires_sessions_life || 50}
                 icon={<Disc className="w-5 h-5 text-purple-500" />}
-                current={prof?.tires_laps_current} 
-                max={prof?.tires_laps_life}
-                field="tires_laps_current" 
-                onUpdate={handleUpdateCounter}
-                onAction={() => handleReset("tires")} 
-                actionLabel="Remplacer le train" 
+                label={`Pneus (${prof?.tires_model || "NC"})`}
+                unit="sess."
+                onAction={() => handleReset("tires")}
+                actionLabel="Remplacer le train"
               />
-              <WearGauge 
-                component="brakes" 
-                label="Freins" 
-                unit="h"
+              <WearGauge
+                current={prof?.brakes_sessions_current || 0}
+                max={prof?.brakes_sessions_life || 100}
                 icon={<Loader2 className="w-5 h-5 text-orange-500" />}
-                current={prof?.brakes_hours_current} 
-                max={prof?.brakes_hours_life}
-                field="brakes_hours_current" 
-                onUpdate={handleUpdateCounter}
-                onAction={() => handleReset("brakes")} 
-                actionLabel="Changer plaquettes" 
-              />
-              <WearGauge 
-                component="chain" 
-                label="Chaîne" 
-                unit="h"
-                icon={<Wrench className="w-5 h-5 text-blue-500" />}
-                current={prof?.chain_hours_current} 
-                max={prof?.chain_hours_life}
-                field="chain_hours_current" 
-                onUpdate={handleUpdateCounter}
-                onAction={() => handleReset("chain")} 
-                actionLabel="Graisser / Changer" 
+                label={`Freins (${prof?.brakes_model || "NC"})`}
+                unit="sess."
+                onAction={() => handleReset("brakes")}
+                actionLabel="Changer plaquettes"
               />
             </div>
 
-            {/* LIGNE 3 : import + journal — INTACTS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-              <Card className="bg-card border border-border shadow-sm rounded-2xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="bg-card border-border shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">Ajustement Manuel (Moteur)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      step="0.1"
+                      defaultValue={prof?.engine_hours_current || 0}
+                      id="engine-hours-input"
+                      className="bg-background border-border"
+                    />
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        const val = parseFloat(
+                          (document.getElementById("engine-hours-input") as HTMLInputElement).value
+                        );
+                        if (!isNaN(val)) handleUpdateCounter("engine_hours_current", val);
+                      }}
+                    >
+                      Mettre ├á jour
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border shadow-sm">
                 <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <UploadCloud className="w-5 h-5 text-primary" />
-                    Importer ma journée
+                    Importer ma journ├®e
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -364,32 +394,39 @@ export default function MonKart() {
                     disabled={importing || !files || files.length === 0}
                   >
                     {importing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    {importing ? "Importation..." : "Intégrer les sessions"}
+                    {importing ? "Importation..." : "Int├®grer les sessions"}
                   </Button>
                 </CardContent>
               </Card>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <KartSetupPanel profile={prof} onSave={handleUpdateSetup} />
               <KartMaintenanceLog
                 history={history}
                 onAddEntry={handleAddHistory}
                 onDeleteEntry={handleDeleteHistoryEntry}
               />
             </div>
+
+            <div className="mt-6">
+              <KartTrendsChart sessions={sessions} />
+            </div>
           </div>
         </div>
 
         <Card className="bg-card border-border shadow-sm">
           <CardHeader>
-            <CardTitle>Historique des Journées de Roulage</CardTitle>
+            <CardTitle>Historique des Journ├®es de Roulage</CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
-              Résumé agrégé de vos sorties en piste. Chaque ligne rassemble les sessions d'une même
-              journée.
+              R├®sum├® agre╠üge╠ü de vos sorties en piste. Chaque ligne rassemble les sessions d'une m├¬me
+              journ├®e.
             </p>
           </CardHeader>
           <CardContent>
             {dailyLogs.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
-                Aucune journée enregistrée.
+                Aucune journ├®e enregistr├®e.
               </p>
             ) : (
               <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
@@ -399,7 +436,7 @@ export default function MonKart() {
                       <th className="pb-3 font-medium">Date</th>
                       <th className="pb-3 font-medium">Circuit</th>
                       <th className="pb-3 font-medium text-center">Sessions</th>
-                      <th className="pb-3 font-medium">Durée Cumulée</th>
+                      <th className="pb-3 font-medium">Dur├®e Cumul├®e</th>
                       <th className="pb-3 font-medium text-right">RPM Max</th>
                       <th className="pb-3 font-medium text-right">G Lat Max</th>
                       <th className="pb-3 font-medium text-right">Temp Max</th>
@@ -431,7 +468,7 @@ export default function MonKart() {
                           {log.gLatMax ? `${log.gLatMax.toFixed(2)} G` : "-"}
                         </td>
                         <td className="py-3 text-right">
-                          {log.tempMax ? `${Math.round(log.tempMax)} °C` : "-"}
+                          {log.tempMax ? `${Math.round(log.tempMax)} ┬░C` : "-"}
                         </td>
                         <td className="py-3 text-right">
                           <Button
@@ -439,7 +476,7 @@ export default function MonKart() {
                             size="icon"
                             className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
                             onClick={() => handleDeleteDay(log.date)}
-                            title="Supprimer cette journée"
+                            title="Supprimer cette journ├®e"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
