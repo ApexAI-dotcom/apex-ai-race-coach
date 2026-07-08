@@ -169,27 +169,35 @@ export default function MonKart() {
   };
 
   const sessionsByDay = sessions.reduce((acc: any, sess: any) => {
-    const dateObj = new Date(sess.session_date || sess.created_at);
-    const dateStr = dateObj.toISOString().split("T")[0]; // yyyy-MM-dd
-    if (!acc[dateStr]) {
-      acc[dateStr] = {
-        date: dateStr,
-        sessionsCount: 0,
-        totalDuration: 0,
-        rpmMax: 0,
-        gLatMax: 0,
-        tempMax: 0,
-        circuit: sess.circuit_name || "Mixte",
-      };
+    if (!sess) return acc;
+    const dateVal = sess.session_date || sess.created_at;
+    if (!dateVal) return acc;
+    try {
+      const dateObj = new Date(dateVal);
+      if (isNaN(dateObj.getTime())) return acc;
+      const dateStr = dateObj.toISOString().split("T")[0]; // yyyy-MM-dd
+      if (!acc[dateStr]) {
+        acc[dateStr] = {
+          date: dateStr,
+          sessionsCount: 0,
+          totalDuration: 0,
+          rpmMax: 0,
+          gLatMax: 0,
+          tempMax: 0,
+          circuit: sess.circuit_name || "Mixte",
+        };
+      }
+      acc[dateStr].sessionsCount += 1;
+      acc[dateStr].totalDuration += sess.duration_hours || 0;
+      if (sess.rpm_max > acc[dateStr].rpmMax) acc[dateStr].rpmMax = sess.rpm_max;
+      if (sess.g_lateral_max > acc[dateStr].gLatMax) acc[dateStr].gLatMax = sess.g_lateral_max;
+      if (sess.exhaust_temp_max && sess.exhaust_temp_max > acc[dateStr].tempMax)
+        acc[dateStr].tempMax = sess.exhaust_temp_max;
+      if (!acc[dateStr].circuit || acc[dateStr].circuit === "Mixte")
+        acc[dateStr].circuit = sess.circuit_name;
+    } catch (e) {
+      console.error("Failed to parse session date", e);
     }
-    acc[dateStr].sessionsCount += 1;
-    acc[dateStr].totalDuration += sess.duration_hours || 0;
-    if (sess.rpm_max > acc[dateStr].rpmMax) acc[dateStr].rpmMax = sess.rpm_max;
-    if (sess.g_lateral_max > acc[dateStr].gLatMax) acc[dateStr].gLatMax = sess.g_lateral_max;
-    if (sess.exhaust_temp_max && sess.exhaust_temp_max > acc[dateStr].tempMax)
-      acc[dateStr].tempMax = sess.exhaust_temp_max;
-    if (!acc[dateStr].circuit || acc[dateStr].circuit === "Mixte")
-      acc[dateStr].circuit = sess.circuit_name;
     return acc;
   }, {});
 
