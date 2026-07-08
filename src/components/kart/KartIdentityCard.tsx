@@ -1,7 +1,6 @@
 import { KartProfile } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -44,29 +43,50 @@ export function KartIdentityCard({ profile, onUpdate }: KartIdentityCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+        {/* Chassis section */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Châssis Marque</Label>
             <Input
               defaultValue={profile.chassis_brand || ""}
               onBlur={(e) => onUpdate("chassis_brand", e.target.value)}
               className="bg-background border-border"
-              placeholder="Ex: Tony Kart"
+              placeholder="Tony Kart"
             />
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Modèle Châssis</Label>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Modèle</Label>
             <Input
               defaultValue={profile.chassis_model || ""}
               onBlur={(e) => onUpdate("chassis_model", e.target.value)}
               className="bg-background border-border"
-              placeholder="Ex: Racer 401R"
+              placeholder="Racer 401R"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Année</Label>
+            <Input
+              type="number"
+              defaultValue={profile.chassis_year || ""}
+              onBlur={(e) => onUpdate("chassis_year", parseInt(e.target.value) || null)}
+              className="bg-background border-border"
+              placeholder="2024"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+        {/* Engine section */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Modèle exact Moteur</Label>
+            <Input
+              defaultValue={profile.engine_model || ""}
+              onBlur={(e) => onUpdate("engine_model", e.target.value)}
+              className="bg-background border-border"
+              placeholder="IAME X30"
+            />
+          </div>
+          <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Catégorie Moteur</Label>
             <Select value={profile.engine_category || ""} onValueChange={handleEngineChange}>
               <SelectTrigger className="bg-background border-border">
@@ -81,44 +101,23 @@ export function KartIdentityCard({ profile, onUpdate }: KartIdentityCardProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Boîtier d'Acquisition</Label>
-            <Select
-              value={profile.acquisition_device || ""}
-              onValueChange={(val) => onUpdate("acquisition_device", val)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="X30 Senior">X30 Senior</SelectItem>
-                <SelectItem value="Rotax Max">Rotax Max</SelectItem>
-                <SelectItem value="KZ2">KZ2</SelectItem>
-                <SelectItem value="Mini 60">Mini 60</SelectItem>
-                <SelectItem value="Nationale">Nationale</SelectItem>
-                <SelectItem value="KA100">KA100</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input 
-              placeholder="Modèle exact" 
-              value={profile.engine_model || ""}
-              onChange={(e) => onUpdate("engine_model", e.target.value)}
-            />
-          </div>
         </div>
 
-        <div className="space-y-3">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Acquisition de données</h3>
-          <Select 
-            value={profile.acquisition_device || ""} 
-            onValueChange={(v) => onUpdate("acquisition_device", v)}
+        {/* Acquisition device */}
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">Boîtier d'Acquisition</Label>
+          <Select
+            value={profile.acquisition_device || ""}
+            onValueChange={(val) => onUpdate("acquisition_device", val)}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Choisir un boîtier" />
+            <SelectTrigger className="bg-background border-border">
+              <SelectValue placeholder="MyChron, Alfano..." />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Mychron 5">Mychron 5</SelectItem>
+              <SelectItem value="Mychron 5S">Mychron 5S</SelectItem>
               <SelectItem value="Alfano 6">Alfano 6</SelectItem>
+              <SelectItem value="Unipro">Unipro</SelectItem>
             </SelectContent>
           </Select>
         </div>
