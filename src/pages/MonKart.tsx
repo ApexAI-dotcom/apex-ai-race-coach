@@ -274,7 +274,6 @@ export default function MonKart() {
         <GarageHeader
           profile={prof}
           onUpdate={handleUpdateCounter}
-          onRelaunchConfig={() => handleUpdateCounter("engine_model", null)}
         />
 
         {prof && <AlertBanner profile={prof} recent_sessions={sessions} />}
@@ -292,7 +291,12 @@ export default function MonKart() {
           <div className="lg:col-span-7 xl:col-span-8 order-2 space-y-6">
             {/* LIGNE 1 : nouvelles cartes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {prof && <KartIdentityCard profile={prof} onUpdate={handleUpdateCounter} />}
+              {prof && (
+                <KartIdentityCard 
+                  profile={prof} 
+                  onRelaunchConfig={() => handleUpdateCounter("engine_model", null)} 
+                />
+              )}
               {prof && <WeightCard profile={prof} onUpdate={handleUpdateCounter} />}
             </div>
 

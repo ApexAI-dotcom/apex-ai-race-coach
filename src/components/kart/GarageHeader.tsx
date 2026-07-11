@@ -1,15 +1,12 @@
 import { KartProfile } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Wrench } from "lucide-react";
 
 interface GarageHeaderProps {
   profile?: KartProfile;
   onUpdate: (field: keyof KartProfile, value: any) => void;
-  onRelaunchConfig: () => void;
 }
 
-export function GarageHeader({ profile, onUpdate, onRelaunchConfig }: GarageHeaderProps) {
+export function GarageHeader({ profile, onUpdate }: GarageHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
       <div>
@@ -27,13 +24,6 @@ export function GarageHeader({ profile, onUpdate, onRelaunchConfig }: GarageHead
             Transpondeur {profile.transponder_number}
           </Badge>
         )}
-        <Button
-          variant="outline"
-          className="gap-2 bg-black/40 border-white/10 hover:bg-black/60"
-          onClick={onRelaunchConfig}
-        >
-          <Wrench className="w-4 h-4" /> Relancer la config
-        </Button>
       </div>
     </div>
   );
