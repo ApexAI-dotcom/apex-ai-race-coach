@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { KartProfile } from "@/lib/api";
-import { Flame, Disc, Loader2, HeartPulse } from "lucide-react";
+import { Flame, Disc, Loader2, HeartPulse, Wrench } from "lucide-react";
 
 export function KartHealthStatus({ profile }: { profile: KartProfile }) {
   // Simple health score calculation based on current wear vs life
