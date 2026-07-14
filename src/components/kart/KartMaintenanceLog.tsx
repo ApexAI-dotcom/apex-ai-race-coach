@@ -237,6 +237,8 @@ export function KartMaintenanceLog({
         return "Freins";
       case "chain":
         return "Chaîne";
+      case "general":
+        return "Général";
       default:
         return type;
     }
@@ -303,50 +305,66 @@ export function KartMaintenanceLog({
               Aucune réparation ou révision consignée pour le moment.
             </p>
           ) : (
-            history.map((log) => (
-              <div
-                key={log.id}
-                className="flex items-start gap-4 p-3 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors group"
-              >
-                <div className="p-2 rounded-full bg-background border border-border shadow-sm">
-                  {getIcon(log.component_type)}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold text-sm">
-                      Changement {getName(log.component_type)}
-                    </h4>
-                    <span className="text-xs text-muted-foreground">
-                      {format(new Date(log.created_at), "dd MMM yyyy")}
-                    </span>
+            history.map((log) => {
+              let displayType = log.component_type;
+              let displayNotes = log.notes || "";
+              if (log.notes?.startsWith("[general] ")) {
+                displayType = "general";
+                displayNotes = log.notes.substring(10);
+              } else if (log.notes?.startsWith("[chain] ")) {
+                displayType = "chain";
+                displayNotes = log.notes.substring(8);
+              }
+
+              return (
+                <div
+                  key={log.id}
+                  className="flex items-start gap-4 p-3 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors group"
+                >
+                  <div className="p-2 rounded-full bg-background border border-border shadow-sm">
+                    {getIcon(displayType)}
                   </div>
-                  {log.notes && <p className="text-xs text-muted-foreground mt-1">"{log.notes}"</p>}
-                  {log.previous_hours !== null && log.previous_hours > 0 && (
-                    <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">
-                      Moteur remis à zéro à {log.previous_hours.toFixed(1)}h
-                    </p>
-                  )}
-                  {log.previous_sessions !== null &&
-                    log.previous_sessions > 0 &&
-                    log.component_type !== "engine" && (
-                      <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">
-                        Durée : {log.previous_sessions} sessions
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">
+                        {displayType === "general" ? displayNotes.split(":")[0] || "Entretien général" : `Changement ${getName(displayType)}`}
+                      </h4>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(log.created_at), "dd MMM yyyy")}
+                      </span>
+                    </div>
+                    {displayNotes && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        "{displayType === "general" ? displayNotes.substring(displayNotes.indexOf(":") + 1).trim() : displayNotes}"
                       </p>
                     )}
+                    {log.previous_hours !== null && log.previous_hours > 0 && (
+                      <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">
+                        Moteur remis à zéro à {log.previous_hours.toFixed(1)}h
+                      </p>
+                    )}
+                    {log.previous_sessions !== null &&
+                      log.previous_sessions > 0 &&
+                      log.component_type !== "engine" && (
+                        <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">
+                          Durée : {log.previous_sessions} tours
+                        </p>
+                      )}
+                  </div>
+                  {onDeleteEntry && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => onDeleteEntry(log.id)}
+                      title="Supprimer cette entrée"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                 </div>
-                {onDeleteEntry && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 shrink-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => onDeleteEntry(log.id)}
-                    title="Supprimer cette entrée"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                )}
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </CardContent>

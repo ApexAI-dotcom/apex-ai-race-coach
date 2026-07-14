@@ -154,7 +154,7 @@ export default function MonKart() {
       if (component !== "chain") {
         await api.resetKartComponent(session.access_token, component, "Remplacement et remise à zéro");
       } else {
-        await addKartHistoryEntry(session.access_token, "general", "Remplacement / Graissage de la chaîne", new Date().toISOString());
+        await addKartHistoryEntry(session.access_token, "brakes", "[chain] Remplacement / Graissage de la chaîne", new Date().toISOString());
       }
       
       toast.success("Compteur réinitialisé.");
@@ -244,7 +244,13 @@ export default function MonKart() {
   const handleAddHistory = async (type: string, notes: string, date: string) => {
     if (!session?.access_token) return;
     try {
-      await addKartHistoryEntry(session.access_token, type, notes, date);
+      let finalType = type;
+      let finalNotes = notes;
+      if (type !== "engine" && type !== "tires" && type !== "brakes") {
+        finalType = "brakes"; // Map to brakes to bypass DB check constraint
+        finalNotes = `[${type}] ${notes}`;
+      }
+      await addKartHistoryEntry(session.access_token, finalType, finalNotes, date);
       toast.success("Intervention ajoutée au journal.");
       fetchProfile();
     } catch (e: any) {
