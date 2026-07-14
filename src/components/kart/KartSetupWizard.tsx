@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Wrench,
   CheckCircle2,
@@ -28,6 +28,13 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import api, { KartProfile } from "@/lib/api";
@@ -37,9 +44,10 @@ import { useNavigate } from "react-router-dom";
 interface KartSetupWizardProps {
   token: string;
   onComplete: () => void;
+  initialProfile?: KartProfile;
 }
 
-export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => {
+export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetupWizardProps) => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -47,6 +55,10 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
   const [openTires, setOpenTires] = useState(false);
   const [openBrakes, setOpenBrakes] = useState(false);
   const [data, setData] = useState<Partial<KartProfile>>({
+    chassis_brand: "",
+    chassis_model: "",
+    chassis_year: new Date().getFullYear(),
+    acquisition_device: "",
     engine_model: "",
     engine_hours_current: 0,
     engine_hours_life: 15,
@@ -58,7 +70,28 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
     brakes_sessions_life: 100,
   });
 
-  const handleNext = () => setStep((s) => Math.min(s + 1, 3));
+  useEffect(() => {
+    if (initialProfile) {
+      setData((prev) => ({
+        ...prev,
+        chassis_brand: initialProfile.chassis_brand || "",
+        chassis_model: initialProfile.chassis_model || "",
+        chassis_year: initialProfile.chassis_year || new Date().getFullYear(),
+        acquisition_device: initialProfile.acquisition_device || "",
+        engine_model: initialProfile.engine_model || "",
+        engine_hours_current: initialProfile.engine_hours_current || 0,
+        engine_hours_life: initialProfile.engine_hours_life || 15,
+        tires_model: initialProfile.tires_model || "",
+        tires_sessions_current: initialProfile.tires_sessions_current || 0,
+        tires_sessions_life: initialProfile.tires_sessions_life || 50,
+        brakes_model: initialProfile.brakes_model || "",
+        brakes_sessions_current: initialProfile.brakes_sessions_current || 0,
+        brakes_sessions_life: initialProfile.brakes_sessions_life || 100,
+      }));
+    }
+  }, [initialProfile]);
+
+  const handleNext = () => setStep((s) => Math.min(s + 1, 4));
   const handleBack = () => {
     if (step === 1) {
       navigate("/dashboard");
@@ -75,6 +108,10 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
     setSaving(true);
     try {
       await api.updateKartProfile(token, {
+        chassis_brand: data.chassis_brand,
+        chassis_model: data.chassis_model,
+        chassis_year: Number(data.chassis_year) || null,
+        acquisition_device: data.acquisition_device,
         engine_model: data.engine_model || "Standard",
         engine_hours_current: Number(data.engine_hours_current) || 0,
         engine_hours_life: Number(data.engine_hours_life) || 15,
@@ -100,26 +137,79 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
         <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
           <div
             className="h-full bg-primary transition-all duration-300"
-            style={{ width: `${(step / 3) * 100}%` }}
+            style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
 
         <CardHeader className="text-center pt-8">
           <Wrench className="w-12 h-12 text-primary mx-auto mb-4" />
           <CardTitle className="text-2xl font-display">
-            {step === 1 && "Configuration Moteur"}
-            {step === 2 && "Configuration Pneus"}
-            {step === 3 && "Configuration Freins"}
+            {step === 1 && "Configuration Châssis & Acquisition"}
+            {step === 2 && "Configuration Moteur"}
+            {step === 3 && "Configuration Pneus"}
+            {step === 4 && "Configuration Freins"}
           </CardTitle>
           <CardDescription>
-            {step === 1 && "Définis les caractéristiques de ton moteur pour mieux le suivre."}
-            {step === 2 && "Quels pneus utilises-tu actuellement ?"}
-            {step === 3 && "Vérifions le système de freinage."}
+            {step === 1 && "Renseigne les informations de base de ton matériel."}
+            {step === 2 && "Définis les caractéristiques de ton moteur pour mieux le suivre."}
+            {step === 3 && "Quels pneus utilises-tu actuellement ?"}
+            {step === 4 && "Vérifions le système de freinage."}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6 px-8">
           {step === 1 && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="space-y-2">
+                <Label>Marque du Châssis</Label>
+                <Input
+                  className="bg-black/20"
+                  placeholder="Ex: Tony Kart, Sodi, Birel ART"
+                  value={data.chassis_brand || ""}
+                  onChange={(e) => updateData({ chassis_brand: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Modèle du Châssis</Label>
+                <Input
+                  className="bg-black/20"
+                  placeholder="Ex: Racer 401R, Sigma RS3"
+                  value={data.chassis_model || ""}
+                  onChange={(e) => updateData({ chassis_model: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Année</Label>
+                <Input
+                  type="number"
+                  className="bg-black/20"
+                  placeholder="Ex: 2024"
+                  value={data.chassis_year || ""}
+                  onChange={(e) => updateData({ chassis_year: Number(e.target.value) })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Boîtier d'Acquisition</Label>
+                <Select
+                  value={data.acquisition_device || ""}
+                  onValueChange={(val) => updateData({ acquisition_device: val })}
+                >
+                  <SelectTrigger className="bg-black/20 border-white/10">
+                    <SelectValue placeholder="Choisir un système..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black/90 border-white/10 text-white">
+                    <SelectItem value="Mychron 5">Mychron 5</SelectItem>
+                    <SelectItem value="Mychron 5S">Mychron 5S</SelectItem>
+                    <SelectItem value="Alfano 6">Alfano 6</SelectItem>
+                    <SelectItem value="Unipro">Unipro</SelectItem>
+                    <SelectItem value="Autre">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
                 <Label>Modèle du Moteur</Label>
@@ -197,7 +287,7 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
                 <Label>Modèle / Type de Pneus</Label>
@@ -271,7 +361,7 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
                 <Label>Système de Freinage</Label>
@@ -349,7 +439,7 @@ export const KartSetupWizard = ({ token, onComplete }: KartSetupWizardProps) => 
             Retour
           </Button>
 
-          {step < 3 ? (
+          {step < 4 ? (
             <Button onClick={handleNext}>
               Suivant
               <ChevronRight className="w-4 h-4 ml-2" />

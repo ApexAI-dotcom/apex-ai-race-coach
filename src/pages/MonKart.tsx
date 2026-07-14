@@ -104,7 +104,7 @@ export default function MonKart() {
   if (prof && !prof.engine_model) {
     return (
       <Layout>
-        <KartSetupWizard token={session!.access_token} onComplete={fetchProfile} />
+        <KartSetupWizard token={session!.access_token} onComplete={fetchProfile} initialProfile={prof} />
       </Layout>
     );
   }
@@ -279,12 +279,19 @@ export default function MonKart() {
         {prof && <AlertBanner profile={prof} recent_sessions={sessions} />}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* COLONNE GAUCHE — INTACTE, ne rien toucher */}
+          {/* COLONNE GAUCHE — Schéma, Santé et Journal */}
           <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 order-1 h-fit">
             <div className="flex items-center justify-center p-4 bg-card border border-border shadow-sm rounded-2xl">
               {prof && <KartSchematic profile={prof} recent_sessions={sessions} />}
             </div>
             {prof && <KartHealthStatus profile={prof} />}
+            <div className="mt-2">
+              <KartMaintenanceLog
+                history={history}
+                onAddEntry={handleAddHistory}
+                onDeleteEntry={handleDeleteHistoryEntry}
+              />
+            </div>
           </div>
 
           {/* COLONNE DROITE — grille de contenu */}
@@ -352,8 +359,8 @@ export default function MonKart() {
               />
             </div>
 
-            {/* LIGNE 3 : import + journal — INTACTS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            {/* LIGNE 3 : import */}
+            <div className="mt-6">
               <Card className="bg-card border border-border shadow-sm rounded-2xl">
                 <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2 text-lg">
@@ -380,12 +387,6 @@ export default function MonKart() {
                   </Button>
                 </CardContent>
               </Card>
-
-              <KartMaintenanceLog
-                history={history}
-                onAddEntry={handleAddHistory}
-                onDeleteEntry={handleDeleteHistoryEntry}
-              />
             </div>
           </div>
         </div>
@@ -414,7 +415,7 @@ export default function MonKart() {
                       <th className="pb-3 font-medium">Durée Cumulée</th>
                       <th className="pb-3 font-medium text-right">RPM Max</th>
                       <th className="pb-3 font-medium text-right">G Lat Max</th>
-                      <th className="pb-3 font-medium text-right">Temp Max</th>
+                      <th className="pb-3 font-medium text-right">Temp Échap. Max</th>
                       <th className="pb-3 font-medium text-right">Actions</th>
                     </tr>
                   </thead>

@@ -47,6 +47,24 @@ export function KartIdentityCard({ profile, onRelaunchConfig }: KartIdentityCard
               {profile.acquisition_device || "Non défini"}
             </div>
           </div>
+
+          <div className="flex items-center justify-between py-2 border-b border-border/50">
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
+              <Shield className="w-4 h-4" /> Freins
+            </div>
+            <div className="text-sm font-semibold text-right">
+              {profile.brakes_model || "Non défini"}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between py-2 border-b border-border/50">
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
+              <Settings2 className="w-4 h-4" /> Pneus
+            </div>
+            <div className="text-sm font-semibold text-right">
+              {profile.tires_model || "Non défini"}
+            </div>
+          </div>
         </div>
 
         <Button 

@@ -127,13 +127,23 @@ export const WearGauge = ({
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          onClick={onAction}
-          className="w-full bg-white/5 hover:bg-white/10 border-white/10"
-        >
-          {actionLabel}
-        </Button>
+        <div className="flex gap-2 w-full mt-auto pt-2">
+          <Button
+            variant="outline"
+            onClick={onAction}
+            className="flex-1 bg-white/5 hover:bg-white/10 border-white/10 text-xs whitespace-normal h-auto py-2"
+          >
+            {actionLabel}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsEditing(true)}
+            title="Ajuster manuellement"
+            className="w-10 shrink-0 px-0 bg-white/5 hover:bg-white/10 border-white/10"
+          >
+            <Pencil className="w-4 h-4 text-muted-foreground" />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
