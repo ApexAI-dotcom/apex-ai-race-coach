@@ -34,7 +34,7 @@ export function KartMaintenanceLog({
   profile?: KartProfile;
   onAddEntry?: (type: string, notes: string, date: string) => void;
   onDeleteEntry?: (entryId: string) => void;
-  onResetComponent?: (component: "engine" | "tires" | "brakes") => void;
+  onResetComponent?: (component: "engine" | "tires" | "brakes" | "chain") => void;
   onIgnoreAlert?: (alertId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -111,7 +111,7 @@ export function KartMaintenanceLog({
         recommendations.push({
           id: "brakes_wear",
           component: "brakes",
-          message: `Contrôle et remplacement urgent des plaquettes de freins (${profile.brakes_sessions_current} / ${profile.brakes_sessions_life} sessions).`,
+          message: `Contrôle et remplacement urgent des plaquettes de freins (${profile.brakes_sessions_current} / ${profile.brakes_sessions_life} tours).`,
           actionLabel: "Remplacer plaquettes",
           severity: "critical",
         });
@@ -119,8 +119,30 @@ export function KartMaintenanceLog({
         recommendations.push({
           id: "brakes_wear",
           component: "brakes",
-          message: `Vérifier l'usure des plaquettes de freins (${profile.brakes_sessions_current} / ${profile.brakes_sessions_life} sessions).`,
+          message: `Vérifier l'usure des plaquettes de freins (${profile.brakes_sessions_current} / ${profile.brakes_sessions_life} tours).`,
           actionLabel: "Remplacer plaquettes",
+          severity: "warning",
+        });
+      }
+    }
+
+    // Chain Wear
+    if (profile.chain_hours_life && profile.chain_hours_current !== undefined && !ignoredAlerts.includes("chain_wear")) {
+      const ratio = profile.chain_hours_current / profile.chain_hours_life;
+      if (ratio >= 0.95) {
+        recommendations.push({
+          id: "chain_wear",
+          component: "chain",
+          message: `Remplacement de la chaîne de transmission requis (${profile.chain_hours_current.toFixed(1)}h / ${profile.chain_hours_life}h).`,
+          actionLabel: "Changer la chaîne",
+          severity: "critical",
+        });
+      } else if (ratio >= 0.80) {
+        recommendations.push({
+          id: "chain_wear",
+          component: "chain",
+          message: `Graissage et tension de la chaîne recommandés (${profile.chain_hours_current.toFixed(1)}h / ${profile.chain_hours_life}h).`,
+          actionLabel: "Graisser la chaîne",
           severity: "warning",
         });
       }
@@ -198,6 +220,8 @@ export function KartMaintenanceLog({
         return <Disc className="w-4 h-4 text-purple-500" />;
       case "brakes":
         return <Loader2 className="w-4 h-4 text-orange-500" />;
+      case "chain":
+        return <Wrench className="w-4 h-4 text-blue-500" />;
       default:
         return <Wrench className="w-4 h-4 text-gray-500" />;
     }
@@ -211,6 +235,8 @@ export function KartMaintenanceLog({
         return "Train de Pneus";
       case "brakes":
         return "Freins";
+      case "chain":
+        return "Chaîne";
       default:
         return type;
     }

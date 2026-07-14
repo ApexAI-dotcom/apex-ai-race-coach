@@ -418,7 +418,7 @@ export default function MonKart() {
               <WearGauge 
                 component="brakes" 
                 label="Freins" 
-                unit="sess."
+                unit="tours"
                 icon={<Loader2 className="w-5 h-5 text-orange-500" />}
                 current={prof?.brakes_sessions_current} 
                 max={prof?.brakes_sessions_life}

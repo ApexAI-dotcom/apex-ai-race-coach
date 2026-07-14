@@ -62,7 +62,16 @@ export const AlertBanner = ({ profile, recent_sessions = [], onUpdate }: AlertBa
   if (profile.brakes_sessions_life && profile.brakes_sessions_current !== undefined && !ignoredAlerts.includes("brakes_wear")) {
     const ratio = profile.brakes_sessions_current / profile.brakes_sessions_life;
     if (ratio >= critLimit)
-      alerts.push({ id: "brakes_wear", level: "critical", message: "Freins : Contrôle les plaquettes urgemment." });
+      alerts.push({ id: "brakes_wear", level: "critical", message: "Freins : Contrôle et remplacement des plaquettes requis (limite de tours atteinte)." });
+  }
+
+  // Chaîne
+  if (profile.chain_hours_life && profile.chain_hours_current !== undefined && !ignoredAlerts.includes("chain_wear")) {
+    const ratio = profile.chain_hours_current / profile.chain_hours_life;
+    if (ratio >= critLimit)
+      alerts.push({ id: "chain_wear", level: "critical", message: "Chaîne : Usure critique détectée, remplacez la chaîne." });
+    else if (ratio >= warnLimit)
+      alerts.push({ id: "chain_wear", level: "warning", message: "Chaîne : Graissage et vérification de la tension recommandés." });
   }
 
   // Batterie (Profil global)
@@ -112,6 +121,7 @@ export const AlertBanner = ({ profile, recent_sessions = [], onUpdate }: AlertBa
               if (alertId === "engine_wear") label = "Usure Moteur";
               if (alertId === "tires_wear") label = "Usure Pneus";
               if (alertId === "brakes_wear") label = "Usure Freins";
+              if (alertId === "chain_wear") label = "Usure Chaîne";
               if (alertId === "battery_low") label = "Tension Batterie";
               if (alertId === "battery_chute") label = "Baisse Tension";
               if (alertId === "exhaust_surchauffe") label = "Surchauffe";
@@ -186,6 +196,7 @@ export const AlertBanner = ({ profile, recent_sessions = [], onUpdate }: AlertBa
             if (alertId === "engine_wear") label = "Usure Moteur";
             if (alertId === "tires_wear") label = "Usure Pneus";
             if (alertId === "brakes_wear") label = "Usure Freins";
+            if (alertId === "chain_wear") label = "Usure Chaîne";
             if (alertId === "battery_low") label = "Tension Batterie";
             if (alertId === "battery_chute") label = "Baisse Tension";
             if (alertId === "exhaust_surchauffe") label = "Surchauffe";

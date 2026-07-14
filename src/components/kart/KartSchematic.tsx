@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { KartProfile } from "@/lib/api";
-import { Battery, Disc, Flame, AlertCircle } from "lucide-react";
+import { Battery, Disc, Flame, AlertCircle, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EngineVis, TireVis, BrakeVis, BatteryVis } from "@/components/kart/WearVisuals";
 import { Button } from "@/components/ui/button";
@@ -156,6 +156,11 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
               stroke="#222"
               strokeWidth="2"
             />
+            {/* Chain / Transmission (connecting Axle Sprocket to Engine) */}
+            <rect x="282" y="152" width="10" height="88" rx="2" fill="none" stroke="#555" strokeWidth="2.5" opacity="0.85" />
+            <rect x="285" y="157" width="4" height="78" rx="1" fill="none" stroke="#111" strokeWidth="1.5" opacity="0.8" strokeDasharray="3 2" />
+            {/* Axle Sprocket (Couronne) */}
+            <ellipse cx="287" cy="164" rx="4" ry="14" fill="#333" stroke="#888" strokeWidth="2" />
             {/* Brake Disc (Rear Axle) */}
             <ellipse cx="230" cy="164" rx="6" ry="18" fill="none" stroke="#aaa" strokeWidth="3" />
             <ellipse
@@ -647,7 +652,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
               Freins AV ({profile.brakes_model || "NC"})
             </p>
             <p className="text-sm font-mono mt-1 text-muted-foreground">
-              {profile.brakes_sessions_current || 0} / {profile.brakes_sessions_life} sess.
+              {profile.brakes_sessions_current || 0} / {profile.brakes_sessions_life} tours
             </p>
           </TooltipContent>
         </Tooltip>
@@ -681,7 +686,39 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
               Freins AR ({profile.brakes_model || "NC"})
             </p>
             <p className="text-sm font-mono mt-1 text-muted-foreground">
-              {profile.brakes_sessions_current || 0} / {profile.brakes_sessions_life} sess.
+              {profile.brakes_sessions_current || 0} / {profile.brakes_sessions_life} tours
+            </p>
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Chain (transmission) */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              onClick={() => setSelectedComp("chain")}
+              className="absolute left-[70.5%] top-[27.5%] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-transform hover:scale-110 cursor-pointer z-10"
+            >
+              <div
+                className={cn(
+                  "w-8 h-8 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-md",
+                  getStatusColor(profile.chain_hours_current, profile.chain_hours_life, false, "chain_wear")
+                    .replace("text-", "shadow-")
+                    .replace("stroke-", "border-")
+                )}
+              >
+                <Wrench
+                  className={cn(
+                    "w-4 h-4",
+                    getStatusColor(profile.chain_hours_current, profile.chain_hours_life, false, "chain_wear")
+                  )}
+                />
+              </div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p className="font-bold uppercase text-xs">Chaîne de transmission</p>
+            <p className="text-sm font-mono mt-1 text-muted-foreground">
+              {profile.chain_hours_current?.toFixed(1) || 0}h / {profile.chain_hours_life || 20}h
             </p>
           </TooltipContent>
         </Tooltip>
@@ -882,7 +919,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
               <div className="space-y-4 bg-white/5 p-4 rounded-lg border border-white/5">
                 <BrakeVis
                   ratio={Math.min(
-                    (profile.brakes_sessions_current || 0) / (profile.brakes_sessions_life || 100),
+                    (profile.brakes_sessions_current || 0) / (profile.brakes_sessions_life || 800),
                     1
                   )}
                 />
@@ -893,7 +930,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
                 <div className="flex justify-between items-center mt-2">
                   <span>Usure Plaquettes :</span>
                   <span className="font-mono text-lg">
-                    {profile.brakes_sessions_current || 0} / {profile.brakes_sessions_life} sess.
+                    {profile.brakes_sessions_current || 0} / {profile.brakes_sessions_life || 800} tours
                   </span>
                 </div>
                 <div className="w-full bg-white/10 h-2 rounded-full mt-2 overflow-hidden">
@@ -901,13 +938,13 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
                     className={cn(
                       "h-full transition-all duration-500",
                       (profile.brakes_sessions_current || 0) /
-                        (profile.brakes_sessions_life || 100) >
+                        (profile.brakes_sessions_life || 800) >
                         0.8
                         ? "bg-orange-500"
                         : "bg-primary"
                     )}
                     style={{
-                      width: `${Math.min(((profile.brakes_sessions_current || 0) / (profile.brakes_sessions_life || 100)) * 100, 100)}%`,
+                      width: `${Math.min(((profile.brakes_sessions_current || 0) / (profile.brakes_sessions_life || 800)) * 100, 100)}%`,
                     }}
                   />
                 </div>
@@ -929,6 +966,55 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
                       }}
                     >
                       {(profile.setup_json?.ignored_alerts || []).includes("brakes_wear") ? "Réactiver l'alerte" : "Ignorer l'alerte"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {selectedComp === "chain" && (
+              <div className="space-y-4 bg-white/5 p-4 rounded-lg border border-white/5">
+                <div className="flex justify-between items-center mt-2">
+                  <span>Modèle :</span>
+                  <span className="text-primary">Chaîne de Transmission (Pas 219)</span>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span>Usure Actuelle :</span>
+                  <span className="font-mono text-lg">
+                    {profile.chain_hours_current?.toFixed(1) || 0} / {profile.chain_hours_life || 20} h
+                  </span>
+                </div>
+                <div className="w-full bg-white/10 h-2 rounded-full mt-2 overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full transition-all duration-500",
+                      (profile.chain_hours_current || 0) / (profile.chain_hours_life || 20) > 0.8
+                        ? "bg-red-500"
+                        : "bg-primary"
+                    )}
+                    style={{
+                      width: `${Math.min(((profile.chain_hours_current || 0) / (profile.chain_hours_life || 20)) * 100, 100)}%`,
+                    }}
+                  />
+                </div>
+                {onUpdate && (
+                  <div className="flex justify-end pt-2 border-t border-white/5 mt-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-muted-foreground hover:text-white"
+                      onClick={() => {
+                        const ignoredAlerts = profile.setup_json?.ignored_alerts || [];
+                        const isIgnored = ignoredAlerts.includes("chain_wear");
+                        onUpdate("setup_json", {
+                          ...(profile.setup_json || {}),
+                          ignored_alerts: isIgnored
+                            ? ignoredAlerts.filter((id: string) => id !== "chain_wear")
+                            : [...ignoredAlerts, "chain_wear"]
+                        });
+                      }}
+                    >
+                      {(profile.setup_json?.ignored_alerts || []).includes("chain_wear") ? "Réactiver l'alerte" : "Ignorer l'alerte"}
                     </Button>
                   </div>
                 )}

@@ -29,38 +29,38 @@ export const ENGINE_PRESETS = [
 
 export const TIRE_PRESETS = [
   // VEGA
-  { id: "vega-rouge-sl4", name: "Vega Rouge (SL4)", compound: "Medium", default_life: 60 },
-  { id: "vega-blanc-xm3", name: "Vega Blanc (XM3)", compound: "Soft", default_life: 30 },
-  { id: "vega-vert-xh3", name: "Vega Vert (XH3)", compound: "Hard", default_life: 90 },
-  { id: "vega-bleu-w6", name: "Vega Bleu (W6 Pluie)", compound: "Wet", default_life: 20 },
+  { id: "vega-rouge-sl4", name: "Vega Rouge (SL4)", compound: "Medium", default_life: 200 },
+  { id: "vega-blanc-xm3", name: "Vega Blanc (XM3)", compound: "Soft", default_life: 120 },
+  { id: "vega-vert-xh3", name: "Vega Vert (XH3)", compound: "Hard", default_life: 300 },
+  { id: "vega-bleu-w6", name: "Vega Bleu (W6 Pluie)", compound: "Wet", default_life: 80 },
   // LECONT
-  { id: "lecont-jaune-svm", name: "LeCont Jaune (SVM)", compound: "Medium", default_life: 50 },
-  { id: "lecont-blanc-svb", name: "LeCont Blanc (SVB)", compound: "Soft", default_life: 30 },
-  { id: "lecont-prime-svc", name: "LeCont Prime (SVC)", compound: "Soft", default_life: 30 },
+  { id: "lecont-jaune-svm", name: "LeCont Jaune (SVM)", compound: "Medium", default_life: 180 },
+  { id: "lecont-blanc-svb", name: "LeCont Blanc (SVB)", compound: "Soft", default_life: 100 },
+  { id: "lecont-prime-svc", name: "LeCont Prime (SVC)", compound: "Soft", default_life: 100 },
   // MG
-  { id: "mg-jaune-sm", name: "MG Jaune (SM)", compound: "Medium", default_life: 60 },
-  { id: "mg-rouge-sh", name: "MG Rouge (SH)", compound: "Hard", default_life: 90 },
-  { id: "mg-blanc-wt", name: "MG Blanc (WT Pluie)", compound: "Wet", default_life: 20 },
+  { id: "mg-jaune-sm", name: "MG Jaune (SM)", compound: "Medium", default_life: 200 },
+  { id: "mg-rouge-sh", name: "MG Rouge (SH)", compound: "Hard", default_life: 300 },
+  { id: "mg-blanc-wt", name: "MG Blanc (WT Pluie)", compound: "Wet", default_life: 80 },
   // MOJO
-  { id: "mojo-d2", name: "Mojo D2", compound: "Hard", default_life: 80 },
-  { id: "mojo-d5", name: "Mojo D5", compound: "Medium", default_life: 50 },
-  { id: "mojo-w5", name: "Mojo W5 (Pluie)", compound: "Wet", default_life: 20 },
+  { id: "mojo-d2", name: "Mojo D2", compound: "Hard", default_life: 250 },
+  { id: "mojo-d5", name: "Mojo D5", compound: "Medium", default_life: 180 },
+  { id: "mojo-w5", name: "Mojo W5 (Pluie)", compound: "Wet", default_life: 80 },
   // KOMET
-  { id: "komet-k2m", name: "Komet K2M", compound: "Medium", default_life: 60 },
-  { id: "komet-k2h", name: "Komet K2H", compound: "Hard", default_life: 90 },
-  { id: "komet-k1w", name: "Komet K1W (Pluie)", compound: "Wet", default_life: 20 },
-  { id: "other-tires", name: "Autre train...", compound: "Custom", default_life: 50 },
+  { id: "komet-k2m", name: "Komet K2M", compound: "Medium", default_life: 200 },
+  { id: "komet-k2h", name: "Komet K2H", compound: "Hard", default_life: 300 },
+  { id: "komet-k1w", name: "Komet K1W (Pluie)", compound: "Wet", default_life: 80 },
+  { id: "other-tires", name: "Autre train...", compound: "Custom", default_life: 200 },
 ];
 
 export const BRAKE_PRESETS = [
-  { id: "otk-bsd", name: "OTK BSD (Tony Kart)", type: "Hydraulic", default_life: 100 },
-  { id: "otk-bss", name: "OTK BSS (KZ/Front Brakes)", type: "Hydraulic", default_life: 80 },
-  { id: "brembo-ma5", name: "Brembo MA5", type: "Hydraulic", default_life: 120 },
-  { id: "parolin-ap", name: "Parolin AP Race", type: "Hydraulic", default_life: 100 },
-  { id: "rr-evo", name: "RR Racing Evo", type: "Hydraulic", default_life: 100 },
-  { id: "birel-freeline", name: "Birel ART Freeline", type: "Hydraulic", default_life: 100 },
-  { id: "crg-ven11", name: "CRG VEN 11", type: "Hydraulic", default_life: 100 },
-  { id: "other-brakes", name: "Autre système...", type: "Custom", default_life: 100 },
+  { id: "otk-bsd", name: "OTK BSD (Tony Kart)", type: "Hydraulic", default_life: 800 },
+  { id: "otk-bss", name: "OTK BSS (KZ/Front Brakes)", type: "Hydraulic", default_life: 600 },
+  { id: "brembo-ma5", name: "Brembo MA5", type: "Hydraulic", default_life: 1000 },
+  { id: "parolin-ap", name: "Parolin AP Race", type: "Hydraulic", default_life: 800 },
+  { id: "rr-evo", name: "RR Racing Evo", type: "Hydraulic", default_life: 800 },
+  { id: "birel-freeline", name: "Birel ART Freeline", type: "Hydraulic", default_life: 800 },
+  { id: "crg-ven11", name: "CRG VEN 11", type: "Hydraulic", default_life: 800 },
+  { id: "other-brakes", name: "Autre système...", type: "Custom", default_life: 800 },
 ];
 
 export const CHASSIS_PRESETS = [

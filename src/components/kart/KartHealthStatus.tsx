@@ -9,15 +9,19 @@ export function KartHealthStatus({ profile }: { profile: KartProfile }) {
   const currentEngine = profile.engine_hours_current || 0;
   const engineHealth = Math.max(0, 100 - (currentEngine / maxEngine) * 100);
 
-  const maxTires = profile.tires_laps_life || 500;
+  const maxTires = profile.tires_laps_life || 200;
   const currentTires = profile.tires_laps_current || 0;
   const tiresHealth = Math.max(0, 100 - (currentTires / maxTires) * 100);
 
-  const maxBrakes = profile.brakes_sessions_life || 100;
+  const maxBrakes = profile.brakes_sessions_life || 800; // now represents tours
   const currentBrakes = profile.brakes_sessions_current || 0;
   const brakesHealth = Math.max(0, 100 - (currentBrakes / maxBrakes) * 100);
 
-  const globalHealth = Math.round((engineHealth + tiresHealth + brakesHealth) / 3);
+  const maxChain = profile.chain_hours_life || 20;
+  const currentChain = profile.chain_hours_current || 0;
+  const chainHealth = Math.max(0, 100 - (currentChain / maxChain) * 100);
+
+  const globalHealth = Math.round((engineHealth + tiresHealth + brakesHealth + chainHealth) / 4);
 
   let healthColor = "text-green-500";
   let healthBg = "bg-green-500";
@@ -33,6 +37,7 @@ export function KartHealthStatus({ profile }: { profile: KartProfile }) {
   const engineIgnored = ignoredAlerts.includes("engine_wear");
   const tiresIgnored = ignoredAlerts.includes("tires_wear");
   const brakesIgnored = ignoredAlerts.includes("brakes_wear");
+  const chainIgnored = ignoredAlerts.includes("chain_wear");
 
   return (
     <Card className="bg-card border-border shadow-sm overflow-hidden relative">
@@ -58,29 +63,37 @@ export function KartHealthStatus({ profile }: { profile: KartProfile }) {
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-1.5 text-center">
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
             <Flame className="w-4 h-4 text-red-500 mb-1" />
-            <span className="text-xs font-semibold">{Math.round(engineHealth)}%</span>
-            <span className="text-[10px] text-muted-foreground uppercase">Moteur</span>
+            <span className="text-[11px] font-semibold">{Math.round(engineHealth)}%</span>
+            <span className="text-[9px] text-muted-foreground uppercase mt-0.5">Moteur</span>
             {engineIgnored && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
             )}
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
             <Disc className="w-4 h-4 text-purple-500 mb-1" />
-            <span className="text-xs font-semibold">{Math.round(tiresHealth)}%</span>
-            <span className="text-[10px] text-muted-foreground uppercase">Pneus</span>
+            <span className="text-[11px] font-semibold">{Math.round(tiresHealth)}%</span>
+            <span className="text-[9px] text-muted-foreground uppercase mt-0.5">Pneus</span>
             {tiresIgnored && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
             )}
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
             <Loader2 className="w-4 h-4 text-orange-500 mb-1" />
-            <span className="text-xs font-semibold">{Math.round(brakesHealth)}%</span>
-            <span className="text-[10px] text-muted-foreground uppercase">Freins</span>
+            <span className="text-[11px] font-semibold">{Math.round(brakesHealth)}%</span>
+            <span className="text-[9px] text-muted-foreground uppercase mt-0.5">Freins</span>
             {brakesIgnored && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+            )}
+          </div>
+          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
+            <Wrench className="w-4 h-4 text-blue-500 mb-1" />
+            <span className="text-[11px] font-semibold">{Math.round(chainHealth)}%</span>
+            <span className="text-[9px] text-muted-foreground uppercase mt-0.5">Chaîne</span>
+            {chainIgnored && (
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
             )}
           </div>
         </div>

@@ -404,7 +404,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                               onSelect={() => {
                                 updateData({
                                   tires_model: p.name,
-                                  tires_laps_life: p.default_life * 10, // Convert sessions preset to tours/laps
+                                  tires_laps_life: p.default_life, // Already in tours/laps in presets
                                 });
                                 setOpenTires(false);
                               }}
@@ -478,7 +478,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                               onSelect={() => {
                                 updateData({
                                   brakes_model: p.name,
-                                  brakes_sessions_life: p.default_life,
+                                  brakes_sessions_life: p.default_life, // In tours/laps directly
                                 });
                                 setOpenBrakes(false);
                               }}
@@ -500,7 +500,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                 </Popover>
               </div>
               <div className="space-y-2">
-                <Label>Seuil d'alerte plaquettes (Sessions)</Label>
+                <Label>Seuil d'alerte plaquette (Tours)</Label>
                 <Input
                   type="number"
                   className="bg-black/20"
@@ -509,7 +509,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                 />
               </div>
               <div className="space-y-2">
-                <Label>Sessions depuis dernier changement</Label>
+                <Label>Tours depuis dernier changement (Actuel)</Label>
                 <Input
                   type="number"
                   className="bg-black/20"
