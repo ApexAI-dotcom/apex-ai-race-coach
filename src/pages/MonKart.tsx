@@ -279,32 +279,29 @@ export default function MonKart() {
         {prof && <AlertBanner profile={prof} recent_sessions={sessions} />}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* COLONNE GAUCHE — Schéma, Santé et Journal */}
+          {/* COLONNE GAUCHE — Schéma, Santé et Poids */}
           <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 order-1 h-fit">
             <div className="flex items-center justify-center p-4 bg-card border border-border shadow-sm rounded-2xl">
               {prof && <KartSchematic profile={prof} recent_sessions={sessions} />}
             </div>
             {prof && <KartHealthStatus profile={prof} />}
-            <div className="mt-2">
-              <KartMaintenanceLog
-                history={history}
-                onAddEntry={handleAddHistory}
-                onDeleteEntry={handleDeleteHistoryEntry}
-              />
+            
+            {/* Bilan Poids déplacé ici pour être plus "discret" car plus bas dans la page */}
+            <div className="mt-4">
+              {prof && <WeightCard profile={prof} onUpdate={handleUpdateCounter} />}
             </div>
           </div>
 
           {/* COLONNE DROITE — grille de contenu */}
           <div className="lg:col-span-7 xl:col-span-8 order-2 space-y-6">
-            {/* LIGNE 1 : nouvelles cartes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* LIGNE 1 : Identité seule (pleine largeur ou col) */}
+            <div>
               {prof && (
                 <KartIdentityCard 
                   profile={prof} 
                   onRelaunchConfig={() => handleUpdateCounter("engine_model", null)} 
                 />
               )}
-              {prof && <WeightCard profile={prof} onUpdate={handleUpdateCounter} />}
             </div>
 
             {/* LIGNE 2 : les 4 jauges d'usure en 2×2 */}
@@ -359,7 +356,16 @@ export default function MonKart() {
               />
             </div>
 
-            {/* LIGNE 3 : import */}
+            {/* LIGNE 3 : Journal d'Entretien — Agrandit sur toute la largeur de la colonne droite */}
+            <div className="mt-6">
+              <KartMaintenanceLog
+                history={history}
+                onAddEntry={handleAddHistory}
+                onDeleteEntry={handleDeleteHistoryEntry}
+              />
+            </div>
+
+            {/* LIGNE 4 : import */}
             <div className="mt-6">
               <Card className="bg-card border border-border shadow-sm rounded-2xl">
                 <CardHeader className="pb-4">

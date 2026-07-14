@@ -62,3 +62,13 @@ export const BRAKE_PRESETS = [
   { id: "crg-ven11", name: "CRG VEN 11", type: "Hydraulic", default_life: 100 },
   { id: "other-brakes", name: "Autre système...", type: "Custom", default_life: 100 },
 ];
+
+export const CHASSIS_PRESETS = [
+  { id: "tonykart", name: "Tony Kart", models: ["Racer 401R", "Racer 401RR", "Krypton 801"] },
+  { id: "sodi", name: "Sodi", models: ["Sigma RS3", "Sigma KZ", "Furia"] },
+  { id: "birel", name: "Birel ART", models: ["RY30-S16", "CRY30-S16"] },
+  { id: "crg", name: "CRG", models: ["Road Rebel", "KT2", "Heron"] },
+  { id: "kosmic", name: "Kosmic", models: ["Mercury RR", "Mercury R"] },
+  { id: "kr", name: "Kart Republic", models: ["KR2", "KR3"] },
+  { id: "other-chassis", name: "Autre marque...", models: ["Autre modèle"] },
+];

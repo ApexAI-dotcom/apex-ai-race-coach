@@ -26,7 +26,7 @@ export function KartIdentityCard({ profile, onRelaunchConfig }: KartIdentityCard
               <Settings2 className="w-4 h-4" /> Châssis
             </div>
             <div className="text-sm font-semibold text-right">
-              {profile.chassis_brand || "Non défini"} {profile.chassis_model} {profile.chassis_year ? `(${profile.chassis_year})` : ""}
+              {profile.chassis_brand || profile.setup_json?.chassis_brand || "Non défini"} {profile.chassis_model || profile.setup_json?.chassis_model} {profile.chassis_year || profile.setup_json?.chassis_year ? `(${profile.chassis_year || profile.setup_json?.chassis_year})` : ""}
             </div>
           </div>
 
@@ -44,7 +44,7 @@ export function KartIdentityCard({ profile, onRelaunchConfig }: KartIdentityCard
               <Cpu className="w-4 h-4" /> Acquisition
             </div>
             <div className="text-sm font-semibold text-right">
-              {profile.acquisition_device || "Non défini"}
+              {profile.acquisition_device || profile.setup_json?.acquisition_device || "Non défini"}
             </div>
           </div>
 
