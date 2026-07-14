@@ -9,8 +9,8 @@ export function KartHealthStatus({ profile }: { profile: KartProfile }) {
   const currentEngine = profile.engine_hours_current || 0;
   const engineHealth = Math.max(0, 100 - (currentEngine / maxEngine) * 100);
 
-  const maxTires = profile.tires_sessions_life || 50;
-  const currentTires = profile.tires_sessions_current || 0;
+  const maxTires = profile.tires_laps_life || 500;
+  const currentTires = profile.tires_laps_current || 0;
   const tiresHealth = Math.max(0, 100 - (currentTires / maxTires) * 100);
 
   const maxBrakes = profile.brakes_sessions_life || 100;

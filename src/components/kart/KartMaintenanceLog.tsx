@@ -83,13 +83,13 @@ export function KartMaintenanceLog({
     }
 
     // Tires Wear
-    if (profile.tires_sessions_life && profile.tires_sessions_current !== undefined && !ignoredAlerts.includes("tires_wear")) {
-      const ratio = profile.tires_sessions_current / profile.tires_sessions_life;
+    if (profile.tires_laps_life && profile.tires_laps_current !== undefined && !ignoredAlerts.includes("tires_wear")) {
+      const ratio = profile.tires_laps_current / profile.tires_laps_life;
       if (ratio >= 0.95) {
         recommendations.push({
           id: "tires_wear",
           component: "tires",
-          message: `Le train de pneus (${profile.tires_model || 'Standard'}) est usé (${profile.tires_sessions_current} / ${profile.tires_sessions_life} sessions).`,
+          message: `Le train de pneus (${profile.tires_model || 'Standard'}) est usé (${profile.tires_laps_current} / ${profile.tires_laps_life} tours).`,
           actionLabel: "Remplacer le train",
           severity: "critical",
         });
@@ -97,7 +97,7 @@ export function KartMaintenanceLog({
         recommendations.push({
           id: "tires_wear",
           component: "tires",
-          message: `Le train de pneus (${profile.tires_model || 'Standard'}) approche de sa limite (${profile.tires_sessions_current} / ${profile.tires_sessions_life} sessions).`,
+          message: `Le train de pneus (${profile.tires_model || 'Standard'}) approche de sa limite (${profile.tires_laps_current} / ${profile.tires_laps_life} tours).`,
           actionLabel: "Remplacer le train",
           severity: "warning",
         });

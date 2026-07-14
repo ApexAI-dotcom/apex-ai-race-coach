@@ -11,6 +11,7 @@ import { KartProfile } from "@/lib/api";
 import { Battery, Disc, Flame, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EngineVis, TireVis, BrakeVis, BatteryVis } from "@/components/kart/WearVisuals";
+import { Button } from "@/components/ui/button";
 
 interface KartSchematicProps {
   profile: KartProfile;
@@ -31,6 +32,18 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
       )
     : 0;
   const isExhaustHot = latestExhaustTemp > EXHAUST_TEMP_THRESHOLD;
+
+  const maxRpm = recent_sessions?.length
+    ? Math.max(0, ...recent_sessions.map((s) => s.rpm_max || 0))
+    : 0;
+
+  const gLatMax = recent_sessions?.length
+    ? Math.max(0, ...recent_sessions.map((s) => s.g_lateral_max || 0))
+    : 0;
+
+  const minVoltage = recent_sessions?.length
+    ? Math.min(12.6, ...recent_sessions.map((s) => s.battery_voltage_min || 12.6))
+    : 12.6;
 
   const getStatusColor = (
     current: number | undefined,
@@ -485,7 +498,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
               <div
                 className={cn(
                   "w-10 h-14 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg",
-                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
+                  getStatusColor(profile.tires_laps_current, profile.tires_laps_life, false, "tires_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -493,7 +506,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
                 <Disc
                   className={cn(
                     "w-5 h-5",
-                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
+                    getStatusColor(profile.tires_laps_current, profile.tires_laps_life, false, "tires_wear")
                   )}
                 />
               </div>
@@ -502,7 +515,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
           <TooltipContent side="left">
             <p className="font-bold">AVG ({profile.tires_model || "NC"})</p>
             <p className="text-xs text-muted-foreground">
-              {profile.tires_sessions_current} / {profile.tires_sessions_life} sess.
+              {profile.tires_laps_current || 0} / {profile.tires_laps_life || 500} tours
             </p>
           </TooltipContent>
         </Tooltip>
@@ -517,7 +530,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
               <div
                 className={cn(
                   "w-10 h-14 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg",
-                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
+                  getStatusColor(profile.tires_laps_current, profile.tires_laps_life, false, "tires_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -525,7 +538,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
                 <Disc
                   className={cn(
                     "w-5 h-5",
-                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
+                    getStatusColor(profile.tires_laps_current, profile.tires_laps_life, false, "tires_wear")
                   )}
                 />
               </div>
@@ -534,7 +547,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
           <TooltipContent side="right">
             <p className="font-bold">AVD ({profile.tires_model || "NC"})</p>
             <p className="text-xs text-muted-foreground">
-              {profile.tires_sessions_current} / {profile.tires_sessions_life} sess.
+              {profile.tires_laps_current || 0} / {profile.tires_laps_life || 500} tours
             </p>
           </TooltipContent>
         </Tooltip>
@@ -549,7 +562,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
               <div
                 className={cn(
                   "w-12 h-16 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg",
-                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
+                  getStatusColor(profile.tires_laps_current, profile.tires_laps_life, false, "tires_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -557,7 +570,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
                 <Disc
                   className={cn(
                     "w-6 h-6",
-                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
+                    getStatusColor(profile.tires_laps_current, profile.tires_laps_life, false, "tires_wear")
                   )}
                 />
               </div>
@@ -566,7 +579,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
           <TooltipContent side="left">
             <p className="font-bold">ARG ({profile.tires_model || "NC"})</p>
             <p className="text-xs text-muted-foreground">
-              {profile.tires_sessions_current} / {profile.tires_sessions_life} sess.
+              {profile.tires_laps_current || 0} / {profile.tires_laps_life || 500} tours
             </p>
           </TooltipContent>
         </Tooltip>
@@ -581,7 +594,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
               <div
                 className={cn(
                   "w-12 h-16 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg",
-                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
+                  getStatusColor(profile.tires_laps_current, profile.tires_laps_life, false, "tires_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -589,7 +602,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
                 <Disc
                   className={cn(
                     "w-6 h-6",
-                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
+                    getStatusColor(profile.tires_laps_current, profile.tires_laps_life, false, "tires_wear")
                   )}
                 />
               </div>
@@ -598,7 +611,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
           <TooltipContent side="right">
             <p className="font-bold">ARD ({profile.tires_model || "NC"})</p>
             <p className="text-xs text-muted-foreground">
-              {profile.tires_sessions_current} / {profile.tires_sessions_life} sess.
+              {profile.tires_laps_current || 0} / {profile.tires_laps_life || 500} tours
             </p>
           </TooltipContent>
         </Tooltip>
@@ -754,7 +767,19 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
                     {profile.engine_hours_current?.toFixed(1) || 0} / {profile.engine_hours_life} h
                   </span>
                 </div>
-                <div className="w-full bg-white/10 h-2 rounded-full mt-2 overflow-hidden">
+                {maxRpm > 0 && (
+                  <div className="flex justify-between items-center mt-1 text-xs text-muted-foreground border-t border-white/5 pt-1">
+                    <span>Régime Max enregistré :</span>
+                    <span className="font-mono">{Math.round(maxRpm)} tr/min</span>
+                  </div>
+                )}
+                {latestExhaustTemp > 0 && (
+                  <div className="flex justify-between items-center mt-1 text-xs text-muted-foreground">
+                    <span>Temp. Échappement Max :</span>
+                    <span className="font-mono">{Math.round(latestExhaustTemp)} °C</span>
+                  </div>
+                )}
+                <div className="w-full bg-white/10 h-2 rounded-full mt-3 overflow-hidden">
                   <div
                     className={cn(
                       "h-full transition-all duration-500",
@@ -795,7 +820,7 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
               <div className="space-y-4 bg-white/5 p-4 rounded-lg border border-white/5">
                 <TireVis
                   ratio={Math.min(
-                    (profile.tires_sessions_current || 0) / (profile.tires_sessions_life || 50),
+                    (profile.tires_laps_current || 0) / (profile.tires_laps_life || 500),
                     1
                   )}
                 />
@@ -804,22 +829,28 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
                   <span className="text-primary">{profile.tires_model || "Standard"}</span>
                 </p>
                 <div className="flex justify-between items-center mt-2">
-                  <span>Sessions Roulées :</span>
+                  <span>Tours Roulés :</span>
                   <span className="font-mono text-lg">
-                    {profile.tires_sessions_current || 0} / {profile.tires_sessions_life} sess.
+                    {profile.tires_laps_current || 0} / {profile.tires_laps_life || 500} tours
                   </span>
                 </div>
-                <div className="w-full bg-white/10 h-2 rounded-full mt-2 overflow-hidden">
+                {gLatMax > 0 && (
+                  <div className="flex justify-between items-center mt-1 text-xs text-muted-foreground border-t border-white/5 pt-1">
+                    <span>G Latéral Max subi :</span>
+                    <span className="font-mono">{gLatMax.toFixed(2)} G</span>
+                  </div>
+                )}
+                <div className="w-full bg-white/10 h-2 rounded-full mt-3 overflow-hidden">
                   <div
                     className={cn(
                       "h-full transition-all duration-500",
-                      (profile.tires_sessions_current || 0) / (profile.tires_sessions_life || 50) >
+                      (profile.tires_laps_current || 0) / (profile.tires_laps_life || 500) >
                         0.8
                         ? "bg-red-500"
                         : "bg-primary"
                     )}
                     style={{
-                      width: `${Math.min(((profile.tires_sessions_current || 0) / (profile.tires_sessions_life || 50)) * 100, 100)}%`,
+                      width: `${Math.min(((profile.tires_laps_current || 0) / (profile.tires_laps_life || 500)) * 100, 100)}%`,
                     }}
                   />
                 </div>
@@ -918,6 +949,12 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
                     {profile.battery_voltage_last || "--"} V
                   </span>
                 </div>
+                {minVoltage > 0 && (
+                  <div className="flex justify-between items-center mt-1 text-xs text-muted-foreground border-t border-white/5 pt-1">
+                    <span>Tension Min. enregistrée :</span>
+                    <span className="font-mono">{minVoltage.toFixed(1)} V</span>
+                  </div>
+                )}
                 <p className="text-xs text-muted-foreground mt-2 text-center">
                   Tension à vide minimale recommandée : 12.0V.
                 </p>

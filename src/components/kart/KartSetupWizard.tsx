@@ -68,8 +68,8 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
     engine_hours_current: 0,
     engine_hours_life: 15,
     tires_model: "",
-    tires_sessions_current: 0,
-    tires_sessions_life: 50,
+    tires_laps_current: 0,
+    tires_laps_life: 500,
     brakes_model: "",
     brakes_sessions_current: 0,
     brakes_sessions_life: 100,
@@ -89,8 +89,8 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
         engine_hours_current: initialProfile.engine_hours_current || 0,
         engine_hours_life: initialProfile.engine_hours_life || 15,
         tires_model: initialProfile.tires_model || "",
-        tires_sessions_current: initialProfile.tires_sessions_current || 0,
-        tires_sessions_life: initialProfile.tires_sessions_life || 50,
+        tires_laps_current: initialProfile.tires_laps_current || 0,
+        tires_laps_life: initialProfile.tires_laps_life || 500,
         brakes_model: initialProfile.brakes_model || "",
         brakes_sessions_current: initialProfile.brakes_sessions_current || 0,
         brakes_sessions_life: initialProfile.brakes_sessions_life || 100,
@@ -134,8 +134,8 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
         engine_hours_current: Number(data.engine_hours_current) || 0,
         engine_hours_life: Number(data.engine_hours_life) || 15,
         tires_model: data.tires_model || "Standard",
-        tires_sessions_current: Number(data.tires_sessions_current) || 0,
-        tires_sessions_life: Number(data.tires_sessions_life) || 50,
+        tires_laps_current: Number(data.tires_laps_current) || 0,
+        tires_laps_life: Number(data.tires_laps_life) || 500,
         brakes_model: data.brakes_model || "Standard",
         brakes_sessions_current: Number(data.brakes_sessions_current) || 0,
         brakes_sessions_life: Number(data.brakes_sessions_life) || 100,
@@ -404,7 +404,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                               onSelect={() => {
                                 updateData({
                                   tires_model: p.name,
-                                  tires_sessions_life: p.default_life,
+                                  tires_laps_life: p.default_life * 10, // Convert sessions preset to tours/laps
                                 });
                                 setOpenTires(false);
                               }}
@@ -429,21 +429,21 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                 </Popover>
               </div>
               <div className="space-y-2">
-                <Label>Durée de vie (Sessions)</Label>
+                <Label>Durée de vie (Tours)</Label>
                 <Input
                   type="number"
                   className="bg-black/20"
-                  value={data.tires_sessions_life}
-                  onChange={(e) => updateData({ tires_sessions_life: Number(e.target.value) })}
+                  value={data.tires_laps_life}
+                  onChange={(e) => updateData({ tires_laps_life: Number(e.target.value) })}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Sessions déjà roulées (Actuel)</Label>
+                <Label>Tours déjà roulés (Actuel)</Label>
                 <Input
                   type="number"
                   className="bg-black/20"
-                  value={data.tires_sessions_current}
-                  onChange={(e) => updateData({ tires_sessions_current: Number(e.target.value) })}
+                  value={data.tires_laps_current}
+                  onChange={(e) => updateData({ tires_laps_current: Number(e.target.value) })}
                 />
               </div>
             </div>

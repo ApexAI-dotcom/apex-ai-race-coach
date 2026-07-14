@@ -406,11 +406,11 @@ export default function MonKart() {
               <WearGauge 
                 component="tires" 
                 label="Pneus" 
-                unit="sess."
+                unit="tours"
                 icon={<Disc className="w-5 h-5 text-purple-500" />}
-                current={prof?.tires_sessions_current} 
-                max={prof?.tires_sessions_life}
-                field="tires_sessions_current" 
+                current={prof?.tires_laps_current} 
+                max={prof?.tires_laps_life}
+                field="tires_laps_current" 
                 onUpdate={handleUpdateCounter}
                 onAction={() => handleReset("tires")} 
                 actionLabel="Remplacer le train" 

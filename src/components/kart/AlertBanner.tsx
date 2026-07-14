@@ -50,8 +50,8 @@ export const AlertBanner = ({ profile, recent_sessions = [], onUpdate }: AlertBa
   }
 
   // Pneus
-  if (profile.tires_sessions_life && profile.tires_sessions_current !== undefined && !ignoredAlerts.includes("tires_wear")) {
-    const ratio = profile.tires_sessions_current / profile.tires_sessions_life;
+  if (profile.tires_laps_life && profile.tires_laps_current !== undefined && !ignoredAlerts.includes("tires_wear")) {
+    const ratio = profile.tires_laps_current / profile.tires_laps_life;
     if (ratio >= critLimit)
       alerts.push({ id: "tires_wear", level: "critical", message: "Pneus : En fin de vie, prévoir un train neuf." });
     else if (ratio >= warnLimit)
