@@ -29,6 +29,11 @@ export function KartHealthStatus({ profile }: { profile: KartProfile }) {
     healthBg = "bg-orange-500";
   }
 
+  const ignoredAlerts = profile.setup_json?.ignored_alerts || [];
+  const engineIgnored = ignoredAlerts.includes("engine_wear");
+  const tiresIgnored = ignoredAlerts.includes("tires_wear");
+  const brakesIgnored = ignoredAlerts.includes("brakes_wear");
+
   return (
     <Card className="bg-card border-border shadow-sm overflow-hidden relative">
       <div className="absolute top-0 left-0 w-full h-1 bg-muted">
@@ -54,20 +59,29 @@ export function KartHealthStatus({ profile }: { profile: KartProfile }) {
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border">
+          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
             <Flame className="w-4 h-4 text-red-500 mb-1" />
             <span className="text-xs font-semibold">{Math.round(engineHealth)}%</span>
             <span className="text-[10px] text-muted-foreground uppercase">Moteur</span>
+            {engineIgnored && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+            )}
           </div>
-          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border">
+          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
             <Disc className="w-4 h-4 text-purple-500 mb-1" />
             <span className="text-xs font-semibold">{Math.round(tiresHealth)}%</span>
             <span className="text-[10px] text-muted-foreground uppercase">Pneus</span>
+            {tiresIgnored && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+            )}
           </div>
-          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border">
+          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
             <Loader2 className="w-4 h-4 text-orange-500 mb-1" />
             <span className="text-xs font-semibold">{Math.round(brakesHealth)}%</span>
             <span className="text-[10px] text-muted-foreground uppercase">Freins</span>
+            {brakesIgnored && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+            )}
           </div>
         </div>
       </CardContent>

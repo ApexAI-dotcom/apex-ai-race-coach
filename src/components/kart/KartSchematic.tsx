@@ -15,9 +15,10 @@ import { EngineVis, TireVis, BrakeVis, BatteryVis } from "@/components/kart/Wear
 interface KartSchematicProps {
   profile: KartProfile;
   recent_sessions?: any[];
+  onUpdate?: (field: keyof KartProfile, value: any) => void;
 }
 
-export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) => {
+export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchematicProps) => {
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
 
   // Exhaust temperature alert: check if any recent session had high exhaust temp
@@ -34,8 +35,14 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
   const getStatusColor = (
     current: number | undefined,
     max: number | undefined,
-    isVoltage = false
+    isVoltage = false,
+    alertId?: string
   ) => {
+    const ignoredAlerts = profile.setup_json?.ignored_alerts || [];
+    if (alertId && ignoredAlerts.includes(alertId)) {
+      return "text-green-500 stroke-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]";
+    }
+
     if (isVoltage) {
       if (!current) return "text-muted-foreground stroke-muted-foreground/50";
       if (current < 11.5)
@@ -443,7 +450,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
               <div
                 className={cn(
                   "w-12 h-12 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-xl transition-all duration-300",
-                  getStatusColor(profile.engine_hours_current, profile.engine_hours_life)
+                  getStatusColor(profile.engine_hours_current, profile.engine_hours_life, false, "engine_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -451,7 +458,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                 <Flame
                   className={cn(
                     "w-6 h-6",
-                    getStatusColor(profile.engine_hours_current, profile.engine_hours_life)
+                    getStatusColor(profile.engine_hours_current, profile.engine_hours_life, false, "engine_wear")
                   )}
                 />
               </div>
@@ -478,7 +485,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
               <div
                 className={cn(
                   "w-10 h-14 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg",
-                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life)
+                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -486,7 +493,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                 <Disc
                   className={cn(
                     "w-5 h-5",
-                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life)
+                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
                   )}
                 />
               </div>
@@ -510,7 +517,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
               <div
                 className={cn(
                   "w-10 h-14 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg",
-                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life)
+                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -518,7 +525,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                 <Disc
                   className={cn(
                     "w-5 h-5",
-                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life)
+                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
                   )}
                 />
               </div>
@@ -542,7 +549,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
               <div
                 className={cn(
                   "w-12 h-16 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg",
-                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life)
+                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -550,7 +557,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                 <Disc
                   className={cn(
                     "w-6 h-6",
-                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life)
+                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
                   )}
                 />
               </div>
@@ -574,7 +581,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
               <div
                 className={cn(
                   "w-12 h-16 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-lg",
-                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life)
+                  getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -582,7 +589,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                 <Disc
                   className={cn(
                     "w-6 h-6",
-                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life)
+                    getStatusColor(profile.tires_sessions_current, profile.tires_sessions_life, false, "tires_wear")
                   )}
                 />
               </div>
@@ -606,7 +613,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
               <div
                 className={cn(
                   "w-9 h-9 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-lg",
-                  getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life)
+                  getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life, false, "brakes_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -614,7 +621,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                 <span
                   className={cn(
                     "font-bold text-[10px]",
-                    getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life)
+                    getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life, false, "brakes_wear")
                   )}
                 >
                   AV
@@ -642,7 +649,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
               <div
                 className={cn(
                   "w-10 h-10 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-lg",
-                  getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life)
+                  getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life, false, "brakes_wear")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -650,7 +657,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                 <AlertCircle
                   className={cn(
                     "w-5 h-5",
-                    getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life)
+                    getStatusColor(profile.brakes_sessions_current, profile.brakes_sessions_life, false, "brakes_wear")
                   )}
                 />
               </div>
@@ -676,7 +683,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
               <div
                 className={cn(
                   "w-8 h-8 bg-black/60 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-md",
-                  getStatusColor(profile.battery_voltage_last, 12.5, true)
+                  getStatusColor(profile.battery_voltage_last, 12.5, true, "battery_low")
                     .replace("text-", "shadow-")
                     .replace("stroke-", "border-")
                 )}
@@ -684,7 +691,7 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                 <Battery
                   className={cn(
                     "w-4 h-4",
-                    getStatusColor(profile.battery_voltage_last, 12.5, true)
+                    getStatusColor(profile.battery_voltage_last, 12.5, true, "battery_low")
                   )}
                 />
               </div>
@@ -760,6 +767,27 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                     }}
                   />
                 </div>
+                {onUpdate && (
+                  <div className="flex justify-end pt-2 border-t border-white/5 mt-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-muted-foreground hover:text-white"
+                      onClick={() => {
+                        const ignoredAlerts = profile.setup_json?.ignored_alerts || [];
+                        const isIgnored = ignoredAlerts.includes("engine_wear");
+                        onUpdate("setup_json", {
+                          ...(profile.setup_json || {}),
+                          ignored_alerts: isIgnored
+                            ? ignoredAlerts.filter((id: string) => id !== "engine_wear")
+                            : [...ignoredAlerts, "engine_wear"]
+                        });
+                      }}
+                    >
+                      {(profile.setup_json?.ignored_alerts || []).includes("engine_wear") ? "Réactiver l'alerte" : "Ignorer l'alerte"}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -795,6 +823,27 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                     }}
                   />
                 </div>
+                {onUpdate && (
+                  <div className="flex justify-end pt-2 border-t border-white/5 mt-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-muted-foreground hover:text-white"
+                      onClick={() => {
+                        const ignoredAlerts = profile.setup_json?.ignored_alerts || [];
+                        const isIgnored = ignoredAlerts.includes("tires_wear");
+                        onUpdate("setup_json", {
+                          ...(profile.setup_json || {}),
+                          ignored_alerts: isIgnored
+                            ? ignoredAlerts.filter((id: string) => id !== "tires_wear")
+                            : [...ignoredAlerts, "tires_wear"]
+                        });
+                      }}
+                    >
+                      {(profile.setup_json?.ignored_alerts || []).includes("tires_wear") ? "Réactiver l'alerte" : "Ignorer l'alerte"}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -831,6 +880,27 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                     }}
                   />
                 </div>
+                {onUpdate && (
+                  <div className="flex justify-end pt-2 border-t border-white/5 mt-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-muted-foreground hover:text-white"
+                      onClick={() => {
+                        const ignoredAlerts = profile.setup_json?.ignored_alerts || [];
+                        const isIgnored = ignoredAlerts.includes("brakes_wear");
+                        onUpdate("setup_json", {
+                          ...(profile.setup_json || {}),
+                          ignored_alerts: isIgnored
+                            ? ignoredAlerts.filter((id: string) => id !== "brakes_wear")
+                            : [...ignoredAlerts, "brakes_wear"]
+                        });
+                      }}
+                    >
+                      {(profile.setup_json?.ignored_alerts || []).includes("brakes_wear") ? "Réactiver l'alerte" : "Ignorer l'alerte"}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -848,9 +918,30 @@ export const KartSchematic = ({ profile, recent_sessions }: KartSchematicProps) 
                     {profile.battery_voltage_last || "--"} V
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-2 text-center">
                   Tension à vide minimale recommandée : 12.0V.
                 </p>
+                {onUpdate && (
+                  <div className="flex justify-end pt-2 border-t border-white/5 mt-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-muted-foreground hover:text-white"
+                      onClick={() => {
+                        const ignoredAlerts = profile.setup_json?.ignored_alerts || [];
+                        const isIgnored = ignoredAlerts.includes("battery_low") || ignoredAlerts.includes("battery_chute");
+                        onUpdate("setup_json", {
+                          ...(profile.setup_json || {}),
+                          ignored_alerts: isIgnored
+                            ? ignoredAlerts.filter((id: string) => id !== "battery_low" && id !== "battery_chute")
+                            : [...ignoredAlerts, "battery_low", "battery_chute"]
+                        });
+                      }}
+                    >
+                      {((profile.setup_json?.ignored_alerts || []).includes("battery_low") || (profile.setup_json?.ignored_alerts || []).includes("battery_chute")) ? "Réactiver l'alerte" : "Ignorer l'alerte"}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

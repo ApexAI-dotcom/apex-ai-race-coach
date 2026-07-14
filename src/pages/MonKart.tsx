@@ -134,7 +134,29 @@ export default function MonKart() {
     if (!session?.access_token) return;
     try {
       console.log(`Resetting ${component}...`);
-      await api.resetKartComponent(session.access_token, component, "Réinitialisation manuelle");
+      
+      // Update profile counters to 0 to bypass potential backend issues with custom fields
+      const updates: any = {};
+      if (component === "engine") {
+        updates.engine_hours_current = 0;
+      } else if (component === "tires") {
+        updates.tires_sessions_current = 0;
+        updates.tires_laps_current = 0;
+      } else if (component === "brakes") {
+        updates.brakes_sessions_current = 0;
+        updates.brakes_hours_current = 0;
+      } else if (component === "chain") {
+        updates.chain_hours_current = 0;
+      }
+      
+      await api.updateKartProfile(session.access_token, updates);
+
+      if (component !== "chain") {
+        await api.resetKartComponent(session.access_token, component, "Remplacement et remise à zéro");
+      } else {
+        await addKartHistoryEntry(session.access_token, "general", "Remplacement / Graissage de la chaîne", new Date().toISOString());
+      }
+      
       toast.success("Compteur réinitialisé.");
       fetchProfile();
     } catch (e: any) {
@@ -263,6 +285,27 @@ export default function MonKart() {
     }
   };
 
+  const handleIgnoreAlert = async (alertId: string) => {
+    if (!prof || !session?.access_token) return;
+    const ignored = prof.setup_json?.ignored_alerts || [];
+    const newIgnored = ignored.includes(alertId)
+      ? ignored.filter((id: string) => id !== alertId)
+      : [...ignored, alertId];
+    
+    try {
+      await api.updateKartProfile(session.access_token, {
+        setup_json: {
+          ...(prof.setup_json || {}),
+          ignored_alerts: newIgnored,
+        }
+      });
+      toast.success("Statut de l'alerte mis à jour.");
+      fetchProfile();
+    } catch (e: any) {
+      toast.error("Erreur de mise à jour de l'alerte : " + e.message);
+    }
+  };
+
   return (
     <Layout>
       <PageMeta
@@ -276,19 +319,61 @@ export default function MonKart() {
           onUpdate={handleUpdateCounter}
         />
 
-        {prof && <AlertBanner profile={prof} recent_sessions={sessions} />}
+        {prof && (
+          <AlertBanner 
+            profile={prof} 
+            recent_sessions={sessions} 
+            onUpdate={handleUpdateCounter} 
+          />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* COLONNE GAUCHE — Schéma, Santé et Poids */}
+          {/* COLONNE GAUCHE — Schéma, Santé, Poids et Import */}
           <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 order-1 h-fit">
             <div className="flex items-center justify-center p-4 bg-card border border-border shadow-sm rounded-2xl">
-              {prof && <KartSchematic profile={prof} recent_sessions={sessions} />}
+              {prof && (
+                <KartSchematic 
+                  profile={prof} 
+                  recent_sessions={sessions} 
+                  onUpdate={handleUpdateCounter} 
+                />
+              )}
             </div>
             {prof && <KartHealthStatus profile={prof} />}
             
             {/* Bilan Poids déplacé ici pour être plus "discret" car plus bas dans la page */}
             <div className="mt-4">
               {prof && <WeightCard profile={prof} onUpdate={handleUpdateCounter} />}
+            </div>
+
+            {/* Importer ma journée - Placé ici pour équilibrer la hauteur de la colonne de gauche */}
+            <div className="mt-4">
+              <Card className="bg-card border border-border shadow-sm rounded-2xl">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <UploadCloud className="w-5 h-5 text-primary" />
+                    Importer ma journée
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Input
+                    type="file"
+                    multiple
+                    accept=".csv"
+                    onChange={(e) => setFiles(e.target.files)}
+                    disabled={importing}
+                    className="bg-background border-border"
+                  />
+                  <Button
+                    className="w-full"
+                    onClick={handleBulkImport}
+                    disabled={importing || !files || files.length === 0}
+                  >
+                    {importing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {importing ? "Importation..." : "Intégrer les sessions"}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>
 
@@ -321,11 +406,11 @@ export default function MonKart() {
               <WearGauge 
                 component="tires" 
                 label="Pneus" 
-                unit="tours"
+                unit="sess."
                 icon={<Disc className="w-5 h-5 text-purple-500" />}
-                current={prof?.tires_laps_current} 
-                max={prof?.tires_laps_life}
-                field="tires_laps_current" 
+                current={prof?.tires_sessions_current} 
+                max={prof?.tires_sessions_life}
+                field="tires_sessions_current" 
                 onUpdate={handleUpdateCounter}
                 onAction={() => handleReset("tires")} 
                 actionLabel="Remplacer le train" 
@@ -333,11 +418,11 @@ export default function MonKart() {
               <WearGauge 
                 component="brakes" 
                 label="Freins" 
-                unit="h"
+                unit="sess."
                 icon={<Loader2 className="w-5 h-5 text-orange-500" />}
-                current={prof?.brakes_hours_current} 
-                max={prof?.brakes_hours_life}
-                field="brakes_hours_current" 
+                current={prof?.brakes_sessions_current} 
+                max={prof?.brakes_sessions_life}
+                field="brakes_sessions_current" 
                 onUpdate={handleUpdateCounter}
                 onAction={() => handleReset("brakes")} 
                 actionLabel="Changer plaquettes" 
@@ -358,41 +443,16 @@ export default function MonKart() {
 
             {/* LIGNE 3 : Journal d'Entretien — Agrandit sur toute la largeur de la colonne droite */}
             <div className="mt-6">
-              <KartMaintenanceLog
-                history={history}
-                onAddEntry={handleAddHistory}
-                onDeleteEntry={handleDeleteHistoryEntry}
-              />
-            </div>
-
-            {/* LIGNE 4 : import */}
-            <div className="mt-6">
-              <Card className="bg-card border border-border shadow-sm rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <UploadCloud className="w-5 h-5 text-primary" />
-                    Importer ma journée
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Input
-                    type="file"
-                    multiple
-                    accept=".csv"
-                    onChange={(e) => setFiles(e.target.files)}
-                    disabled={importing}
-                    className="bg-background border-border"
-                  />
-                  <Button
-                    className="w-full"
-                    onClick={handleBulkImport}
-                    disabled={importing || !files || files.length === 0}
-                  >
-                    {importing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    {importing ? "Importation..." : "Intégrer les sessions"}
-                  </Button>
-                </CardContent>
-              </Card>
+              {prof && (
+                <KartMaintenanceLog
+                  history={history}
+                  profile={prof}
+                  onAddEntry={handleAddHistory}
+                  onDeleteEntry={handleDeleteHistoryEntry}
+                  onResetComponent={handleReset}
+                  onIgnoreAlert={handleIgnoreAlert}
+                />
+              )}
             </div>
           </div>
         </div>
