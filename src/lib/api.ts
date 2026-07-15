@@ -1110,7 +1110,20 @@ export async function saveKartSetup(accessToken: string, setupData: any): Promis
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
-    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+    let errorMessage = `Erreur ${response.status}`;
+    if (data?.detail) {
+      if (Array.isArray(data.detail)) {
+        errorMessage = data.detail.map((err: any) => {
+          const locStr = err.loc ? err.loc.join('.') : '';
+          return `${locStr ? locStr + ': ' : ''}${err.msg}`;
+        }).join(', ');
+      } else if (typeof data.detail === 'object') {
+        errorMessage = JSON.stringify(data.detail);
+      } else {
+        errorMessage = String(data.detail);
+      }
+    }
+    throw new Error(errorMessage);
   }
   return await parseJSONResponse<any>(response);
 }
@@ -1127,7 +1140,20 @@ export async function getKartSetups(accessToken: string): Promise<any> {
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
-    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+    let errorMessage = `Erreur ${response.status}`;
+    if (data?.detail) {
+      if (Array.isArray(data.detail)) {
+        errorMessage = data.detail.map((err: any) => {
+          const locStr = err.loc ? err.loc.join('.') : '';
+          return `${locStr ? locStr + ': ' : ''}${err.msg}`;
+        }).join(', ');
+      } else if (typeof data.detail === 'object') {
+        errorMessage = JSON.stringify(data.detail);
+      } else {
+        errorMessage = String(data.detail);
+      }
+    }
+    throw new Error(errorMessage);
   }
   return await parseJSONResponse<any>(response);
 }
@@ -1144,7 +1170,20 @@ export async function getCircuits(accessToken: string): Promise<any> {
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
-    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+    let errorMessage = `Erreur ${response.status}`;
+    if (data?.detail) {
+      if (Array.isArray(data.detail)) {
+        errorMessage = data.detail.map((err: any) => {
+          const locStr = err.loc ? err.loc.join('.') : '';
+          return `${locStr ? locStr + ': ' : ''}${err.msg}`;
+        }).join(', ');
+      } else if (typeof data.detail === 'object') {
+        errorMessage = JSON.stringify(data.detail);
+      } else {
+        errorMessage = String(data.detail);
+      }
+    }
+    throw new Error(errorMessage);
   }
   return await parseJSONResponse<any>(response);
 }
@@ -1163,7 +1202,20 @@ export async function createCircuit(accessToken: string, circuitData: any): Prom
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
-    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+    let errorMessage = `Erreur ${response.status}`;
+    if (data?.detail) {
+      if (Array.isArray(data.detail)) {
+        errorMessage = data.detail.map((err: any) => {
+          const locStr = err.loc ? err.loc.join('.') : '';
+          return `${locStr ? locStr + ': ' : ''}${err.msg}`;
+        }).join(', ');
+      } else if (typeof data.detail === 'object') {
+        errorMessage = JSON.stringify(data.detail);
+      } else {
+        errorMessage = String(data.detail);
+      }
+    }
+    throw new Error(errorMessage);
   }
   return await parseJSONResponse<any>(response);
 }

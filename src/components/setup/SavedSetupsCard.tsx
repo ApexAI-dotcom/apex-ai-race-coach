@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Plus, History, MapPin, Calendar } from 'lucide-react';
+import { Loader2, Plus, History, MapPin, Calendar, Save } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { SetupState } from '@/pages/SetupPage';
 
 interface SavedSetupsCardProps {
+  refreshKey: number;
   onSelectSetup: (setup: SetupState) => void;
   onNewSetup: () => void;
+  onSaveSetup: () => void;
+  isSaving: boolean;
 }
 
-export function SavedSetupsCard({ onSelectSetup, onNewSetup }: SavedSetupsCardProps) {
+export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveSetup, isSaving }: SavedSetupsCardProps) {
   const { session } = useAuth();
   const [setups, setSetups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,14 +35,14 @@ export function SavedSetupsCard({ onSelectSetup, onNewSetup }: SavedSetupsCardPr
       }
     };
     fetchSetups();
-  }, [session]);
+  }, [session, refreshKey]);
 
   return (
     <Card className="bg-card border-border rounded-2xl shadow-md h-full flex flex-col overflow-hidden">
       <CardHeader className="bg-muted/30 border-b border-border pb-4 flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-lg">
           <History className="w-5 h-5 text-primary" />
-          Historique
+          Mes Réglages
         </CardTitle>
         <Button size="sm" variant="outline" className="gap-2 rounded-full border-primary/20 text-primary hover:bg-primary/10" onClick={onNewSetup}>
           <Plus className="w-4 h-4" /> Nouveau
@@ -56,10 +59,10 @@ export function SavedSetupsCard({ onSelectSetup, onNewSetup }: SavedSetupsCardPr
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <History className="w-6 h-6 text-primary/50" />
             </div>
-            <p className="text-sm">Aucun setup sauvegardé</p>
+            <p className="text-sm">Aucun réglage sauvegardé</p>
           </div>
         ) : (
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 max-h-[480px]">
             <div className="divide-y divide-border">
               {setups.map((s) => (
                 <div 
@@ -92,7 +95,7 @@ export function SavedSetupsCard({ onSelectSetup, onNewSetup }: SavedSetupsCardPr
                   }}
                 >
                   <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
-                    {s.setup_name || "Setup non nommé"}
+                    {s.setup_name || "Réglage non nommé"}
                   </h4>
                   <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
@@ -110,6 +113,13 @@ export function SavedSetupsCard({ onSelectSetup, onNewSetup }: SavedSetupsCardPr
           </ScrollArea>
         )}
       </CardContent>
+      
+      <CardFooter className="p-4 border-t border-border bg-muted/10">
+        <Button onClick={onSaveSetup} disabled={isSaving} className="w-full gap-2 rounded-full h-11 shadow-lg shadow-primary/20">
+          <Save className="w-4 h-4" />
+          {isSaving ? "Enregistrement..." : "Enregistrer le réglage"}
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

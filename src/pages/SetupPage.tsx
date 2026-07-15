@@ -4,13 +4,12 @@ import { TireSetupCard } from '@/components/setup/TireSetupCard';
 import { ChassisSetupCard } from '@/components/setup/ChassisSetupCard';
 import { DrivetrainSetupCard } from '@/components/setup/DrivetrainSetupCard';
 import { SavedSetupsCard } from '@/components/setup/SavedSetupsCard';
-import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { Layout } from '@/components/layout/Layout';
 import { PageMeta } from '@/components/seo/PageMeta';
+import { ENGINE_PRESETS } from '@/constants/kart-presets';
 
 export interface SetupState {
   weather: 'sec' | 'humide' | 'pluie';
@@ -62,8 +61,9 @@ export default function SetupPage() {
   const { session } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const [profile, setProfile] = useState<any>({ engine_category: "X30 Senior" });
+  const [profile, setProfile] = useState<any>(null);
   const [setupState, setSetupState] = useState<SetupState>(defaultSetupState);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -95,7 +95,7 @@ export default function SetupPage() {
     if (!session?.access_token) {
       toast({
         title: "Erreur d'authentification",
-        description: "Vous devez être connecté pour sauvegarder un setup.",
+        description: "Vous devez être connecté pour sauvegarder un réglage.",
         variant: "destructive"
       });
       return;
@@ -103,16 +103,33 @@ export default function SetupPage() {
 
     setIsSaving(true);
     try {
-      await api.saveKartSetup(session.access_token, setupState);
+      // 1. Sanitize the payload: convert empty string fields to null for backend float validation
+      const sanitizedState = Object.fromEntries(
+        Object.entries(setupState).map(([key, value]) => [
+          key,
+          value === "" ? null : value
+        ])
+      );
+
+      // 2. Extract circuit_id and setupName
+      if (setupState.circuit && typeof setupState.circuit === 'object') {
+        sanitizedState.circuit_id = setupState.circuit.id || setupState.circuit.value;
+      }
+      sanitizedState.setupName = `Réglage ${new Date().toLocaleDateString()}`;
+
+      await api.saveKartSetup(session.access_token, sanitizedState);
       toast({
-        title: "Setup sauvegardé !",
+        title: "Réglage sauvegardé !",
         description: "Vos réglages ont été enregistrés avec succès."
       });
+      
+      // 3. Trigger reload of SavedSetupsCard list
+      setRefreshKey(prev => prev + 1);
     } catch (err: any) {
       console.error(err);
       toast({
         title: "Erreur de sauvegarde",
-        description: err.message || "Impossible de sauvegarder le setup.",
+        description: err.message || "Impossible de sauvegarder le réglage.",
         variant: "destructive"
       });
     } finally {
@@ -127,6 +144,10 @@ export default function SetupPage() {
     });
   };
 
+  // Find engine category from constants
+  const enginePreset = ENGINE_PRESETS.find(p => p.name === profile?.engine_model);
+  const engineCategory = enginePreset ? enginePreset.category : (profile?.engine_model || 'X30 Senior');
+
   return (
     <Layout>
       <PageMeta 
@@ -137,31 +158,23 @@ export default function SetupPage() {
       <div className="min-h-screen bg-background text-foreground pb-20">
         <div className="container max-w-7xl mx-auto pt-8 px-4 space-y-8">
           
-          <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight">Carnet d'Ingénieur Digital</h1>
-              <p className="text-muted-foreground">
-                Configuration pour la catégorie <span className="font-semibold text-primary">{profile?.engine_category || 'Non définie'}</span>
-              </p>
-            </div>
-            <Button 
-              size="lg" 
-              onClick={handleSave} 
-              disabled={isSaving} 
-              className="gap-2 shadow-primary/20 shadow-xl w-full md:w-auto h-12 text-base font-medium rounded-full px-8"
-            >
-              <Save className="w-5 h-5" />
-              {isSaving ? "Sauvegarde..." : "Enregistrer le setup"}
-            </Button>
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Carnet d'Ingénieur Digital</h1>
+            <p className="text-muted-foreground">
+              Configuration pour la catégorie <span className="font-semibold text-primary">{engineCategory}</span>
+            </p>
           </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* Colonne 1 : Historique (4 colonnes) */}
+            {/* Colonne 1 : Historique / Mes Réglages (4 colonnes) */}
             <div className="lg:col-span-4 h-full min-h-[600px]">
               <SavedSetupsCard 
+                refreshKey={refreshKey}
                 onSelectSetup={(setup) => setSetupState(setup)} 
                 onNewSetup={handleNewSetup} 
+                onSaveSetup={handleSave}
+                isSaving={isSaving}
               />
             </div>
 
@@ -185,7 +198,7 @@ export default function SetupPage() {
                   <DrivetrainSetupCard 
                     state={setupState}
                     onChange={handleContextChange}
-                    engineCategory={profile?.engine_category || ''}
+                    engineCategory={engineCategory}
                   />
                 </div>
               </div>

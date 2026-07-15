@@ -32,7 +32,7 @@ export function SetupContextCard({ state, onChange }: SetupContextCardProps) {
           </Label>
           <CircuitPicker 
             value={state.circuit}
-            onChange={(circuit) => onChange({ circuit })}
+            onChange={(circuit, sessionData) => onChange({ circuit, ...sessionData })}
           />
         </div>
 
