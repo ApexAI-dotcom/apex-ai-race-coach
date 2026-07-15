@@ -29,6 +29,7 @@ import Parametres from "./pages/Parametres";
 import AnalysisResultPage from "./pages/AnalysisResultPage";
 import NotFound from "./pages/NotFound";
 import MonKart from "./pages/MonKart";
+import SetupPage from "./pages/SetupPage";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <MonKart />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/setup"
+                  element={
+                    <ProtectedRoute>
+                      <SetupPage />
                     </ProtectedRoute>
                   }
                 />
