@@ -1115,6 +1115,59 @@ export async function saveKartSetup(accessToken: string, setupData: any): Promis
   return await parseJSONResponse<any>(response);
 }
 
+export async function getKartSetups(accessToken: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/setups`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    signal: controller.signal,
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
+export async function getCircuits(accessToken: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/circuits`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    signal: controller.signal,
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
+export async function createCircuit(accessToken: string, circuitData: any): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/circuits`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(circuitData),
+    signal: controller.signal,
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -1136,6 +1189,9 @@ export const api = {
   deleteKartHistoryEntry,
   deleteKartSessionDay,
   saveKartSetup,
+  getKartSetups,
+  getCircuits,
+  createCircuit,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,
   MAX_FILE_SIZE_BYTES,

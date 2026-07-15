@@ -18,6 +18,7 @@ const subscriberNavItems = [
   { name: "Tableau de bord", path: "/dashboard" },
   { name: "Analyser", path: "/upload", isHero: true },
   { name: "Mon Kart", path: "/mon-kart" },
+  { name: "Réglages", path: "/setup" },
   { name: "Plans", path: "/pricing" },
 ];
 
