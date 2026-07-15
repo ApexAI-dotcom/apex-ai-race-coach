@@ -1096,11 +1096,30 @@ export async function deleteKartSessionDay(accessToken: string, date: string): P
   return await parseJSONResponse<any>(response);
 }
 
+export async function saveKartSetup(accessToken: string, setupData: any): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/setups`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(setupData),
+    signal: controller.signal,
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
 
-export default {
+export const api = {
   uploadAndAnalyzeCSV,
   getAnalysisStatus,
   getBackendHealth,
@@ -1116,8 +1135,11 @@ export default {
   deleteKartSession,
   deleteKartHistoryEntry,
   deleteKartSessionDay,
+  saveKartSetup,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,
   MAX_FILE_SIZE_BYTES,
   CSV_UPLOAD_HINT_SHORT,
 };
+
+export default api;
