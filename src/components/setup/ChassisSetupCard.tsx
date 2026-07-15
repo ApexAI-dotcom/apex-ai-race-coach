@@ -12,8 +12,11 @@ interface ChassisSetupCardProps {
 }
 
 export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
+  const inputClass = "bg-background/50 border-border focus-visible:ring-primary focus-visible:border-primary transition-all duration-300 hover:border-primary/50";
+  const selectClass = "bg-background/50 border-border focus:ring-primary focus:border-primary transition-all duration-300 hover:border-primary/50";
+
   return (
-    <Card className="bg-card border-border rounded-2xl shadow-sm overflow-hidden h-full">
+    <Card className="bg-card border-border rounded-2xl shadow-md hover:shadow-primary/5 transition-all overflow-hidden h-full">
       <CardHeader className="bg-muted/30 border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Wrench className="w-5 h-5 text-primary" />
@@ -33,7 +36,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
                 placeholder="Ex: 120" 
                 value={state.trackWidthFront}
                 onChange={(e) => onChange({ trackWidthFront: e.target.value ? Number(e.target.value) : '' })}
-                className="bg-background"
+                className={inputClass}
               />
             </div>
             <div className="space-y-3">
@@ -43,7 +46,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
                 placeholder="Ex: 1400" 
                 value={state.trackWidthRear}
                 onChange={(e) => onChange({ trackWidthRear: e.target.value ? Number(e.target.value) : '' })}
-                className="bg-background"
+                className={inputClass}
               />
             </div>
           </div>
@@ -53,7 +56,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Avant</Label>
               <Select value={state.rideHeightFront} onValueChange={(val) => onChange({ rideHeightFront: val })}>
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className={selectClass}>
                   <SelectValue placeholder="Sélectionner..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -66,7 +69,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Arrière</Label>
               <Select value={state.rideHeightRear} onValueChange={(val) => onChange({ rideHeightRear: val })}>
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className={selectClass}>
                   <SelectValue placeholder="Sélectionner..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -89,7 +92,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
                 placeholder="Ex: Neutre, -1 barre..." 
                 value={state.camber}
                 onChange={(e) => onChange({ camber: e.target.value })}
-                className="bg-background"
+                className={inputClass}
               />
             </div>
             <div className="space-y-3">
@@ -99,7 +102,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
                 placeholder="Ex: Standard, max..." 
                 value={state.caster}
                 onChange={(e) => onChange({ caster: e.target.value })}
-                className="bg-background"
+                className={inputClass}
               />
             </div>
           </div>
@@ -110,7 +113,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
               placeholder="Ex: Médium, Dur, H, M..." 
               value={state.rearAxle}
               onChange={(e) => onChange({ rearAxle: e.target.value })}
-              className="bg-background"
+              className={inputClass}
             />
           </div>
         </div>

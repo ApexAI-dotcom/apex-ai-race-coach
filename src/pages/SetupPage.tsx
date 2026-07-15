@@ -3,11 +3,14 @@ import { SetupContextCard } from '@/components/setup/SetupContextCard';
 import { TireSetupCard } from '@/components/setup/TireSetupCard';
 import { ChassisSetupCard } from '@/components/setup/ChassisSetupCard';
 import { DrivetrainSetupCard } from '@/components/setup/DrivetrainSetupCard';
+import { SessionLinker } from '@/components/setup/SessionLinker';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
+import { Layout } from '@/components/layout/Layout';
+import { PageMeta } from '@/components/seo/PageMeta';
 
 export interface SetupState {
   // Phase 1
@@ -102,57 +105,77 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-20">
-      <div className="container max-w-7xl mx-auto pt-8 px-4 space-y-8">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-2">
+    <Layout>
+      <PageMeta 
+        title="Carnet d'Ingénieur | ApexAI" 
+        description="Gérez et optimisez les setups techniques de votre kart." 
+      />
+      
+      <div className="min-h-screen bg-background text-foreground pb-32">
+        <div className="container max-w-7xl mx-auto pt-8 px-4 space-y-8">
+          
+          <header className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Carnet d'Ingénieur Digital</h1>
             <p className="text-muted-foreground">
               Configuration globale pour la catégorie <span className="font-semibold text-primary">{profile.engine_category}</span>
             </p>
-          </div>
-          <Button onClick={handleSave} disabled={isSaving} className="gap-2">
-            <Save className="w-4 h-4" />
-            {isSaving ? "Sauvegarde..." : "Enregistrer le setup"}
-          </Button>
-        </header>
+          </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Colonne Gauche : Contexte (prend 4 colonnes sur 12) */}
-          <div className="lg:col-span-4 space-y-8">
-            <SetupContextCard 
-              state={setupState}
-              onChange={handleContextChange}
-            />
-          </div>
+          <SessionLinker onSessionSelect={handleContextChange} />
 
-          {/* Colonne Droite : Cartes Techniques (prend 8 colonnes sur 12) */}
-          <div className="lg:col-span-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-8">
-                <TireSetupCard 
-                  state={setupState}
-                  onChange={handleContextChange}
-                />
-              </div>
-              <div className="space-y-8">
-                <ChassisSetupCard 
-                  state={setupState}
-                  onChange={handleContextChange}
-                />
-              </div>
-              <div className="md:col-span-2">
-                <DrivetrainSetupCard 
-                  state={setupState}
-                  onChange={handleContextChange}
-                  engineCategory={profile.engine_category}
-                />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+            
+            {/* Colonne Gauche : Contexte (prend 4 colonnes sur 12) */}
+            <div className="lg:col-span-4 space-y-8">
+              <SetupContextCard 
+                state={setupState}
+                onChange={handleContextChange}
+              />
+            </div>
+
+            {/* Colonne Droite : Cartes Techniques (prend 8 colonnes sur 12) */}
+            <div className="lg:col-span-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-8">
+                  <TireSetupCard 
+                    state={setupState}
+                    onChange={handleContextChange}
+                  />
+                </div>
+                <div className="space-y-8">
+                  <ChassisSetupCard 
+                    state={setupState}
+                    onChange={handleContextChange}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <DrivetrainSetupCard 
+                    state={setupState}
+                    onChange={handleContextChange}
+                    engineCategory={profile.engine_category}
+                  />
+                </div>
               </div>
             </div>
+
           </div>
         </div>
-
       </div>
-    </div>
+
+      {/* Floating Action Bar pour la Sauvegarde */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-t border-border shadow-lg p-4 md:p-6 flex justify-center md:justify-end animate-in slide-in-from-bottom-10 duration-500">
+        <div className="container max-w-7xl mx-auto flex justify-end px-4">
+          <Button 
+            size="lg" 
+            onClick={handleSave} 
+            disabled={isSaving} 
+            className="gap-2 shadow-primary/20 shadow-xl w-full md:w-auto h-12 text-base font-medium rounded-full px-8"
+          >
+            <Save className="w-5 h-5" />
+            {isSaving ? "Sauvegarde..." : "Enregistrer le setup"}
+          </Button>
+        </div>
+      </div>
+    </Layout>
   );
 }

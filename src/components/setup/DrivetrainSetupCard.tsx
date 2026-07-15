@@ -24,8 +24,10 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory }: Drivetr
     });
   };
 
+  const inputClass = "bg-background/50 border-border focus-visible:ring-primary focus-visible:border-primary transition-all duration-300 hover:border-primary/50";
+
   return (
-    <Card className="bg-card border-border rounded-2xl shadow-sm overflow-hidden h-full">
+    <Card className="bg-card border-border rounded-2xl shadow-md hover:shadow-primary/5 transition-all overflow-hidden h-full">
       <CardHeader className="bg-muted/30 border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Gauge className="w-5 h-5 text-primary" />
@@ -45,7 +47,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory }: Drivetr
                 placeholder="Ex: 11" 
                 value={state.sprocketFront}
                 onChange={(e) => onChange({ sprocketFront: e.target.value ? Number(e.target.value) : '' })}
-                className="bg-background"
+                className={inputClass}
               />
             </div>
             <div className="space-y-3">
@@ -55,7 +57,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory }: Drivetr
                 placeholder="Ex: 82" 
                 value={state.sprocketRear}
                 onChange={(e) => onChange({ sprocketRear: e.target.value ? Number(e.target.value) : '' })}
-                className="bg-background"
+                className={inputClass}
               />
             </div>
           </div>
@@ -75,7 +77,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory }: Drivetr
                     placeholder="Ex: 1T 5m" 
                     value={state.carbConfig?.highSpeedScrew || ''}
                     onChange={(e) => updateCarbConfig('highSpeedScrew', e.target.value)}
-                    className="bg-background"
+                    className={inputClass}
                   />
                 </div>
                 <div className="space-y-3">
@@ -85,7 +87,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory }: Drivetr
                     placeholder="Ex: 1T 15m" 
                     value={state.carbConfig?.lowSpeedScrew || ''}
                     onChange={(e) => updateCarbConfig('lowSpeedScrew', e.target.value)}
-                    className="bg-background"
+                    className={inputClass}
                   />
                 </div>
               </>
@@ -100,7 +102,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory }: Drivetr
                     placeholder="Ex: 125" 
                     value={state.carbConfig?.mainJet || ''}
                     onChange={(e) => updateCarbConfig('mainJet', e.target.value ? Number(e.target.value) : '')}
-                    className="bg-background"
+                    className={inputClass}
                   />
                 </div>
                 <div className="space-y-3">
@@ -110,7 +112,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory }: Drivetr
                     placeholder="Ex: 60" 
                     value={state.carbConfig?.pilotJet || ''}
                     onChange={(e) => updateCarbConfig('pilotJet', e.target.value ? Number(e.target.value) : '')}
-                    className="bg-background"
+                    className={inputClass}
                   />
                 </div>
               </>

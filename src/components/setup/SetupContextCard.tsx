@@ -13,8 +13,10 @@ interface SetupContextCardProps {
 }
 
 export function SetupContextCard({ state, onChange }: SetupContextCardProps) {
+  const inputClass = "bg-background/50 border-border focus-visible:ring-primary focus-visible:border-primary transition-all duration-300 hover:border-primary/50";
+
   return (
-    <Card className="bg-card border-border rounded-2xl shadow-sm overflow-hidden">
+    <Card className="bg-card border-border rounded-2xl shadow-md hover:shadow-primary/5 transition-all overflow-hidden">
       <CardHeader className="bg-muted/30 border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <MapPin className="w-5 h-5 text-primary" />
@@ -34,22 +36,22 @@ export function SetupContextCard({ state, onChange }: SetupContextCardProps) {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div className="space-y-3">
             <Label className="text-sm text-muted-foreground">Conditions Météo</Label>
             <ToggleGroup 
               type="single" 
               value={state.weather} 
               onValueChange={(val) => val && onChange({ weather: val as any })}
-              className="justify-start"
+              className="justify-start flex-wrap"
             >
-              <ToggleGroupItem value="sec" aria-label="Sec" className="flex-1 gap-2">
+              <ToggleGroupItem value="sec" aria-label="Sec" className="flex-1 gap-2 min-w-[80px]">
                 <Sun className="w-4 h-4" /> Sec
               </ToggleGroupItem>
-              <ToggleGroupItem value="humide" aria-label="Humide" className="flex-1 gap-2">
+              <ToggleGroupItem value="humide" aria-label="Humide" className="flex-1 gap-2 min-w-[90px]">
                 <Cloud className="w-4 h-4" /> Humide
               </ToggleGroupItem>
-              <ToggleGroupItem value="pluie" aria-label="Pluie" className="flex-1 gap-2">
+              <ToggleGroupItem value="pluie" aria-label="Pluie" className="flex-1 gap-2 min-w-[80px]">
                 <CloudRain className="w-4 h-4" /> Pluie
               </ToggleGroupItem>
             </ToggleGroup>
@@ -61,15 +63,15 @@ export function SetupContextCard({ state, onChange }: SetupContextCardProps) {
               type="single" 
               value={state.mode} 
               onValueChange={(val) => val && onChange({ mode: val as any })}
-              className="justify-start"
+              className="justify-start flex-wrap"
             >
-              <ToggleGroupItem value="warmup" aria-label="Warmup" className="flex-1">
+              <ToggleGroupItem value="warmup" aria-label="Warmup" className="flex-1 min-w-[80px]">
                 Warm-up
               </ToggleGroupItem>
-              <ToggleGroupItem value="qualif" aria-label="Qualif" className="flex-1">
+              <ToggleGroupItem value="qualif" aria-label="Qualif" className="flex-1 min-w-[80px]">
                 Qualif
               </ToggleGroupItem>
-              <ToggleGroupItem value="course" aria-label="Course" className="flex-1">
+              <ToggleGroupItem value="course" aria-label="Course" className="flex-1 min-w-[80px]">
                 Course
               </ToggleGroupItem>
             </ToggleGroup>
@@ -86,7 +88,7 @@ export function SetupContextCard({ state, onChange }: SetupContextCardProps) {
               placeholder="Ex: 22" 
               value={state.airTemp}
               onChange={(e) => onChange({ airTemp: e.target.value ? Number(e.target.value) : '' })}
-              className="bg-background"
+              className={inputClass}
             />
           </div>
           <div className="space-y-3">
@@ -98,7 +100,7 @@ export function SetupContextCard({ state, onChange }: SetupContextCardProps) {
               placeholder="Ex: 35" 
               value={state.trackTemp}
               onChange={(e) => onChange({ trackTemp: e.target.value ? Number(e.target.value) : '' })}
-              className="bg-background"
+              className={inputClass}
             />
           </div>
         </div>

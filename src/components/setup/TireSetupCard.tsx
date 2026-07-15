@@ -11,8 +11,10 @@ interface TireSetupCardProps {
 }
 
 export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
+  const inputClass = "bg-background/50 border-border focus-visible:ring-primary focus-visible:border-primary transition-all duration-300 hover:border-primary/50";
+
   return (
-    <Card className="bg-card border-border rounded-2xl shadow-sm overflow-hidden h-full">
+    <Card className="bg-card border-border rounded-2xl shadow-md hover:shadow-primary/5 transition-all overflow-hidden h-full">
       <CardHeader className="bg-muted/30 border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Disc3 className="w-5 h-5 text-primary" />
@@ -29,7 +31,7 @@ export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
             placeholder="Ex: Komet K2M" 
             value={state.tireModel}
             onChange={(e) => onChange({ tireModel: e.target.value })}
-            className="bg-background"
+            className={inputClass}
           />
         </div>
 
@@ -44,7 +46,7 @@ export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
                 placeholder="0.80" 
                 value={state.coldPressureFront}
                 onChange={(e) => onChange({ coldPressureFront: e.target.value ? Number(e.target.value) : '' })}
-                className="bg-background"
+                className={inputClass}
               />
             </div>
             <div className="space-y-3">
@@ -55,7 +57,7 @@ export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
                 placeholder="0.80" 
                 value={state.coldPressureRear}
                 onChange={(e) => onChange({ coldPressureRear: e.target.value ? Number(e.target.value) : '' })}
-                className="bg-background"
+                className={inputClass}
               />
             </div>
           </div>
@@ -70,7 +72,7 @@ export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
                 placeholder="0.95" 
                 value={state.hotPressureFront}
                 onChange={(e) => onChange({ hotPressureFront: e.target.value ? Number(e.target.value) : '' })}
-                className="bg-background"
+                className={inputClass}
               />
             </div>
             <div className="space-y-3">
@@ -81,7 +83,7 @@ export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
                 placeholder="0.95" 
                 value={state.hotPressureRear}
                 onChange={(e) => onChange({ hotPressureRear: e.target.value ? Number(e.target.value) : '' })}
-                className="bg-background"
+                className={inputClass}
               />
             </div>
           </div>
