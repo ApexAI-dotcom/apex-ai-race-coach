@@ -147,7 +147,7 @@ export function WeightCard({
         {weightProfiles.length > 0 && !isSaving && (
           <div className="flex gap-2 mt-3 items-center">
             <Select 
-              value={selectedProfileId || undefined} 
+              value={selectedProfileId || ""} 
               onValueChange={handleSelectProfile}
             >
               <SelectTrigger className="h-8 text-xs bg-background/50 border-border">
