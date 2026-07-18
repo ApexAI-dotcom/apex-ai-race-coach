@@ -229,6 +229,18 @@ export interface SessionConditions {
   air_temp?: number | null; // °C
 }
 
+// Normalise un circuit renvoyé par l'API (snake_case) vers le format UI (camelCase).
+// Les valeurs null restent undefined : l'UI affiche alors ses libellés par défaut.
+export function normalizeCircuit(c: any): any {
+  if (!c) return c;
+  return {
+    ...c,
+    speedRatio: c.speedRatio ?? c.speed_ratio ?? undefined,
+    hairpinsCount: c.hairpinsCount ?? c.hairpins_count ?? undefined,
+    fastCornersCount: c.fastCornersCount ?? c.fast_corners_count ?? undefined,
+  };
+}
+
 // Signature de piste dérivée de la télémétrie par le backend (track_signature.py)
 export interface TrackFeatures {
   speed_ratio?: string | null; // "sinueux" | "mixte" | "rapide"

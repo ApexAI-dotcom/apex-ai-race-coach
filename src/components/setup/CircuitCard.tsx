@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { CircuitPicker } from './CircuitPicker';
 import { TrackSignatureForm } from './TrackSignatureForm';
 import { SetupState } from '@/pages/SetupPage';
-import { api, uploadAndAnalyzeCSV } from '@/lib/api';
+import { api, uploadAndAnalyzeCSV, normalizeCircuit } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -64,7 +64,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
   }, [session]);
 
   const handleSelect = (circuit: any) => {
-    onChange({ circuit });
+    onChange({ circuit: normalizeCircuit(circuit) });
   };
 
   const handleReset = () => {
@@ -78,6 +78,13 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
 
   const handleEditActive = () => {
     if (!state.circuit) return;
+    if (state.circuit.verified) {
+      toast({
+        title: "Circuit officiel",
+        description: "Les circuits officiels ApexAI ne sont pas modifiables.",
+      });
+      return;
+    }
     setEditingCircuit(state.circuit);
     setIsFormOpen(true);
   };
@@ -114,7 +121,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
       }
 
       onChange({
-        circuit: savedCircuit,
+        circuit: normalizeCircuit(savedCircuit),
         ...sessionUpdates
       });
 
