@@ -5,13 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Wrench } from 'lucide-react';
 import { SetupState } from '@/pages/SetupPage';
+import { FieldRecommendation } from './FieldRecommendation';
 
 interface ChassisSetupCardProps {
   state: SetupState;
   onChange: (updates: Partial<SetupState>) => void;
+  recommendations?: Record<string, any>;
 }
 
-export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
+export function ChassisSetupCard({ state, onChange, recommendations }: ChassisSetupCardProps) {
   const inputClass = "bg-background/50 border-border focus-visible:ring-primary focus-visible:border-primary transition-all duration-300 hover:border-primary/50";
   const selectClass = "bg-background/50 border-border focus:ring-primary focus:border-primary transition-all duration-300 hover:border-primary/50";
 
@@ -38,6 +40,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
                 onChange={(e) => onChange({ trackWidthFront: e.target.value ? Number(e.target.value) : '' })}
                 className={inputClass}
               />
+              <FieldRecommendation recommendation={recommendations?.trackWidthFront} />
             </div>
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Arrière</Label>
@@ -48,6 +51,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
                 onChange={(e) => onChange({ trackWidthRear: e.target.value ? Number(e.target.value) : '' })}
                 className={inputClass}
               />
+              <FieldRecommendation recommendation={recommendations?.trackWidthRear} />
             </div>
           </div>
 
@@ -65,6 +69,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
                   <SelectItem value="haute">Haute</SelectItem>
                 </SelectContent>
               </Select>
+              <FieldRecommendation recommendation={recommendations?.rideHeightFront} />
             </div>
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Arrière</Label>
@@ -78,6 +83,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
                   <SelectItem value="haute">Haute</SelectItem>
                 </SelectContent>
               </Select>
+              <FieldRecommendation recommendation={recommendations?.rideHeightRear} />
             </div>
           </div>
         </div>
@@ -94,6 +100,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
                 onChange={(e) => onChange({ camber: e.target.value })}
                 className={inputClass}
               />
+              <FieldRecommendation recommendation={recommendations?.camber} />
             </div>
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Chasse (Caster)</Label>
@@ -104,6 +111,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
                 onChange={(e) => onChange({ caster: e.target.value })}
                 className={inputClass}
               />
+              <FieldRecommendation recommendation={recommendations?.caster} />
             </div>
           </div>
           <div className="space-y-3">
@@ -115,6 +123,7 @@ export function ChassisSetupCard({ state, onChange }: ChassisSetupCardProps) {
               onChange={(e) => onChange({ rearAxle: e.target.value })}
               className={inputClass}
             />
+            <FieldRecommendation recommendation={recommendations?.rearAxle} />
           </div>
         </div>
         

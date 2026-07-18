@@ -4,14 +4,16 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Gauge } from 'lucide-react';
 import { SetupState } from '@/pages/SetupPage';
+import { FieldRecommendation } from './FieldRecommendation';
 
 interface DrivetrainSetupCardProps {
   state: SetupState;
   onChange: (updates: Partial<SetupState>) => void;
   engineCategory: string;
+  recommendations?: Record<string, any>;
 }
 
-export function DrivetrainSetupCard({ state, onChange, engineCategory }: DrivetrainSetupCardProps) {
+export function DrivetrainSetupCard({ state, onChange, engineCategory, recommendations }: DrivetrainSetupCardProps) {
   const isX30OrMini = engineCategory.toLowerCase().includes('x30') || engineCategory.toLowerCase().includes('mini 60');
   const isRotaxOrKZ = engineCategory.toLowerCase().includes('rotax') || engineCategory.toLowerCase().includes('kz');
 
@@ -49,16 +51,18 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory }: Drivetr
                 onChange={(e) => onChange({ sprocketFront: e.target.value ? Number(e.target.value) : '' })}
                 className={inputClass}
               />
+              <FieldRecommendation recommendation={recommendations?.sprocketFront} />
             </div>
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Couronne (Dents)</Label>
               <Input 
                 type="number" 
-                placeholder="Ex: 82" 
+                placeholder={engineCategory.includes('KZ') ? 'Ex: 24' : 'Ex: 78'} 
                 value={state.sprocketRear}
                 onChange={(e) => onChange({ sprocketRear: e.target.value ? Number(e.target.value) : '' })}
                 className={inputClass}
               />
+              <FieldRecommendation recommendation={recommendations?.sprocketRear} />
             </div>
           </div>
         </div>

@@ -962,6 +962,23 @@ export async function getKartProfile(accessToken: string): Promise<KartProfileRe
   return await parseJSONResponse<KartProfileResponse>(response);
 }
 
+export async function getLastSessions(accessToken: string, limit: number = 3): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/last-sessions?limit=${limit}`, {
+    method: "GET",
+    signal: controller.signal,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data?.detail as string) || `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 export async function updateKartProfile(
   accessToken: string,
   updates: Partial<KartProfile>
@@ -1158,6 +1175,36 @@ export async function getKartSetups(accessToken: string): Promise<any> {
   return await parseJSONResponse<any>(response);
 }
 
+export async function deleteKartSetup(accessToken: string, setupId: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/setups/${setupId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    signal: controller.signal,
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    let errorMessage = `Erreur ${response.status}`;
+    if (data?.detail) {
+      if (Array.isArray(data.detail)) {
+        errorMessage = data.detail.map((err: any) => {
+          const locStr = err.loc ? err.loc.join('.') : '';
+          return `${locStr ? locStr + ': ' : ''}${err.msg}`;
+        }).join(', ');
+      } else if (typeof data.detail === 'object') {
+        errorMessage = JSON.stringify(data.detail);
+      } else {
+        errorMessage = String(data.detail);
+      }
+    }
+    throw new Error(errorMessage);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 export async function getCircuits(accessToken: string): Promise<any> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/circuits`, {
@@ -1220,6 +1267,38 @@ export async function createCircuit(accessToken: string, circuitData: any): Prom
   return await parseJSONResponse<any>(response);
 }
 
+export async function updateCircuit(accessToken: string, circuitId: string, circuitData: any): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(circuitData),
+    signal: controller.signal,
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    let errorMessage = `Erreur ${response.status}`;
+    if (data?.detail) {
+      if (Array.isArray(data.detail)) {
+        errorMessage = data.detail.map((err: any) => {
+          const locStr = err.loc ? err.loc.join('.') : '';
+          return `${locStr ? locStr + ': ' : ''}${err.msg}`;
+        }).join(', ');
+      } else if (typeof data.detail === 'object') {
+        errorMessage = JSON.stringify(data.detail);
+      } else {
+        errorMessage = String(data.detail);
+      }
+    }
+    throw new Error(errorMessage);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -1242,8 +1321,11 @@ export const api = {
   deleteKartSessionDay,
   saveKartSetup,
   getKartSetups,
+  deleteKartSetup,
   getCircuits,
   createCircuit,
+  updateCircuit,
+  getLastSessions,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,
   MAX_FILE_SIZE_BYTES,

@@ -347,11 +347,6 @@ export default function MonKart() {
             </div>
             {prof && <KartHealthStatus profile={prof} />}
             
-            {/* Bilan Poids déplacé ici pour être plus "discret" car plus bas dans la page */}
-            <div className="mt-4">
-              {prof && <WeightCard profile={prof} onUpdate={handleUpdateCounter} />}
-            </div>
-
             {/* Importer ma journée - Placé ici pour équilibrer la hauteur de la colonne de gauche */}
             <div className="mt-4">
               <Card className="bg-card border border-border shadow-sm rounded-2xl">

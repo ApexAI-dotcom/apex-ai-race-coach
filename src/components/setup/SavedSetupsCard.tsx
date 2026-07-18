@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Plus, History, MapPin, Calendar, Save } from 'lucide-react';
+import { Loader2, Plus, History, MapPin, Calendar, Save, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { SetupState } from '@/pages/SetupPage';
@@ -37,6 +37,18 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
     fetchSetups();
   }, [session, refreshKey]);
 
+  const handleDelete = async (setupId: string) => {
+    if (!session?.access_token) return;
+    if (!confirm("Voulez-vous vraiment supprimer ce réglage ?")) return;
+    try {
+      await api.deleteKartSetup(session.access_token, setupId);
+      setSetups(prev => prev.filter(s => s.id !== setupId));
+    } catch (err) {
+      console.error("Erreur de suppression:", err);
+      alert("Impossible de supprimer le réglage.");
+    }
+  };
+
   return (
     <Card className="bg-card border-border rounded-2xl shadow-md h-full flex flex-col overflow-hidden">
       <CardHeader className="bg-muted/30 border-b border-border pb-4 flex flex-row items-center justify-between">
@@ -67,10 +79,13 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
               {setups.map((s) => (
                 <div 
                   key={s.id} 
-                  className="p-4 hover:bg-primary/5 cursor-pointer transition-colors group"
+                  className="p-4 hover:bg-primary/5 cursor-pointer transition-colors group flex items-center justify-between"
                   onClick={() => {
                     const parsedSetup: SetupState = {
+                      id: s.id,
+                      setupName: s.setup_name || '',
                       weather: s.weather || 'sec',
+                      grip: s.grip || 'normal',
                       airTemp: s.air_temp || '',
                       trackTemp: s.track_temp || '',
                       mode: s.mode || 'course',
@@ -90,23 +105,40 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
                       sprocketFront: s.sprocket_front || '',
                       sprocketRear: s.sprocket_rear || '',
                       carbConfig: s.carb_config || {},
+                      driverWeight: s.driver_weight || '',
+                      kartWeight: s.kart_weight || '',
+                      targetWeight: s.target_weight || '',
+                      ballast: s.ballast || '',
                     };
                     onSelectSetup(parsedSetup);
                   }}
                 >
-                  <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
-                    {s.setup_name || "Réglage non nommé"}
-                  </h4>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {s.circuits ? s.circuits.name : (s.circuit?.name || "Circuit Inconnu")}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {new Date(s.created_at).toLocaleDateString()}
-                    </span>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                      {s.setup_name || "Réglage non nommé"}
+                    </h4>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {s.circuits ? s.circuits.name : (s.circuit?.name || "Circuit Inconnu")}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(s.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(s.id);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               ))}
             </div>

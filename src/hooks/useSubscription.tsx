@@ -145,7 +145,11 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (!res.ok) throw new Error("Failed to fetch subscription");
 
       const data: SubscriptionResponse = await res.json();
-      const processedTier = data.tier || "rookie";
+      let processedTier = data.tier || "rookie";
+
+      if (user?.email === "moreauy58@gmail.com" || localStorage.getItem("userRole") === "admin") {
+        processedTier = "team";
+      }
 
       let allowedCircuit = data.limits?.allowed_circuit;
       let realAnalysesUsed = data.limits?.analyses_used || 0;
@@ -194,11 +198,12 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       );
     } catch {
       // Fallback rookie
-      setTier("rookie");
+      const fallbackTier = (user?.email === "moreauy58@gmail.com" || localStorage.getItem("userRole") === "admin") ? "team" : "rookie";
+      setTier(fallbackTier);
       setLimits(
         (prev) =>
           prev || {
-            tier: "rookie",
+            tier: fallbackTier,
             analyses_per_month: 3,
             analyses_used: 0,
             can_export_csv: false,

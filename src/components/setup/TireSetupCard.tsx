@@ -4,13 +4,15 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Disc3 } from 'lucide-react';
 import { SetupState } from '@/pages/SetupPage';
+import { FieldRecommendation } from './FieldRecommendation';
 
 interface TireSetupCardProps {
   state: SetupState;
   onChange: (updates: Partial<SetupState>) => void;
+  recommendations?: Record<string, any>;
 }
 
-export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
+export function TireSetupCard({ state, onChange, recommendations }: TireSetupCardProps) {
   const inputClass = "bg-background/50 border-border focus-visible:ring-primary focus-visible:border-primary transition-all duration-300 hover:border-primary/50";
 
   return (
@@ -48,6 +50,7 @@ export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
                 onChange={(e) => onChange({ coldPressureFront: e.target.value ? Number(e.target.value) : '' })}
                 className={inputClass}
               />
+              <FieldRecommendation recommendation={recommendations?.coldPressureFront} />
             </div>
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Arrière (bar)</Label>
@@ -59,6 +62,7 @@ export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
                 onChange={(e) => onChange({ coldPressureRear: e.target.value ? Number(e.target.value) : '' })}
                 className={inputClass}
               />
+              <FieldRecommendation recommendation={recommendations?.coldPressureRear} />
             </div>
           </div>
 
@@ -74,6 +78,7 @@ export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
                 onChange={(e) => onChange({ hotPressureFront: e.target.value ? Number(e.target.value) : '' })}
                 className={inputClass}
               />
+              <FieldRecommendation recommendation={recommendations?.hotPressureFront} />
             </div>
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Arrière (bar)</Label>
@@ -85,6 +90,7 @@ export function TireSetupCard({ state, onChange }: TireSetupCardProps) {
                 onChange={(e) => onChange({ hotPressureRear: e.target.value ? Number(e.target.value) : '' })}
                 className={inputClass}
               />
+              <FieldRecommendation recommendation={recommendations?.hotPressureRear} />
             </div>
           </div>
         </div>
