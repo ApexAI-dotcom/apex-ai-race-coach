@@ -226,6 +226,20 @@ export interface SessionConditions {
   circuit_name?: string | null;
   track_condition: string; // "dry" | "damp" | "wet" | "rain"
   track_temperature?: number | null; // °C
+  air_temp?: number | null; // °C
+}
+
+// Signature de piste dérivée de la télémétrie par le backend (track_signature.py)
+export interface TrackFeatures {
+  speed_ratio?: string | null; // "sinueux" | "mixte" | "rapide"
+  rotation?: string | null; // "horaire" | "anti-horaire"
+  hairpins_count?: number | null;
+  fast_corners_count?: number | null;
+  elevation?: string | null;
+  bumpiness?: string | null;
+  corners_total?: number | null;
+  track_length_m?: number | null;
+  avg_apex_speed_kmh?: number | null;
 }
 
 export interface AnalysisResult {
@@ -245,6 +259,7 @@ export interface AnalysisResult {
   session_conditions?: SessionConditions | null;
   session_type?: string;
   plot_data?: PlotData;
+  track_features?: TrackFeatures | null;
 }
 
 export interface LapInfo {

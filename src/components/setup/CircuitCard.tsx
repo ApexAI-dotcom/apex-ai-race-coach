@@ -142,16 +142,18 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
       const airTemp = s.air_temp || '';
       const weather = s.weather || 'sec';
       const mode = s.session_type || 'course';
-      
+      // Signature de piste stockée au moment de l'analyse (kart_session_logs.track_features)
+      const tf = s.track_features || {};
+
       const circuitData = {
         id: s.circuit_id || undefined,
-        name: s.track_name || 'Circuit Importé',
-        speedRatio: s.speed_ratio || 'mixte',
-        rotation: s.rotation || 'horaire',
-        elevation: s.elevation || 'plat',
-        bumpiness: s.bumpiness || 'lisse',
-        hairpinsCount: s.hairpins_count ?? 2,
-        fastCornersCount: s.fast_corners_count ?? 3,
+        name: s.circuit_name || s.track_name || 'Circuit Importé',
+        speedRatio: tf.speed_ratio || s.speed_ratio || 'mixte',
+        rotation: tf.rotation || s.rotation || 'horaire',
+        elevation: tf.elevation || s.elevation || 'plat',
+        bumpiness: tf.bumpiness || s.bumpiness || 'lisse',
+        hairpinsCount: tf.hairpins_count ?? s.hairpins_count ?? 2,
+        fastCornersCount: tf.fast_corners_count ?? s.fast_corners_count ?? 3,
         imported: true,
         _sessionInfo: {
           weather: weather as any,
