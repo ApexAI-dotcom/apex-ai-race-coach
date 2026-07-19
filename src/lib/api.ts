@@ -1326,6 +1326,21 @@ export async function updateCircuit(accessToken: string, circuitId: string, circ
   return await parseJSONResponse<any>(response);
 }
 
+// Catalogue global de composants (kart_components) : moteurs, pneus, freins,
+// châssis, carburateurs, axes. Source de vérité du configurateur Mon Kart.
+export async function getCatalogComponents(accessToken: string, category?: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const url = `${API_BASE_URL}/api/catalog/components${category ? `?category=${encodeURIComponent(category)}` : ""}`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal: controller.signal,
+  });
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
@@ -1370,6 +1385,7 @@ export const api = {
   createCircuit,
   updateCircuit,
   deleteCircuit,
+  getCatalogComponents,
   getLastSessions,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,
