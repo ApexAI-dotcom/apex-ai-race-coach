@@ -42,6 +42,7 @@ export default function MonKart() {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [files, setFiles] = useState<FileList | null>(null);
+  const [tireSets, setTireSets] = useState<any[]>([]);
 
   const fetchProfile = async () => {
     if (!session?.access_token) return;
@@ -59,9 +60,22 @@ export default function MonKart() {
     }
   };
 
+  const fetchTireSets = async () => {
+    if (!session?.access_token) return;
+    try {
+      const res = await api.getTireSets(session.access_token);
+      setTireSets(res.tire_sets || []);
+    } catch {
+      setTireSets([]);
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
+    fetchTireSets();
   }, [session, tier]);
+
+  const mountedTire = tireSets.find((t) => t.is_mounted) || null;
 
   if (loading) {
     return (
@@ -351,11 +365,18 @@ export default function MonKart() {
             {prof && (
               <KartIdentityCard
                 profile={prof}
+                mountedTire={mountedTire}
                 onRelaunchConfig={() => handleUpdateCounter("engine_model", null)}
               />
             )}
 
-            {session?.access_token && <TireStockCard token={session.access_token} />}
+            {session?.access_token && (
+              <TireStockCard
+                token={session.access_token}
+                tireSets={tireSets}
+                onRefresh={fetchTireSets}
+              />
+            )}
           </div>
 
           {/* COLONNE DROITE — Actions, Alertes et Historique */}

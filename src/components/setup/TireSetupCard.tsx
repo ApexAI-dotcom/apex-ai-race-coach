@@ -11,7 +11,14 @@ interface TireSetupCardProps {
   onChange: (updates: Partial<SetupState>) => void;
   recommendations?: Record<string, any>;
   // Recommandation du train de pneus depuis le stock Mon Kart (advisor backend)
-  tireSetAdvice?: { set: any | null; message: string; priority?: string } | null;
+  tireSetAdvice?: {
+    set: any | null;
+    mounted?: any | null;
+    is_change?: boolean;
+    is_optimal?: boolean;
+    message: string;
+    priority?: string;
+  } | null;
 }
 
 export function TireSetupCard({ state, onChange, recommendations, tireSetAdvice }: TireSetupCardProps) {
@@ -30,13 +37,23 @@ export function TireSetupCard({ state, onChange, recommendations, tireSetAdvice 
 
         {tireSetAdvice && (
           <div className={`rounded-xl border p-3 text-xs leading-relaxed ${
-            tireSetAdvice.priority === 'high'
-              ? 'border-amber-500/30 bg-amber-500/5 text-amber-200'
+            tireSetAdvice.is_change
+              ? 'border-amber-500/40 bg-amber-500/10 text-amber-200'
+              : tireSetAdvice.is_optimal
+              ? 'border-emerald-500/30 bg-emerald-500/5 text-foreground'
               : 'border-primary/20 bg-primary/5 text-foreground'
           }`}>
-            <div className="flex items-center gap-1.5 font-semibold mb-1 text-primary">
+            <div className={`flex items-center gap-1.5 font-semibold mb-1 ${
+              tireSetAdvice.is_change ? 'text-amber-300' : tireSetAdvice.is_optimal ? 'text-emerald-400' : 'text-primary'
+            }`}>
               <Sparkles className="w-3.5 h-3.5" />
-              {tireSetAdvice.set ? `Train recommandé : ${tireSetAdvice.set.label}` : 'Stock de pneus'}
+              {tireSetAdvice.is_change
+                ? `Changement recommandé → ${tireSetAdvice.set?.label}`
+                : tireSetAdvice.is_optimal
+                ? `Pneu optimal déjà monté : ${tireSetAdvice.set?.label}`
+                : tireSetAdvice.set
+                ? `Train recommandé : ${tireSetAdvice.set.label}`
+                : 'Stock de pneus'}
             </div>
             {tireSetAdvice.message}
           </div>

@@ -1405,6 +1405,9 @@ export async function updateTireSet(accessToken: string, id: string, payload: an
 export async function deleteTireSet(accessToken: string, id: string): Promise<any> {
   return tireSetFetch(accessToken, `/api/kart/tire-sets/${id}`, "DELETE");
 }
+export async function mountTireSet(accessToken: string, id: string): Promise<any> {
+  return tireSetFetch(accessToken, `/api/kart/tire-sets/${id}/mount`, "POST", {});
+}
 
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
@@ -1456,6 +1459,7 @@ export const api = {
   createTireSet,
   updateTireSet,
   deleteTireSet,
+  mountTireSet,
   getLastSessions,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,

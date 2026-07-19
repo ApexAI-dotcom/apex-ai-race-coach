@@ -1,14 +1,18 @@
 import { KartProfile } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wrench, Edit2, Shield, Settings2, Cpu } from "lucide-react";
+import { Wrench, Edit2, Shield, Settings2, Cpu, Disc3, CloudRain } from "lucide-react";
 
 interface KartIdentityCardProps {
   profile: KartProfile;
+  mountedTire?: any | null;
   onRelaunchConfig: () => void;
 }
 
-export function KartIdentityCard({ profile, onRelaunchConfig }: KartIdentityCardProps) {
+export function KartIdentityCard({ profile, mountedTire, onRelaunchConfig }: KartIdentityCardProps) {
+  const tireLabel = mountedTire
+    ? (mountedTire.custom_model || mountedTire.component_label || "Pneu monté")
+    : null;
   return (
     <Card className="bg-card border border-border shadow-sm rounded-2xl flex flex-col h-full">
       <CardHeader className="pb-4">
@@ -57,7 +61,21 @@ export function KartIdentityCard({ profile, onRelaunchConfig }: KartIdentityCard
             </div>
           </div>
 
-          {/* Pneus retirés de l'identité : gérés par la carte "Stock de Pneus" */}
+          <div className="flex items-center justify-between py-2">
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
+              <Disc3 className="w-4 h-4" /> Pneu monté
+            </div>
+            <div className="text-sm font-semibold text-right flex items-center gap-1.5 justify-end">
+              {tireLabel ? (
+                <>
+                  {mountedTire?.is_rain && <CloudRain className="w-3.5 h-3.5 text-sky-400" />}
+                  <span>{mountedTire?.label ? `${mountedTire.label} · ${tireLabel}` : tireLabel}</span>
+                </>
+              ) : (
+                <span className="text-muted-foreground font-normal">Aucun — voir Stock de Pneus</span>
+              )}
+            </div>
+          </div>
         </div>
 
         <Button 

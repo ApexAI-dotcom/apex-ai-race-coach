@@ -8,12 +8,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Disc3, Plus, Pencil, Trash2, CloudRain, Loader2 } from "lucide-react";
+import { Disc3, Plus, Pencil, Trash2, CloudRain, Loader2, CircleCheck, CircleDot } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 interface TireStockCardProps {
   token: string;
+  tireSets: any[];
+  onRefresh: () => void;
 }
 
 const STATE_LABELS: Record<string, string> = { neuf: "Neuf", rode: "Rodé", use: "Usé" };
@@ -33,37 +35,24 @@ const emptyForm = {
   lapsLife: 250,
 };
 
-export function TireStockCard({ token }: TireStockCardProps) {
-  const [sets, setSets] = useState<any[]>([]);
+export function TireStockCard({ token, tireSets, onRefresh }: TireStockCardProps) {
   const [catalogTires, setCatalogTires] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<any>(emptyForm);
   const [saving, setSaving] = useState(false);
-
-  const fetchAll = async () => {
-    try {
-      const [setsRes, catalogRes] = await Promise.all([
-        api.getTireSets(token),
-        api.getCatalogComponents(token, "tire").catch(() => ({ components: [] })),
-      ]);
-      setSets(setsRes.tire_sets || []);
-      setCatalogTires(catalogRes.components || []);
-    } catch (err) {
-      console.error("Erreur chargement stock pneus:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [mountingId, setMountingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (token) fetchAll();
+    if (!token) return;
+    api.getCatalogComponents(token, "tire")
+      .then((res) => setCatalogTires(res.components || []))
+      .catch(() => setCatalogTires([]));
   }, [token]);
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ ...emptyForm, label: `Train ${sets.length + 1}` });
+    setForm({ ...emptyForm, label: `Train ${tireSets.length + 1}` });
     setDialogOpen(true);
   };
 
@@ -91,7 +80,6 @@ export function TireStockCard({ token }: TireStockCardProps) {
       ...f,
       componentId: value,
       customModel: "",
-      // Un pneu pluie du catalogue coche automatiquement le type pluie
       isRain: comp?.subcategory === "Wet" || comp?.specs?.use === "rain" ? true : f.isRain,
       lapsLife: comp?.default_life ? Number(comp.default_life) : f.lapsLife,
     }));
@@ -121,7 +109,7 @@ export function TireStockCard({ token }: TireStockCardProps) {
         toast.success("Train ajouté au stock.");
       }
       setDialogOpen(false);
-      fetchAll();
+      onRefresh();
     } catch (err: any) {
       toast.error(err.message || "Impossible d'enregistrer le train.");
     } finally {
@@ -133,10 +121,23 @@ export function TireStockCard({ token }: TireStockCardProps) {
     if (!confirm(`Supprimer "${s.label}" du stock ?`)) return;
     try {
       await api.deleteTireSet(token, s.id);
-      setSets((prev) => prev.filter((x) => x.id !== s.id));
+      onRefresh();
       toast.success("Train supprimé.");
     } catch (err: any) {
       toast.error(err.message || "Suppression impossible.");
+    }
+  };
+
+  const handleMount = async (s: any) => {
+    setMountingId(s.id);
+    try {
+      await api.mountTireSet(token, s.id);
+      onRefresh();
+      toast.success(`${s.label} monté sur le kart.`);
+    } catch (err: any) {
+      toast.error(err.message || "Impossible de monter ce train.");
+    } finally {
+      setMountingId(null);
     }
   };
 
@@ -156,44 +157,67 @@ export function TireStockCard({ token }: TireStockCardProps) {
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {loading ? (
-          <div className="flex justify-center p-6 text-muted-foreground">
-            <Loader2 className="w-5 h-5 animate-spin" />
-          </div>
-        ) : sets.length === 0 ? (
+        {tireSets.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">
             Aucun train déclaré. Déclarez vos trains (neuf, rodé, pluie…) pour
             qu'ApexAI recommande le bon pneu à chaque session.
           </p>
         ) : (
-          sets.map((s) => (
-            <div key={s.id} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-background/40">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-sm">{s.label}</span>
-                  <Badge className={`border rounded-full text-xs ${STATE_STYLES[s.state] || ""}`}>
-                    {STATE_LABELS[s.state] || s.state}
-                  </Badge>
-                  {s.is_rain && (
-                    <Badge className="bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full text-xs gap-1">
-                      <CloudRain className="w-3 h-3" /> Pluie
+          tireSets.map((s) => {
+            const mounted = !!s.is_mounted;
+            return (
+              <div
+                key={s.id}
+                className={`flex items-center justify-between gap-3 p-3 rounded-xl border transition-colors ${
+                  mounted
+                    ? "border-primary/50 bg-primary/5 ring-1 ring-primary/30"
+                    : "border-border bg-background/40"
+                }`}
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {mounted && (
+                      <Badge className="bg-primary text-primary-foreground border-0 rounded-full text-xs gap-1">
+                        <CircleCheck className="w-3 h-3" /> Monté
+                      </Badge>
+                    )}
+                    <span className="font-semibold text-sm">{s.label}</span>
+                    <Badge className={`border rounded-full text-xs ${STATE_STYLES[s.state] || ""}`}>
+                      {STATE_LABELS[s.state] || s.state}
                     </Badge>
-                  )}
+                    {s.is_rain && (
+                      <Badge className="bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full text-xs gap-1">
+                        <CloudRain className="w-3 h-3" /> Pluie
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate mt-1">
+                    {modelLabel(s)} · {s.laps_current ?? 0}/{s.laps_life ?? 250} tours ({lifeLeft(s)} restants)
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground truncate mt-1">
-                  {modelLabel(s)} · {s.laps_current ?? 0}/{s.laps_life ?? 250} tours ({lifeLeft(s)} restants)
-                </p>
+                <div className="flex items-center gap-1 shrink-0">
+                  {!mounted && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1.5 text-xs text-primary hover:bg-primary/10"
+                      onClick={() => handleMount(s)}
+                      disabled={mountingId === s.id}
+                    >
+                      {mountingId === s.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CircleDot className="w-3.5 h-3.5" />}
+                      Monter
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openEdit(s)}>
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(s)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-1 shrink-0">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openEdit(s)}>
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(s)}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </CardContent>
 

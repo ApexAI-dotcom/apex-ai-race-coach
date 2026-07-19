@@ -102,16 +102,20 @@ export default function SetupPage() {
     const fetchProfile = async () => {
       if (!session?.access_token) return;
       try {
-        const res = await api.getKartProfile(session.access_token);
-        if (res && res.profile) {
-          setProfile(res.profile);
+        const [profRes, tireRes] = await Promise.all([
+          api.getKartProfile(session.access_token),
+          api.getTireSets(session.access_token).catch(() => ({ tire_sets: [] })),
+        ]);
+        if (profRes && profRes.profile) {
+          setProfile(profRes.profile);
+          // Le modèle de pneus affiché suit le PNEU MONTÉ (Stock de Pneus),
+          // avec repli sur le profil. Le Bilan Poids reste vide (pas de
+          // pré-remplissage fantôme).
+          const mounted = (tireRes.tire_sets || []).find((t: any) => t.is_mounted);
+          const mountedModel = mounted?.custom_model || mounted?.component_label || profRes.profile.tires_model;
           setSetupState(prev => {
-            const updates: Partial<SetupState> = {};
-            // Seul le modèle de pneus du profil est pré-rempli. Le Bilan Poids
-            // reste vide au chargement : le pilote choisit un profil de poids
-            // ou saisit ses valeurs (pas de pré-remplissage fantôme).
-            if (!prev.tireModel && res.profile.tires_model) updates.tireModel = res.profile.tires_model;
-            return Object.keys(updates).length > 0 ? { ...prev, ...updates } : prev;
+            if (prev.tireModel || !mountedModel) return prev;
+            return { ...prev, tireModel: mountedModel };
           });
         }
       } catch (err) {
