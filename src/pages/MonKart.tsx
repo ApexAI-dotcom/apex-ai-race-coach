@@ -376,6 +376,20 @@ export default function MonKart() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* LIGNE 3 (Déplacé depuis la droite) : Journal d'Entretien */}
+            <div className="mt-6">
+              {prof && (
+                <KartMaintenanceLog
+                  history={history}
+                  profile={prof}
+                  onAddEntry={handleAddHistory}
+                  onDeleteEntry={handleDeleteHistoryEntry}
+                  onResetComponent={handleReset}
+                  onIgnoreAlert={handleIgnoreAlert}
+                />
+              )}
+            </div>
           </div>
 
           {/* COLONNE DROITE — grille de contenu */}
@@ -442,19 +456,6 @@ export default function MonKart() {
               />
             </div>
 
-            {/* LIGNE 3 : Journal d'Entretien — Agrandit sur toute la largeur de la colonne droite */}
-            <div className="mt-6">
-              {prof && (
-                <KartMaintenanceLog
-                  history={history}
-                  profile={prof}
-                  onAddEntry={handleAddHistory}
-                  onDeleteEntry={handleDeleteHistoryEntry}
-                  onResetComponent={handleReset}
-                  onIgnoreAlert={handleIgnoreAlert}
-                />
-              )}
-            </div>
           </div>
         </div>
 
