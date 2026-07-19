@@ -1374,6 +1374,38 @@ export async function getKartAdvisor(accessToken: string, payload: any): Promise
   return await parseJSONResponse<any>(response);
 }
 
+// ─── Stock de trains de pneus (kart_tire_sets) ───
+async function tireSetFetch(accessToken: string, path: string, method: string, body?: any): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers: {
+      ...(body ? { "Content-Type": "application/json" } : {}),
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+    signal: controller.signal,
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(typeof data?.detail === "string" ? data.detail : `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
+export async function getTireSets(accessToken: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/kart/tire-sets", "GET");
+}
+export async function createTireSet(accessToken: string, payload: any): Promise<any> {
+  return tireSetFetch(accessToken, "/api/kart/tire-sets", "POST", payload);
+}
+export async function updateTireSet(accessToken: string, id: string, payload: any): Promise<any> {
+  return tireSetFetch(accessToken, `/api/kart/tire-sets/${id}`, "PUT", payload);
+}
+export async function deleteTireSet(accessToken: string, id: string): Promise<any> {
+  return tireSetFetch(accessToken, `/api/kart/tire-sets/${id}`, "DELETE");
+}
+
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
@@ -1420,6 +1452,10 @@ export const api = {
   deleteCircuit,
   getCatalogComponents,
   getKartAdvisor,
+  getTireSets,
+  createTireSet,
+  updateTireSet,
+  deleteTireSet,
   getLastSessions,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,

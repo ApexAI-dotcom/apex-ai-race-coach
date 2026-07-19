@@ -88,6 +88,7 @@ export default function SetupPage() {
   const [setupState, setSetupState] = useState<SetupState>(defaultSetupState);
   const [refreshKey, setRefreshKey] = useState(0);
   const [recommendations, setRecommendations] = useState<Record<string, Recommendation>>({});
+  const [tireSetAdvice, setTireSetAdvice] = useState<any | null>(null);
   const [hasGeneratedRecs, setHasGeneratedRecs] = useState(false);
   
   // États pour l'animation IA Math Engine
@@ -239,10 +240,12 @@ export default function SetupPage() {
             airTemp: setupState.airTemp !== '' ? Number(setupState.airTemp) : null,
             grip: setupState.grip,
             circuit: setupState.circuit,
+            mode: setupState.mode,
           });
           if (advisorRes?.recommendations) {
             Object.assign(recs, advisorRes.recommendations);
           }
+          setTireSetAdvice(advisorRes?.tire_set_advice || null);
         }
       } catch {
         // L'heuristique locale reste en place si le backend est injoignable
@@ -606,17 +609,18 @@ export default function SetupPage() {
               : 'opacity-100 translate-y-0'
           }`}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <TireSetupCard 
+              <TireSetupCard
+                state={setupState}
+                onChange={handleContextChange}
+                recommendations={recommendations}
+                tireSetAdvice={tireSetAdvice}
+              />
+              <ChassisSetupCard
                 state={setupState}
                 onChange={handleContextChange}
                 recommendations={recommendations}
               />
-              <ChassisSetupCard 
-                state={setupState}
-                onChange={handleContextChange}
-                recommendations={recommendations}
-              />
-              <DrivetrainSetupCard 
+              <DrivetrainSetupCard
                 state={setupState}
                 onChange={handleContextChange}
                 engineCategory={engineCategory}

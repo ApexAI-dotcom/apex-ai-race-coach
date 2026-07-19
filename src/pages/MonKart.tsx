@@ -27,6 +27,7 @@ import { KartSetupWizard } from "@/components/kart/KartSetupWizard";
 import { KartMaintenanceLog } from "@/components/kart/KartMaintenanceLog";
 import { GarageHeader } from "@/components/kart/GarageHeader";
 import { KartIdentityCard } from "@/components/kart/KartIdentityCard";
+import { TireStockCard } from "@/components/kart/TireStockCard";
 import { WeightCard } from "@/components/kart/WeightCard";
 import { WearGauge } from "@/components/kart/WearGauge";
 import { Layout } from "@/components/layout/Layout";
@@ -348,11 +349,13 @@ export default function MonKart() {
             {prof && <KartHealthStatus profile={prof} />}
 
             {prof && (
-              <KartIdentityCard 
-                profile={prof} 
-                onRelaunchConfig={() => handleUpdateCounter("engine_model", null)} 
+              <KartIdentityCard
+                profile={prof}
+                onRelaunchConfig={() => handleUpdateCounter("engine_model", null)}
               />
             )}
+
+            {session?.access_token && <TireStockCard token={session.access_token} />}
           </div>
 
           {/* COLONNE DROITE — Actions, Alertes et Historique */}
