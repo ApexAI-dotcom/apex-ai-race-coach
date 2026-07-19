@@ -380,7 +380,7 @@ function TrackMapCanvasComponent({
       minScale={0.5}
       maxScale={6}
       centerOnInit={true}
-      wheel={{ step: 0.1 }}
+      wheel={{ step: 0.1, activationKeys: ["Control"] }}
       doubleClick={{ mode: "zoomIn" }}
       zoomAnimation={{ animationType: "easeOut" }}
       panning={{ velocityDisabled: true }}
