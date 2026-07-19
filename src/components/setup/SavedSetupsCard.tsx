@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Plus, History, MapPin, Calendar, Save, Trash2 } from 'lucide-react';
+import { Loader2, Plus, History, MapPin, Calendar, Save, Trash2, Pencil } from 'lucide-react';
 import { api, normalizeCircuit } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { SetupState } from '@/pages/SetupPage';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface SavedSetupsCardProps {
   refreshKey: number;
@@ -19,6 +22,11 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
   const { session } = useAuth();
   const [setups, setSetups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [setupToRename, setSetupToRename] = useState<any>(null);
+  const [newName, setNewName] = useState('');
+  const [renaming, setRenaming] = useState(false);
 
   useEffect(() => {
     const fetchSetups = async () => {
@@ -46,6 +54,21 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
     } catch (err) {
       console.error("Erreur de suppression:", err);
       alert("Impossible de supprimer le réglage.");
+    }
+  };
+
+  const handleRename = async () => {
+    if (!session?.access_token || !setupToRename) return;
+    setRenaming(true);
+    try {
+      await api.renameKartSetup(session.access_token, setupToRename.id, newName);
+      setSetups(prev => prev.map(s => s.id === setupToRename.id ? { ...s, setup_name: newName } : s));
+      setRenameDialogOpen(false);
+    } catch (err) {
+      console.error("Erreur de renommage:", err);
+      alert("Impossible de renommer le réglage.");
+    } finally {
+      setRenaming(false);
     }
   };
 
@@ -129,17 +152,32 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
                       </span>
                     </div>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(s.id);
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSetupToRename(s);
+                        setNewName(s.setup_name || '');
+                        setRenameDialogOpen(true);
+                      }}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(s.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -153,6 +191,31 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
           {isSaving ? "Enregistrement..." : "Enregistrer le réglage"}
         </Button>
       </CardFooter>
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Renommer le réglage</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="setup-name">Nouveau nom</Label>
+              <Input 
+                id="setup-name"
+                value={newName} 
+                onChange={(e) => setNewName(e.target.value)} 
+                placeholder="Ex: Sec - Pression 0.9"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>Annuler</Button>
+            <Button onClick={handleRename} disabled={renaming || !newName.trim()}>
+              {renaming && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

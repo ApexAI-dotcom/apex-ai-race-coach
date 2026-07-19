@@ -1246,6 +1246,25 @@ export async function deleteKartSetup(accessToken: string, setupId: string): Pro
   return await parseJSONResponse<any>(response);
 }
 
+export async function renameKartSetup(accessToken: string, setupId: string, newName: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/setups/${setupId}/rename`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ name: newName }),
+    signal: controller.signal,
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(typeof data?.detail === "string" ? data.detail : `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 export async function getCircuits(accessToken: string): Promise<any> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/circuits`, {
@@ -1449,6 +1468,7 @@ export const api = {
   saveKartSetup,
   getKartSetups,
   deleteKartSetup,
+  renameKartSetup,
   getCircuits,
   createCircuit,
   updateCircuit,
