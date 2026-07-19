@@ -19,14 +19,14 @@ export const LegalFooter = () => (
           <span className="text-muted-foreground/60" aria-hidden>
             ·
           </span>
-          <Link to="/legal#cgv" className="hover:text-foreground hover:underline transition-colors">
-            CGV
+          <Link to="/legal/cgu" className="hover:text-foreground hover:underline transition-colors">
+            CGU
           </Link>
           <span className="text-muted-foreground/60" aria-hidden>
             ·
           </span>
-          <Link to="/legal#cgu" className="hover:text-foreground hover:underline transition-colors">
-            CGU
+          <Link to="/legal/confidentialite" className="hover:text-foreground hover:underline transition-colors">
+            Confidentialité
           </Link>
           <span className="text-muted-foreground/60" aria-hidden>
             ·

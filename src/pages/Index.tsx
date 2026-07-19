@@ -614,6 +614,12 @@ export default function Index() {
               <Link to="/legal" className="hover:text-primary transition-colors duration-200">
                 Mentions légales
               </Link>
+              <Link to="/legal/cgu" className="hover:text-primary transition-colors duration-200">
+                CGU
+              </Link>
+              <Link to="/legal/confidentialite" className="hover:text-primary transition-colors duration-200">
+                Confidentialité
+              </Link>
             </div>
 
             <Link

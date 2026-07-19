@@ -25,6 +25,8 @@ import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import Success from "./pages/Success";
 import Legal from "./pages/Legal";
+import CGU from "./pages/legal/CGU";
+import Confidentialite from "./pages/legal/Confidentialite";
 import Parametres from "./pages/Parametres";
 import AnalysisResultPage from "./pages/AnalysisResultPage";
 import NotFound from "./pages/NotFound";
@@ -70,6 +72,8 @@ const App = () => (
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/success" element={<Success />} />
                 <Route path="/legal" element={<Legal />} />
+                <Route path="/legal/cgu" element={<CGU />} />
+                <Route path="/legal/confidentialite" element={<Confidentialite />} />
                 <Route
                   path="/dashboard"
                   element={
