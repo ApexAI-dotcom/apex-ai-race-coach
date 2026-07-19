@@ -46,6 +46,8 @@ export interface SetupState {
   kartWeight: number | '';
   targetWeight: number | '';
   ballast: number | '';
+  // Recommandations figées au moment de la génération (sauvegardées avec le réglage)
+  recommendations?: Record<string, Recommendation> | null;
 }
 
 const defaultSetupState: SetupState = {
@@ -104,12 +106,10 @@ export default function SetupPage() {
           setProfile(res.profile);
           setSetupState(prev => {
             const updates: Partial<SetupState> = {};
-            const setupJson = res.profile.setup_json || {};
+            // Seul le modèle de pneus du profil est pré-rempli. Le Bilan Poids
+            // reste vide au chargement : le pilote choisit un profil de poids
+            // ou saisit ses valeurs (pas de pré-remplissage fantôme).
             if (!prev.tireModel && res.profile.tires_model) updates.tireModel = res.profile.tires_model;
-            if (!prev.kartWeight && setupJson.weight_empty_kg) updates.kartWeight = Number(setupJson.weight_empty_kg);
-            if (!prev.driverWeight && setupJson.driver_weight_kg) updates.driverWeight = Number(setupJson.driver_weight_kg);
-            if (!prev.ballast && setupJson.ballast_kg) updates.ballast = Number(setupJson.ballast_kg);
-            if (!prev.targetWeight && setupJson.category_min_weight_kg) updates.targetWeight = Number(setupJson.category_min_weight_kg);
             return Object.keys(updates).length > 0 ? { ...prev, ...updates } : prev;
           });
         }
@@ -307,6 +307,12 @@ export default function SetupPage() {
         sanitizedState.id = setupState.id;
       }
 
+      // Figer les recommandations générées avec ce réglage : elles seront
+      // restaurées à l'identique au rechargement, même si le pilote a
+      // modifié les valeurs des champs.
+      sanitizedState.recommendations =
+        recommendations && Object.keys(recommendations).length > 0 ? recommendations : null;
+
       await api.saveKartSetup(session.access_token, sanitizedState);
       toast({
         title: setupState.id ? "Réglage mis à jour !" : "Réglage sauvegardé !",
@@ -375,19 +381,25 @@ export default function SetupPage() {
 
                     setSetupState(loadedSetup);
 
-                    // Calcul instantané des recommandations
-                    const totalWeight = (Number(loadedSetup.driverWeight) || 0) + (Number(loadedSetup.kartWeight) || 0) + (Number(loadedSetup.ballast) || 0);
-                    const input: AdvisorInput = {
-                      weather: loadedSetup.weather as 'sec' | 'humide' | 'pluie',
-                      trackTemp: loadedSetup.trackTemp ? Number(loadedSetup.trackTemp) : '',
-                      grip: loadedSetup.grip as 'faible' | 'normal' | 'gommée',
-                      circuit: loadedSetup.circuit,
-                      totalWeight,
-                      profile: profile,
-                      setupState: loadedSetup
-                    };
-                    const recs = generateRecommendations(input);
-                    setRecommendations(recs);
+                    // Recommandations FIGÉES : si le réglage a été sauvegardé avec
+                    // ses recommandations d'origine, on les restaure telles quelles.
+                    // On ne recalcule (fallback anciens réglages) que si absentes.
+                    const storedRecs = (setup as any).recommendations;
+                    if (storedRecs && Object.keys(storedRecs).length > 0) {
+                      setRecommendations(storedRecs);
+                    } else {
+                      const totalWeight = (Number(loadedSetup.driverWeight) || 0) + (Number(loadedSetup.kartWeight) || 0) + (Number(loadedSetup.ballast) || 0);
+                      const input: AdvisorInput = {
+                        weather: loadedSetup.weather as 'sec' | 'humide' | 'pluie',
+                        trackTemp: loadedSetup.trackTemp ? Number(loadedSetup.trackTemp) : '',
+                        grip: loadedSetup.grip as 'faible' | 'normal' | 'gommée',
+                        circuit: loadedSetup.circuit,
+                        totalWeight,
+                        profile: profile,
+                        setupState: loadedSetup
+                      };
+                      setRecommendations(generateRecommendations(input));
+                    }
                     setHasGeneratedRecs(true);
                     
                     // Notification verte opaque et lisible de succès (disparaît plus rapidement)

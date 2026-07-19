@@ -90,6 +90,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
                       trackTemp: s.track_temp || '',
                       mode: s.mode || 'course',
                       circuit: s.circuits ? normalizeCircuit({ ...s.circuits, id: s.circuit_id }) : (s.circuit || null),
+                      recommendations: s.recommendations || null,
                       tireModel: s.tire_model || '',
                       coldPressureFront: s.cold_pressure_front || '',
                       coldPressureRear: s.cold_pressure_rear || '',
