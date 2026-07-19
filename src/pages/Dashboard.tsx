@@ -89,8 +89,7 @@ import { TrackMap } from "@/components/analysis/TrackMap";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Helmet } from "react-helmet-async";
 import { ADMIN_EMAIL } from "@/constants";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { createApexDoc, sectionTitle, kvGrid, apexTable, finalizeAndSave } from "@/lib/pdf/apexPdf";
 import { toast } from "sonner";
 
 export default function Dashboard() {
@@ -496,64 +495,40 @@ export default function Dashboard() {
 
   const exportDashboardPDFUltra = async (analyses: AnalysisSummary[]) => {
     try {
-      const doc = new jsPDF("p", "mm", "a4");
-      doc.setFillColor(239, 68, 68);
-      doc.rect(0, 0, 210, 45, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(28);
-      doc.text("APEX AI", 20, 25);
-      doc.setFontSize(18);
-      doc.text("TABLEAU DE BORD COMPLET", 20, 35);
-      let yPos = 55;
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(0, 0, 0);
-      doc.text("STATISTIQUES GLOBALES", 20, yPos);
-      yPos += 10;
+      const { doc, y: y0 } = createApexDoc({
+        docType: "Carnet de Performances",
+        title: "Historique des analyses",
+        rightLines: [`${analyses.length} sessions analysées`, new Date().toLocaleDateString("fr-FR")],
+      });
+      let y = y0;
+
       const avgScore = (analyses.reduce((a, b) => a + b.score, 0) / analyses.length).toFixed(1);
       const bestScore = Math.max(...analyses.map((a) => a.score));
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Total analyses: ${analyses.length}`, 20, yPos);
-      yPos += 7;
-      doc.text(`Score moyen: ${avgScore}/100`, 20, yPos);
-      yPos += 7;
-      doc.text(`Meilleur score: ${bestScore}/100`, 20, yPos);
-      yPos += 15;
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("HISTORIQUE", 20, yPos);
-      yPos += 10;
-      autoTable(doc, {
-        startY: yPos,
-        head: [["Date", "Score", "Grade", "Virages", "Temps"]],
-        body: analyses.map((a) => [
+      const bestLap = Math.min(...analyses.map((a) => a.lap_time));
+
+      y = sectionTitle(doc, y, "Statistiques Globales");
+      y = kvGrid(doc, y, [
+        ["Analyses au total", String(analyses.length)],
+        ["Score moyen", `${avgScore}/100`],
+        ["Meilleur score", `${bestScore}/100`],
+        ["Meilleur tour", `${bestLap.toFixed(2)} s`],
+      ]);
+
+      y = sectionTitle(doc, y, "Historique des Sessions");
+      apexTable(
+        doc,
+        y,
+        ["Date", "Score", "Grade", "Virages", "Meilleur tour"],
+        analyses.map((a) => [
           new Date(a.date).toLocaleDateString("fr-FR"),
           `${a.score}/100`,
           a.grade,
           String(a.corner_count),
-          `${a.lap_time.toFixed(1)}s`,
-        ]),
-        theme: "grid",
-        styles: { fontSize: 10, cellPadding: 3 },
-        headStyles: { fillColor: [239, 68, 68], textColor: 255, fontStyle: "bold" },
-        margin: { left: 15, right: 15 },
-      });
-      const pageCount = (doc as any).internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFillColor(30, 58, 138);
-        doc.rect(0, doc.internal.pageSize.height - 30, 210, 30, "F");
-        doc.setTextColor(255);
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text("Apex AI - contact@apexai.run", 20, doc.internal.pageSize.height - 15);
-        doc.text(`Page ${i}/${pageCount}`, 180, doc.internal.pageSize.height - 15, {
-          align: "right",
-        });
-      }
-      doc.save(`Apex-Dashboard-${new Date().toISOString().split("T")[0]}.pdf`);
+          `${a.lap_time.toFixed(2)} s`,
+        ])
+      );
+
+      finalizeAndSave(doc, `ApexAI-Carnet-${new Date().toISOString().split("T")[0]}.pdf`);
     } catch (error) {
       console.error("PDF error:", error);
       toast.error("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Plus, History, MapPin, Calendar, Save, Trash2, Pencil } from 'lucide-react';
+import { Loader2, Plus, History, MapPin, Calendar, Save, Trash2, Pencil, FileDown } from 'lucide-react';
 import { api, normalizeCircuit } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { SetupState } from '@/pages/SetupPage';
@@ -13,12 +13,13 @@ import { Label } from '@/components/ui/label';
 interface SavedSetupsCardProps {
   refreshKey: number;
   onSelectSetup: (setup: SetupState) => void;
+  onExportPdf?: () => void;
   onNewSetup: () => void;
   onSaveSetup: () => void;
   isSaving: boolean;
 }
 
-export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveSetup, isSaving }: SavedSetupsCardProps) {
+export function SavedSetupsCard({ refreshKey, onSelectSetup, onExportPdf, onNewSetup, onSaveSetup, isSaving }: SavedSetupsCardProps) {
   const { session } = useAuth();
   const [setups, setSetups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -185,7 +186,18 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
         )}
       </CardContent>
       
-      <CardFooter className="p-4 border-t border-border bg-muted/10">
+      <CardFooter className="p-4 border-t border-border bg-muted/10 gap-2">
+        {onExportPdf && (
+          <Button
+            variant="outline"
+            onClick={onExportPdf}
+            className="gap-2 rounded-full h-11 border-border hover:border-primary/40 hover:text-primary shrink-0"
+            title="Exporter la fiche de réglages en PDF"
+          >
+            <FileDown className="w-4 h-4" />
+            PDF
+          </Button>
+        )}
         <Button onClick={onSaveSetup} disabled={isSaving} className="w-full gap-2 rounded-full h-11 shadow-lg shadow-primary/20">
           <Save className="w-4 h-4" />
           {isSaving ? "Enregistrement..." : "Enregistrer le réglage"}

@@ -27,6 +27,9 @@ import {
   CloudDrizzle,
   Flag,
   Car,
+  Cpu,
+  ShieldCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -628,27 +631,53 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   </span>
                 </div>
               )}
-              {(result as any).import_diagnostics && (
-                <div className="max-w-md mx-auto mb-6 text-left rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-muted-foreground">
-                  <div className="font-semibold text-foreground mb-1">
-                    📡 Acquisition : {(result as any).import_diagnostics.device}
-                    {(result as any).import_diagnostics.sample_rate_hz
-                      ? ` · ${(result as any).import_diagnostics.sample_rate_hz} Hz`
-                      : ''}
+              {(result as any).import_diagnostics && (() => {
+                const diag = (result as any).import_diagnostics;
+                const isComplete = diag.quality === 'complete';
+                const missing = [
+                  ...(diag.channels?.required_missing || []),
+                  ...(diag.channels?.core_missing || []),
+                ];
+                return (
+                  <div className="max-w-md mx-auto mb-6 text-left rounded-xl border border-border bg-card/60 overflow-hidden">
+                    <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-muted/30">
+                      <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
+                        <Cpu className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
+                          Acquisition détectée
+                        </p>
+                        <p className="text-sm font-semibold text-foreground truncate mt-0.5">
+                          {diag.device}
+                          {diag.sample_rate_hz ? (
+                            <span className="ml-2 font-mono text-xs text-primary">
+                              {diag.sample_rate_hz} Hz
+                            </span>
+                          ) : null}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="px-4 py-2.5 flex items-center gap-2 text-xs">
+                      {isComplete ? (
+                        <>
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          <span className="text-emerald-500 font-medium">
+                            Tous les canaux essentiels détectés
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span className="text-amber-500">
+                            Analyse partielle — manquants : {missing.join(', ') || 'canaux bonus absents'}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  {(result as any).import_diagnostics.quality === 'complete' ? (
-                    <span className="text-emerald-400">✔ Tous les canaux essentiels détectés</span>
-                  ) : (
-                    <span className="text-amber-400">
-                      ⚠ Analyse partielle — canaux manquants :{' '}
-                      {[
-                        ...((result as any).import_diagnostics.channels?.required_missing || []),
-                        ...((result as any).import_diagnostics.channels?.core_missing || []),
-                      ].join(', ') || 'canaux bonus absents'}
-                    </span>
-                  )}
-                </div>
-              )}
+                );
+              })()}
               {!result.session_conditions && <div className="mb-6" />}
               <div className="flex flex-col sm:flex-row justify-center gap-3 flex-wrap">
                 <Button variant="heroOutline" onClick={handleReset}>

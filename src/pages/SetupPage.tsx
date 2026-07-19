@@ -14,6 +14,7 @@ import { Layout } from '@/components/layout/Layout';
 import { PageMeta } from '@/components/seo/PageMeta';
 import { ENGINE_PRESETS } from '@/constants/kart-presets';
 import { generateRecommendations, AdvisorInput, Recommendation } from '@/utils/advisorEngine';
+import { exportSetupSheetPDF } from '@/lib/pdf/setupSheet';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Sparkles, Save, Loader2, Wrench, Zap, Disc3, Shield, Cpu } from 'lucide-react';
@@ -247,6 +248,9 @@ export default function SetupPage() {
             grip: setupState.grip,
             circuit: setupState.circuit,
             mode: setupState.mode,
+            totalWeight,
+            sprocketFront: setupState.sprocketFront !== '' ? Number(setupState.sprocketFront) : null,
+            sprocketRear: setupState.sprocketRear !== '' ? Number(setupState.sprocketRear) : null,
           });
           if (advisorRes?.recommendations) {
             Object.assign(recs, advisorRes.recommendations);
@@ -340,6 +344,22 @@ export default function SetupPage() {
     setIsSaving(false);
   };
 
+  const handleExportPdf = () => {
+    const mounted = tireSets.find((t: any) => t.is_mounted);
+    const mountedLabel = mounted
+      ? `${mounted.label} · ${mounted.custom_model || mounted.component_label || ''}`
+      : undefined;
+    // Note ingénieur : la reco de train + la justification des pressions figées
+    const noteParts: string[] = [];
+    if (tireSetAdvice?.message) noteParts.push(tireSetAdvice.message);
+    if (recommendations?.coldPressureFront?.message) noteParts.push(recommendations.coldPressureFront.message);
+    exportSetupSheetPDF(setupState, {
+      circuitName: setupState.circuit?.name,
+      mountedTireLabel: setupState.tireModel || mountedLabel,
+      engineerNote: noteParts.join(' ') || undefined,
+    });
+  };
+
   const handleNewSetup = () => {
     setSetupState({
       ...defaultSetupState,
@@ -426,6 +446,7 @@ export default function SetupPage() {
                   }} 
                   onNewSetup={handleNewSetup} 
                   onSaveSetup={handleSave}
+                  onExportPdf={handleExportPdf}
                   isSaving={isSaving}
                 />
               </div>
