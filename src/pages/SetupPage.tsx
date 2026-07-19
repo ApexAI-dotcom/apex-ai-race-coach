@@ -213,9 +213,9 @@ export default function SetupPage() {
       setAnalysisText("Optimisation des rapports de transmission...");
     }, 1000);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const totalWeight = (Number(setupState.driverWeight) || 0) + (Number(setupState.kartWeight) || 0) + (Number(setupState.ballast) || 0);
-      
+
       const input: AdvisorInput = {
         weather: setupState.weather as 'sec' | 'humide' | 'pluie',
         trackTemp: setupState.trackTemp ? Number(setupState.trackTemp) : '',
@@ -227,7 +227,27 @@ export default function SetupPage() {
       };
 
       const recs = generateRecommendations(input);
-      
+
+      // Advisor backend : les pressions issues des abaques du catalogue
+      // (kart_components) priment sur l'heuristique locale. Fallback silencieux.
+      try {
+        if (session?.access_token) {
+          const advisorRes = await api.getKartAdvisor(session.access_token, {
+            tireModel: setupState.tireModel || profile?.tires_model || '',
+            weather: setupState.weather,
+            trackTemp: setupState.trackTemp !== '' ? Number(setupState.trackTemp) : null,
+            airTemp: setupState.airTemp !== '' ? Number(setupState.airTemp) : null,
+            grip: setupState.grip,
+            circuit: setupState.circuit,
+          });
+          if (advisorRes?.recommendations) {
+            Object.assign(recs, advisorRes.recommendations);
+          }
+        }
+      } catch {
+        // L'heuristique locale reste en place si le backend est injoignable
+      }
+
       // Auto-remplissage des champs
       const autoFillUpdates: Partial<SetupState> = {};
       Object.entries(recs).forEach(([key, rec]) => {

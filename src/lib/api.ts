@@ -1341,6 +1341,25 @@ export async function getCatalogComponents(accessToken: string, category?: strin
   return await parseJSONResponse<any>(response);
 }
 
+// Advisor backend : pressions pneus calculées depuis les abaques du catalogue
+// (kart_components) croisées avec les conditions et la signature du circuit.
+export async function getKartAdvisor(accessToken: string, payload: any): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/advisor`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+    signal: controller.signal,
+  });
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
@@ -1386,6 +1405,7 @@ export const api = {
   updateCircuit,
   deleteCircuit,
   getCatalogComponents,
+  getKartAdvisor,
   getLastSessions,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,
