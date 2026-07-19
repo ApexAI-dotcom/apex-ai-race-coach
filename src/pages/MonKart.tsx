@@ -453,83 +453,84 @@ export default function MonKart() {
                 />
               )}
             </div>
+
+            {/* Historique des Journées de Roulage - Déplacé dans la colonne de droite pour combler le vide */}
+            <Card className="bg-card border-border shadow-sm">
+              <CardHeader>
+                <CardTitle>Historique des Journées de Roulage</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Résumé agrégé de vos sorties en piste. Chaque ligne rassemble les sessions d'une même
+                  journée.
+                </p>
+              </CardHeader>
+              <CardContent>
+                {dailyLogs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    Aucune journée enregistrée.
+                  </p>
+                ) : (
+                  <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+                    <table className="w-full min-w-[600px] text-sm text-left whitespace-nowrap">
+                      <thead>
+                        <tr className="border-b border-border text-muted-foreground">
+                          <th className="pb-3 font-medium">Date</th>
+                          <th className="pb-3 font-medium">Circuit</th>
+                          <th className="pb-3 font-medium text-center">Sessions</th>
+                          <th className="pb-3 font-medium">Durée Cumulée</th>
+                          <th className="pb-3 font-medium text-right">RPM Max</th>
+                          <th className="pb-3 font-medium text-right">G Lat Max</th>
+                          <th className="pb-3 font-medium text-right">Temp Échap. Max</th>
+                          <th className="pb-3 font-medium text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dailyLogs.map((log: any, i: number) => (
+                          <tr
+                            key={i}
+                            className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors"
+                          >
+                            <td className="py-3 font-medium">
+                              {new Date(log.date).toLocaleDateString()}
+                            </td>
+                            <td className="py-3">{log.circuit || "Inconnu"}</td>
+                            <td className="py-3 text-center">
+                              <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-semibold">
+                                {log.sessionsCount}
+                              </span>
+                            </td>
+                            <td className="py-3 text-muted-foreground">
+                              {log.totalDuration.toFixed(2)} h
+                            </td>
+                            <td className="py-3 text-right">
+                              {log.rpmMax ? `${Math.round(log.rpmMax)} tr/min` : "-"}
+                            </td>
+                            <td className="py-3 text-right">
+                              {log.gLatMax ? `${log.gLatMax.toFixed(2)} G` : "-"}
+                            </td>
+                            <td className="py-3 text-right">
+                              {log.tempMax ? `${Math.round(log.tempMax)} °C` : "-"}
+                            </td>
+                            <td className="py-3 text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                                onClick={() => handleDeleteDay(log.date)}
+                                title="Supprimer cette journée"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
-
-        <Card className="bg-card border-border shadow-sm">
-          <CardHeader>
-            <CardTitle>Historique des Journées de Roulage</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">
-              Résumé agrégé de vos sorties en piste. Chaque ligne rassemble les sessions d'une même
-              journée.
-            </p>
-          </CardHeader>
-          <CardContent>
-            {dailyLogs.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Aucune journée enregistrée.
-              </p>
-            ) : (
-              <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
-                <table className="w-full min-w-[600px] text-sm text-left whitespace-nowrap">
-                  <thead>
-                    <tr className="border-b border-border text-muted-foreground">
-                      <th className="pb-3 font-medium">Date</th>
-                      <th className="pb-3 font-medium">Circuit</th>
-                      <th className="pb-3 font-medium text-center">Sessions</th>
-                      <th className="pb-3 font-medium">Durée Cumulée</th>
-                      <th className="pb-3 font-medium text-right">RPM Max</th>
-                      <th className="pb-3 font-medium text-right">G Lat Max</th>
-                      <th className="pb-3 font-medium text-right">Temp Échap. Max</th>
-                      <th className="pb-3 font-medium text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dailyLogs.map((log: any, i: number) => (
-                      <tr
-                        key={i}
-                        className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors"
-                      >
-                        <td className="py-3 font-medium">
-                          {new Date(log.date).toLocaleDateString()}
-                        </td>
-                        <td className="py-3">{log.circuit || "Inconnu"}</td>
-                        <td className="py-3 text-center">
-                          <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-semibold">
-                            {log.sessionsCount}
-                          </span>
-                        </td>
-                        <td className="py-3 text-muted-foreground">
-                          {log.totalDuration.toFixed(2)} h
-                        </td>
-                        <td className="py-3 text-right">
-                          {log.rpmMax ? `${Math.round(log.rpmMax)} tr/min` : "-"}
-                        </td>
-                        <td className="py-3 text-right">
-                          {log.gLatMax ? `${log.gLatMax.toFixed(2)} G` : "-"}
-                        </td>
-                        <td className="py-3 text-right">
-                          {log.tempMax ? `${Math.round(log.tempMax)} °C` : "-"}
-                        </td>
-                        <td className="py-3 text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
-                            onClick={() => handleDeleteDay(log.date)}
-                            title="Supprimer cette journée"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </Layout>
   );
