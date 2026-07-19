@@ -68,17 +68,20 @@ export const Navbar = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 mx-auto w-full border-b border-transparent md:transition-all md:duration-300 md:ease-out transform-gpu",
-        {
-          "bg-black/85 border-white/10 backdrop-blur-lg md:top-4 md:max-w-5xl md:rounded-2xl md:border md:shadow-lg md:shadow-primary/5":
-            scrolled && !isOpen,
-          "bg-black/90 border-b border-white/5": !scrolled && !isOpen,
-          "bg-black/95 border-b border-white/10": isOpen,
-        }
+        "fixed left-0 right-0 z-50 mx-auto w-full transition-all duration-500 ease-in-out transform-gpu border-b",
+        scrolled && !isOpen
+          ? "bg-black/80 backdrop-blur-lg border-white/10 shadow-lg shadow-primary/5 md:top-4 md:max-w-5xl md:rounded-2xl"
+          : "bg-black/90 border-white/5 md:top-0 md:max-w-full md:rounded-none",
+        isOpen ? "bg-black/95 border-white/10" : ""
       )}
     >
-      <div className="container mx-auto px-4 md:transition-all md:duration-300 md:ease-out">
-        <div className="flex items-center justify-between h-16">
+      <div className="container mx-auto px-4">
+        <div
+          className={cn(
+            "flex items-center justify-between transition-all duration-500 ease-in-out",
+            scrolled && !isOpen ? "h-14" : "h-16"
+          )}
+        >
           {/* Logo */}
           <Link
             to="/"
