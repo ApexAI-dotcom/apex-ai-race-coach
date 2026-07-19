@@ -229,13 +229,27 @@ export interface SessionConditions {
   air_temp?: number | null; // °C
 }
 
-// Normalise un circuit renvoyé par l'API (snake_case) vers le format UI (camelCase).
+// Normalise un circuit renvoyé par l'API (snake_case, éventuellement codes
+// numériques bruts de la DB) vers le format UI (camelCase, libellés texte).
 // Les valeurs null restent undefined : l'UI affiche alors ses libellés par défaut.
 export function normalizeCircuit(c: any): any {
   if (!c) return c;
+  let speedRatio = c.speedRatio ?? c.speed_ratio ?? undefined;
+  if (typeof speedRatio === "number") {
+    speedRatio = ({ 0: "sinueux", 1: "mixte", 2: "rapide" } as Record<number, string>)[speedRatio];
+  }
+  let rotation = c.rotation ?? undefined;
+  if (typeof rotation === "number") rotation = rotation === 1 ? "anti-horaire" : "horaire";
+  let elevation = c.elevation ?? undefined;
+  if (typeof elevation === "number") elevation = elevation === 1 ? "vallonne" : "plat";
+  let bumpiness = c.bumpiness ?? undefined;
+  if (typeof bumpiness === "number") bumpiness = bumpiness === 1 ? "bossele" : "lisse";
   return {
     ...c,
-    speedRatio: c.speedRatio ?? c.speed_ratio ?? undefined,
+    speedRatio,
+    rotation,
+    elevation,
+    bumpiness,
     hairpinsCount: c.hairpinsCount ?? c.hairpins_count ?? undefined,
     fastCornersCount: c.fastCornersCount ?? c.fast_corners_count ?? undefined,
   };
@@ -1341,6 +1355,25 @@ export async function getCatalogComponents(accessToken: string, category?: strin
   return await parseJSONResponse<any>(response);
 }
 
+// Advisor backend : pressions pneus calculées depuis les abaques du catalogue
+// (kart_components) croisées avec les conditions et la signature du circuit.
+export async function getKartAdvisor(accessToken: string, payload: any): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/kart/advisor`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+    signal: controller.signal,
+  });
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
@@ -1386,6 +1419,7 @@ export const api = {
   updateCircuit,
   deleteCircuit,
   getCatalogComponents,
+  getKartAdvisor,
   getLastSessions,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,
