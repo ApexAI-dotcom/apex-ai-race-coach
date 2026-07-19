@@ -334,7 +334,7 @@ export default function MonKart() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* COLONNE GAUCHE — Schéma, Santé, Poids et Import */}
+          {/* COLONNE GAUCHE — Schéma, Santé et Identité (Informations du Kart) */}
           <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 order-1 h-fit">
             <div className="flex items-center justify-center p-4 bg-card border border-border shadow-sm rounded-2xl">
               {prof && (
@@ -346,63 +346,44 @@ export default function MonKart() {
               )}
             </div>
             {prof && <KartHealthStatus profile={prof} />}
-            
-            {/* Importer ma journée - Placé ici pour équilibrer la hauteur de la colonne de gauche */}
-            <div className="mt-4">
-              <Card className="bg-card border border-border shadow-sm rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <UploadCloud className="w-5 h-5 text-primary" />
-                    Importer ma journée
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Input
-                    type="file"
-                    multiple
-                    accept=".csv"
-                    onChange={(e) => setFiles(e.target.files)}
-                    disabled={importing}
-                    className="bg-background border-border"
-                  />
-                  <Button
-                    className="w-full"
-                    onClick={handleBulkImport}
-                    disabled={importing || !files || files.length === 0}
-                  >
-                    {importing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    {importing ? "Importation..." : "Intégrer les sessions"}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
 
-            {/* LIGNE 3 (Déplacé depuis la droite) : Journal d'Entretien */}
-            <div className="mt-6">
-              {prof && (
-                <KartMaintenanceLog
-                  history={history}
-                  profile={prof}
-                  onAddEntry={handleAddHistory}
-                  onDeleteEntry={handleDeleteHistoryEntry}
-                  onResetComponent={handleReset}
-                  onIgnoreAlert={handleIgnoreAlert}
-                />
-              )}
-            </div>
+            {prof && (
+              <KartIdentityCard 
+                profile={prof} 
+                onRelaunchConfig={() => handleUpdateCounter("engine_model", null)} 
+              />
+            )}
           </div>
 
-          {/* COLONNE DROITE — grille de contenu */}
+          {/* COLONNE DROITE — Actions, Alertes et Historique */}
           <div className="lg:col-span-7 xl:col-span-8 order-2 space-y-6">
-            {/* LIGNE 1 : Identité seule (pleine largeur ou col) */}
-            <div>
-              {prof && (
-                <KartIdentityCard 
-                  profile={prof} 
-                  onRelaunchConfig={() => handleUpdateCounter("engine_model", null)} 
+            {/* Importer ma journée */}
+            <Card className="bg-card border border-border shadow-sm rounded-2xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <UploadCloud className="w-5 h-5 text-primary" />
+                  Importer ma journée
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Input
+                  type="file"
+                  multiple
+                  accept=".csv"
+                  onChange={(e) => setFiles(e.target.files)}
+                  disabled={importing}
+                  className="bg-background border-border"
                 />
-              )}
-            </div>
+                <Button
+                  className="w-full"
+                  onClick={handleBulkImport}
+                  disabled={importing || !files || files.length === 0}
+                >
+                  {importing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  {importing ? "Importation..." : "Intégrer les sessions"}
+                </Button>
+              </CardContent>
+            </Card>
 
             {/* LIGNE 2 : les 4 jauges d'usure en 2×2 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -456,6 +437,19 @@ export default function MonKart() {
               />
             </div>
 
+            {/* Journal d'Entretien */}
+            <div className="mt-6">
+              {prof && (
+                <KartMaintenanceLog
+                  history={history}
+                  profile={prof}
+                  onAddEntry={handleAddHistory}
+                  onDeleteEntry={handleDeleteHistoryEntry}
+                  onResetComponent={handleReset}
+                  onIgnoreAlert={handleIgnoreAlert}
+                />
+              )}
+            </div>
           </div>
         </div>
 
