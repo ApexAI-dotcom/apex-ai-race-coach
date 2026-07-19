@@ -57,14 +57,7 @@ export function KartIdentityCard({ profile, onRelaunchConfig }: KartIdentityCard
             </div>
           </div>
 
-          <div className="flex items-center justify-between py-2 border-b border-border/50">
-            <div className="text-sm text-muted-foreground flex items-center gap-2">
-              <Settings2 className="w-4 h-4" /> Pneus
-            </div>
-            <div className="text-sm font-semibold text-right">
-              {profile.tires_model || "Non défini"}
-            </div>
-          </div>
+          {/* Pneus retirés de l'identité : gérés par la carte "Stock de Pneus" */}
         </div>
 
         <Button 
