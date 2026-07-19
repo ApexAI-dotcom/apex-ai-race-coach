@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Zap, LogOut, User, Menu } from "lucide-react";
+import { Zap, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { ADMIN_EMAIL } from "@/constants";
+import { cn } from "@/lib/utils";
+import { MenuToggleIcon } from "@/components/ui/menu-toggle-icon";
+import { useScroll } from "@/components/ui/use-scroll";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +46,8 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, signOut, loading } = useAuth();
   const { tier } = useSubscription();
+  const scrolled = useScroll(10);
+  const [isOpen, setIsOpen] = useState(false);
 
   const navItems = isAuthenticated ? subscriberNavItems : guestNavItems;
 
@@ -60,8 +66,18 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass-card rounded-none md:rounded-xl border-b border-white/5 transform-gpu">
-      <div className="container mx-auto px-4">
+    <header
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 mx-auto w-full border-b border-transparent md:transition-all md:duration-300 md:ease-out transform-gpu",
+        {
+          "bg-black/85 border-white/10 backdrop-blur-lg md:top-4 md:max-w-5xl md:rounded-2xl md:border md:shadow-lg md:shadow-primary/5":
+            scrolled && !isOpen,
+          "bg-black/90 border-b border-white/5": !scrolled && !isOpen,
+          "bg-black/95 border-b border-white/10": isOpen,
+        }
+      )}
+    >
+      <div className="container mx-auto px-4 md:transition-all md:duration-300 md:ease-out">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link
@@ -188,10 +204,10 @@ export const Navbar = () => {
           {/* Mobile Navigation Trigger & Drawer */}
           <div className="flex md:hidden items-center gap-3">
             {isAuthenticated && <SubscriptionBadge />}
-            <Sheet>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-foreground hover:bg-white/5">
-                  <Menu className="w-6 h-6" />
+                <Button variant="ghost" size="icon" className="text-foreground hover:bg-white/5 focus-visible:ring-0">
+                  <MenuToggleIcon open={isOpen} className="w-6 h-6" duration={300} />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[350px] bg-black/95 border-l border-white/10 backdrop-blur-xl flex flex-col p-6">
@@ -311,6 +327,6 @@ export const Navbar = () => {
           </div>
         </div>
       </div>
-    </nav>
+    </header>
   );
 };
