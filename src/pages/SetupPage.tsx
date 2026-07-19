@@ -89,6 +89,7 @@ export default function SetupPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [recommendations, setRecommendations] = useState<Record<string, Recommendation>>({});
   const [tireSetAdvice, setTireSetAdvice] = useState<any | null>(null);
+  const [tireSets, setTireSets] = useState<any[]>([]);
   const [hasGeneratedRecs, setHasGeneratedRecs] = useState(false);
   
   // États pour l'animation IA Math Engine
@@ -106,6 +107,7 @@ export default function SetupPage() {
           api.getKartProfile(session.access_token),
           api.getTireSets(session.access_token).catch(() => ({ tire_sets: [] })),
         ]);
+        setTireSets(tireRes.tire_sets || []);
         if (profRes && profRes.profile) {
           setProfile(profRes.profile);
           // Le modèle de pneus affiché suit le PNEU MONTÉ (Stock de Pneus),
@@ -491,14 +493,23 @@ export default function SetupPage() {
                         <Disc3 className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <p className="font-medium text-muted-foreground text-[10px] uppercase tracking-wider leading-none">Pneumatiques</p>
+                        <p className="font-medium text-muted-foreground text-[10px] uppercase tracking-wider leading-none">Pneu monté</p>
                         <p className="font-semibold text-foreground mt-0.5">
-                          {profile.tires_model || 'Non défini'}
-                          {profile.tires_laps_current !== undefined && (
-                            <span className="text-muted-foreground font-normal ml-2 text-[10px]">
-                              ({profile.tires_laps_current} tours usure)
-                            </span>
-                          )}
+                          {(() => {
+                            const mounted = tireSets.find((t: any) => t.is_mounted);
+                            if (!mounted) return profile.tires_model || 'Non défini';
+                            const model = mounted.custom_model || mounted.component_label || 'Pneu';
+                            return `${mounted.label} · ${model}`;
+                          })()}
+                          {(() => {
+                            const mounted = tireSets.find((t: any) => t.is_mounted);
+                            const laps = mounted ? mounted.laps_current : profile.tires_laps_current;
+                            return laps !== undefined && laps !== null ? (
+                              <span className="text-muted-foreground font-normal ml-2 text-[10px]">
+                                ({laps} tours usure)
+                              </span>
+                            ) : null;
+                          })()}
                         </p>
                       </div>
                     </div>
@@ -618,6 +629,7 @@ export default function SetupPage() {
                 onChange={handleContextChange}
                 recommendations={recommendations}
                 tireSetAdvice={tireSetAdvice}
+                tireSets={tireSets}
               />
               <ChassisSetupCard
                 state={setupState}

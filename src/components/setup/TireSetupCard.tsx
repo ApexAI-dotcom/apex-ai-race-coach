@@ -2,7 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Disc3, Sparkles } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Disc3, Sparkles, CloudRain } from 'lucide-react';
 import { SetupState } from '@/pages/SetupPage';
 import { FieldRecommendation } from './FieldRecommendation';
 
@@ -19,10 +20,18 @@ interface TireSetupCardProps {
     message: string;
     priority?: string;
   } | null;
+  // Trains du stock Mon Kart (pour le sélecteur de modèle)
+  tireSets?: any[];
 }
 
-export function TireSetupCard({ state, onChange, recommendations, tireSetAdvice }: TireSetupCardProps) {
+export function TireSetupCard({ state, onChange, recommendations, tireSetAdvice, tireSets = [] }: TireSetupCardProps) {
   const inputClass = "bg-background/50 border-border focus-visible:ring-primary focus-visible:border-primary transition-all duration-300 hover:border-primary/50";
+
+  const setModel = (s: any) => s.custom_model || s.component_label || 'Pneu';
+  // Le train dont le modèle correspond à la valeur actuelle (pour l'affichage sélectionné)
+  const currentValue = state.tireModel || '';
+  const knownModels = tireSets.map(setModel);
+  const isCustomValue = currentValue !== '' && !knownModels.includes(currentValue);
 
   return (
     <Card className="bg-card border-border rounded-2xl shadow-md hover:shadow-primary/5 transition-all overflow-hidden h-full">
@@ -60,14 +69,43 @@ export function TireSetupCard({ state, onChange, recommendations, tireSetAdvice 
         )}
 
         <div className="space-y-3">
-          <Label className="text-sm text-muted-foreground">Modèle de pneus</Label>
-          <Input 
-            type="text" 
-            placeholder="Ex: Komet K2M" 
-            value={state.tireModel}
-            onChange={(e) => onChange({ tireModel: e.target.value })}
-            className={inputClass}
-          />
+          <Label className="text-sm text-muted-foreground">Modèle de pneus (train du stock)</Label>
+          {tireSets.length > 0 ? (
+            <Select
+              value={isCustomValue ? '__custom__' : currentValue}
+              onValueChange={(v) => { if (v !== '__custom__') onChange({ tireModel: v }); }}
+            >
+              <SelectTrigger className={inputClass}>
+                <SelectValue placeholder="Choisir un train de votre stock..." />
+              </SelectTrigger>
+              <SelectContent>
+                {tireSets.map((s) => (
+                  <SelectItem key={s.id} value={setModel(s)}>
+                    <span className="flex items-center gap-1.5">
+                      {s.is_rain && <CloudRain className="w-3.5 h-3.5 text-sky-400" />}
+                      {s.label} · {setModel(s)}{s.is_mounted ? ' (monté)' : ''}
+                    </span>
+                  </SelectItem>
+                ))}
+                {isCustomValue && (
+                  <SelectItem value="__custom__">{currentValue} (hors stock)</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              type="text"
+              placeholder="Ex: Komet K2M"
+              value={state.tireModel}
+              onChange={(e) => onChange({ tireModel: e.target.value })}
+              className={inputClass}
+            />
+          )}
+          {tireSets.length === 0 && (
+            <p className="text-[11px] text-muted-foreground">
+              Déclarez vos trains dans « Mon Kart » pour les retrouver ici.
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-6">
