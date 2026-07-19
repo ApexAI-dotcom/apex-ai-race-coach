@@ -10,9 +10,11 @@ import {
   CheckCircle2,
   XCircle,
   HelpCircle,
+  Calendar,
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
@@ -335,6 +337,147 @@ export default function Index() {
                 <p className="text-muted-foreground">{feature.description}</p>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Spotlight Features Section */}
+      <section className="py-12 border-t border-white/5 bg-secondary/10">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="glass-card p-6 md:p-10 rounded-2xl border border-white/5 relative overflow-hidden group hover:shadow-2xl hover:border-primary/20 transition-all duration-300"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
+              <div className="relative z-10">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-6">
+                  <Star className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Fonctionnalités Clés</span>
+                </div>
+                <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-6">
+                  Équipe ton garage avec les meilleurs outils
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                  <div className="p-5 rounded-xl bg-background/50 border border-white/5 hover:border-primary/20 transition-colors">
+                    <h4 className="font-bold text-lg text-foreground mb-2">Carnet d'Ingénieur</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Consigne tes réglages de châssis et moteur, et associe-les aux conditions de piste pour chaque session.
+                    </p>
+                  </div>
+                  <div className="p-5 rounded-xl bg-background/50 border border-white/5 hover:border-primary/20 transition-colors">
+                    <h4 className="font-bold text-lg text-foreground mb-2">Analyse Télémétrie</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Importe tes données MyChron5 ou autres formats CSV et obtiens une vue détaillée de tes trajectoires réelles.
+                    </p>
+                  </div>
+                  <div className="p-5 rounded-xl bg-background/50 border border-white/5 hover:border-primary/20 transition-colors">
+                    <h4 className="font-bold text-lg text-foreground mb-2">Stock de Pneus</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Déclare et tracke l'usure de tes trains de pneus (neufs, rodés, pluie) pour des recommandations adaptées.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Roadmap Section */}
+      <section className="py-20 border-t border-white/5">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
+              Feuille de <span className="text-gradient-primary">route</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Découvre les prochaines fonctionnalités en cours de développement chez ApexAI.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="glass-card p-6 rounded-2xl border border-white/5 hover:border-primary/25 transition-all duration-300 relative overflow-hidden group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-3 bg-secondary rounded-xl text-primary">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse-neon">
+                    Bientôt
+                  </Badge>
+                </div>
+                <h3 className="font-display text-xl font-bold text-foreground mb-2">
+                  Comparaison télémétrie
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Compare tes trajectoires et tes courbes de vitesse directement avec d'autres pilotes pour identifier précisément où tu perds du temps.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="glass-card p-6 rounded-2xl border border-white/5 hover:border-primary/25 transition-all duration-300 relative overflow-hidden group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-3 bg-secondary rounded-xl text-primary">
+                    <Calendar className="w-6 h-6" />
+                  </div>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse-neon">
+                    Bientôt
+                  </Badge>
+                </div>
+                <h3 className="font-display text-xl font-bold text-foreground mb-2">
+                  Calendrier & Rappels
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Un calendrier athlète complet couplé à des alertes mécaniques intelligentes pour planifier tes révisions moteurs et vidanges à temps.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="glass-card p-6 rounded-2xl border border-white/5 hover:border-primary/25 transition-all duration-300 relative overflow-hidden group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-3 bg-secondary rounded-xl text-primary">
+                    <Star className="w-6 h-6" />
+                  </div>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse-neon">
+                    Bientôt
+                  </Badge>
+                </div>
+                <h3 className="font-display text-xl font-bold text-foreground mb-2">
+                  Académie vidéo
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Accède à des tutoriels vidéo exclusifs réalisés par des ingénieurs de piste pour apprendre à mieux interpréter tes graphiques de télémétrie.
+                </p>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>

@@ -1,10 +1,25 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Zap, LogOut, User } from "lucide-react";
+import { Zap, LogOut, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { ADMIN_EMAIL } from "@/constants";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
 
 const guestNavItems = [
   { name: "Accueil", path: "/" },
@@ -26,8 +41,16 @@ export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, user, signOut, loading } = useAuth();
+  const { tier } = useSubscription();
 
   const navItems = isAuthenticated ? subscriberNavItems : guestNavItems;
+
+  const filteredNavItems = navItems.filter((item) => {
+    if (item.path === "/pricing" && isAuthenticated && tier !== "rookie") {
+      return false;
+    }
+    return true;
+  });
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -56,7 +79,7 @@ export const Navbar = () => {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <Link
                 key={item.path + item.name}
                 to={item.path}
@@ -85,33 +108,66 @@ export const Navbar = () => {
                   </span>
                 )}
                 <SubscriptionBadge />
-                <Link to="/profile">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    {(user?.user_metadata?.avatar_url as string) ? (
-                      <Avatar className="w-6 h-6 rounded-lg">
-                        <AvatarImage
-                          src={user.user_metadata.avatar_url as string}
-                          alt=""
-                          className="object-cover"
-                        />
-                        <AvatarFallback className="rounded-lg text-xs">
-                          {(user?.user_metadata?.full_name || user?.email || "U")
-                            .toString()
-                            .slice(0, 2)
-                            .toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <User className="w-4 h-4" />
+                
+                {/* Profile Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-2 select-none focus-visible:ring-0">
+                      {(user?.user_metadata?.avatar_url as string) ? (
+                        <Avatar className="w-6 h-6 rounded-lg">
+                          <AvatarImage
+                            src={user.user_metadata.avatar_url as string}
+                            alt=""
+                            className="object-cover"
+                          />
+                          <AvatarFallback className="rounded-lg text-xs">
+                            {(user?.user_metadata?.full_name || user?.email || "U")
+                              .toString()
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <User className="w-4 h-4" />
+                      )}
+                      {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-black/95 border-white/10 backdrop-blur-xl">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none text-foreground">
+                          {user?.user_metadata?.full_name || user?.email?.split("@")[0]}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground truncate">
+                          {user?.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-white/5" />
+                    <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-foreground cursor-pointer">
+                      <Link to="/profile" className="w-full flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Mon Profil
+                      </Link>
+                    </DropdownMenuItem>
+                    {isAuthenticated && tier !== "rookie" && (
+                      <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-foreground cursor-pointer">
+                        <Link to="/pricing" className="w-full flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-primary" />
+                          Plans
+                        </Link>
+                      </DropdownMenuItem>
                     )}
-                    {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
-                  </Button>
-                </Link>
-                {/* No more "Analyser CSV" button here — it's now in the nav items */}
-                <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
-                  <LogOut className="w-4 h-4" />
-                  Déconnexion
-                </Button>
+                    <DropdownMenuSeparator className="bg-white/5" />
+                    <DropdownMenuItem onClick={handleSignOut} className="focus:bg-red-500/10 focus:text-red-500 text-red-400 cursor-pointer">
+                      <div className="w-full flex items-center gap-2">
+                        <LogOut className="w-4 h-4" />
+                        Déconnexion
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <>
@@ -127,6 +183,131 @@ export const Navbar = () => {
                 </Link>
               </>
             )}
+          </div>
+
+          {/* Mobile Navigation Trigger & Drawer */}
+          <div className="flex md:hidden items-center gap-3">
+            {isAuthenticated && <SubscriptionBadge />}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-foreground hover:bg-white/5">
+                  <Menu className="w-6 h-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[350px] bg-black/95 border-l border-white/10 backdrop-blur-xl flex flex-col p-6">
+                <div className="flex items-center gap-2 mb-8 mt-2">
+                  <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
+                    <Zap className="w-4 h-4 text-primary-foreground" />
+                  </div>
+                  <span className="font-display font-bold text-lg text-foreground">
+                    APEX<span className="text-primary">AI</span>
+                  </span>
+                </div>
+                
+                {/* Navigation Items (Vertical List) */}
+                <div className="flex flex-col gap-4 flex-1">
+                  {filteredNavItems.map((item) => (
+                    <SheetClose asChild key={item.path + item.name}>
+                      <Link
+                        to={item.path}
+                        className={`text-base font-medium py-2 transition-all ${
+                          (item as any).isHero
+                            ? "gradient-primary text-primary-foreground px-4 py-2 rounded-full text-center shadow-lg shadow-primary/30 active:scale-95 animate-pulse-neon"
+                            : location.pathname === item.path
+                              ? "text-primary"
+                              : "text-muted-foreground hover:text-primary"
+                        }`}
+                      >
+                        {item.name}
+                      </Link>
+                    </SheetClose>
+                  ))}
+                </div>
+
+                {/* User Account / CTA Section at the Bottom */}
+                <div className="border-t border-white/10 pt-6 mt-auto">
+                  {loading ? (
+                    <div className="w-full h-10 animate-pulse bg-secondary rounded" />
+                  ) : isAuthenticated ? (
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center gap-3">
+                        {(user?.user_metadata?.avatar_url as string) ? (
+                          <Avatar className="w-10 h-10 rounded-lg">
+                            <AvatarImage
+                              src={user.user_metadata.avatar_url as string}
+                              alt=""
+                              className="object-cover"
+                            />
+                            <AvatarFallback className="rounded-lg text-sm">
+                              {(user?.user_metadata?.full_name || user?.email || "U")
+                                .toString()
+                                .slice(0, 2)
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
+                            <User className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-foreground">
+                            {user?.user_metadata?.full_name || user?.email?.split("@")[0]}
+                          </span>
+                          <span className="text-xs text-muted-foreground truncate max-w-[180px]">
+                            {user?.email}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col gap-2 mt-2">
+                        <SheetClose asChild>
+                          <Link to="/profile" className="w-full">
+                            <Button variant="outline" className="w-full justify-start gap-2 bg-white/5 border-white/10 hover:bg-white/10">
+                              <User className="w-4 h-4" />
+                              Mon Profil
+                            </Button>
+                          </Link>
+                        </SheetClose>
+                        {tier !== "rookie" && (
+                          <SheetClose asChild>
+                            <Link to="/pricing" className="w-full">
+                              <Button variant="outline" className="w-full justify-start gap-2 bg-white/5 border-white/10 hover:bg-white/10">
+                                <Zap className="w-4 h-4 text-primary" />
+                                Plans
+                              </Button>
+                            </Link>
+                          </SheetClose>
+                        )}
+                        <SheetClose asChild>
+                          <Button variant="ghost" className="w-full justify-start gap-2 text-red-400 hover:text-red-500 hover:bg-red-500/10" onClick={handleSignOut}>
+                            <LogOut className="w-4 h-4" />
+                            Déconnexion
+                          </Button>
+                        </SheetClose>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <SheetClose asChild>
+                        <Link to="/login" className="w-full">
+                          <Button variant="ghost" className="w-full justify-center">
+                            Connexion
+                          </Button>
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link to="/login?mode=signup" className="w-full">
+                          <Button variant="hero" className="w-full justify-center">
+                            Inscription
+                          </Button>
+                        </Link>
+                      </SheetClose>
+                    </div>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
