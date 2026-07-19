@@ -354,8 +354,6 @@ export default function MonKart() {
                 onRelaunchConfig={() => handleUpdateCounter("engine_model", null)}
               />
             )}
-
-            {session?.access_token && <TireStockCard token={session.access_token} />}
           </div>
 
           {/* COLONNE DROITE — Actions, Alertes et Historique */}
@@ -439,6 +437,13 @@ export default function MonKart() {
                 actionLabel="Graisser / Changer" 
               />
             </div>
+
+            {/* Stock de Pneus */}
+            {session?.access_token && (
+              <div className="mt-6">
+                <TireStockCard token={session.access_token} />
+              </div>
+            )}
 
             {/* Journal d'Entretien */}
             <div className="mt-6">
