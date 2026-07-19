@@ -52,6 +52,82 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+
+  // Catalogue de composants depuis la base (kart_components).
+  // null = pas encore chargé / échec => fallback sur les presets locaux.
+  const [catalog, setCatalog] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    api.getCatalogComponents(token)
+      .then((res) => setCatalog(res.components || []))
+      .catch(() => setCatalog(null));
+  }, [token]);
+
+  const enginePresets = useMemo(() => {
+    const rows = (catalog || []).filter((c) => c.category === "engine");
+    if (!rows.length) return ENGINE_PRESETS;
+    const other = ENGINE_PRESETS.find((p) => p.id === "other-engine");
+    return [
+      ...rows.map((c) => ({
+        id: c.id,
+        name: `${c.brand} ${c.name}`,
+        category: c.subcategory || "",
+        default_life: Number(c.default_life) || 15,
+      })),
+      ...(other ? [other] : []),
+    ];
+  }, [catalog]);
+
+  const tirePresets = useMemo(() => {
+    const rows = (catalog || []).filter((c) => c.category === "tire");
+    if (!rows.length) return TIRE_PRESETS;
+    const other = TIRE_PRESETS.find((p) => p.id === "other-tires");
+    return [
+      ...rows.map((c) => ({
+        id: c.id,
+        name: `${c.brand} ${c.name}`,
+        compound: c.subcategory || "",
+        default_life: Number(c.default_life) || 200,
+      })),
+      ...(other ? [other] : []),
+    ];
+  }, [catalog]);
+
+  const brakePresets = useMemo(() => {
+    const rows = (catalog || []).filter((c) => c.category === "brake");
+    if (!rows.length) return BRAKE_PRESETS;
+    const other = BRAKE_PRESETS.find((p) => p.id === "other-brakes");
+    return [
+      ...rows.map((c) => ({
+        id: c.id,
+        name: `${c.brand} ${c.name}`,
+        type: c.subcategory || "",
+        default_life: Number(c.default_life) || 800,
+      })),
+      ...(other ? [other] : []),
+    ];
+  }, [catalog]);
+
+  const chassisPresets = useMemo(() => {
+    const rows = (catalog || []).filter((c) => c.category === "chassis");
+    if (!rows.length) return CHASSIS_PRESETS;
+    const byBrand = new Map<string, string[]>();
+    rows.forEach((c) => {
+      const models = byBrand.get(c.brand) || [];
+      models.push(c.name);
+      byBrand.set(c.brand, models);
+    });
+    const other = CHASSIS_PRESETS.find((p) => p.id === "other-chassis");
+    return [
+      ...[...byBrand.entries()].map(([brand, models]) => ({
+        id: brand.toLowerCase().replace(/\s+/g, "-"),
+        name: brand,
+        models,
+      })),
+      ...(other ? [other] : []),
+    ];
+  }, [catalog]);
   
   const [openChassis, setOpenChassis] = useState(false);
   const [openChassisModel, setOpenChassisModel] = useState(false);
@@ -112,8 +188,8 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
   };
 
   const selectedChassisObj = useMemo(() => {
-    return CHASSIS_PRESETS.find(c => c.name === data.chassis_brand);
-  }, [data.chassis_brand]);
+    return chassisPresets.find(c => c.name === data.chassis_brand);
+  }, [data.chassis_brand, chassisPresets]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -201,7 +277,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                       <CommandList>
                         <CommandEmpty>Aucune marque trouvée.</CommandEmpty>
                         <CommandGroup>
-                          {CHASSIS_PRESETS.map((p) => (
+                          {chassisPresets.map((p) => (
                             <CommandItem
                               key={p.id}
                               value={p.name}
@@ -319,7 +395,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                       <CommandList>
                         <CommandEmpty>Aucun modèle trouvé.</CommandEmpty>
                         <CommandGroup>
-                          {ENGINE_PRESETS.map((p) => (
+                          {enginePresets.map((p) => (
                             <CommandItem
                               key={p.id}
                               value={p.name}
@@ -397,7 +473,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                       <CommandList>
                         <CommandEmpty>Aucun pneu trouvé.</CommandEmpty>
                         <CommandGroup>
-                          {TIRE_PRESETS.map((p) => (
+                          {tirePresets.map((p) => (
                             <CommandItem
                               key={p.id}
                               value={p.name}
@@ -471,7 +547,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                       <CommandList>
                         <CommandEmpty>Aucun système trouvé.</CommandEmpty>
                         <CommandGroup>
-                          {BRAKE_PRESETS.map((p) => (
+                          {brakePresets.map((p) => (
                             <CommandItem
                               key={p.id}
                               value={p.name}

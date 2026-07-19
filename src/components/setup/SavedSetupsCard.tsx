@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Plus, History, MapPin, Calendar, Save, Trash2 } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, normalizeCircuit } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { SetupState } from '@/pages/SetupPage';
 
@@ -89,7 +89,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
                       airTemp: s.air_temp || '',
                       trackTemp: s.track_temp || '',
                       mode: s.mode || 'course',
-                      circuit: s.circuits ? { id: s.circuit_id, name: s.circuits.name } : (s.circuit || null),
+                      circuit: s.circuits ? normalizeCircuit({ ...s.circuits, id: s.circuit_id }) : (s.circuit || null),
                       tireModel: s.tire_model || '',
                       coldPressureFront: s.cold_pressure_front || '',
                       coldPressureRear: s.cold_pressure_rear || '',

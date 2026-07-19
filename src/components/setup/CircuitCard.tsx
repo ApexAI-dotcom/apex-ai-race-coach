@@ -3,14 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  MapPin, Sparkles, Plus, Edit2, RefreshCw, Zap, 
-  RotateCw, RotateCcw, Mountain, Navigation, TrendingUp, Loader2, Upload
+  MapPin, Sparkles, Plus, Edit2, RefreshCw, Zap,
+  RotateCw, RotateCcw, Mountain, Navigation, TrendingUp, Loader2, Upload, Trash2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CircuitPicker } from './CircuitPicker';
 import { TrackSignatureForm } from './TrackSignatureForm';
 import { SetupState } from '@/pages/SetupPage';
-import { api, uploadAndAnalyzeCSV } from '@/lib/api';
+import { api, uploadAndAnalyzeCSV, normalizeCircuit } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -64,11 +64,39 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
   }, [session]);
 
   const handleSelect = (circuit: any) => {
-    onChange({ circuit });
+    onChange({ circuit: normalizeCircuit(circuit) });
   };
 
   const handleReset = () => {
     onChange({ circuit: null });
+  };
+
+  const handleDeleteActive = async () => {
+    const active = state.circuit;
+    if (!active?.id || !session?.access_token) return;
+    if (active.verified) {
+      toast({
+        title: "Circuit officiel",
+        description: "Les circuits officiels ApexAI ne peuvent pas être supprimés.",
+      });
+      return;
+    }
+    if (!confirm(`Supprimer définitivement le circuit "${active.name}" ?`)) return;
+    try {
+      await api.deleteCircuit(session.access_token, active.id);
+      onChange({ circuit: null });
+      fetchData();
+      toast({
+        title: "Circuit supprimé",
+        description: `"${active.name}" a été retiré de votre liste.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de supprimer ce circuit.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCreateNew = () => {
@@ -78,6 +106,13 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
 
   const handleEditActive = () => {
     if (!state.circuit) return;
+    if (state.circuit.verified) {
+      toast({
+        title: "Circuit officiel",
+        description: "Les circuits officiels ApexAI ne sont pas modifiables.",
+      });
+      return;
+    }
     setEditingCircuit(state.circuit);
     setIsFormOpen(true);
   };
@@ -114,7 +149,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
       }
 
       onChange({
-        circuit: savedCircuit,
+        circuit: normalizeCircuit(savedCircuit),
         ...sessionUpdates
       });
 
@@ -142,16 +177,18 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
       const airTemp = s.air_temp || '';
       const weather = s.weather || 'sec';
       const mode = s.session_type || 'course';
-      
+      // Signature de piste stockée au moment de l'analyse (kart_session_logs.track_features)
+      const tf = s.track_features || {};
+
       const circuitData = {
         id: s.circuit_id || undefined,
-        name: s.track_name || 'Circuit Importé',
-        speedRatio: s.speed_ratio || 'mixte',
-        rotation: s.rotation || 'horaire',
-        elevation: s.elevation || 'plat',
-        bumpiness: s.bumpiness || 'lisse',
-        hairpinsCount: s.hairpins_count ?? 2,
-        fastCornersCount: s.fast_corners_count ?? 3,
+        name: s.circuit_name || s.track_name || 'Circuit Importé',
+        speedRatio: tf.speed_ratio || s.speed_ratio || 'mixte',
+        rotation: tf.rotation || s.rotation || 'horaire',
+        elevation: tf.elevation || s.elevation || 'plat',
+        bumpiness: tf.bumpiness || s.bumpiness || 'lisse',
+        hairpinsCount: tf.hairpins_count ?? s.hairpins_count ?? 2,
+        fastCornersCount: tf.fast_corners_count ?? s.fast_corners_count ?? 3,
         imported: true,
         _sessionInfo: {
           weather: weather as any,
@@ -365,6 +402,17 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
                 <RefreshCw className="w-4 h-4 text-primary" />
                 Changer de piste
               </Button>
+              {!activeCircuit.verified && activeCircuit.id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="col-span-2 gap-2 h-10 border-destructive/20 text-destructive hover:bg-destructive/10 rounded-xl"
+                  onClick={handleDeleteActive}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Supprimer ce circuit
+                </Button>
+              )}
             </div>
           </div>
         )}

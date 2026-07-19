@@ -226,6 +226,32 @@ export interface SessionConditions {
   circuit_name?: string | null;
   track_condition: string; // "dry" | "damp" | "wet" | "rain"
   track_temperature?: number | null; // °C
+  air_temp?: number | null; // °C
+}
+
+// Normalise un circuit renvoyé par l'API (snake_case) vers le format UI (camelCase).
+// Les valeurs null restent undefined : l'UI affiche alors ses libellés par défaut.
+export function normalizeCircuit(c: any): any {
+  if (!c) return c;
+  return {
+    ...c,
+    speedRatio: c.speedRatio ?? c.speed_ratio ?? undefined,
+    hairpinsCount: c.hairpinsCount ?? c.hairpins_count ?? undefined,
+    fastCornersCount: c.fastCornersCount ?? c.fast_corners_count ?? undefined,
+  };
+}
+
+// Signature de piste dérivée de la télémétrie par le backend (track_signature.py)
+export interface TrackFeatures {
+  speed_ratio?: string | null; // "sinueux" | "mixte" | "rapide"
+  rotation?: string | null; // "horaire" | "anti-horaire"
+  hairpins_count?: number | null;
+  fast_corners_count?: number | null;
+  elevation?: string | null;
+  bumpiness?: string | null;
+  corners_total?: number | null;
+  track_length_m?: number | null;
+  avg_apex_speed_kmh?: number | null;
 }
 
 export interface AnalysisResult {
@@ -245,6 +271,7 @@ export interface AnalysisResult {
   session_conditions?: SessionConditions | null;
   session_type?: string;
   plot_data?: PlotData;
+  track_features?: TrackFeatures | null;
 }
 
 export interface LapInfo {
@@ -1299,6 +1326,38 @@ export async function updateCircuit(accessToken: string, circuitId: string, circ
   return await parseJSONResponse<any>(response);
 }
 
+// Catalogue global de composants (kart_components) : moteurs, pneus, freins,
+// châssis, carburateurs, axes. Source de vérité du configurateur Mon Kart.
+export async function getCatalogComponents(accessToken: string, category?: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const url = `${API_BASE_URL}/api/catalog/components${category ? `?category=${encodeURIComponent(category)}` : ""}`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal: controller.signal,
+  });
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
+export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    signal: controller.signal,
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(typeof data?.detail === "string" ? data.detail : `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -1325,6 +1384,8 @@ export const api = {
   getCircuits,
   createCircuit,
   updateCircuit,
+  deleteCircuit,
+  getCatalogComponents,
   getLastSessions,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,
