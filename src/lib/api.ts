@@ -1326,6 +1326,23 @@ export async function updateCircuit(accessToken: string, circuitId: string, circ
   return await parseJSONResponse<any>(response);
 }
 
+export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
+  const controller = createTimeoutController(10000);
+  const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    signal: controller.signal,
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(typeof data?.detail === "string" ? data.detail : `Erreur ${response.status}`);
+  }
+  return await parseJSONResponse<any>(response);
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -1352,6 +1369,7 @@ export const api = {
   getCircuits,
   createCircuit,
   updateCircuit,
+  deleteCircuit,
   getLastSessions,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,

@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  MapPin, Sparkles, Plus, Edit2, RefreshCw, Zap, 
-  RotateCw, RotateCcw, Mountain, Navigation, TrendingUp, Loader2, Upload
+  MapPin, Sparkles, Plus, Edit2, RefreshCw, Zap,
+  RotateCw, RotateCcw, Mountain, Navigation, TrendingUp, Loader2, Upload, Trash2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CircuitPicker } from './CircuitPicker';
@@ -69,6 +69,34 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
 
   const handleReset = () => {
     onChange({ circuit: null });
+  };
+
+  const handleDeleteActive = async () => {
+    const active = state.circuit;
+    if (!active?.id || !session?.access_token) return;
+    if (active.verified) {
+      toast({
+        title: "Circuit officiel",
+        description: "Les circuits officiels ApexAI ne peuvent pas être supprimés.",
+      });
+      return;
+    }
+    if (!confirm(`Supprimer définitivement le circuit "${active.name}" ?`)) return;
+    try {
+      await api.deleteCircuit(session.access_token, active.id);
+      onChange({ circuit: null });
+      fetchData();
+      toast({
+        title: "Circuit supprimé",
+        description: `"${active.name}" a été retiré de votre liste.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de supprimer ce circuit.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCreateNew = () => {
@@ -374,6 +402,17 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
                 <RefreshCw className="w-4 h-4 text-primary" />
                 Changer de piste
               </Button>
+              {!activeCircuit.verified && activeCircuit.id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="col-span-2 gap-2 h-10 border-destructive/20 text-destructive hover:bg-destructive/10 rounded-xl"
+                  onClick={handleDeleteActive}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Supprimer ce circuit
+                </Button>
+              )}
             </div>
           </div>
         )}
