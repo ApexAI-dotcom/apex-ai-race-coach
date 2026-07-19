@@ -1428,6 +1428,11 @@ export async function mountTireSet(accessToken: string, id: string): Promise<any
   return tireSetFetch(accessToken, `/api/kart/tire-sets/${id}/mount`, "POST", {});
 }
 
+// Estimation de la masse kart + pilote depuis les composants du Garage
+export async function getWeightEstimate(accessToken: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/kart/weight-estimate", "GET");
+}
+
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
@@ -1480,6 +1485,7 @@ export const api = {
   updateTireSet,
   deleteTireSet,
   mountTireSet,
+  getWeightEstimate,
   getLastSessions,
   API_BASE_URL,
   MAX_FILE_SIZE_MB,

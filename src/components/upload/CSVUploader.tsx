@@ -628,6 +628,27 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   </span>
                 </div>
               )}
+              {(result as any).import_diagnostics && (
+                <div className="max-w-md mx-auto mb-6 text-left rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-muted-foreground">
+                  <div className="font-semibold text-foreground mb-1">
+                    📡 Acquisition : {(result as any).import_diagnostics.device}
+                    {(result as any).import_diagnostics.sample_rate_hz
+                      ? ` · ${(result as any).import_diagnostics.sample_rate_hz} Hz`
+                      : ''}
+                  </div>
+                  {(result as any).import_diagnostics.quality === 'complete' ? (
+                    <span className="text-emerald-400">✔ Tous les canaux essentiels détectés</span>
+                  ) : (
+                    <span className="text-amber-400">
+                      ⚠ Analyse partielle — canaux manquants :{' '}
+                      {[
+                        ...((result as any).import_diagnostics.channels?.required_missing || []),
+                        ...((result as any).import_diagnostics.channels?.core_missing || []),
+                      ].join(', ') || 'canaux bonus absents'}
+                    </span>
+                  )}
+                </div>
+              )}
               {!result.session_conditions && <div className="mb-6" />}
               <div className="flex flex-col sm:flex-row justify-center gap-3 flex-wrap">
                 <Button variant="heroOutline" onClick={handleReset}>

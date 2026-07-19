@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Scale, Save, Trash2, Check, X, Sparkles } from "lucide-react";
+import { Scale, Save, Trash2, Check, X, Sparkles, Loader2, Wand2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { api } from "@/lib/api";
 
 interface WeightProfile {
   id: string;
@@ -25,6 +27,8 @@ interface WeightCardProps {
   weightProfiles?: WeightProfile[];
   onSaveProfile?: (name: string) => void;
   onDeleteProfile?: (id: string) => void;
+  // Jeton d'accès pour l'estimation depuis le Garage (composants catalogue)
+  token?: string;
 }
 
 export function WeightCard({ 
@@ -35,7 +39,8 @@ export function WeightCard({
   onChange,
   weightProfiles = [],
   onSaveProfile,
-  onDeleteProfile
+  onDeleteProfile,
+  token
 }: WeightCardProps) {
   const emptyWeight = Number(kartWeight) || 0;
   const dWeight = Number(driverWeight) || 0;
@@ -49,6 +54,44 @@ export function WeightCard({
   const [isSaving, setIsSaving] = useState(false);
   const [profileName, setProfileName] = useState("");
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+
+  // Estimation depuis le Garage (poids constructeur châssis + moteur + pilote)
+  const [estimateOpen, setEstimateOpen] = useState(false);
+  const [estimate, setEstimate] = useState<any | null>(null);
+  const [estimateLoading, setEstimateLoading] = useState(false);
+  const [pilotWeight, setPilotWeight] = useState<string>('');
+
+  const openEstimate = async () => {
+    if (!token) return;
+    setEstimateOpen(true);
+    setEstimateLoading(true);
+    try {
+      const res = await api.getWeightEstimate(token);
+      setEstimate(res.estimate || null);
+      if (res.estimate?.driver_weight_kg != null) {
+        setPilotWeight(String(res.estimate.driver_weight_kg));
+      }
+    } catch {
+      setEstimate(null);
+    } finally {
+      setEstimateLoading(false);
+    }
+  };
+
+  const applyEstimate = async () => {
+    const dw = Number(pilotWeight);
+    const updates: any = {};
+    if (estimate?.kart_weight_kg != null) updates.kartWeight = estimate.kart_weight_kg;
+    if (dw > 0) {
+      updates.driverWeight = dw;
+      // Persiste le poids pilote dans le profil pour les prochaines fois
+      if (token) {
+        api.updateKartProfile(token, { driver_weight_kg: dw }).catch(() => {});
+      }
+    }
+    onChange(updates);
+    setEstimateOpen(false);
+  };
 
   // Détecte automatiquement si les poids actuels correspondent à un profil existant
   React.useEffect(() => {
@@ -104,15 +147,28 @@ export function WeightCard({
             Bilan Poids
           </span>
           {!isSaving ? (
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setIsSaving(true)}
-              className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
-              title="Sauvegarder en profil"
-            >
-              <Save className="w-4 h-4" />
-            </Button>
+            <span className="flex items-center gap-1">
+              {token && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={openEstimate}
+                  className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
+                  title="Estimer depuis mon Garage"
+                >
+                  <Wand2 className="w-4 h-4" />
+                </Button>
+              )}
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setIsSaving(true)}
+                className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
+                title="Sauvegarder en profil"
+              >
+                <Save className="w-4 h-4" />
+              </Button>
+            </span>
           ) : (
             <div className="flex items-center gap-1">
               <Button
@@ -156,7 +212,7 @@ export function WeightCard({
               <SelectContent>
                 {weightProfiles.map((p) => (
                   <SelectItem key={p.id} value={p.id} className="text-xs">
-                    {p.name} ({p.driverWeight + p.kartWeight + (Number(p.ballast) || 0)} kg)
+                    {p.name} ({(Number(p.driverWeight) || 0) + (Number(p.kartWeight) || 0) + (Number(p.ballast) || 0)} kg)
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -237,6 +293,78 @@ export function WeightCard({
           </div>
         </div>
       </CardContent>
+      <Dialog open={estimateOpen} onOpenChange={setEstimateOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wand2 className="w-5 h-5 text-primary" />
+              Estimation depuis mon Garage
+            </DialogTitle>
+            <DialogDescription>
+              Poids constructeur de tes composants + ton poids pilote.
+              Estimation à ±{estimate?.tolerance_kg ?? 3} kg (essence et accessoires non comptés).
+            </DialogDescription>
+          </DialogHeader>
+
+          {estimateLoading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : !estimate ? (
+            <p className="text-sm text-muted-foreground py-4">Estimation indisponible.</p>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between py-1.5 border-b border-border/50">
+                  <span className="text-muted-foreground">Châssis · {estimate.chassis?.label || 'non configuré'}</span>
+                  <span className="font-semibold">{estimate.chassis?.weight_kg != null ? `${estimate.chassis.weight_kg} kg` : '—'}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border/50">
+                  <span className="text-muted-foreground">Moteur · {estimate.engine?.label || 'non configuré'}</span>
+                  <span className="font-semibold">{estimate.engine?.weight_kg != null ? `${estimate.engine.weight_kg} kg` : '—'}</span>
+                </div>
+                <div className="flex justify-between py-1.5 font-semibold">
+                  <span>Kart à vide estimé</span>
+                  <span className="text-primary">{estimate.kart_weight_kg != null ? `${estimate.kart_weight_kg} kg` : '—'}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Ton poids pilote (kg, équipement compris)</Label>
+                <Input
+                  type="number"
+                  min={20}
+                  value={pilotWeight}
+                  onChange={(e) => setPilotWeight(e.target.value)}
+                  placeholder="Ex: 74"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Mémorisé dans ton profil pour les prochaines estimations.
+                </p>
+              </div>
+
+              {estimate.missing?.includes('chassis') || estimate.missing?.includes('engine') ? (
+                <p className="text-xs text-amber-400">
+                  ⚠ Configure ton châssis/moteur dans Mon Kart pour une estimation complète.
+                </p>
+              ) : null}
+
+              <Button
+                className="w-full"
+                onClick={applyEstimate}
+                disabled={estimate.kart_weight_kg == null && !Number(pilotWeight)}
+              >
+                Appliquer au Bilan Poids
+                {estimate.kart_weight_kg != null && Number(pilotWeight) > 0 && (
+                  <span className="ml-2 font-mono">
+                    ({(estimate.kart_weight_kg + Number(pilotWeight)).toFixed(1)} kg)
+                  </span>
+                )}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

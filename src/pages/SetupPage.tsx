@@ -429,7 +429,7 @@ export default function SetupPage() {
                   isSaving={isSaving}
                 />
               </div>
-              <WeightCard 
+              <WeightCard
                 driverWeight={setupState.driverWeight}
                 kartWeight={setupState.kartWeight}
                 targetWeight={setupState.targetWeight}
@@ -438,6 +438,7 @@ export default function SetupPage() {
                 weightProfiles={profile?.setup_json?.weight_profiles || []}
                 onSaveProfile={handleSaveWeightProfile}
                 onDeleteProfile={handleDeleteWeightProfile}
+                token={session?.access_token}
               />
               {profile && (
                 <Card 
