@@ -39,7 +39,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import api, { KartProfile } from "@/lib/api";
-import { ENGINE_PRESETS, TIRE_PRESETS, BRAKE_PRESETS, CHASSIS_PRESETS } from "@/constants/kart-presets";
+import { ENGINE_PRESETS, BRAKE_PRESETS, CHASSIS_PRESETS } from "@/constants/kart-presets";
 import { useNavigate } from "react-router-dom";
 
 interface KartSetupWizardProps {
@@ -74,21 +74,6 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
         name: `${c.brand} ${c.name}`,
         category: c.subcategory || "",
         default_life: Number(c.default_life) || 15,
-      })),
-      ...(other ? [other] : []),
-    ];
-  }, [catalog]);
-
-  const tirePresets = useMemo(() => {
-    const rows = (catalog || []).filter((c) => c.category === "tire");
-    if (!rows.length) return TIRE_PRESETS;
-    const other = TIRE_PRESETS.find((p) => p.id === "other-tires");
-    return [
-      ...rows.map((c) => ({
-        id: c.id,
-        name: `${c.brand} ${c.name}`,
-        compound: c.subcategory || "",
-        default_life: Number(c.default_life) || 200,
       })),
       ...(other ? [other] : []),
     ];
@@ -132,7 +117,6 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
   const [openChassis, setOpenChassis] = useState(false);
   const [openChassisModel, setOpenChassisModel] = useState(false);
   const [openEngine, setOpenEngine] = useState(false);
-  const [openTires, setOpenTires] = useState(false);
   const [openBrakes, setOpenBrakes] = useState(false);
 
   const [data, setData] = useState<Partial<KartProfile>>({
@@ -174,7 +158,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
     }
   }, [initialProfile]);
 
-  const handleNext = () => setStep((s) => Math.min(s + 1, 5));
+  const handleNext = () => setStep((s) => Math.min(s + 1, 4));
   const handleBack = () => {
     if (step === 1) {
       navigate("/dashboard");
@@ -209,9 +193,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
         engine_model: data.engine_model || "Standard",
         engine_hours_current: Number(data.engine_hours_current) || 0,
         engine_hours_life: Number(data.engine_hours_life) || 15,
-        tires_model: data.tires_model || "Standard",
-        tires_laps_current: Number(data.tires_laps_current) || 0,
-        tires_laps_life: Number(data.tires_laps_life) || 500,
+        // Pneus gérés par la carte "Stock de Pneus" : le wizard n'y touche plus.
         brakes_model: data.brakes_model || "Standard",
         brakes_sessions_current: Number(data.brakes_sessions_current) || 0,
         brakes_sessions_life: Number(data.brakes_sessions_life) || 100,
@@ -232,7 +214,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
         <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
           <div
             className="h-full bg-primary transition-all duration-300"
-            style={{ width: `${(step / 5) * 100}%` }}
+            style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
 
@@ -241,16 +223,14 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
           <CardTitle className="text-2xl font-display">
             {step === 1 && "Configuration Châssis"}
             {step === 2 && "Configuration Moteur"}
-            {step === 3 && "Configuration Pneus"}
-            {step === 4 && "Configuration Freins"}
-            {step === 5 && "Acquisition de données"}
+            {step === 3 && "Configuration Freins"}
+            {step === 4 && "Acquisition de données"}
           </CardTitle>
           <CardDescription>
             {step === 1 && "Renseigne la marque et le modèle de ton châssis."}
             {step === 2 && "Définis les caractéristiques de ton moteur pour mieux le suivre."}
-            {step === 3 && "Quels pneus utilises-tu actuellement ?"}
-            {step === 4 && "Vérifions le système de freinage."}
-            {step === 5 && "Quel système utilises-tu pour enregistrer tes chronos ?"}
+            {step === 3 && "Vérifions le système de freinage."}
+            {step === 4 && "Quel système utilises-tu pour enregistrer tes chronos ?"}
           </CardDescription>
         </CardHeader>
 
@@ -454,80 +434,6 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
           {step === 3 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
-                <Label>Modèle / Type de Pneus</Label>
-                <Popover open={openTires} onOpenChange={setOpenTires}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openTires}
-                      className="w-full justify-between bg-black/20 text-left font-normal border-white/10 hover:bg-black/40 hover:text-white"
-                    >
-                      {data.tires_model ? data.tires_model : "Rechercher un train de pneus..."}
-                      <ChevronsUpDown className="w-4 h-4 ml-2 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-black/90 border-white/10 text-white">
-                    <Command>
-                      <CommandInput placeholder="Filtrer pneus..." />
-                      <CommandList>
-                        <CommandEmpty>Aucun pneu trouvé.</CommandEmpty>
-                        <CommandGroup>
-                          {tirePresets.map((p) => (
-                            <CommandItem
-                              key={p.id}
-                              value={p.name}
-                              onSelect={() => {
-                                updateData({
-                                  tires_model: p.name,
-                                  tires_laps_life: p.default_life, // Already in tours/laps in presets
-                                });
-                                setOpenTires(false);
-                              }}
-                              className="text-white data-[selected=true]:bg-white/10 cursor-pointer"
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  data.tires_model === p.name ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {p.name}{" "}
-                              <span className="ml-2 text-xs text-muted-foreground">
-                                ({p.compound})
-                              </span>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-2">
-                <Label>Durée de vie (Tours)</Label>
-                <Input
-                  type="number"
-                  className="bg-black/20"
-                  value={data.tires_laps_life}
-                  onChange={(e) => updateData({ tires_laps_life: Number(e.target.value) })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Tours déjà roulés (Actuel)</Label>
-                <Input
-                  type="number"
-                  className="bg-black/20"
-                  value={data.tires_laps_current}
-                  onChange={(e) => updateData({ tires_laps_current: Number(e.target.value) })}
-                />
-              </div>
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="space-y-2">
                 <Label>Système de Freinage</Label>
                 <Popover open={openBrakes} onOpenChange={setOpenBrakes}>
                   <PopoverTrigger asChild>
@@ -596,7 +502,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
             </div>
           )}
 
-          {step === 5 && (
+          {step === 4 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2">
                 <Label>Boîtier d'Acquisition</Label>
@@ -629,7 +535,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
             Retour
           </Button>
 
-          {step < 5 ? (
+          {step < 4 ? (
             <Button onClick={handleNext}>
               Suivant
               <ChevronRight className="w-4 h-4 ml-2" />
