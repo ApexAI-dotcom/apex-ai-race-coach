@@ -260,7 +260,7 @@ export function AnalysisDashboardContent({
 
           {/* TRACK MAP */}
           {plotData.trajectory_2d?.corners?.length > 0 && (
-            <section className={sectionClass}>
+            <section className={sectionClass} data-pdf-chart="track_map" data-pdf-title="Carte du Circuit">
               <h2 className={titleClass}>Carte du Circuit</h2>
               <p className="text-xs text-muted-foreground mb-1">
                 Vue aérienne de votre trajectoire réelle sur le circuit. Sélectionnez un profil de
@@ -291,7 +291,7 @@ export function AnalysisDashboardContent({
               const currentHideCta = isLocked ? ctaShown : false;
               if (isLocked) ctaShown = true;
               return (
-                <section className={sectionClass}>
+                <section className={sectionClass} data-pdf-chart="speed_trace" data-pdf-title="Trace de Vitesse">
                   <h2 className={titleClass}>Trace de Vitesse</h2>
                   <p className="text-xs text-muted-foreground mb-3">
                     Vitesse en km/h en fonction de la distance. Repérez les zones où vous freinez
@@ -318,7 +318,7 @@ export function AnalysisDashboardContent({
               const currentHideCta = isLocked ? ctaShown : false;
               if (isLocked) ctaShown = true;
               return (
-                <section className={sectionClass}>
+                <section className={sectionClass} data-pdf-chart="time_delta" data-pdf-title="Delta Temps">
                   <h2 className={titleClass}>Delta Temps</h2>
                   <p className="text-xs text-muted-foreground mb-3">
                     Écart de temps cumulé entre vos tours et le meilleur tour. Si la courbe monte,
@@ -343,7 +343,7 @@ export function AnalysisDashboardContent({
               const currentHideCta = isLocked ? ctaShown : false;
               if (isLocked) ctaShown = true;
               return (
-                <section className={sectionClass}>
+                <section className={sectionClass} data-pdf-chart="radar" data-pdf-title="Radar de Performance">
                   <h2 className={titleClass}>Radar de Performance</h2>
                   <p className="text-xs text-muted-foreground mb-3">
                     Synthèse de votre pilotage (freinage, trajectoire, régularité…). Une zone faible
@@ -366,7 +366,7 @@ export function AnalysisDashboardContent({
               const currentHideCta = isLocked ? ctaShown : false;
               if (isLocked) ctaShown = true;
               return (
-                <section className={sectionClass}>
+                <section className={sectionClass} data-pdf-chart="apex_margin" data-pdf-title="Points de Corde (Apex)">
                   <h2 className={titleClass}>Points de Corde (Apex)</h2>
                   <p className="text-xs text-muted-foreground mb-3">
                     Écart de vitesse entre votre passage et l'idéal théorique au point de corde de
@@ -390,7 +390,7 @@ export function AnalysisDashboardContent({
               const currentHideCta = isLocked ? ctaShown : false;
               if (isLocked) ctaShown = true;
               return (
-                <section className={sectionClass}>
+                <section className={sectionClass} data-pdf-chart="throttle_brake" data-pdf-title="Accélérateur & Frein">
                   <h2 className={titleClass}>Accélérateur & Frein</h2>
                   <p className="text-xs text-muted-foreground mb-3">
                     Usage des pédales en fonction de la distance. Recherchez des transitions

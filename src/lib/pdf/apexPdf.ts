@@ -93,21 +93,21 @@ export function kvGrid(
   cols = 2
 ): number {
   const colW = (PAGE_W - 2 * MARGIN) / cols;
-  const rowH = 6.4;
+  const rowH = 8.6;
   entries.forEach(([key, value], i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
     const x = MARGIN + col * colW;
     const yy = y + row * rowH;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.5);
+    doc.setFontSize(7.2);
     doc.setTextColor(...PDF_COLORS.muted);
-    doc.text(key, x, yy);
+    doc.text(key.toUpperCase(), x, yy);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
+    doc.setFontSize(10);
     doc.setTextColor(...PDF_COLORS.text);
     const display = value === null || value === undefined || value === "" ? "—" : String(value);
-    doc.text(display, x, yy + 3.8);
+    doc.text(display, x, yy + 4.4);
   });
   const rows = Math.ceil(entries.length / cols);
   return y + rows * rowH + 4;
@@ -206,8 +206,8 @@ export function circuitMap(
   doc.setFillColor(...PDF_COLORS.panel);
   doc.rect(x0, y, boxW, boxH, "F");
 
-  // Tracé
-  doc.setDrawColor(...PDF_COLORS.black);
+  // Tracé — rouge marque, comme dans l'app
+  doc.setDrawColor(...PDF_COLORS.red);
   doc.setLineWidth(1.1);
   doc.setLineCap("round");
   doc.setLineJoin("round");
@@ -223,12 +223,12 @@ export function circuitMap(
   const first = project(pts[0].la, pts[0].lo);
   doc.line(prev[0], prev[1], first[0], first[1]);
 
-  // Apex numérotés
+  // Apex numérotés (pastilles noires pour contraster avec le tracé rouge)
   doc.setLineWidth(0.3);
   corners.forEach((c, i) => {
     if (!Number.isFinite(c.lat) || !Number.isFinite(c.lon)) return;
     const [cx, cy] = project(c.lat, c.lon);
-    doc.setFillColor(...PDF_COLORS.red);
+    doc.setFillColor(...PDF_COLORS.black);
     doc.circle(cx, cy, 2.2, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");

@@ -65,7 +65,7 @@ import {
   type ApiError,
   type LapInfo,
 } from "@/lib/api";
-import { exportAnalysisReportPDF } from "@/lib/pdf/analysisReport";
+import { exportAnalysisReportPDF, captureAnalysisCharts } from "@/lib/pdf/analysisReport";
 import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
@@ -321,10 +321,12 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
   // ─── Download JSON ────────────────────────────────────────────────────────
 
-  const handleDownloadResults = () => {
+  const handleDownloadResults = async () => {
     if (!result) return;
-    // Rapport d'analyse PDF « Esprit Paddock » (document de débriefing hors-ligne)
-    exportAnalysisReportPDF(result);
+    // Rapport d'analyse PDF « Esprit Paddock » : capture les graphiques
+    // affichés à l'écran pour les embarquer tels quels dans le document.
+    const charts = await captureAnalysisCharts();
+    exportAnalysisReportPDF(result, { charts });
   };
 
   // ─── Analyse principale ───────────────────────────────────────────────────

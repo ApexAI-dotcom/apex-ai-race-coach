@@ -89,8 +89,7 @@ import { TrackMap } from "@/components/analysis/TrackMap";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Helmet } from "react-helmet-async";
 import { ADMIN_EMAIL } from "@/constants";
-import { createApexDoc, sectionTitle, kvGrid, apexTable, finalizeAndSave } from "@/lib/pdf/apexPdf";
-import { exportAnalysisReportPDF } from "@/lib/pdf/analysisReport";
+import { exportAnalysisReportPDF, captureAnalysisCharts } from "@/lib/pdf/analysisReport";
 import { toast } from "sonner";
 
 export default function Dashboard() {
@@ -494,47 +493,6 @@ export default function Dashboard() {
     }
   };
 
-  const exportDashboardPDFUltra = async (analyses: AnalysisSummary[]) => {
-    try {
-      const { doc, y: y0 } = createApexDoc({
-        docType: "Carnet de Performances",
-        title: "Historique des analyses",
-        rightLines: [`${analyses.length} sessions analysées`, new Date().toLocaleDateString("fr-FR")],
-      });
-      let y = y0;
-
-      const avgScore = (analyses.reduce((a, b) => a + b.score, 0) / analyses.length).toFixed(1);
-      const bestScore = Math.max(...analyses.map((a) => a.score));
-      const bestLap = Math.min(...analyses.map((a) => a.lap_time));
-
-      y = sectionTitle(doc, y, "Statistiques Globales");
-      y = kvGrid(doc, y, [
-        ["Analyses au total", String(analyses.length)],
-        ["Score moyen", `${avgScore}/100`],
-        ["Meilleur score", `${bestScore}/100`],
-        ["Meilleur tour", `${bestLap.toFixed(2)} s`],
-      ]);
-
-      y = sectionTitle(doc, y, "Historique des Sessions");
-      apexTable(
-        doc,
-        y,
-        ["Date", "Score", "Grade", "Virages", "Meilleur tour"],
-        analyses.map((a) => [
-          new Date(a.date).toLocaleDateString("fr-FR"),
-          `${a.score}/100`,
-          a.grade,
-          String(a.corner_count),
-          `${a.lap_time.toFixed(2)} s`,
-        ])
-      );
-
-      finalizeAndSave(doc, `ApexAI-Carnet-${new Date().toISOString().split("T")[0]}.pdf`);
-    } catch (error) {
-      console.error("PDF error:", error);
-      toast.error("Erreur PDF: " + (error instanceof Error ? error.message : String(error)));
-    }
-  };
 
   // ── Loading state ──
   if (loading) {
@@ -616,16 +574,8 @@ export default function Dashboard() {
               </p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
-              <Button
-                variant="outline"
-                className="flex-1 sm:flex-none bg-secondary/50 border-white/10 h-11 px-4 sm:px-6"
-                onClick={() => exportDashboardPDFUltra(analyses)}
-              >
-                <FileDown className="w-4 h-4 mr-2" />
-                <span className="sm:inline">
-                  Rapport <span className="hidden sm:inline">PDF</span>
-                </span>
-              </Button>
+              {/* "Bilan de Progression" PDF : concept validé mais retiré pour
+                  l'instant — à repenser comme document d'intersaison. */}
               <Button
                 variant="hero"
                 className="flex-1 sm:flex-none h-11 px-4 sm:px-6 shadow-lg shadow-primary/20 gap-2"
@@ -1228,7 +1178,10 @@ export default function Dashboard() {
                       variant="outline"
                       size="sm"
                       className="hidden sm:flex"
-                      onClick={() => exportAnalysisReportPDF(mapApiResultToResponse(selectedAnalysis))}
+                      onClick={async () => {
+                        const charts = await captureAnalysisCharts();
+                        exportAnalysisReportPDF(mapApiResultToResponse(selectedAnalysis), { charts });
+                      }}
                     >
                       <FileDown className="w-4 h-4 mr-2" /> PDF
                     </Button>

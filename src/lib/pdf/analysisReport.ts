@@ -26,7 +26,45 @@ function fmtTime(s?: number | null): string {
   return `${s.toFixed(2)} s`;
 }
 
-export function exportAnalysisReportPDF(analysis: any): void {
+export interface PdfChartCapture {
+  id: string;
+  title: string;
+  dataUrl: string;
+  aspect: number; // largeur / hauteur
+}
+
+/**
+ * Capture les graphiques réellement affichés dans l'app (sections marquées
+ * data-pdf-chart) en images haute résolution, pour les embarquer tels quels
+ * dans le rapport — fidélité totale avec ce que voit le pilote à l'écran.
+ */
+export async function captureAnalysisCharts(): Promise<PdfChartCapture[]> {
+  const nodes = Array.from(document.querySelectorAll<HTMLElement>("[data-pdf-chart]"));
+  if (!nodes.length) return [];
+  const html2canvas = (await import("html2canvas")).default;
+  const out: PdfChartCapture[] = [];
+  for (const el of nodes) {
+    try {
+      const canvas = await html2canvas(el, {
+        backgroundColor: "#0b0b0e",
+        scale: 2,
+        logging: false,
+        useCORS: true,
+      });
+      out.push({
+        id: el.dataset.pdfChart || "chart",
+        title: el.dataset.pdfTitle || "",
+        dataUrl: canvas.toDataURL("image/jpeg", 0.92),
+        aspect: canvas.width / Math.max(canvas.height, 1),
+      });
+    } catch {
+      // un graphique qui échoue ne bloque pas le rapport
+    }
+  }
+  return out;
+}
+
+export function exportAnalysisReportPDF(analysis: any, opts?: { charts?: PdfChartCapture[] }): void {
   const sc = analysis.session_conditions || {};
   const ps = analysis.performance_score || {};
   const stats = analysis.statistics || {};
@@ -57,18 +95,28 @@ export function exportAnalysisReportPDF(analysis: any): void {
     { label: "Tours analysés", value: String(stats.laps_analyzed ?? "—") },
   ]);
 
-  // ── Tracé du circuit ──
+  // ── Tracé du circuit : capture exacte de l'app si dispo, sinon vectoriel ──
+  const charts = opts?.charts || [];
+  const mapChart = charts.find((ch) => ch.id === "track_map");
   const traj = analysis.plot_data?.trajectory_2d;
-  const bestLap = traj?.laps?.find((l: any) => l.is_best && !l.is_synthetic)
-    || traj?.laps?.find((l: any) => !l.is_synthetic)
-    || traj?.laps?.[0];
-  if (bestLap?.lat?.length) {
-    y = sectionTitle(doc, y, "Tracé du Circuit");
-    y = circuitMap(
-      doc, y, bestLap.lat, bestLap.lon,
-      (traj?.corners || []).map((c: any) => ({ lat: c.lat, lon: c.lon, label: c.label, grade: c.grade })),
-      { height: 66 }
-    );
+  if (mapChart) {
+    y = sectionTitle(doc, y, "Carte du Circuit");
+    const w = 182;
+    const h = Math.min(w / mapChart.aspect, 92);
+    doc.addImage(mapChart.dataUrl, "JPEG", 14, y, w, h, undefined, "FAST");
+    y += h + 6;
+  } else {
+    const bestLap = traj?.laps?.find((l: any) => l.is_best && !l.is_synthetic)
+      || traj?.laps?.find((l: any) => !l.is_synthetic)
+      || traj?.laps?.[0];
+    if (bestLap?.lat?.length) {
+      y = sectionTitle(doc, y, "Tracé du Circuit");
+      y = circuitMap(
+        doc, y, bestLap.lat, bestLap.lon,
+        (traj?.corners || []).map((c: any) => ({ lat: c.lat, lon: c.lon, label: c.label, grade: c.grade })),
+        { height: 66 }
+      );
+    }
   }
 
   // ── Signature de piste + conditions ──
@@ -108,6 +156,22 @@ export function exportAnalysisReportPDF(analysis: any): void {
         return [bdLabels[k], val.toFixed(1), String(max), `${Math.round((val / max) * 100)} %`];
       })
     );
+  }
+
+  // ── Pages Graphiques : les visuels exacts affichés dans l'app ──
+  const graphCharts = charts.filter((ch) => ch.id !== "track_map");
+  if (graphCharts.length) {
+    y = addApexPage(doc, header);
+    y = sectionTitle(doc, y, "Graphiques d'Analyse");
+    for (const ch of graphCharts) {
+      const w = 182;
+      const h = Math.min(w / ch.aspect, 120);
+      if (y + h > 265) {
+        y = addApexPage(doc, header);
+      }
+      doc.addImage(ch.dataUrl, "JPEG", 14, y, w, h, undefined, "FAST");
+      y += h + 7;
+    }
   }
 
   // ── P2 : virage par virage ──

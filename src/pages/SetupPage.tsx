@@ -17,7 +17,7 @@ import { generateRecommendations, AdvisorInput, Recommendation } from '@/utils/a
 import { exportSetupSheetPDF } from '@/lib/pdf/setupSheet';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Brain, Sparkles, Save, Loader2, Wrench, Zap, Disc3, Shield, Cpu } from 'lucide-react';
+import { Brain, Sparkles, Save, Loader2, Wrench, Zap, Disc3, Shield, Cpu, FileDown } from 'lucide-react';
 
 export interface SetupState {
   id?: string;
@@ -667,7 +667,16 @@ export default function SetupPage() {
             </div>
 
             {hasGeneratedRecs && !isAnalyzing && (
-              <div className="flex justify-end pt-4 pb-8">
+              <div className="flex justify-end gap-3 pt-4 pb-8">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={handleExportPdf}
+                  className="gap-2 px-6 border-border hover:border-primary/40 hover:text-primary"
+                >
+                  <FileDown className="w-5 h-5" />
+                  Fiche PDF
+                </Button>
                 <Button size="lg" onClick={handleSave} disabled={isSaving} className="gap-2 px-8">
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                   {setupState.id ? "Mettre à jour le réglage" : "Enregistrer le réglage"}
