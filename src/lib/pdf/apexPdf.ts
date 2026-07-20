@@ -160,6 +160,162 @@ export function noteBox(doc: jsPDF, y: number, text: string): number {
   return y + h + 5;
 }
 
+/**
+ * Dessine le tracé GPS du circuit en vectoriel, avec les apex numérotés.
+ * Projection équirectangulaire corrigée en longitude (cos lat) pour éviter
+ * la déformation. Retourne le Y sous le bloc.
+ */
+export function circuitMap(
+  doc: jsPDF,
+  y: number,
+  lat: number[],
+  lon: number[],
+  corners: Array<{ lat: number; lon: number; label?: string; grade?: string }> = [],
+  opts?: { x?: number; width?: number; height?: number }
+): number {
+  const x0 = opts?.x ?? MARGIN;
+  const boxW = opts?.width ?? PAGE_W - 2 * MARGIN;
+  const boxH = opts?.height ?? 62;
+
+  const pts = lat
+    .map((la, i) => ({ la, lo: lon[i] }))
+    .filter((p) => Number.isFinite(p.la) && Number.isFinite(p.lo) && p.la !== 0 && p.lo !== 0);
+  if (pts.length < 10) return y;
+
+  const latMin = Math.min(...pts.map((p) => p.la));
+  const latMax = Math.max(...pts.map((p) => p.la));
+  const lonMin = Math.min(...pts.map((p) => p.lo));
+  const lonMax = Math.max(...pts.map((p) => p.lo));
+  const latMid = (latMin + latMax) / 2;
+  const kx = Math.cos((latMid * Math.PI) / 180); // correction longitude
+
+  const spanX = Math.max((lonMax - lonMin) * kx, 1e-9);
+  const spanY = Math.max(latMax - latMin, 1e-9);
+  const pad = 6;
+  const scale = Math.min((boxW - 2 * pad) / spanX, (boxH - 2 * pad) / spanY);
+  // Centrage dans la boîte
+  const offX = x0 + (boxW - spanX * scale) / 2;
+  const offY = y + (boxH - spanY * scale) / 2;
+
+  const project = (la: number, lo: number): [number, number] => [
+    offX + (lo - lonMin) * kx * scale,
+    offY + (latMax - la) * scale, // Y inversé (nord en haut)
+  ];
+
+  // Fond de carte
+  doc.setFillColor(...PDF_COLORS.panel);
+  doc.rect(x0, y, boxW, boxH, "F");
+
+  // Tracé
+  doc.setDrawColor(...PDF_COLORS.black);
+  doc.setLineWidth(1.1);
+  doc.setLineCap("round");
+  doc.setLineJoin("round");
+  let prev = project(pts[0].la, pts[0].lo);
+  // Décimation : ~600 segments max pour un PDF léger
+  const step = Math.max(1, Math.floor(pts.length / 600));
+  for (let i = step; i < pts.length; i += step) {
+    const cur = project(pts[i].la, pts[i].lo);
+    doc.line(prev[0], prev[1], cur[0], cur[1]);
+    prev = cur;
+  }
+  // Boucle fermée
+  const first = project(pts[0].la, pts[0].lo);
+  doc.line(prev[0], prev[1], first[0], first[1]);
+
+  // Apex numérotés
+  doc.setLineWidth(0.3);
+  corners.forEach((c, i) => {
+    if (!Number.isFinite(c.lat) || !Number.isFinite(c.lon)) return;
+    const [cx, cy] = project(c.lat, c.lon);
+    doc.setFillColor(...PDF_COLORS.red);
+    doc.circle(cx, cy, 2.2, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(5.5);
+    doc.text(String(c.label || i + 1).replace(/^V/, ""), cx, cy + 1, { align: "center" });
+  });
+
+  // Légende
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.5);
+  doc.setTextColor(...PDF_COLORS.muted);
+  doc.text("Tracé GPS réel · apex numérotés", x0 + 3, y + boxH - 2.5);
+
+  return y + boxH + 5;
+}
+
+/** Bandeau de KPI (grandes valeurs) sur une ligne. */
+export function kpiRow(
+  doc: jsPDF,
+  y: number,
+  items: Array<{ label: string; value: string; accent?: boolean }>
+): number {
+  const w = (PAGE_W - 2 * MARGIN) / items.length;
+  const h = 17;
+  items.forEach((it, i) => {
+    const x = MARGIN + i * w;
+    doc.setFillColor(...(it.accent ? PDF_COLORS.black : PDF_COLORS.panel));
+    doc.rect(x + (i === 0 ? 0 : 1), y, w - 1, h, "F");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    doc.setTextColor(...(it.accent ? [170, 170, 175] as [number, number, number] : PDF_COLORS.muted));
+    doc.text(it.label.toUpperCase(), x + 4, y + 5.5);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(...(it.accent ? PDF_COLORS.red : PDF_COLORS.text));
+    doc.text(it.value, x + 4, y + 13);
+  });
+  return y + h + 6;
+}
+
+/** Zone de notes manuscrites (lignes) — pour annoter en stand. */
+export function notesArea(doc: jsPDF, y: number, lines = 4, label = "Notes"): number {
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(...PDF_COLORS.muted);
+  doc.text(label.toUpperCase(), MARGIN, y);
+  doc.setDrawColor(...PDF_COLORS.line);
+  doc.setLineWidth(0.25);
+  for (let i = 0; i < lines; i++) {
+    const ly = y + 5 + i * 6.5;
+    doc.line(MARGIN, ly, PAGE_W - MARGIN, ly);
+  }
+  return y + 5 + lines * 6.5 + 3;
+}
+
+/** Ajoute une page en conservant le bandeau d'en-tête. */
+export function addApexPage(doc: jsPDF, opts: PdfHeaderOpts): number {
+  doc.addPage();
+  doc.setFillColor(...PDF_COLORS.black);
+  doc.rect(0, 0, PAGE_W, 26, "F");
+  doc.setFillColor(...PDF_COLORS.red);
+  doc.rect(0, 26, PAGE_W, 1.2, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(...PDF_COLORS.red);
+  doc.text("APEX", MARGIN, 12);
+  const apexW = doc.getTextWidth("APEX");
+  doc.setTextColor(255, 255, 255);
+  doc.text("AI", MARGIN + apexW + 1, 12);
+  doc.setFontSize(9);
+  doc.text(opts.docType.toUpperCase(), MARGIN, 20);
+  if (opts.title) {
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(180, 180, 185);
+    doc.text(`— ${opts.title}`, MARGIN + doc.getTextWidth(opts.docType.toUpperCase()) + 3, 20);
+  }
+  if (opts.rightLines?.length) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(200, 200, 205);
+    opts.rightLines.forEach((line, i) => {
+      doc.text(line, PAGE_W - MARGIN, 11 + i * 5, { align: "right" });
+    });
+  }
+  return 36;
+}
+
 /** Signature officielle + pagination sur toutes les pages, puis sauvegarde. */
 export function finalizeAndSave(doc: jsPDF, filename: string): void {
   const pageCount = (doc as any).internal.getNumberOfPages();

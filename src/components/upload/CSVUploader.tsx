@@ -65,6 +65,7 @@ import {
   type ApiError,
   type LapInfo,
 } from "@/lib/api";
+import { exportAnalysisReportPDF } from "@/lib/pdf/analysisReport";
 import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
@@ -322,15 +323,8 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
   const handleDownloadResults = () => {
     if (!result) return;
-    const blob = new Blob([JSON.stringify(result, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `apex-ai-analysis-${result.analysis_id}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Rapport d'analyse PDF « Esprit Paddock » (document de débriefing hors-ligne)
+    exportAnalysisReportPDF(result);
   };
 
   // ─── Analyse principale ───────────────────────────────────────────────────
@@ -685,7 +679,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 </Button>
                 <Button variant="hero" onClick={handleDownloadResults}>
                   <Download className="w-4 h-4 mr-2" />
-                  Télécharger JSON
+                  Rapport PDF
                 </Button>
                 {/* Bouton sauvegarde manuelle si auto-save a échoué */}
                 {!savedAnalysisId && (

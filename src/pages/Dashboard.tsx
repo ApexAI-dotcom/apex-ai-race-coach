@@ -90,6 +90,7 @@ import { PageMeta } from "@/components/seo/PageMeta";
 import { Helmet } from "react-helmet-async";
 import { ADMIN_EMAIL } from "@/constants";
 import { createApexDoc, sectionTitle, kvGrid, apexTable, finalizeAndSave } from "@/lib/pdf/apexPdf";
+import { exportAnalysisReportPDF } from "@/lib/pdf/analysisReport";
 import { toast } from "sonner";
 
 export default function Dashboard() {
@@ -1227,7 +1228,7 @@ export default function Dashboard() {
                       variant="outline"
                       size="sm"
                       className="hidden sm:flex"
-                      onClick={() => window.print()}
+                      onClick={() => exportAnalysisReportPDF(mapApiResultToResponse(selectedAnalysis))}
                     >
                       <FileDown className="w-4 h-4 mr-2" /> PDF
                     </Button>
