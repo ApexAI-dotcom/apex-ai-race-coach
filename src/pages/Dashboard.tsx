@@ -90,8 +90,6 @@ import { PageMeta } from "@/components/seo/PageMeta";
 import { Helmet } from "react-helmet-async";
 import { ADMIN_EMAIL } from "@/constants";
 import { exportAnalysisReportPDF, captureAnalysisCharts } from "@/lib/pdf/analysisReport";
-import { FeedbackBox } from "@/components/feedback/FeedbackBox";
-import { FeedbackAdminPanel } from "@/components/feedback/FeedbackAdminPanel";
 import { toast } from "sonner";
 
 export default function Dashboard() {
@@ -1139,11 +1137,6 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* ═══ BOÎTE À RECOMMANDATIONS ═══ */}
-          <div className="max-w-7xl mx-auto w-full px-4 md:px-8 pb-12 space-y-6">
-            <FeedbackBox />
-            {isAdmin && <FeedbackAdminPanel />}
-          </div>
         </div>
 
         {/* ═══ DETAIL OVERLAY ═══ */}

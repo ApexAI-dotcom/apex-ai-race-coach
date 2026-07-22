@@ -448,7 +448,6 @@ export default function SetupPage() {
                   }} 
                   onNewSetup={handleNewSetup} 
                   onSaveSetup={handleSave}
-                  onExportPdf={handleExportPdf}
                   isSaving={isSaving}
                 />
               </div>

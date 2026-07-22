@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Plus, History, MapPin, Calendar, Save, Trash2, Pencil, FileDown } from 'lucide-react';
+import { Loader2, Plus, History, MapPin, Calendar, Save, Trash2, Pencil } from 'lucide-react';
 import { api, normalizeCircuit } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { SetupState } from '@/pages/SetupPage';
@@ -13,13 +13,12 @@ import { Label } from '@/components/ui/label';
 interface SavedSetupsCardProps {
   refreshKey: number;
   onSelectSetup: (setup: SetupState) => void;
-  onExportPdf?: () => void;
   onNewSetup: () => void;
   onSaveSetup: () => void;
   isSaving: boolean;
 }
 
-export function SavedSetupsCard({ refreshKey, onSelectSetup, onExportPdf, onNewSetup, onSaveSetup, isSaving }: SavedSetupsCardProps) {
+export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveSetup, isSaving }: SavedSetupsCardProps) {
   const { session } = useAuth();
   const [setups, setSetups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +73,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onExportPdf, onNewS
   };
 
   return (
-    <Card className="bg-card border-border rounded-2xl shadow-md h-full flex flex-col overflow-hidden">
+    <Card className="bg-card border-border rounded-2xl shadow-md flex flex-col overflow-hidden">
       <CardHeader className="bg-muted/30 border-b border-border pb-4 flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-lg">
           <History className="w-5 h-5 text-primary" />
@@ -98,7 +97,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onExportPdf, onNewS
             <p className="text-sm">Aucun réglage sauvegardé</p>
           </div>
         ) : (
-          <ScrollArea className="h-[360px] w-full">
+          <ScrollArea className="max-h-[300px] w-full">
             <div className="divide-y divide-border">
               {setups.map((s) => (
                 <div 
@@ -186,18 +185,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onExportPdf, onNewS
         )}
       </CardContent>
       
-      <CardFooter className="p-4 border-t border-border bg-muted/10 gap-2">
-        {onExportPdf && (
-          <Button
-            variant="outline"
-            onClick={onExportPdf}
-            className="gap-2 rounded-full h-11 border-border hover:border-primary/40 hover:text-primary shrink-0"
-            title="Exporter la fiche de réglages en PDF"
-          >
-            <FileDown className="w-4 h-4" />
-            PDF
-          </Button>
-        )}
+      <CardFooter className="p-4 border-t border-border bg-muted/10">
         <Button onClick={onSaveSetup} disabled={isSaving} className="w-full gap-2 rounded-full h-11 shadow-lg shadow-primary/20">
           <Save className="w-4 h-4" />
           {isSaving ? "Enregistrement..." : "Enregistrer le réglage"}

@@ -30,6 +30,7 @@ import heroImage from "@/assets/hero-racing.jpg";
 import TestimonialSlider from "@/components/ui/testimonial-slider";
 import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GetStartedButton } from "@/components/ui/get-started-button";
+import { FeedbackBox } from "@/components/feedback/FeedbackBox";
 
 const marqueeImages = [
   "/showcase/1.png",
@@ -484,6 +485,13 @@ export default function Index() {
 
       {/* Testimonials Slider */}
       <TestimonialSlider />
+
+      {/* Boîte à recommandations — ouverte à tous les pilotes connectés */}
+      <section className="py-16 border-t border-border">
+        <div className="w-full px-4 sm:px-6 md:px-8 max-w-4xl mx-auto">
+          <FeedbackBox />
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section className="py-20 flex flex-col items-center">
