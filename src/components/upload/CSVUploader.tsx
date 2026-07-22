@@ -163,6 +163,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   // Résultats
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [savedAnalysisId, setSavedAnalysisId] = useState<string | null>(null);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [analysesCount, setAnalysesCount] = useState<number>(0);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
@@ -322,11 +323,29 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   // ─── Download JSON ────────────────────────────────────────────────────────
 
   const handleDownloadResults = async () => {
-    if (!result) return;
+    if (!result || isExportingPdf) return;
     // Rapport d'analyse PDF « Esprit Paddock » : capture les graphiques
     // affichés à l'écran pour les embarquer tels quels dans le document.
-    const charts = await captureAnalysisCharts();
-    exportAnalysisReportPDF(result, { charts });
+    // La capture prend quelques secondes -> on prévient le pilote.
+    setIsExportingPdf(true);
+    toast({
+      title: "Préparation du rapport…",
+      description: "Capture des graphiques et mise en page — le téléchargement démarre dans quelques instants.",
+    });
+    try {
+      // Laisse le toast s'afficher avant le travail synchrone lourd
+      await new Promise((r) => setTimeout(r, 50));
+      const charts = await captureAnalysisCharts();
+      exportAnalysisReportPDF(result, { charts });
+    } catch (e) {
+      toast({
+        title: "Erreur PDF",
+        description: "Le rapport n'a pas pu être généré.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   // ─── Analyse principale ───────────────────────────────────────────────────
@@ -679,9 +698,18 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 <Button variant="heroOutline" onClick={handleReset}>
                   Nouvelle analyse
                 </Button>
-                <Button variant="hero" onClick={handleDownloadResults}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Rapport PDF
+                <Button variant="hero" onClick={handleDownloadResults} disabled={isExportingPdf}>
+                  {isExportingPdf ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Préparation du PDF…
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Rapport PDF
+                    </>
+                  )}
                 </Button>
                 {/* Bouton sauvegarde manuelle si auto-save a échoué */}
                 {!savedAnalysisId && (

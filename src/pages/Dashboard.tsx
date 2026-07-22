@@ -138,6 +138,7 @@ export default function Dashboard() {
   const [editSessionId, setEditSessionId] = useState<string | null>(null);
   const [editSessionName, setEditSessionName] = useState("");
   const [editSessionType, setEditSessionType] = useState("practice");
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   // Featured: latest analysis full data
   const [featuredAnalysis, setFeaturedAnalysis] = useState<AnalysisResult | null>(null);
@@ -1178,12 +1179,33 @@ export default function Dashboard() {
                       variant="outline"
                       size="sm"
                       className="hidden sm:flex"
+                      disabled={isExportingPdf}
                       onClick={async () => {
-                        const charts = await captureAnalysisCharts();
-                        exportAnalysisReportPDF(mapApiResultToResponse(selectedAnalysis), { charts });
+                        if (isExportingPdf) return;
+                        setIsExportingPdf(true);
+                        toast.info("Préparation du rapport…", {
+                          description: "Capture des graphiques en cours, le téléchargement démarre dans quelques instants.",
+                        });
+                        try {
+                          await new Promise((r) => setTimeout(r, 50));
+                          const charts = await captureAnalysisCharts();
+                          exportAnalysisReportPDF(mapApiResultToResponse(selectedAnalysis), { charts });
+                        } catch {
+                          toast.error("Le rapport PDF n'a pas pu être généré.");
+                        } finally {
+                          setIsExportingPdf(false);
+                        }
                       }}
                     >
-                      <FileDown className="w-4 h-4 mr-2" /> PDF
+                      {isExportingPdf ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Préparation…
+                        </>
+                      ) : (
+                        <>
+                          <FileDown className="w-4 h-4 mr-2" /> PDF
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

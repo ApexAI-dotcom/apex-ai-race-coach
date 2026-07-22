@@ -43,24 +43,80 @@ export async function captureAnalysisCharts(): Promise<PdfChartCapture[]> {
   if (!nodes.length) return [];
   const html2canvas = (await import("html2canvas")).default;
   const out: PdfChartCapture[] = [];
+
   for (const el of nodes) {
     try {
       const canvas = await html2canvas(el, {
         backgroundColor: "#0b0b0e",
-        scale: 2,
+        scale: 3, // rendu net à l'impression (≈300 dpi une fois réduit en A4)
         logging: false,
         useCORS: true,
+        /**
+         * On ne garde QUE le graphique : les titres et paragraphes explicatifs
+         * de l'app feraient doublon avec la mise en page du PDF, et les
+         * encarts d'abonnement n'ont rien à faire dans un document imprimé.
+         */
+        ignoreElements: (node) => {
+          const tag = node.tagName?.toLowerCase();
+          if (tag === "h2" || tag === "p") return true;
+          if (tag === "button" || tag === "a") return true;
+          const cls = typeof node.className === "string" ? node.className : "";
+          return /backdrop-blur|cta|upgrade|locked/i.test(cls);
+        },
       });
+
+      // Rogne les marges vides laissées par les éléments ignorés
+      const trimmed = trimCanvas(canvas, "#0b0b0e");
       out.push({
         id: el.dataset.pdfChart || "chart",
         title: el.dataset.pdfTitle || "",
-        dataUrl: canvas.toDataURL("image/jpeg", 0.92),
-        aspect: canvas.width / Math.max(canvas.height, 1),
+        dataUrl: trimmed.toDataURL("image/jpeg", 0.95),
+        aspect: trimmed.width / Math.max(trimmed.height, 1),
       });
     } catch {
       // un graphique qui échoue ne bloque pas le rapport
     }
   }
+  return out;
+}
+
+/** Retire les bandes de fond uniformes autour du contenu réel. */
+function trimCanvas(canvas: HTMLCanvasElement, bg: string): HTMLCanvasElement {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return canvas;
+  const { width, height } = canvas;
+  let data: Uint8ClampedArray;
+  try {
+    data = ctx.getImageData(0, 0, width, height).data;
+  } catch {
+    return canvas;
+  }
+  const br = parseInt(bg.slice(1, 3), 16);
+  const bgv = parseInt(bg.slice(3, 5), 16);
+  const bb = parseInt(bg.slice(5, 7), 16);
+  const isBg = (i: number) =>
+    Math.abs(data[i] - br) < 10 && Math.abs(data[i + 1] - bgv) < 10 && Math.abs(data[i + 2] - bb) < 10;
+
+  let top = 0, bottom = height - 1;
+  scanTop: for (; top < height; top++) {
+    for (let x = 0; x < width; x++) if (!isBg((top * width + x) * 4)) break scanTop;
+  }
+  scanBottom: for (; bottom > top; bottom--) {
+    for (let x = 0; x < width; x++) if (!isBg((bottom * width + x) * 4)) break scanBottom;
+  }
+  const pad = Math.round(canvas.width * 0.008);
+  const newTop = Math.max(0, top - pad);
+  const newH = Math.min(height - newTop, bottom - newTop + 1 + pad);
+  if (newH <= 0 || newH === height) return canvas;
+
+  const out = document.createElement("canvas");
+  out.width = width;
+  out.height = newH;
+  const octx = out.getContext("2d");
+  if (!octx) return canvas;
+  octx.fillStyle = bg;
+  octx.fillRect(0, 0, width, newH);
+  octx.drawImage(canvas, 0, newTop, width, newH, 0, 0, width, newH);
   return out;
 }
 
@@ -103,6 +159,9 @@ export function exportAnalysisReportPDF(analysis: any, opts?: { charts?: PdfChar
     y = sectionTitle(doc, y, "Carte du Circuit");
     const w = 182;
     const h = Math.min(w / mapChart.aspect, 92);
+    doc.setDrawColor(...PDF_COLORS.line);
+    doc.setLineWidth(0.3);
+    doc.rect(14, y, w, h);
     doc.addImage(mapChart.dataUrl, "JPEG", 14, y, w, h, undefined, "FAST");
     y += h + 6;
   } else {
@@ -162,15 +221,18 @@ export function exportAnalysisReportPDF(analysis: any, opts?: { charts?: PdfChar
   const graphCharts = charts.filter((ch) => ch.id !== "track_map");
   if (graphCharts.length) {
     y = addApexPage(doc, header);
-    y = sectionTitle(doc, y, "Graphiques d'Analyse");
     for (const ch of graphCharts) {
       const w = 182;
-      const h = Math.min(w / ch.aspect, 120);
-      if (y + h > 265) {
-        y = addApexPage(doc, header);
-      }
+      const h = Math.min(w / ch.aspect, 105);
+      // Titre + graphique restent solidaires : saut de page si besoin
+      if (y + h + 10 > 268) y = addApexPage(doc, header);
+      y = sectionTitle(doc, y, ch.title || "Graphique");
+      // Cadre discret autour du visuel sombre pour le détacher du papier
+      doc.setDrawColor(...PDF_COLORS.line);
+      doc.setLineWidth(0.3);
+      doc.rect(14, y, w, h);
       doc.addImage(ch.dataUrl, "JPEG", 14, y, w, h, undefined, "FAST");
-      y += h + 7;
+      y += h + 8;
     }
   }
 
