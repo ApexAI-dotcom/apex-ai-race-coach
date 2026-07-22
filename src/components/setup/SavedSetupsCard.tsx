@@ -98,7 +98,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onExportPdf, onNewS
             <p className="text-sm">Aucun réglage sauvegardé</p>
           </div>
         ) : (
-          <ScrollArea className="h-[480px] w-full">
+          <ScrollArea className="h-[360px] w-full">
             <div className="divide-y divide-border">
               {setups.map((s) => (
                 <div 

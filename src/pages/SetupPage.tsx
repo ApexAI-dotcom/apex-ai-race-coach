@@ -395,8 +395,10 @@ export default function SetupPage() {
             
             {/* Colonne Gauche (6 colonnes) : Mes réglages, Poids et Mon Kart */}
             <div className="lg:col-span-6 flex flex-col justify-between space-y-8">
-              <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                <SavedSetupsCard 
+              {/* Pas de contrainte de hauteur ici : la carte gère son propre
+                  défilement interne (ScrollArea), sinon double scroll et liste tronquée. */}
+              <div>
+                <SavedSetupsCard
                   refreshKey={refreshKey}
                   onSelectSetup={(setup) => {
                     // Récupération des poids du profil en fallback si vides dans le setup sauvegardé
