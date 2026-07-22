@@ -18,6 +18,7 @@ import { SubscriptionProvider } from "@/hooks/useSubscription.tsx";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import Admin from "./pages/Admin";
 import Upload from "./pages/Upload";
 import PricingPage from "./pages/PricingPage";
 import Profile from "./pages/Profile";
@@ -79,6 +80,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <Admin />
                     </ProtectedRoute>
                   }
                 />

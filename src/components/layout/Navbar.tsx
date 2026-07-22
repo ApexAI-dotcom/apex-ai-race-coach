@@ -122,9 +122,13 @@ export const Navbar = () => {
             ) : isAuthenticated ? (
               <>
                 {user?.email === ADMIN_EMAIL && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-600 text-white border border-red-500 shadow-sm">
+                  <Link
+                    to="/admin"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-600 text-white border border-red-500 shadow-sm hover:bg-red-500 transition-colors"
+                    title="Ouvrir le back-office"
+                  >
                     Admin
-                  </span>
+                  </Link>
                 )}
                 <SubscriptionBadge />
                 

@@ -1451,6 +1451,40 @@ export async function updateFeedback(accessToken: string, id: string, payload: {
   return tireSetFetch(accessToken, `/api/feedback/admin/${id}`, "PUT", payload);
 }
 
+// ─── Back-office administrateur ───
+export async function getAdminMe(accessToken: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/admin/me", "GET");
+}
+export async function getAdminStats(accessToken: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/admin/stats", "GET");
+}
+export async function getAdminRoles(accessToken: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/admin/roles", "GET");
+}
+export async function grantAdminRole(accessToken: string, email: string, role: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/admin/roles", "POST", { email, role });
+}
+export async function revokeAdminRole(accessToken: string, userId: string): Promise<any> {
+  return tireSetFetch(accessToken, `/api/admin/roles/${userId}`, "DELETE");
+}
+
+// ─── Paddock Pass ───
+export async function getPromoCodes(accessToken: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/admin/promo-codes", "GET");
+}
+export async function createPromoCode(accessToken: string, payload: any): Promise<any> {
+  return tireSetFetch(accessToken, "/api/admin/promo-codes", "POST", payload);
+}
+export async function togglePromoCode(accessToken: string, code: string, active: boolean): Promise<any> {
+  return tireSetFetch(accessToken, `/api/admin/promo-codes/${code}?active=${active}`, "PUT", {});
+}
+export async function redeemPaddockPass(accessToken: string, code: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/paddock-pass/redeem", "POST", { code });
+}
+export async function getPaddockPassStatus(accessToken: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/paddock-pass/status", "GET");
+}
+
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
@@ -1502,6 +1536,16 @@ export const api = {
   getMyFeedback,
   getAllFeedback,
   updateFeedback,
+  getAdminMe,
+  getAdminStats,
+  getAdminRoles,
+  grantAdminRole,
+  revokeAdminRole,
+  getPromoCodes,
+  createPromoCode,
+  togglePromoCode,
+  redeemPaddockPass,
+  getPaddockPassStatus,
   getTireSets,
   createTireSet,
   updateTireSet,
