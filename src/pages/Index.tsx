@@ -279,7 +279,7 @@ export default function Index() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 border-t border-border">
+      <section className="py-16 border-t border-border">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {stats.map((stat, index) => (
@@ -302,14 +302,14 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20">
+      {/* Features Section — analyse + modules produit réunis en un seul bloc */}
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-10"
           >
             <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
               Analyse <span className="text-gradient-primary">intelligente</span>
@@ -319,7 +319,7 @@ export default function Index() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
@@ -339,62 +339,28 @@ export default function Index() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* Spotlight Features Section */}
-      <section className="py-12 border-t border-border bg-secondary/5">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="glass-card p-6 md:p-10 rounded-2xl border border-border relative overflow-hidden group hover:shadow-2xl hover:border-primary/20 transition-all duration-300"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-6">
-                  <Star className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Fonctionnalités Clés</span>
+          {/* Modules produit (dans le même souffle que l'analyse) */}
+          <div className="max-w-5xl mx-auto mt-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+              {[
+                { t: "Mon Kart", d: "Suivi d'usure automatique du moteur, des pneus et des freins depuis la télémétrie, garage virtuel et journal d'entretien." },
+                { t: "Carnet d'Ingénieur", d: "Consigne tes réglages châssis et moteur, associés aux conditions de piste, avec les recommandations d'ApexAI." },
+                { t: "Analyse Télémétrie", d: "Importe tes données MyChron, AiM et autres CSV et obtiens la vue détaillée de tes trajectoires réelles." },
+                { t: "Stock de Pneus", d: "Déclare et tracke l'usure de tes trains (neufs, rodés, pluie) pour la recommandation du bon train à chaque session." },
+              ].map((m) => (
+                <div key={m.t} className="p-5 rounded-xl bg-card/50 border border-border hover:border-primary/30 transition-colors">
+                  <h4 className="font-bold text-foreground mb-2">{m.t}</h4>
+                  <p className="text-sm text-muted-foreground">{m.d}</p>
                 </div>
-                <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-6">
-                  Équipe ton garage avec les meilleurs outils
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
-                  <div className="p-5 rounded-xl bg-background/50 border border-border hover:border-primary/20 transition-colors">
-                    <h4 className="font-bold text-lg text-foreground mb-2">Mon Kart</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Suivi d'usure automatique du moteur et des freins depuis la télémétrie, garage virtuel et journal d'entretien.
-                    </p>
-                  </div>
-                  <div className="p-5 rounded-xl bg-background/50 border border-border hover:border-primary/20 transition-colors">
-                    <h4 className="font-bold text-lg text-foreground mb-2">Carnet d'Ingénieur</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Consigne tes réglages de châssis et moteur, et associe-les aux conditions de piste pour chaque session.
-                    </p>
-                  </div>
-                  <div className="p-5 rounded-xl bg-background/50 border border-border hover:border-primary/20 transition-colors">
-                    <h4 className="font-bold text-lg text-foreground mb-2">Analyse Télémétrie</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Importe tes données MyChron5 ou autres formats CSV et obtiens une vue détaillée de tes trajectoires réelles.
-                    </p>
-                  </div>
-                  <div className="p-5 rounded-xl bg-background/50 border border-border hover:border-primary/20 transition-colors">
-                    <h4 className="font-bold text-lg text-foreground mb-2">Stock de Pneus</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Déclare et tracke l'usure de tes trains de pneus (neufs, rodés, pluie) pour des recommandations adaptées.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Roadmap Section */}
-      <section className="py-20 border-t border-border">
+      <section className="py-16 border-t border-border">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -500,7 +466,7 @@ export default function Index() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 flex flex-col items-center">
+      <section className="py-16 flex flex-col items-center">
         <div className="w-full px-4 sm:px-6 md:px-8 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -535,7 +501,7 @@ export default function Index() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-24 border-t border-border relative overflow-hidden">
+      <section className="py-16 border-t border-border relative overflow-hidden">
         {/* Abstract background blur */}
         <div className="absolute top-1/2 left-0 w-64 h-64 bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 -px-32 pointer-events-none" />
 
