@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Plus, History, MapPin, Calendar, Save, Trash2, Pencil } from 'lucide-react';
 import { api, normalizeCircuit } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -73,7 +72,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
   };
 
   return (
-    <Card className="bg-card border-border rounded-2xl shadow-md flex flex-col overflow-hidden">
+    <Card className="bg-card border-border rounded-2xl shadow-md h-full flex flex-col overflow-hidden">
       <CardHeader className="bg-muted/30 border-b border-border pb-4 flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-lg">
           <History className="w-5 h-5 text-primary" />
@@ -97,7 +96,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
             <p className="text-sm">Aucun réglage sauvegardé</p>
           </div>
         ) : (
-          <ScrollArea className="max-h-[300px] w-full">
+          <>
             <div className="divide-y divide-border">
               {setups.map((s) => (
                 <div 
@@ -181,7 +180,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
                 </div>
               ))}
             </div>
-          </ScrollArea>
+          </>
         )}
       </CardContent>
       

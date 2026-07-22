@@ -12,6 +12,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { MessageSquarePlus, Lightbulb, Bug, HelpCircle, Loader2, Lock, CheckCircle2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -89,7 +90,33 @@ export function FeedbackBox() {
     }
   };
 
-  if (!token) return null;
+  // Visible pour tout le monde : un visiteur non connecté voit la promesse
+  // et est invité à créer un compte plutôt que de tomber sur du vide.
+  if (!token) {
+    return (
+      <Card className="bg-card border-border rounded-2xl">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <MessageSquarePlus className="w-5 h-5 text-primary" />
+            Boîte à recommandations
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-2">
+            ApexAI est construit avec les pilotes. Partagez vos idées et les
+            problèmes rencontrés en piste : chaque retour est lu par l'équipe et
+            oriente les prochaines fonctionnalités.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Button asChild className="gap-2 rounded-full">
+            <Link to="/login">
+              <MessageSquarePlus className="w-4 h-4" />
+              Se connecter pour proposer une idée
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-card border-border rounded-2xl">
