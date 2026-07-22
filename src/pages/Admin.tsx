@@ -49,12 +49,21 @@ const chartTooltip = {
   },
 };
 
-function StatTile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
+function StatTile({ label, value, hint, icon: Icon, accent }: {
+  label: string; value: string | number; hint?: string; icon?: any; accent?: boolean;
+}) {
   return (
-    <div className="p-4 rounded-xl border border-border bg-card">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="text-2xl font-bold text-foreground mt-1">{value}</p>
-      {hint && <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p>}
+    <div className={`p-4 rounded-2xl border bg-card flex items-start gap-3 ${accent ? "border-primary/30 bg-primary/5" : "border-border"}`}>
+      {Icon && (
+        <div className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center ${accent ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+          <Icon className="w-4 h-4" />
+        </div>
+      )}
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className={`text-2xl font-bold mt-0.5 ${accent ? "text-primary" : "text-foreground"}`}>{value}</p>
+        {hint && <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p>}
+      </div>
     </div>
   );
 }
@@ -134,41 +143,13 @@ export default function Admin() {
                 <div className="flex justify-center p-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
               ) : (
                 <>
-                  <section className="space-y-3">
-                    <h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
-                      <Users className="w-4 h-4" /> Pilotes
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <StatTile label="Total inscrits" value={stats.users?.total ?? 0} />
-                      <StatTile label="Abonnés payants" value={stats.users?.paying ?? 0} hint="Racer + Team" />
-                      <StatTile label="Gratuits" value={stats.users?.by_tier?.rookie ?? 0} />
-                      <StatTile label="Essais actifs" value={stats.paddock_pass?.active_trials ?? 0} hint="Paddock Pass en cours" />
-                    </div>
-                  </section>
-
-                  <section className="space-y-3">
-                    <h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
-                      <TrendingUp className="w-4 h-4" /> Activité
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <StatTile label="Analyses totales" value={stats.analyses?.total ?? 0} />
-                      <StatTile label="Ce mois-ci" value={stats.analyses?.this_month ?? 0} />
-                      <StatTile label="7 derniers jours" value={stats.analyses?.last_7_days ?? 0} />
-                      <StatTile label="Sessions loguées" value={stats.engagement?.sessions_logged ?? 0} />
-                    </div>
-                  </section>
-
-                  <section className="space-y-3">
-                    <h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
-                      <Wrench className="w-4 h-4" /> Engagement produit
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <StatTile label="Garages configurés" value={stats.engagement?.kart_profiles ?? 0} />
-                      <StatTile label="Réglages créés" value={stats.engagement?.setups ?? 0} />
-                      <StatTile label="Trains déclarés" value={stats.engagement?.tire_sets ?? 0} />
-                      <StatTile label="Circuits" value={stats.engagement?.circuits ?? 0} />
-                    </div>
-                  </section>
+                  {/* KPI phares */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <StatTile icon={Users} accent label="Pilotes inscrits" value={stats.users?.total ?? 0} />
+                    <StatTile icon={Ticket} label="Abonnés payants" value={stats.users?.paying ?? 0} hint="Racer + Team" />
+                    <StatTile icon={TrendingUp} label="Analyses ce mois" value={stats.analyses?.this_month ?? 0} hint={`${stats.analyses?.last_7_days ?? 0} sur 7 jours`} />
+                    <StatTile icon={Inbox} label="Retours à traiter" value={stats.feedback?.new ?? 0} hint={`${stats.feedback?.total ?? 0} au total`} />
+                  </div>
 
                   {/* Graphiques */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -184,8 +165,8 @@ export default function Admin() {
                                 </linearGradient>
                               </defs>
                               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                              <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(d) => d.slice(5)} stroke="hsl(var(--muted-foreground))" />
-                              <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
+                              <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(d) => d.slice(5)} stroke="hsl(var(--muted-foreground))" />
+                              <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
                               <Tooltip {...chartTooltip} />
                               <Area type="monotone" dataKey="views" name="Vues" stroke="#ef4444" strokeWidth={2} fill="url(#v)" />
                             </AreaChart>
@@ -237,8 +218,8 @@ export default function Admin() {
                       {analytics?.top_pages?.length ? (
                         <ResponsiveContainer width="100%" height={Math.max(180, analytics.top_pages.length * 32)}>
                           <BarChart data={analytics.top_pages.slice(0, 8)} layout="vertical" margin={{ left: 20 }}>
-                            <XAxis type="number" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
-                            <YAxis type="category" dataKey="path" width={120} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                            <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
+                            <YAxis type="category" dataKey="path" width={120} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" />
                             <Tooltip {...chartTooltip} formatter={(v: any, n: any, p: any) => [
                               `${v} vues${p.payload.avg_seconds ? ` · ${p.payload.avg_seconds}s en moy.` : ""}`, "",
                             ]} />
@@ -253,15 +234,31 @@ export default function Admin() {
                     </ChartCard>
                   </section>
 
+                  {/* Engagement produit — compact */}
                   <section className="space-y-3">
                     <h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
-                      <Inbox className="w-4 h-4" /> Relation pilotes
+                      <Wrench className="w-4 h-4" /> Engagement produit
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                      <StatTile label="Garages" value={stats.engagement?.kart_profiles ?? 0} />
+                      <StatTile label="Réglages" value={stats.engagement?.setups ?? 0} />
+                      <StatTile label="Trains pneus" value={stats.engagement?.tire_sets ?? 0} />
+                      <StatTile label="Circuits" value={stats.engagement?.circuits ?? 0} />
+                      <StatTile label="Sessions" value={stats.engagement?.sessions_logged ?? 0} />
+                      <StatTile label="Analyses" value={stats.analyses?.total ?? 0} />
+                    </div>
+                  </section>
+
+                  {/* Paddock Pass — compact */}
+                  <section className="space-y-3">
+                    <h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
+                      <Ticket className="w-4 h-4" /> Paddock Pass & essais
                     </h2>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <StatTile label="Retours reçus" value={stats.feedback?.total ?? 0} />
-                      <StatTile label="Non traités" value={stats.feedback?.new ?? 0} />
-                      <StatTile label="Codes Paddock" value={stats.paddock_pass?.codes ?? 0} />
+                      <StatTile label="Codes émis" value={stats.paddock_pass?.codes ?? 0} />
                       <StatTile label="Activations" value={stats.paddock_pass?.redemptions ?? 0} />
+                      <StatTile label="Essais actifs" value={stats.paddock_pass?.active_trials ?? 0} accent />
+                      <StatTile label="Retours résolus" value={(stats.feedback?.total ?? 0) - (stats.feedback?.new ?? 0)} />
                     </div>
                   </section>
                 </>

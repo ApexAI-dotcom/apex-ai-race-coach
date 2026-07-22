@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, History, MapPin, Calendar, Save, Trash2, Pencil } from 'lucide-react';
 import { api, normalizeCircuit } from '@/lib/api';
@@ -97,8 +96,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
             <p className="text-sm">Aucun réglage sauvegardé</p>
           </div>
         ) : (
-          <ScrollArea className="h-[300px]">
-            <div className="divide-y divide-border">
+          <div className="divide-y divide-border">
               {setups.map((s) => (
                 <div 
                   key={s.id} 
@@ -181,7 +179,6 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
                 </div>
               ))}
             </div>
-          </ScrollArea>
         )}
       </CardContent>
       
