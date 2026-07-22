@@ -1433,6 +1433,24 @@ export async function getWeightEstimate(accessToken: string): Promise<any> {
   return tireSetFetch(accessToken, "/api/kart/weight-estimate", "GET");
 }
 
+// ─── Boîte à recommandations (feedback privé pilote <-> admin) ───
+export async function sendFeedback(accessToken: string, payload: {
+  category: string; subject: string; body: string; context?: any;
+}): Promise<any> {
+  return tireSetFetch(accessToken, "/api/feedback", "POST", payload);
+}
+export async function getMyFeedback(accessToken: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/feedback/mine", "GET");
+}
+export async function getAllFeedback(accessToken: string, status?: string): Promise<any> {
+  return tireSetFetch(accessToken, `/api/feedback/admin${status ? `?status=${status}` : ""}`, "GET");
+}
+export async function updateFeedback(accessToken: string, id: string, payload: {
+  status?: string; adminReply?: string;
+}): Promise<any> {
+  return tireSetFetch(accessToken, `/api/feedback/admin/${id}`, "PUT", payload);
+}
+
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
@@ -1480,6 +1498,10 @@ export const api = {
   deleteCircuit,
   getCatalogComponents,
   getKartAdvisor,
+  sendFeedback,
+  getMyFeedback,
+  getAllFeedback,
+  updateFeedback,
   getTireSets,
   createTireSet,
   updateTireSet,
