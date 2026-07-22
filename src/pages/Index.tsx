@@ -345,7 +345,7 @@ export default function Index() {
       {/* Spotlight Features Section */}
       <section className="py-12 border-t border-border bg-secondary/5">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -361,7 +361,13 @@ export default function Index() {
                 <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-6">
                   Équipe ton garage avec les meilleurs outils
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+                  <div className="p-5 rounded-xl bg-background/50 border border-border hover:border-primary/20 transition-colors">
+                    <h4 className="font-bold text-lg text-foreground mb-2">Mon Kart</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Suivi d'usure automatique du moteur et des freins depuis la télémétrie, garage virtuel et journal d'entretien.
+                    </p>
+                  </div>
                   <div className="p-5 rounded-xl bg-background/50 border border-border hover:border-primary/20 transition-colors">
                     <h4 className="font-bold text-lg text-foreground mb-2">Carnet d'Ingénieur</h4>
                     <p className="text-sm text-muted-foreground">

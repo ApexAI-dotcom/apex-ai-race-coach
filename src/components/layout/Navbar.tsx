@@ -28,7 +28,9 @@ import {
 const guestNavItems = [
   { name: "Accueil", path: "/" },
   { name: "Tableau de bord", path: "/dashboard" },
-  { name: "Télécharger", path: "/upload" },
+  { name: "Analyser", path: "/upload", isHero: true },
+  { name: "Mon Kart", path: "/mon-kart" },
+  { name: "Réglages", path: "/setup" },
   { name: "Plans", path: "/pricing" },
 ];
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Wrench, UploadCloud, Trash2, Battery, Disc, Flame, Loader2 } from "lucide-react";
+import { Wrench, UploadCloud, Trash2, Battery, Disc, Flame, Loader2, Lock, Sparkles, ArrowRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -35,8 +36,10 @@ import { PageMeta } from "@/components/seo/PageMeta";
 import { DrivingProfile } from "@/lib/kart-recommendations";
 import { KartHealthStatus } from "@/components/kart/KartHealthStatus";
 
+import { motion } from "framer-motion";
+
 export default function MonKart() {
-  const { session } = useAuth();
+  const { session, isAuthenticated } = useAuth();
   const { tier } = useSubscription();
   const [data, setData] = useState<KartProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,24 +90,198 @@ export default function MonKart() {
     );
   }
 
-  if (tier === "rookie" || tier === "visitor") {
+  if (!isAuthenticated || tier === "rookie" || tier === "visitor") {
     return (
       <Layout>
-        <div className="container max-w-4xl mx-auto py-12 px-4">
-          <div className="glass-card p-12 text-center flex flex-col items-center justify-center rounded-2xl border border-border relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent blur-3xl -z-10" />
-            <Wrench className="w-16 h-16 text-primary mb-6 animate-pulse" />
-            <h1 className="text-3xl font-display font-bold mb-4">Mon Kart</h1>
-            <p className="text-muted-foreground mb-8 max-w-md">
-              La fonctionnalité "Mon Kart" permet de tracker l'usure de ton moteur, tes pneus, tes
-              freins et ta batterie automatiquement depuis tes logs. Débloque-la en passant au plan
-              Racer !
+        <PageMeta
+          title="Mon Kart - Garage Virtuel & Suivi d'Usure | ApexAI"
+          description="Gérez votre karting, suivez l'usure de votre moteur, pneus et freins automatiquement depuis vos sessions de télémétrie."
+          path="/mon-kart"
+        />
+
+        <div className="container max-w-6xl mx-auto py-8 px-4 relative min-h-[85vh] flex flex-col justify-center">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
+              <Wrench className="w-3.5 h-3.5 text-primary" />
+              <span>Garage & Maintenance Virtuelle</span>
+            </div>
+            <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-3">
+              Mon <span className="text-gradient-primary">Kart</span>
+            </h1>
+            <p className="text-muted-foreground max-w-xl mx-auto text-sm md:text-base">
+              Suivez automatiquement l'usure de votre moteur, pneus, freins et batterie à partir de vos fichiers de télémétrie.
             </p>
-            <Link to="/pricing">
-              <Button size="lg" className="gradient-primary text-primary-foreground font-semibold">
-                Découvrir les plans
-              </Button>
-            </Link>
+          </motion.div>
+
+          {/* Main Interactive Showcase Container */}
+          <div className="relative rounded-3xl overflow-hidden border border-border bg-card/40 p-4 md:p-8">
+            {/* MOCK BACKGROUND (Blurred & Non-interactive) */}
+            <div
+              className="filter blur-md opacity-30 pointer-events-none select-none grid grid-cols-1 md:grid-cols-3 gap-6"
+              aria-hidden="true"
+            >
+              {/* Fake Identity Card & Engine Status */}
+              <div className="space-y-6">
+                <div className="glass-card p-5 space-y-4">
+                  <div className="flex items-center gap-3 border-b border-border pb-3">
+                    <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center font-bold text-white">
+                      42
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-foreground">Tony Kart 401R</h3>
+                      <p className="text-xs text-muted-foreground">Moteur IAME X30 125cc</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-foreground">Usure Moteur (12.5h / 15h)</span>
+                        <span className="text-amber-500 font-bold">83%</span>
+                      </div>
+                      <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-amber-500 w-[83%]" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-foreground">Freins Avant</span>
+                        <span className="text-emerald-500 font-bold">65%</span>
+                      </div>
+                      <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 w-[65%]" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="glass-card p-5 space-y-3">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Stock de Pneus</h4>
+                  <div className="p-2.5 rounded-lg bg-background/80 border border-border text-xs flex justify-between text-foreground">
+                    <span>Set #1 Vegas Red (Rodé)</span>
+                    <span className="font-semibold text-primary">3 sessions</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-background/80 border border-border text-xs flex justify-between text-foreground">
+                    <span>Set #2 Mojo D5 (Neuf)</span>
+                    <span className="font-semibold text-emerald-500">0 session</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fake Center/Right Panels: Maintenance & Health */}
+              <div className="md:col-span-2 space-y-6">
+                <div className="glass-card p-6 space-y-4">
+                  <div className="flex items-center justify-between border-b border-border pb-3">
+                    <h3 className="font-bold text-sm text-foreground">Santé Globale & Alertes</h3>
+                    <Badge variant="destructive" className="text-xs">1 Révision Requise</Badge>
+                  </div>
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs">
+                    ⚠️ Révision piston recommandée dans 2h30 de roulage.
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <h4 className="font-bold text-xs text-muted-foreground">Historique d'entretien récent</h4>
+                    <div className="p-3 rounded-xl bg-background/60 border border-border flex justify-between text-xs text-foreground">
+                      <span>Vidange huile de boîte</span>
+                      <span className="text-muted-foreground">Il y a 3 jours</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-background/60 border border-border flex justify-between text-xs text-foreground">
+                      <span>Remplacement bougie NGK R7282</span>
+                      <span className="text-muted-foreground">Il y a 10 jours</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* FOREGROUND OVERLAY (Crisp Net Information & CTA) */}
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-background/70 backdrop-blur-md">
+              <div className="max-w-3xl w-full text-center space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary font-semibold text-xs uppercase tracking-wider animate-pulse">
+                  <Lock className="w-4 h-4" />
+                  <span>Fonctionnalité Déblocable</span>
+                </div>
+
+                <h2 className="text-2xl md:text-4xl font-display font-bold text-foreground">
+                  Gérez votre <span className="text-gradient-primary">Garage Virtuel</span>
+                </h2>
+
+                <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
+                  Anticipez l'usure mécanique de votre matériel et optimisez vos performances en toute sécurité.
+                </p>
+
+                {/* Feature Highlights Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left my-6">
+                  <div className="p-4 rounded-xl bg-card border border-border/80 shadow-lg flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                      <Flame className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">Suivi Moteur & Freins</h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Calcul automatique des heures de fonctionnement et des taux d'usure calculés à chaque fichier CSV uploadé.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-card border border-border/80 shadow-lg flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                      <Disc className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">Gestion du Stock de Pneus</h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Déclarez vos trains de pneus (neufs, rodés, pluie) et suivez le nombre exact de sessions effectuées par chaque train.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-card border border-border/80 shadow-lg flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                      <Wrench className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">Journal d'Entretien</h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Consignez les vidanges, changements de chaînes, bougies et révisions pour conserver un historique limpide.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-card border border-border/80 shadow-lg flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                      <Battery className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">Alertes Mécaniques Préventives</h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Recevez des avertissements personnalisés avant l'atteinte des seuils critiques de maintenance moteur.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Call to Action Buttons */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+                  <Link to="/login?mode=signup" className="w-full sm:w-auto">
+                    <Button size="lg" className="w-full gradient-primary text-primary-foreground font-semibold px-8 gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-all">
+                      <Sparkles className="w-4 h-4" />
+                      Créer mon compte
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                  <Link to="/pricing" className="w-full sm:w-auto">
+                    <Button size="lg" variant="outline" className="w-full border-border hover:bg-muted text-foreground font-medium">
+                      Découvrir les plans
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </Layout>
