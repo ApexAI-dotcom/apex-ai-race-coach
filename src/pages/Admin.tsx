@@ -13,12 +13,41 @@ import {
 } from "@/components/ui/select";
 import {
   ShieldCheck, Users, BarChart3, Ticket, UserCog, Loader2, Plus,
-  Copy, Power, TrendingUp, Inbox, Wrench,
+  Copy, Power, TrendingUp, Inbox, Wrench, Clock, MousePointerClick,
 } from "lucide-react";
+import {
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from "recharts";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { FeedbackAdminPanel } from "@/components/feedback/FeedbackAdminPanel";
+
+const CHART = ["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#a855f7", "#64748b"];
+const TIER_LABELS: Record<string, string> = {
+  rookie: "Gratuit", racer: "Racer", team: "Team", visiteur: "Visiteur", visitor: "Visiteur",
+};
+
+function ChartCard({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
+  return (
+    <Card className="bg-card border-border rounded-2xl">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+          <Icon className="w-4 h-4 text-primary" /> {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  );
+}
+
+const chartTooltip = {
+  contentStyle: {
+    background: "hsl(var(--card))", border: "1px solid hsl(var(--border))",
+    borderRadius: 12, fontSize: 12,
+  },
+};
 
 function StatTile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
@@ -37,6 +66,7 @@ export default function Admin() {
   const [me, setMe] = useState<any>(null);
   const [checking, setChecking] = useState(true);
   const [stats, setStats] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<any>(null);
 
   useEffect(() => {
     const check = async () => {
@@ -46,6 +76,7 @@ export default function Admin() {
         setMe(res);
         if (res.permissions?.includes("stats")) {
           api.getAdminStats(token).then(setStats).catch(() => {});
+          api.getAnalyticsOverview(token, 14).then(setAnalytics).catch(() => {});
         }
       } catch {
         setMe({ is_admin: false });
@@ -137,6 +168,89 @@ export default function Admin() {
                       <StatTile label="Trains déclarés" value={stats.engagement?.tire_sets ?? 0} />
                       <StatTile label="Circuits" value={stats.engagement?.circuits ?? 0} />
                     </div>
+                  </section>
+
+                  {/* Graphiques */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2">
+                      <ChartCard title="Fréquentation (14 derniers jours)" icon={TrendingUp}>
+                        {analytics?.timeline?.length ? (
+                          <ResponsiveContainer width="100%" height={220}>
+                            <AreaChart data={analytics.timeline}>
+                              <defs>
+                                <linearGradient id="v" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#ef4444" stopOpacity={0.4} />
+                                  <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                              <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(d) => d.slice(5)} stroke="hsl(var(--muted-foreground))" />
+                              <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
+                              <Tooltip {...chartTooltip} />
+                              <Area type="monotone" dataKey="views" name="Vues" stroke="#ef4444" strokeWidth={2} fill="url(#v)" />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <p className="text-sm text-muted-foreground text-center py-16">
+                            Les données de navigation apparaîtront ici après quelques visites.
+                          </p>
+                        )}
+                      </ChartCard>
+                    </div>
+
+                    <ChartCard title="Répartition des pilotes" icon={Users}>
+                      {stats.users?.by_tier && Object.keys(stats.users.by_tier).length ? (
+                        <ResponsiveContainer width="100%" height={220}>
+                          <PieChart>
+                            <Pie
+                              data={Object.entries(stats.users.by_tier).map(([k, v]) => ({ name: TIER_LABELS[k] || k, value: v }))}
+                              dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={80} paddingAngle={2}
+                            >
+                              {Object.keys(stats.users.by_tier).map((_, i) => (
+                                <Cell key={i} fill={CHART[i % CHART.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip {...chartTooltip} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-16">Aucune donnée.</p>
+                      )}
+                    </ChartCard>
+                  </div>
+
+                  {/* Analytics de navigation */}
+                  <section className="space-y-3">
+                    <h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
+                      <MousePointerClick className="w-4 h-4" /> Parcours utilisateurs
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <StatTile label="Vues totales" value={analytics?.totals?.views ?? 0} hint="14 derniers jours" />
+                      <StatTile label="Visiteurs connectés" value={analytics?.totals?.unique_signed_in ?? 0} />
+                      <StatTile label="Vues anonymes" value={analytics?.totals?.anonymous_views ?? 0} />
+                      <StatTile
+                        label="Temps moyen / page"
+                        value={analytics?.totals?.avg_time_on_page_s != null ? `${analytics.totals.avg_time_on_page_s}s` : "—"}
+                      />
+                    </div>
+                    <ChartCard title="Pages les plus consultées" icon={Clock}>
+                      {analytics?.top_pages?.length ? (
+                        <ResponsiveContainer width="100%" height={Math.max(180, analytics.top_pages.length * 32)}>
+                          <BarChart data={analytics.top_pages.slice(0, 8)} layout="vertical" margin={{ left: 20 }}>
+                            <XAxis type="number" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
+                            <YAxis type="category" dataKey="path" width={120} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                            <Tooltip {...chartTooltip} formatter={(v: any, n: any, p: any) => [
+                              `${v} vues${p.payload.avg_seconds ? ` · ${p.payload.avg_seconds}s en moy.` : ""}`, "",
+                            ]} />
+                            <Bar dataKey="views" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-10">
+                          Les pages consultées apparaîtront ici bientôt.
+                        </p>
+                      )}
+                    </ChartCard>
                   </section>
 
                   <section className="space-y-3">

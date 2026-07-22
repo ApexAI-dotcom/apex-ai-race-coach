@@ -395,7 +395,7 @@ export default function SetupPage() {
             
             {/* Colonne Gauche (6 colonnes) : Mes réglages, Poids et Mon Kart */}
             <div className="lg:col-span-6 flex flex-col justify-between space-y-8">
-              <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              <div>
                 <SavedSetupsCard
                   refreshKey={refreshKey}
                   onSelectSetup={(setup) => {

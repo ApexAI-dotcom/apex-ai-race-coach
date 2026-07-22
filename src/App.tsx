@@ -19,6 +19,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
+import { usePageTracking } from "./hooks/usePageTracking";
 import Upload from "./pages/Upload";
 import PricingPage from "./pages/PricingPage";
 import Profile from "./pages/Profile";
@@ -43,6 +44,11 @@ function SetupRouteWrapper() {
   if (loading) return null;
   if (!isAuthenticated) return <SetupPreviewPage />;
   return <SetupPage />;
+}
+
+function PageTracker() {
+  usePageTracking();
+  return null;
 }
 
 function ThemeInit() {
@@ -75,6 +81,7 @@ const App = () => (
           <ScrollToTop />
           <AuthProvider>
             <SubscriptionProvider>
+              <PageTracker />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />

@@ -66,6 +66,7 @@ import {
 } from "@/lib/api";
 import { API_BASE_URL } from "@/lib/api";
 import { useSubscription } from "@/hooks/useSubscription";
+import { FeedbackBox } from "@/components/feedback/FeedbackBox";
 
 // Badge color map
 const BADGE_COLORS: Record<string, string> = {
@@ -617,6 +618,9 @@ export default function SubscriberHome() {
           )}
         </div>
       </div>
+
+      {/* Boîte à recommandations — accessible aux pilotes connectés depuis l'accueil */}
+      <FeedbackBox />
 
       {/* Objective Edit Drawer */}
       <Drawer open={!!editingObjective} onOpenChange={(open) => !open && setEditingObjective(null)}>
