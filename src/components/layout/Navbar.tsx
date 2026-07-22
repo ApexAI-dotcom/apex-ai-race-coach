@@ -70,9 +70,9 @@ export const Navbar = () => {
       className={cn(
         "fixed left-0 right-0 z-50 mx-auto w-full transition-all duration-500 ease-in-out transform-gpu border-b",
         scrolled && !isOpen
-          ? "bg-black/80 backdrop-blur-lg border-white/10 shadow-lg shadow-primary/5 md:top-4 md:max-w-5xl md:rounded-2xl"
-          : "bg-black/90 border-white/5 md:top-0 md:max-w-full md:rounded-none",
-        isOpen ? "bg-black/95 border-white/10" : ""
+          ? "bg-background/70 backdrop-blur-xl border-border/80 shadow-lg shadow-primary/5 md:top-4 md:max-w-5xl md:rounded-2xl"
+          : "bg-background/75 backdrop-blur-md border-border/40 md:top-0 md:max-w-full md:rounded-none",
+        isOpen ? "bg-background/95 border-border" : ""
       )}
     >
       <div className="container mx-auto px-4">
@@ -152,7 +152,7 @@ export const Navbar = () => {
                       {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-black/95 border-white/10 backdrop-blur-xl">
+                  <DropdownMenuContent align="end" className="w-56 bg-popover border-border backdrop-blur-xl">
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none text-foreground">
@@ -163,22 +163,22 @@ export const Navbar = () => {
                         </p>
                       </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-white/5" />
-                    <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-foreground cursor-pointer">
+                    <DropdownMenuSeparator className="bg-border" />
+                    <DropdownMenuItem asChild className="focus:bg-muted focus:text-foreground cursor-pointer">
                       <Link to="/profile" className="w-full flex items-center gap-2">
                         <User className="w-4 h-4" />
                         Mon Profil
                       </Link>
                     </DropdownMenuItem>
                     {isAuthenticated && tier !== "rookie" && (
-                      <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-foreground cursor-pointer">
+                      <DropdownMenuItem asChild className="focus:bg-muted focus:text-foreground cursor-pointer">
                         <Link to="/pricing" className="w-full flex items-center gap-2">
                           <Zap className="w-4 h-4 text-primary" />
                           Plans
                         </Link>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuSeparator className="bg-white/5" />
+                    <DropdownMenuSeparator className="bg-border" />
                     <DropdownMenuItem onClick={handleSignOut} className="focus:bg-red-500/10 focus:text-red-500 text-red-400 cursor-pointer">
                       <div className="w-full flex items-center gap-2">
                         <LogOut className="w-4 h-4" />
@@ -213,7 +213,7 @@ export const Navbar = () => {
                   <MenuToggleIcon open={isOpen} className="w-6 h-6" duration={300} />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[350px] bg-black/95 border-l border-white/10 backdrop-blur-xl flex flex-col p-6">
+              <SheetContent side="right" className="w-[300px] sm:w-[350px] bg-background border-l border-border backdrop-blur-xl flex flex-col p-6">
                 <div className="flex items-center gap-2 mb-8 mt-2">
                   <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
                     <Zap className="w-4 h-4 text-primary-foreground" />
@@ -244,7 +244,7 @@ export const Navbar = () => {
                 </div>
 
                 {/* User Account / CTA Section at the Bottom */}
-                <div className="border-t border-white/10 pt-6 mt-auto">
+                <div className="border-t border-border pt-6 mt-auto">
                   {loading ? (
                     <div className="w-full h-10 animate-pulse bg-secondary rounded" />
                   ) : isAuthenticated ? (
@@ -265,7 +265,7 @@ export const Navbar = () => {
                             </AvatarFallback>
                           </Avatar>
                         ) : (
-                          <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
+                          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center border border-border">
                             <User className="w-5 h-5 text-muted-foreground" />
                           </div>
                         )}
@@ -282,7 +282,7 @@ export const Navbar = () => {
                       <div className="flex flex-col gap-2 mt-2">
                         <SheetClose asChild>
                           <Link to="/profile" className="w-full">
-                            <Button variant="outline" className="w-full justify-start gap-2 bg-white/5 border-white/10 hover:bg-white/10">
+                            <Button variant="outline" className="w-full justify-start gap-2 bg-muted/50 border-border hover:bg-muted">
                               <User className="w-4 h-4" />
                               Mon Profil
                             </Button>
@@ -291,7 +291,7 @@ export const Navbar = () => {
                         {tier !== "rookie" && (
                           <SheetClose asChild>
                             <Link to="/pricing" className="w-full">
-                              <Button variant="outline" className="w-full justify-start gap-2 bg-white/5 border-white/10 hover:bg-white/10">
+                              <Button variant="outline" className="w-full justify-start gap-2 bg-muted/50 border-border hover:bg-muted">
                                 <Zap className="w-4 h-4 text-primary" />
                                 Plans
                               </Button>

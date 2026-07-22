@@ -88,7 +88,7 @@ export default function Upload() {
               return (
                 <div
                   key={format.name}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-white/5"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border"
                 >
                   <Icon className="w-5 h-5 text-primary" />
                   <span className="text-sm text-foreground">{format.name}</span>
@@ -130,7 +130,7 @@ export default function Upload() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/5">
+                  <tr className="border-b border-border">
                     <th className="px-4 py-3 text-left text-muted-foreground font-medium">
                       Horodatage
                     </th>
@@ -158,7 +158,7 @@ export default function Upload() {
                   ].map((row, index) => (
                     <tr
                       key={index}
-                      className="border-b border-white/5 last:border-0 hover:bg-white/2"
+                      className="border-b border-border last:border-0 hover:bg-muted/50"
                     >
                       {row.map((cell, cellIndex) => (
                         <td key={cellIndex} className="px-4 py-3 text-foreground">

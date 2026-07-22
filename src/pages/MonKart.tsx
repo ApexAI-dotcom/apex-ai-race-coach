@@ -91,7 +91,7 @@ export default function MonKart() {
     return (
       <Layout>
         <div className="container max-w-4xl mx-auto py-12 px-4">
-          <div className="glass-card p-12 text-center flex flex-col items-center justify-center rounded-2xl border border-white/5 relative overflow-hidden">
+          <div className="glass-card p-12 text-center flex flex-col items-center justify-center rounded-2xl border border-border relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent blur-3xl -z-10" />
             <Wrench className="w-16 h-16 text-primary mb-6 animate-pulse" />
             <h1 className="text-3xl font-display font-bold mb-4">Mon Kart</h1>

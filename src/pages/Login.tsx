@@ -147,7 +147,7 @@ export default function Login() {
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md"
         >
-          <Card className="glass-card border-white/10">
+          <Card className="glass-card border-border">
             <CardHeader className="text-center">
               <CardTitle className="font-display text-2xl font-bold text-foreground">
                 {view === "forgot_password"
@@ -186,7 +186,7 @@ export default function Login() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full border-white/10 bg-secondary/50 hover:bg-secondary/80 text-foreground"
+                    className="w-full border-border bg-secondary/50 hover:bg-secondary/80 text-foreground"
                     onClick={async () => {
                       setGoogleLoading(true);
                       const { error } = await signInGoogle();
@@ -216,9 +216,9 @@ export default function Login() {
                     .
                   </p>
                   <div className="flex items-center gap-3 my-4">
-                    <div className="flex-1 h-px bg-white/10" />
+                    <div className="flex-1 h-px bg-border" />
                     <span className="text-xs text-muted-foreground">ou</span>
-                    <div className="flex-1 h-px bg-white/10" />
+                    <div className="flex-1 h-px bg-border" />
                   </div>
                 </div>
               )}
@@ -235,7 +235,7 @@ export default function Login() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Votre adresse email"
-                      className="bg-secondary/50 border-white/10 text-foreground placeholder:text-muted-foreground"
+                      className="bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground"
                       required
                       disabled={submitLoading}
                     />
@@ -250,7 +250,7 @@ export default function Login() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Votre mot de passe"
-                      className="bg-secondary/50 border-white/10 text-foreground placeholder:text-muted-foreground"
+                      className="bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground"
                       required={!isSignUp}
                       disabled={submitLoading}
                     />
@@ -311,7 +311,7 @@ export default function Login() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Votre adresse email"
-                      className="bg-secondary/50 border-white/10 text-foreground placeholder:text-muted-foreground"
+                      className="bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground"
                       required
                       disabled={submitLoading}
                     />

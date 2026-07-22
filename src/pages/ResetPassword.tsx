@@ -87,7 +87,7 @@ export default function ResetPassword() {
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md"
         >
-          <Card className="glass-card border-white/10">
+          <Card className="glass-card border-border">
             <CardHeader className="text-center">
               <CardTitle className="font-display text-2xl font-bold text-foreground">
                 Nouveau mot de passe
@@ -132,7 +132,7 @@ export default function ResetPassword() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Minimum 8 caractères"
-                        className="bg-secondary/50 border-white/10 text-foreground placeholder:text-muted-foreground pr-10"
+                        className="bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground pr-10"
                         required
                         disabled={!sessionReady || !!error}
                       />
@@ -163,7 +163,7 @@ export default function ResetPassword() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Répète ton mot de passe"
-                      className="bg-secondary/50 border-white/10 text-foreground placeholder:text-muted-foreground"
+                      className="bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground"
                       required
                       disabled={!sessionReady || !!error}
                     />
