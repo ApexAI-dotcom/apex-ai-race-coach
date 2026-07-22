@@ -45,8 +45,10 @@ function ChartCard({ title, icon: Icon, children }: { title: string; icon: any; 
 const chartTooltip = {
   contentStyle: {
     background: "hsl(var(--card))", border: "1px solid hsl(var(--border))",
-    borderRadius: 12, fontSize: 12,
+    borderRadius: 12, fontSize: 12, color: "hsl(var(--foreground))",
   },
+  itemStyle: { color: "hsl(var(--foreground))" },
+  labelStyle: { color: "hsl(var(--muted-foreground))" },
 };
 
 function StatTile({ label, value, hint, icon: Icon, accent }: {

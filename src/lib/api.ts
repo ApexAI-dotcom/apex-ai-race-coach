@@ -1487,6 +1487,9 @@ export async function getPaddockPassStatus(accessToken: string): Promise<any> {
 export async function getAnalyticsOverview(accessToken: string, days = 14): Promise<any> {
   return tireSetFetch(accessToken, `/api/analytics/overview?days=${days}`, "GET");
 }
+export async function getContextStats(accessToken: string, path: string): Promise<any> {
+  return tireSetFetch(accessToken, `/api/admin/context-stats?path=${encodeURIComponent(path)}`, "GET");
+}
 
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
@@ -1550,6 +1553,7 @@ export const api = {
   redeemPaddockPass,
   getPaddockPassStatus,
   getAnalyticsOverview,
+  getContextStats,
   getTireSets,
   createTireSet,
   updateTireSet,

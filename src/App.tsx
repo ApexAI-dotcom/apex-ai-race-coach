@@ -20,6 +20,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import { usePageTracking } from "./hooks/usePageTracking";
+import { AdminStatsWidget } from "./components/admin/AdminStatsWidget";
 import Upload from "./pages/Upload";
 import PricingPage from "./pages/PricingPage";
 import Profile from "./pages/Profile";
@@ -90,6 +91,7 @@ const App = () => (
           <AuthProvider>
             <SubscriptionProvider>
               <PageTracker />
+              <AdminStatsWidget />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
