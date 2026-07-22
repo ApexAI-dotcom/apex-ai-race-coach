@@ -35,6 +35,7 @@ import NotFound from "./pages/NotFound";
 import MonKart from "./pages/MonKart";
 import SetupPage from "./pages/SetupPage";
 import { SetupPreviewPage } from "./pages/SetupPreviewPage";
+import { MonKartPreviewPage } from "./pages/MonKartPreviewPage";
 import { useAuth } from "@/hooks/useAuth";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,13 @@ function SetupRouteWrapper() {
   if (loading) return null;
   if (!isAuthenticated) return <SetupPreviewPage />;
   return <SetupPage />;
+}
+
+function MonKartRouteWrapper() {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return null;
+  if (!isAuthenticated) return <MonKartPreviewPage />;
+  return <MonKart />;
 }
 
 function PageTracker() {
@@ -125,7 +133,7 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/mon-kart" element={<MonKart />} />
+                <Route path="/mon-kart" element={<MonKartRouteWrapper />} />
                 <Route path="/setup" element={<SetupRouteWrapper />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

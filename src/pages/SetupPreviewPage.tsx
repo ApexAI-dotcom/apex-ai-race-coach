@@ -1,231 +1,137 @@
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Layout } from "@/components/layout/Layout";
-import { PageMeta } from "@/components/seo/PageMeta";
-import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Wrench,
-  FileText,
-  History,
-  Gauge,
-  Thermometer,
-  CloudSun,
-  Lock,
-  Sparkles,
-  ArrowRight,
-  Sliders,
-  CheckCircle2,
+  Sliders, Disc3, Wrench, Gauge, Sparkles, FileText, History, Scale,
+  MapPin, Cpu,
 } from "lucide-react";
+import { PreviewShell, PreviewFeature } from "@/components/preview/PreviewShell";
+
+const FEATURES: PreviewFeature[] = [
+  {
+    icon: Sparkles,
+    title: "Recommandations d'ingénieur",
+    description:
+      "Pressions, voies, chasse, arbre, transmission, carburation : ApexAI calcule un réglage de base pour CE circuit et CES conditions, avec l'explication physique de chaque choix.",
+  },
+  {
+    icon: Disc3,
+    title: "Pneu monté & pressions ciblées",
+    description:
+      "Le train monté depuis ton stock alimente les pressions à froid et à chaud selon les abaques constructeur (Vega, MG, LeCont…) et la météo.",
+  },
+  {
+    icon: Scale,
+    title: "Bilan des masses automatique",
+    description:
+      "Poids kart + pilote estimé depuis ton garage, marge de conformité au poids mini règlement, gestion du lest.",
+  },
+  {
+    icon: FileText,
+    title: "Fiche de réglages PDF",
+    description:
+      "Exporte une fiche A4 « Esprit Paddock » avec toutes tes constantes, à imprimer et annoter dans les stands.",
+  },
+];
+
+/* Rendu réaliste (fausses données) de la page Réglages, affiché flouté en fond. */
+function SetupMock() {
+  const field = (label: string, value: string) => (
+    <div className="space-y-1">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <div className="h-9 rounded-lg border border-border bg-background/50 flex items-center px-3 text-sm text-foreground">{value}</div>
+      <Badge className="bg-primary/10 text-primary border border-primary/20 rounded-full text-[9px]">Recommandation</Badge>
+    </div>
+  );
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Colonne gauche */}
+      <div className="space-y-6">
+        <Card className="p-5 bg-card border-border rounded-2xl">
+          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border">
+            <History className="w-5 h-5 text-primary" /><span className="font-semibold">Mes Réglages</span>
+          </div>
+          {["Qualif pluie — Adria", "Course sec — Le Mans", "Warm-up — Varennes"].map((s) => (
+            <div key={s} className="py-3 border-b border-border/50">
+              <p className="text-sm font-medium">{s}</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1"><MapPin className="w-3 h-3" /> 19/07/2026</p>
+            </div>
+          ))}
+        </Card>
+        <Card className="p-5 bg-card border-border rounded-2xl">
+          <div className="flex items-center gap-2 mb-3"><Scale className="w-5 h-5 text-primary" /><span className="font-semibold">Bilan Poids</span></div>
+          <p className="text-3xl font-bold text-center">154 <span className="text-sm text-muted-foreground">kg</span></p>
+          <Badge className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full mx-auto block w-fit mt-2">CONFORME · +4 kg</Badge>
+        </Card>
+      </div>
+
+      {/* Colonne centrale */}
+      <div className="space-y-6">
+        <Card className="p-5 bg-card border-border rounded-2xl">
+          <div className="flex items-center gap-2 mb-4"><MapPin className="w-5 h-5 text-primary" /><span className="font-semibold">Circuit</span></div>
+          <p className="text-lg font-semibold">Adria Karting Raceway</p>
+          <div className="flex flex-wrap gap-2 mt-3">
+            {["Rapide", "Horaire", "0 Épingle", "5 Courbes rapides"].map((t) => (
+              <Badge key={t} className="bg-muted text-foreground border border-border rounded-full text-xs">{t}</Badge>
+            ))}
+          </div>
+        </Card>
+        <Card className="p-5 bg-card border-border rounded-2xl">
+          <div className="flex items-center gap-2 mb-4"><Disc3 className="w-5 h-5 text-primary" /><span className="font-semibold">Pneumatiques</span></div>
+          <div className="grid grid-cols-2 gap-4">
+            {field("Pression AV", "0.72 bar")}
+            {field("Pression AR", "0.70 bar")}
+          </div>
+        </Card>
+      </div>
+
+      {/* Colonne droite */}
+      <div className="space-y-6">
+        <Card className="p-5 bg-card border-border rounded-2xl">
+          <div className="flex items-center gap-2 mb-4"><Wrench className="w-5 h-5 text-primary" /><span className="font-semibold">Châssis & Géométrie</span></div>
+          <div className="grid grid-cols-2 gap-4">
+            {field("Voie AV", "118 cm")}
+            {field("Voie AR", "1400 mm")}
+            {field("Chasse", "Neutre")}
+            {field("Arbre", "Médium")}
+          </div>
+        </Card>
+        <Card className="p-5 bg-card border-border rounded-2xl">
+          <div className="flex items-center gap-2 mb-4"><Cpu className="w-5 h-5 text-primary" /><span className="font-semibold">Transmission</span></div>
+          <div className="grid grid-cols-2 gap-4">
+            {field("Pignon", "12 dents")}
+            {field("Couronne", "79 dents")}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
 export function SetupPreviewPage() {
   return (
-    <Layout>
-      <PageMeta
-        title="Réglages & Assistant Ingénieur IA | ApexAI"
-        description="Optimisez les réglages de votre kart (pressions, hauteurs, carburation) grâce à notre assistant ingénieur intelligent."
-        path="/setup"
-      />
-
-      <div className="container max-w-6xl mx-auto py-8 px-4 relative min-h-[85vh] flex flex-col justify-center">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
-            <Sliders className="w-3.5 h-3.5 text-primary" />
-            <span>Assistant Ingénieur Piste</span>
-          </div>
-          <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-3">
-            Réglages <span className="text-gradient-primary">Châssis & Moteur</span>
-          </h1>
-          <p className="text-muted-foreground max-w-xl mx-auto text-sm md:text-base">
-            Calculez et sauvegardez les réglages idéaux pour votre karting selon la météo et le tracé.
-          </p>
-        </motion.div>
-
-        {/* Main Interactive Showcase Area */}
-        <div className="relative rounded-3xl overflow-hidden border border-border bg-card/40 p-4 md:p-8">
-          {/* MOCK BACKGROUND (Blurred & Non-interactive) */}
-          <div
-            className="filter blur-md opacity-30 pointer-events-none select-none grid grid-cols-1 lg:grid-cols-3 gap-6"
-            aria-hidden="true"
-          >
-            {/* Fake Left Panel: Circuit & Weather */}
-            <div className="space-y-6">
-              <div className="glass-card p-5 space-y-4">
-                <div className="flex items-center justify-between border-b border-border pb-3">
-                  <div className="flex items-center gap-2">
-                    <CloudSun className="w-5 h-5 text-primary" />
-                    <span className="font-bold text-sm">Conditions Piste</span>
-                  </div>
-                  <Badge variant="outline" className="text-xs">Sèche</Badge>
-                </div>
-                <div className="space-y-2 text-xs text-muted-foreground">
-                  <div className="flex justify-between">
-                    <span>Circuit:</span>
-                    <span className="font-medium text-foreground">Angerville (1200m)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Temp. Air:</span>
-                    <span className="font-medium text-foreground">22°C</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Temp. Piste:</span>
-                    <span className="font-medium text-foreground">28°C</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-card p-5 space-y-3">
-                <div className="flex items-center gap-2 border-b border-border pb-3 font-bold text-sm">
-                  <History className="w-4 h-4 text-primary" />
-                  Mes Setups Sauvegardés
-                </div>
-                <div className="space-y-2 text-xs">
-                  <div className="p-2 rounded bg-muted/50 flex justify-between">
-                    <span>Setup Sèche Finale</span>
-                    <span className="text-muted-foreground">14/06/2026</span>
-                  </div>
-                  <div className="p-2 rounded bg-muted/50 flex justify-between">
-                    <span>Setup Pluie Manches</span>
-                    <span className="text-muted-foreground">02/05/2026</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Fake Center Panel: Recommendations */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="glass-card p-6 space-y-6">
-                <div className="flex items-center justify-between border-b border-border pb-4">
-                  <div>
-                    <h3 className="font-bold text-lg">Recommandations Châssis IA</h3>
-                    <p className="text-xs text-muted-foreground">Calculé pour KZ2 / IAME X30</p>
-                  </div>
-                  <Button size="sm" variant="outline" className="gap-2">
-                    <FileText className="w-4 h-4" /> Export PDF
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-                  <div className="p-3 rounded-xl bg-background/80 border border-border">
-                    <span className="text-muted-foreground block mb-1">Pression Froid</span>
-                    <span className="font-bold text-sm text-primary">AV: 0.58 / AR: 0.55</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-background/80 border border-border">
-                    <span className="text-muted-foreground block mb-1">Pression Chaud</span>
-                    <span className="font-bold text-sm text-foreground">AV: 0.68 / AR: 0.65</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-background/80 border border-border">
-                    <span className="text-muted-foreground block mb-1">Hauteur Caisse</span>
-                    <span className="font-bold text-sm text-foreground">AV Std / AR Basse</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-background/80 border border-border">
-                    <span className="text-muted-foreground block mb-1">Carrossage</span>
-                    <span className="font-bold text-sm text-foreground">-1.5° (Neutre)</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-background/80 border border-border">
-                    <span className="text-muted-foreground block mb-1">Démultiplication</span>
-                    <span className="font-bold text-sm text-foreground">12 x 82 (Ratio 6.83)</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-background/80 border border-border">
-                    <span className="text-muted-foreground block mb-1">Carburation</span>
-                    <span className="font-bold text-sm text-foreground">Gicleur 162</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* FOREGROUND OVERLAY (Crisp Net Information & CTA) */}
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-background/70 backdrop-blur-md">
-            <div className="max-w-3xl w-full text-center space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary font-semibold text-xs uppercase tracking-wider animate-pulse">
-                <Lock className="w-4 h-4" />
-                <span>Fonctionnalité Réservée aux Pilotes</span>
-              </div>
-
-              <h2 className="text-2xl md:text-4xl font-display font-bold text-foreground">
-                Débloquez votre <span className="text-gradient-primary">Ingénieur Virtuel</span>
-              </h2>
-
-              <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
-                Accédez à l'outil complet de recommandations de réglages et exportez vos fiches de travail pour le paddock.
-              </p>
-
-              {/* Feature Cards Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left my-6">
-                <div className="p-4 rounded-xl bg-card border border-border/80 shadow-lg flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                    <Gauge className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-foreground">Recommandations IA</h4>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Calcul dynamique des pressions à froid/chaud, hauteurs et alignement selon les températures.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-card border border-border/80 shadow-lg flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-foreground">Fiche Piste PDF</h4>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Exportez et imprimez une fiche technique complète et lisible à emporter dans votre paddock.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-card border border-border/80 shadow-lg flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                    <History className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-foreground">Historique & Carnet</h4>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Enregistrez et comparez l'efficacité de tous vos réglages passés selon les circuits.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-card border border-border/80 shadow-lg flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                    <Wrench className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-foreground">Démultiplication & Carburation</h4>
-                    <p className="text-sm text-muted-foreground text-xs mt-1">
-                      Ajustez pignons, couronnes et gicleurs adaptés au profil rapide ou technique du tracé.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Call to Actions */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-                <Link to="/login?mode=signup" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full gradient-primary text-primary-foreground font-semibold px-8 gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-all">
-                    <Sparkles className="w-4 h-4" />
-                    Créer mon compte
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-                <Link to="/pricing" className="w-full sm:w-auto">
-                  <Button size="lg" variant="outline" className="w-full border-border hover:bg-muted text-foreground font-medium">
-                    Voir les tarifs
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Layout>
+    <PreviewShell
+      meta={{
+        title: "Réglages & Assistant Ingénieur IA | ApexAI",
+        description: "Réglages de kart optimisés par un assistant ingénieur : pressions, géométrie, transmission et carburation selon la météo et le tracé.",
+        path: "/setup",
+      }}
+      eyebrowIcon={Sliders}
+      eyebrow="Assistant Ingénieur Piste"
+      titleLead="Le réglage parfait,"
+      titleAccent="calculé pour ta session"
+      subtitle="Météo, grip, circuit mesuré, matériel de ton garage : ApexAI en déduit un réglage de base complet et t'explique le pourquoi de chaque choix — comme un ingénieur de course."
+      mock={<SetupMock />}
+      features={FEATURES}
+      bullets={[
+        "Un réglage adapté à chaque circuit et météo",
+        "Recommandations expliquées, pas des chiffres bruts",
+        "Fiche PDF prête pour le stand",
+        "Historique de tous tes réglages",
+      ]}
+      ctaTitle="Débloque ton ingénieur de course"
+      ctaSubtitle="Crée ton compte pour générer tes premiers réglages et les emporter en piste."
+    />
   );
 }
+
+export default SetupPreviewPage;
