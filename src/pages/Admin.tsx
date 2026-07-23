@@ -13,8 +13,10 @@ import {
 } from "@/components/ui/select";
 import {
   ShieldCheck, Users, BarChart3, Ticket, UserCog, Loader2, Plus,
-  Copy, Power, TrendingUp, Inbox, Wrench, Clock, MousePointerClick,
+  Copy, Power, TrendingUp, Inbox, Wrench, Clock, MousePointerClick, QrCode,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { QRCodeSVG } from "qrcode.react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -299,6 +301,7 @@ function PaddockPassPanel({ token }: { token: string }) {
   const [label, setLabel] = useState("");
   const [hours, setHours] = useState("24");
   const [maxRed, setMaxRed] = useState("");
+  const [qrCode, setQrCode] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -395,6 +398,9 @@ function PaddockPassPanel({ token }: { token: string }) {
                   </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setQrCode(c.code)} title="Afficher le QR">
+                    <QrCode className="w-4 h-4" />
+                  </Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copy(c.code)} title="Copier">
                     <Copy className="w-4 h-4" />
                   </Button>
@@ -416,6 +422,27 @@ function PaddockPassPanel({ token }: { token: string }) {
           )}
         </CardContent>
       </Card>
+
+      {/* QR d'un code : à afficher/imprimer sur les circuits */}
+      <Dialog open={!!qrCode} onOpenChange={(o) => !o && setQrCode(null)}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Paddock Pass</DialogTitle>
+            <DialogDescription>Un flash → compte créé → Premium activé.</DialogDescription>
+          </DialogHeader>
+          {qrCode && (
+            <div className="flex flex-col items-center gap-4 py-2">
+              <div className="bg-white p-4 rounded-2xl">
+                <QRCodeSVG value={`${window.location.origin}/redeem?code=${qrCode}`} size={200} level="M" />
+              </div>
+              <code className="font-mono font-bold text-primary text-lg">{qrCode}</code>
+              <p className="text-[11px] text-muted-foreground text-center">
+                {window.location.origin}/redeem?code={qrCode}
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

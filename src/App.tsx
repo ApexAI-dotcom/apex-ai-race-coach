@@ -21,6 +21,7 @@ import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import { usePageTracking } from "./hooks/usePageTracking";
 import { AdminStatsWidget } from "./components/admin/AdminStatsWidget";
+import RedeemPage from "./pages/RedeemPage";
 import Upload from "./pages/Upload";
 import PricingPage from "./pages/PricingPage";
 import Profile from "./pages/Profile";
@@ -117,6 +118,7 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/redeem" element={<RedeemPage />} />
                 <Route path="/upload" element={<Upload />} />
                 <Route
                   path="/profile"
