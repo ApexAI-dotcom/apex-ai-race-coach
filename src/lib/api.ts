@@ -1490,6 +1490,10 @@ export async function getAnalyticsOverview(accessToken: string, days = 14): Prom
 export async function getContextStats(accessToken: string, path: string): Promise<any> {
   return tireSetFetch(accessToken, `/api/admin/context-stats?path=${encodeURIComponent(path)}`, "GET");
 }
+// Filet de sécurité post-paiement (indépendant du webhook Stripe)
+export async function reconcileCheckout(accessToken: string, sessionId: string): Promise<any> {
+  return tireSetFetch(accessToken, "/api/stripe/reconcile", "POST", { session_id: sessionId });
+}
 
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
@@ -1554,6 +1558,7 @@ export const api = {
   getPaddockPassStatus,
   getAnalyticsOverview,
   getContextStats,
+  reconcileCheckout,
   getTireSets,
   createTireSet,
   updateTireSet,

@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, reconcileCheckout } from "@/lib/api";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_DURATION_MS = 60000;
@@ -223,9 +223,28 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     fetchSubscription();
 
-    // Si on vient de payer (success=true dans l'URL), on poll pendant quelques secondes
-    // pour s'assurer que le webhook Stripe a bien mis à jour la BDD.
+    // Si on vient de payer (success=true dans l'URL), on réconcilie DIRECTEMENT
+    // via le session_id — indépendant du webhook Stripe. C'est le filet de
+    // sécurité qui garantit que l'abonnement est bien lié au compte même si
+    // le webhook n'est jamais livré. On garde ensuite un léger polling de
+    // repli au cas où (webhook plus rapide, propagation, etc.).
     if (searchParams.get("success") === "true") {
+      const sessionId = searchParams.get("session_id");
+      const token = tokenRef.current;
+      let cancelled = false;
+
+      const reconcileThenRefresh = async () => {
+        if (sessionId && token) {
+          try {
+            await reconcileCheckout(token, sessionId);
+          } catch (e) {
+            console.warn("[Subscription] reconcile échoué, on retombe sur le polling", e);
+          }
+        }
+        if (!cancelled) await fetchSubscription();
+      };
+      reconcileThenRefresh();
+
       const startTime = Date.now();
       const interval = setInterval(async () => {
         await fetchSubscription();
@@ -234,10 +253,14 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
           // On nettoie l'URL pour éviter de poll à nouveau au refresh
           const newParams = new URLSearchParams(searchParams);
           newParams.delete("success");
+          newParams.delete("session_id");
           setSearchParams(newParams, { replace: true });
         }
       }, POLL_INTERVAL_MS);
-      return () => clearInterval(interval);
+      return () => {
+        cancelled = true;
+        clearInterval(interval);
+      };
     }
   }, [fetchSubscription, searchParams, setSearchParams]);
 
