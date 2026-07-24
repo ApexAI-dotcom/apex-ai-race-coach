@@ -22,12 +22,18 @@
       body { background-color: #0A0A0C; }
     </style>
     <script>
+      /*
+       * Service worker DÉSACTIVÉ : il causait des états périmés (écran noir
+       * après déploiement, ancien tier affiché...). Ce script désinscrit tout
+       * SW existant et purge ses caches — auto-répare les navigateurs coincés.
+       */
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker registered', reg))
-            .catch(err => console.error('Service Worker registration failed', err));
-        });
+        navigator.serviceWorker.getRegistrations()
+          .then(regs => regs.forEach(r => r.unregister()))
+          .catch(() => {});
+        if (window.caches && caches.keys) {
+          caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(() => {});
+        }
       }
     </script>
 
