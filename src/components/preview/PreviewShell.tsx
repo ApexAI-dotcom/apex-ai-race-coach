@@ -4,6 +4,7 @@ import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Button } from "@/components/ui/button";
 import { Lock, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 /**
  * Base visuelle commune aux pages vitrines (Mon Kart / Réglages), pour que
@@ -40,6 +41,7 @@ export function PreviewShell({
   meta, eyebrowIcon: Eyebrow, eyebrow, titleLead, titleAccent, subtitle,
   mock, features, bullets, ctaTitle, ctaSubtitle,
 }: PreviewShellProps) {
+  const { isAuthenticated } = useAuth();
   return (
     <Layout>
       <PageMeta title={meta.title} description={meta.description} path={meta.path} />
@@ -100,7 +102,11 @@ export function PreviewShell({
                 <Lock className="w-5 h-5 text-primary" />
               </div>
               <h2 className="text-xl md:text-2xl font-display font-bold text-foreground mb-2">{ctaTitle}</h2>
-              <p className="text-sm text-muted-foreground mb-5">{ctaSubtitle}</p>
+              <p className="text-sm text-muted-foreground mb-5">
+                {isAuthenticated
+                  ? "Passe à l'offre Racer pour débloquer cette fonctionnalité et l'emporter en piste."
+                  : ctaSubtitle}
+              </p>
 
               <ul className="text-left space-y-2 mb-6 max-w-xs mx-auto">
                 {bullets.map((b) => (
@@ -112,18 +118,29 @@ export function PreviewShell({
               </ul>
 
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                <Button asChild size="lg" className="gap-2">
-                  <Link to="/login?mode=signup">
-                    <Sparkles className="w-4 h-4" />
-                    Créer mon compte
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="gap-2">
-                  <Link to="/login">
-                    Se connecter
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </Button>
+                {isAuthenticated ? (
+                  <Button asChild size="lg" className="gap-2">
+                    <Link to="/pricing">
+                      <Sparkles className="w-4 h-4" />
+                      Découvrir les plans
+                    </Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button asChild size="lg" className="gap-2">
+                      <Link to="/login?mode=signup">
+                        <Sparkles className="w-4 h-4" />
+                        Créer mon compte
+                      </Link>
+                    </Button>
+                    <Button asChild size="lg" variant="outline" className="gap-2">
+                      <Link to="/login">
+                        Se connecter
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>

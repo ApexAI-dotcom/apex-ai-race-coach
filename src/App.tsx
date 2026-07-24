@@ -14,7 +14,7 @@ function ScrollToTop() {
   return null;
 }
 import { AuthProvider } from "@/hooks/useAuth";
-import { SubscriptionProvider } from "@/hooks/useSubscription.tsx";
+import { SubscriptionProvider, useSubscription } from "@/hooks/useSubscription.tsx";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -44,15 +44,18 @@ const queryClient = new QueryClient();
 
 function SetupRouteWrapper() {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return null;
-  if (!isAuthenticated) return <SetupPreviewPage />;
+  const { tier, isLoading } = useSubscription();
+  if (loading || (isAuthenticated && isLoading)) return null;
+  // Vitrine pour les non-abonnés (visiteurs ET rookies), vraie page pour Racer/Team.
+  if (!isAuthenticated || tier === "rookie" || tier === "visitor") return <SetupPreviewPage />;
   return <SetupPage />;
 }
 
 function MonKartRouteWrapper() {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return null;
-  if (!isAuthenticated) return <MonKartPreviewPage />;
+  const { tier, isLoading } = useSubscription();
+  if (loading || (isAuthenticated && isLoading)) return null;
+  if (!isAuthenticated || tier === "rookie" || tier === "visitor") return <MonKartPreviewPage />;
   return <MonKart />;
 }
 

@@ -9,7 +9,6 @@ import { CircuitCard } from '@/components/setup/CircuitCard';
 import { WeightCard } from '@/components/setup/WeightCard';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/components/ui/use-toast';
 import { Layout } from '@/components/layout/Layout';
 import { PageMeta } from '@/components/seo/PageMeta';
@@ -83,7 +82,6 @@ const defaultSetupState: SetupState = {
 
 export default function SetupPage() {
   const { session } = useAuth();
-  const { tier } = useSubscription();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
@@ -375,31 +373,6 @@ export default function SetupPage() {
 
   const enginePreset = ENGINE_PRESETS.find(p => p.name === profile?.engine_model);
   const engineCategory = enginePreset ? enginePreset.category : (profile?.engine_model || 'X30 Senior');
-
-  // Réglages est une fonctionnalité premium (comme Mon Kart) : les rookies
-  // voient l'invitation à passer à l'offre supérieure.
-  if (tier === "rookie" || tier === "visitor") {
-    return (
-      <Layout>
-        <PageMeta title="Carnet d'Ingénieur | ApexAI" description="Assistant ingénieur de réglages ApexAI." />
-        <div className="container max-w-4xl mx-auto py-12 px-4">
-          <div className="glass-card p-12 text-center flex flex-col items-center justify-center rounded-2xl border border-border relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent blur-3xl -z-10" />
-            <Wrench className="w-16 h-16 text-primary mb-6 animate-pulse" />
-            <h1 className="text-3xl font-display font-bold mb-4">Carnet d'Ingénieur</h1>
-            <p className="text-muted-foreground mb-8 max-w-md">
-              L'assistant de réglages ApexAI calcule pressions, géométrie, transmission et
-              carburation pour chaque circuit et chaque météo, et t'explique le pourquoi de
-              chaque choix. Débloque-le en passant au plan Racer.
-            </p>
-            <Button size="lg" className="gradient-primary text-primary-foreground font-semibold" onClick={() => navigate("/pricing")}>
-              Découvrir les plans
-            </Button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>

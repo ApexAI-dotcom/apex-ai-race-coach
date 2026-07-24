@@ -145,11 +145,10 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (!res.ok) throw new Error("Failed to fetch subscription");
 
       const data: SubscriptionResponse = await res.json();
-      let processedTier = data.tier || "rookie";
-
-      if (user?.email === "moreauy58@gmail.com" || localStorage.getItem("userRole") === "admin") {
-        processedTier = "team";
-      }
+      // Le tier vient UNIQUEMENT du backend (source de vérité). Plus aucun
+      // forçage "team" en dur par email/localStorage — c'était la cause du
+      // tier fantôme qui ne suivait pas la base.
+      const processedTier = data.tier || "rookie";
 
       let allowedCircuit = data.limits?.allowed_circuit;
       let realAnalysesUsed = data.limits?.analyses_used || 0;
@@ -197,8 +196,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         JSON.stringify({ ...data, limits: processedLimits, _ts: Date.now() })
       );
     } catch {
-      // Fallback rookie
-      const fallbackTier = (user?.email === "moreauy58@gmail.com" || localStorage.getItem("userRole") === "admin") ? "team" : "rookie";
+      // Fallback rookie (plus de forçage team en dur)
+      const fallbackTier = "rookie";
       setTier(fallbackTier);
       setLimits(
         (prev) =>
