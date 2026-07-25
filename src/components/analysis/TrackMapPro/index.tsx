@@ -153,7 +153,8 @@ export function TrackMapPro({
               : ""}
             . Tu l'as déjà fait — mais pas dans le même tour.
             {racingLineMeta?.corners_total != null &&
-              ` La trajectoire jaune respecte les ${racingLineMeta.corners_total} virages du circuit.`}
+              racingLineMeta.corners_preserved === racingLineMeta.corners_total &&
+              " La trajectoire jaune reste dans les limites de piste et ne raccourcit aucun virage."}
           </p>
         </div>
       )}
