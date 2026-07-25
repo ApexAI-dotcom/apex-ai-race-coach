@@ -440,7 +440,13 @@ function TrackMapCanvasComponent({
   /** Mini-secteurs colorés par temps perdu (profil « Mini-secteurs »). */
   const sectorsLayer = useMemo(() => {
     if (profile !== "sectors" || !sectorSegments?.length) return null;
-    const worst = [...sectorSegments].sort((a, b) => b.loss - a.loss).slice(0, 3);
+    // Une étiquette par virage, affichant le TOTAL perdu sur ce virage —
+    // exactement le chiffre repris dans les conseils de coaching. On garde les
+    // 5 virages les plus coûteux pour ne pas saturer la carte.
+    const labelled = sectorSegments
+      .filter((s) => s.label && s.cornerTotal > 0.01)
+      .sort((a, b) => b.cornerTotal - a.cornerTotal)
+      .slice(0, 5);
     return (
       <g className="sectors-layer pointer-events-none">
         {sectorSegments.map((s, i) => (
@@ -454,26 +460,31 @@ function TrackMapCanvasComponent({
             opacity={0.95}
           />
         ))}
-        {/* On étiquette uniquement les 3 secteurs les plus coûteux : le pilote
-            doit savoir OÙ agir, pas lire 50 chiffres. */}
-        {worst
-          .filter((s) => s.loss > 0.01)
-          .map((s, i) => (
-            <g key={`secl-${i}`} transform={`translate(${s.midX.toFixed(1)},${s.midY.toFixed(1)})`}>
-              <rect x={-22} y={-9} width={44} height={18} rx={9} fill="rgba(0,0,0,0.78)" stroke={s.color} strokeWidth={1.5} />
-              <text
-                x={0}
-                y={4}
-                textAnchor="middle"
-                fill="#fff"
-                fontSize="10"
-                fontWeight="700"
-                fontFamily="'Space Grotesk', sans-serif"
-              >
-                {s.label}
-              </text>
-            </g>
-          ))}
+        {labelled.map((s, i) => (
+          <g key={`secl-${i}`} transform={`translate(${s.midX.toFixed(1)},${s.midY.toFixed(1)})`}>
+            <rect
+              x={-34}
+              y={-9}
+              width={68}
+              height={18}
+              rx={9}
+              fill="rgba(0,0,0,0.82)"
+              stroke={s.color}
+              strokeWidth={1.5}
+            />
+            <text
+              x={0}
+              y={4}
+              textAnchor="middle"
+              fill="#fff"
+              fontSize="10"
+              fontWeight="700"
+              fontFamily="'Space Grotesk', sans-serif"
+            >
+              {s.label}
+            </text>
+          </g>
+        ))}
       </g>
     );
   }, [profile, sectorSegments]);

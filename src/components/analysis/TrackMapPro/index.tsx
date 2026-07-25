@@ -261,6 +261,7 @@ export function TrackMapPro({
           trackWidthM={racingLineMeta?.track_width_m}
           trackWidthSource={racingLineMeta?.track_width_source}
           hasRibbon={!!data?.trackRibbonPath}
+          hasBrakingPoints={!!data?.brakingPoints?.length}
         />
       </div>
     </div>

@@ -21,6 +21,7 @@ interface TrackMapLegendProps {
   trackWidthM?: number;
   trackWidthSource?: string;
   hasRibbon?: boolean;
+  hasBrakingPoints?: boolean;
 }
 
 /** Un repère de la carte, expliqué. Sans légende, un point coloré ne veut rien dire. */
@@ -58,6 +59,7 @@ export function TrackMapLegend({
   trackWidthM,
   trackWidthSource,
   hasRibbon,
+  hasBrakingPoints,
 }: TrackMapLegendProps) {
   return (
     <div className="flex flex-wrap items-start gap-x-4 gap-y-1.5 px-2 py-1.5 text-[10px] leading-snug text-muted-foreground">
@@ -146,34 +148,20 @@ export function TrackMapLegend({
             hint="la portion qui te coûte le plus de temps — à travailler en priorité"
           />
           <LegendItem
-            swatch={<span className="block px-1 rounded bg-black/70 border border-white/30 text-[8px] text-white">+0.12s</span>}
+            swatch={<span className="block px-1 rounded bg-black/70 border border-white/30 text-[8px] text-white">V9 +0.27s</span>}
             label="Étiquette"
-            hint="secondes perdues par tour sur cette portion, mesurées sur tes chronos"
+            hint="total perdu sur ce virage (approche, courbe et relance comprises) — c'est exactement le chiffre repris dans les conseils de coaching"
           />
         </>
       )}
 
-      {/* Repères de freinage : le seul repère utilisable en piste */}
-      {(profile === "complete" || profile === "braking") && (
-        <>
-          <LegendItem
-            swatch={
-              <span className="block w-3 h-3 rounded-full border-2 border-emerald-500" />
-            }
-            label="Point de freinage"
-            hint="là où tu commences réellement à freiner ; l'étiquette donne la distance jusqu'à l'apex — comptable en piste depuis un repère fixe"
-          />
-          <LegendItem
-            swatch={<Dot color="#f59e0b" />}
-            label="Freinage anticipé"
-            hint="tu freines plus tôt que nécessaire pour ta puissance de freinage réelle"
-          />
-          <LegendItem
-            swatch={<Dot color="#ef4444" />}
-            label="Freinage tardif"
-            hint="tu freines après le point optimal : tu corriges dans le virage et perds la relance"
-          />
-        </>
+      {/* Repères de freinage : affichés seulement s'ils existent réellement */}
+      {hasBrakingPoints && (profile === "complete" || profile === "braking") && (
+        <LegendItem
+          swatch={<span className="block w-3 h-3 rounded-full border-2 border-emerald-500" />}
+          label={`Point de freinage « V5 · 32m »`}
+          hint="cercle = là où tu commences réellement à freiner, l'étiquette = distance jusqu'à l'apex de ce virage (à compter en piste depuis un repère fixe). Vert : bien placé · orange : tu freines trop tôt · rouge : trop tard"
+        />
       )}
 
       {/* Repères permanents : ils sont sur toutes les vues */}

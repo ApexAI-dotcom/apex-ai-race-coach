@@ -164,7 +164,8 @@ export function useTrackMap(
     // le long du tour de référence, proportionnellement à la distance parcourue.
     // Le pilote voit ainsi OÙ, physiquement, le temps lui échappe.
     let sectorSegments: {
-      path: string; loss: number; color: string; midX: number; midY: number; label: string;
+      path: string; loss: number; color: string; midX: number; midY: number;
+      label: string; cornerTotal: number;
     }[] = [];
     const sectors = idealLap?.sectors ?? [];
     const refLapForSectors =
@@ -176,6 +177,23 @@ export function useTrackMap(
       const totalM = sectors[sectors.length - 1]?.end_m || 0;
       const maxLoss = Math.max(...sectors.map((s) => s.loss_s || 0), 0);
       if (totalM > 0 && n > 3) {
+        // Total perdu PAR VIRAGE : c'est ce chiffre que le pilote lit dans les
+        // conseils. Les étiquettes de la carte doivent afficher exactement le
+        // même, sinon les deux écrans se contredisent.
+        const lossByCorner = new Map<number, number>();
+        for (const s of sectors) {
+          if (s.corner_id == null) continue;
+          lossByCorner.set(s.corner_id, (lossByCorner.get(s.corner_id) ?? 0) + (s.loss_s || 0));
+        }
+        // Une seule étiquette par virage, posée sur son secteur le plus coûteux.
+        const labelSectorByCorner = new Map<number, number>();
+        for (const s of sectors) {
+          if (s.corner_id == null || !s.in_corner) continue;
+          const cur = labelSectorByCorner.get(s.corner_id);
+          const curLoss = cur == null ? -1 : sectors[cur]?.loss_s ?? -1;
+          if ((s.loss_s || 0) > curLoss) labelSectorByCorner.set(s.corner_id, s.index);
+        }
+
         sectorSegments = sectors
           .map((s) => {
             const i0 = Math.max(0, Math.min(n - 1, Math.round((s.start_m / totalM) * (n - 1))));
@@ -189,13 +207,19 @@ export function useTrackMap(
             const mid = Math.floor((i0 + i1) / 2);
             const [mx, my] = project(refLapForSectors.lat[mid], refLapForSectors.lon[mid]);
             const loss = s.loss_s || 0;
+            const cornerTotal = s.corner_id != null ? lossByCorner.get(s.corner_id) ?? 0 : 0;
+            const isLabelSector =
+              s.corner_id != null && labelSectorByCorner.get(s.corner_id) === s.index;
             return {
               path: pts.join(""),
               loss,
               color: sectorColor(loss, maxLoss),
               midX: mx,
               midY: my,
-              label: `+${loss.toFixed(2)}s`,
+              // Étiquette = total du virage (identique aux conseils), pas la
+              // perte de ce seul mini-secteur.
+              label: isLabelSector && cornerTotal > 0.01 ? `V${s.corner_id} +${cornerTotal.toFixed(2)}s` : "",
+              cornerTotal: isLabelSector ? cornerTotal : 0,
             };
           })
           .filter(Boolean) as typeof sectorSegments;

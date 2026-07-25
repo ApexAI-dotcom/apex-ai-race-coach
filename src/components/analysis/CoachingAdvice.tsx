@@ -22,6 +22,13 @@ export function CoachingAdvice({
   const navigate = useNavigate();
   if (!advice || advice.length === 0) return null;
 
+  // Le contexte de session (tours retenus, conditions) n'est pas un conseil :
+  // il décrit sur quoi les conseils s'appuient. Il a donc sa place en
+  // sous-titre, pas dans une carte numérotée « Priorité 0 ».
+  const sessionInfo = advice.filter((a) => a.category === "info" && !a.corner);
+  const actionable = advice.filter((a) => !(a.category === "info" && !a.corner));
+  if (actionable.length === 0) return null;
+
   return (
     <Card className="glass-card border-primary/20 mb-8 relative overflow-hidden">
       <CardHeader>
@@ -29,15 +36,22 @@ export function CoachingAdvice({
           <Zap className="w-5 h-5 text-primary" />
           Conseils de Coaching
         </CardTitle>
-        <CardDescription>
-          Classés par temps réellement perdu, mesuré sur tes chronos
-          {fastestLapNumber ? ` — référence : ton meilleur tour (tour ${fastestLapNumber})` : ""}.
-          Les numéros de virage sont ceux de la carte du circuit.
+        <CardDescription className="space-y-1">
+          <span className="block">
+            Classés par temps réellement perdu, mesuré sur tes chronos
+            {fastestLapNumber ? ` — référence : ton meilleur tour (tour ${fastestLapNumber})` : ""}.
+            Les numéros de virage sont ceux de la carte du circuit.
+          </span>
+          {sessionInfo.map((info, i) => (
+            <span key={`info-${i}`} className="block text-[11px] opacity-80">
+              {info.message}
+            </span>
+          ))}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {advice.map((item, index) => {
+          {actionable.map((item, index) => {
             const isItemLocked = isLocked && index >= 2;
             return (
               <div
@@ -86,7 +100,7 @@ export function CoachingAdvice({
           })}
         </div>
 
-        {isLocked && advice.length > 2 && (
+        {isLocked && actionable.length > 2 && (
           <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 z-10 bg-gradient-to-t from-background/90 via-background/50 to-transparent">
             {!hideCta && (
               <div className="flex flex-col items-center max-w-sm text-center">
