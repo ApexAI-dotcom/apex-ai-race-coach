@@ -170,6 +170,7 @@ export function TrackMapPro({
           onSelectedLapChange={state.setSelectedLap}
           onComparisonLapChange={onCompareChange}
           bestLapNumber={bestLapNumber}
+          sectorsAvailable={!!data?.sectorSegments?.length}
         />
       </div>
 

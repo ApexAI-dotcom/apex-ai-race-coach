@@ -604,8 +604,9 @@ function TrackMapCanvasComponent({
               {/* Reference/comparison lap */}
               {referenceLayer}
 
-              {/* Primary lap */}
-              {profile === "sectors" ? null : primaryLayer}
+              {/* Primary lap — on ne le masque que si les mini-secteurs sont
+                  réellement disponibles, sinon la carte serait vide. */}
+              {profile === "sectors" && sectorSegments?.length ? null : primaryLayer}
 
               {/* Hovered point indicator */}
               {primary && hoveredIndex !== null && hoveredIndex < primary.points.length && (

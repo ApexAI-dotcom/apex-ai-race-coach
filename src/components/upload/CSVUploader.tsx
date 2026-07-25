@@ -739,8 +739,12 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   <div className="text-6xl font-display font-bold bg-gradient-to-r from-primary to-pink-500 text-transparent bg-clip-text mb-2">
                     {Math.round(getDisplayScore(result.performance_score))}/100
                   </div>
+                  {/* Le « centile » affiché ici n'était qu'une transformation
+                      linéaire du score : aucune base de comparaison entre
+                      pilotes n'existe. On ne peut pas laisser un chiffre qui
+                      suggère un classement inexistant. */}
                   <p className="text-sm text-muted-foreground">
-                    Centile : {result.performance_score.percentile ?? "—"}%
+                    Note de pilotage sur cette session
                   </p>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
