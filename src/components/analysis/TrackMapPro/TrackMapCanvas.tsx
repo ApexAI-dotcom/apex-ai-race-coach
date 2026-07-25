@@ -49,7 +49,10 @@ export interface SectorSegment {
   color: string;
   midX: number;
   midY: number;
+  /** Étiquette « V9 +0.27s » — vide si ce secteur ne porte pas l'étiquette. */
   label: string;
+  /** Total perdu sur le virage entier (chiffre repris dans les conseils). */
+  cornerTotal: number;
 }
 
 // Direction arrow every N segments
@@ -92,37 +95,6 @@ function renderGlow(polyline: string, color: string) {
       opacity={0.12}
       style={{ filter: "blur(10px)" }}
     />
-  );
-}
-
-function renderBrakingMarkers(segments: ColoredSegment[], isSynthetic: boolean) {
-  const markers = [];
-  // Skip first and last few segments to prevent false positives near start/finish overlap
-  const exclusionRange = 10;
-
-  for (let i = exclusionRange; i < segments.length - exclusionRange; i++) {
-    if (segments[i].phase === "braking" && segments[i - 1].phase !== "braking") {
-      const dx = segments[i].x2 - segments[i].x1;
-      const dy = segments[i].y2 - segments[i].y1;
-      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-      markers.push({ x: segments[i].x1, y: segments[i].y1, angle });
-    }
-  }
-
-  const color = isSynthetic ? MODEL_GOLD : "#ef4444";
-
-  return (
-    <g className="pointer-events-none z-20">
-      {markers.map((m, i) => (
-        <g key={`bp-${i}`} transform={`translate(${m.x.toFixed(1)}, ${m.y.toFixed(1)})`}>
-          {/* Pulsing effect to make braking points obvious */}
-          <circle cx="0" cy="0" r="8" fill={color} opacity="0.3">
-            <animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite" />
-          </circle>
-          <circle cx="0" cy="0" r="4" fill="#ffffff" stroke={color} strokeWidth="2" />
-        </g>
-      ))}
-    </g>
   );
 }
 
@@ -362,14 +334,11 @@ function TrackMapCanvasComponent({
           />
         )}
 
-        {/* Explicit Braking Start Points in Complete mode */}
-        {profile === "complete" &&
-          primary.segments.some((s) => s.phase) &&
-          renderBrakingMarkers(primary.segments, false)}
-        {profile === "complete" &&
-          showSynthetic &&
-          syntheticProjection &&
-          renderBrakingMarkers(syntheticProjection.segments, true)}
+        {/* Les anciens points de freinage (pastilles rouges/dorées sans
+            étiquette ni légende) ont été retirés : ils doublonnaient avec les
+            repères de freinage mesurés côté backend, qui indiquent en plus le
+            virage concerné et la distance jusqu'à l'apex. Deux systèmes de
+            marqueurs superposés rendaient la carte illisible. */}
 
         {/* Direction arrows */}
         {renderDirectionArrows(primary.segments)}
