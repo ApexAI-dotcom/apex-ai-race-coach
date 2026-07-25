@@ -15,7 +15,7 @@ export default function RedeemPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { session, isAuthenticated, loading } = useAuth();
-  const { refresh } = useSubscription() as any;
+  const { fetchSubscription } = useSubscription();
   const token = session?.access_token;
 
   const [code, setCode] = useState((params.get("code") || "").toUpperCase());
@@ -47,7 +47,7 @@ export default function RedeemPage() {
       const res = await api.redeemPaddockPass(token, code.trim().toUpperCase());
       setDone(res);
       try { sessionStorage.removeItem("apexai_pending_code"); } catch { /* noop */ }
-      if (typeof refresh === "function") refresh();
+      await fetchSubscription();
       toast.success("Paddock Pass activé !");
     } catch (e: any) {
       toast.error(e.message || "Code invalide.");
