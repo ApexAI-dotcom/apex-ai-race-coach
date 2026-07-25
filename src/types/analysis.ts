@@ -85,7 +85,52 @@ export interface TrajectoryLap {
   label?: string;
 }
 
-export type TrackMapProfile = "speed" | "braking" | "compare" | "complete";
+export type TrackMapProfile = "speed" | "braking" | "sectors" | "compare" | "complete";
+
+/** Bords de piste estimés (largeur réglementaire karting), pour tracer le ruban. */
+export interface TrackEdges {
+  left: { lat: number[]; lon: number[] };
+  right: { lat: number[]; lon: number[] };
+}
+
+/** Métadonnées du Tour Parfait IA (ligne de course calculée). */
+export interface RacingLineMeta {
+  optimal_lap_time_s?: number;
+  mu_calibrated?: number;
+  track_width_m?: number;
+  track_width_source?: string;
+  curvature_reduction_pct?: number;
+  corners_total?: number;
+  corners_preserved?: number;
+  reference_lap?: number;
+  laps_used?: number[];
+}
+
+/** Mini-secteur : temps perdu mesuré sur une portion de piste. */
+export interface IdealLapSector {
+  index: number;
+  start_m: number;
+  end_m: number;
+  ideal_time_s: number;
+  best_lap_time_s: number;
+  loss_s: number;
+  from_lap: number;
+  corner_id?: number | null;
+}
+
+/** Tour idéal : meilleurs mini-secteurs recombinés (chronos réels). */
+export interface IdealLap {
+  available?: boolean;
+  laps_used?: number[];
+  best_lap_number?: number;
+  best_real_lap_time_s?: number;
+  ideal_lap_time_s?: number;
+  potential_gain_s?: number;
+  n_sectors?: number;
+  track_length_m?: number;
+  per_corner_loss_s?: Record<string, number>;
+  sectors?: IdealLapSector[];
+}
 
 export interface CornerDetail {
   id: number;
@@ -114,6 +159,8 @@ export interface PlotData {
   performance_radar: RadarData;
   apex_margin: { corners: CornerMargin[] };
   trajectory_2d: { corners: TrajectoryCorner[]; laps?: TrajectoryLap[] };
+  track_edges?: TrackEdges;
+  racing_line_meta?: RacingLineMeta;
   time_delta_laps?: {
     best_lap_number: number;
     laps: {
@@ -160,4 +207,8 @@ export interface AnalysisResponse {
     track_temperature?: number;
     circuit_name?: string;
   };
+  /** Tour idéal (meilleurs mini-secteurs recombinés) — chronos réels mesurés. */
+  ideal_lap?: IdealLap;
+  /** Tour Parfait IA : ligne de course calculée + bords de piste estimés. */
+  racing_line?: RacingLineMeta & { track_edges?: TrackEdges };
 }

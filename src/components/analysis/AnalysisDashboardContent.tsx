@@ -280,6 +280,9 @@ export function AnalysisDashboardContent({
                 cornerAnalysis={analysis.corner_analysis as unknown[]}
                 bestLapNumber={bestLapNumber}
                 selectedLapNumbers={selectedLapNumbers}
+                trackEdges={plotData.track_edges ?? analysis.racing_line?.track_edges ?? null}
+                racingLineMeta={plotData.racing_line_meta ?? analysis.racing_line ?? null}
+                idealLap={analysis.ideal_lap ?? null}
               />
             </section>
           )}

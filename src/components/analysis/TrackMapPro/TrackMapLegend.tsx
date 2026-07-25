@@ -18,7 +18,35 @@ interface TrackMapLegendProps {
   hasModel: boolean;
   comparisonLabel?: string;
   showSynthetic?: boolean;
+  trackWidthM?: number;
+  trackWidthSource?: string;
+  hasRibbon?: boolean;
 }
+
+/** Un repère de la carte, expliqué. Sans légende, un point coloré ne veut rien dire. */
+function LegendItem({
+  swatch,
+  label,
+  hint,
+}: {
+  swatch: React.ReactNode;
+  label: string;
+  hint: string;
+}) {
+  return (
+    <div className="flex items-start gap-1.5" title={hint}>
+      <span className="mt-[3px] shrink-0">{swatch}</span>
+      <span>
+        <span className="text-foreground/90 font-medium">{label}</span>
+        <span className="hidden md:inline"> — {hint}</span>
+      </span>
+    </div>
+  );
+}
+
+const Dot = ({ color }: { color: string }) => (
+  <span className="block w-2.5 h-2.5 rounded-full" style={{ background: color }} />
+);
 
 export function TrackMapLegend({
   profile,
@@ -27,9 +55,12 @@ export function TrackMapLegend({
   hasModel,
   comparisonLabel,
   showSynthetic,
+  trackWidthM,
+  trackWidthSource,
+  hasRibbon,
 }: TrackMapLegendProps) {
   return (
-    <div className="flex flex-wrap items-center gap-3 px-2 py-1.5 text-[10px] text-muted-foreground">
+    <div className="flex flex-wrap items-start gap-x-4 gap-y-1.5 px-2 py-1.5 text-[10px] leading-snug text-muted-foreground">
       {/* Speed legend */}
       {(profile === "speed" || profile === "complete") && (
         <div className="flex items-center gap-2">
@@ -96,14 +127,59 @@ export function TrackMapLegend({
         </div>
       )}
 
+      {/* Mini-secteurs : c'est ici que le pilote lit où il perd du temps */}
+      {profile === "sectors" && (
+        <>
+          <LegendItem
+            swatch={<Dot color="#22c55e" />}
+            label="Rien à gagner"
+            hint="tu es déjà à ton meilleur sur cette portion"
+          />
+          <LegendItem
+            swatch={<Dot color="#f59e0b" />}
+            label="Perte modérée"
+            hint="quelques centièmes récupérables"
+          />
+          <LegendItem
+            swatch={<Dot color="#ef4444" />}
+            label="Grosse perte"
+            hint="la portion qui te coûte le plus de temps — à travailler en priorité"
+          />
+          <LegendItem
+            swatch={<span className="block px-1 rounded bg-black/70 border border-white/30 text-[8px] text-white">+0.12s</span>}
+            label="Étiquette"
+            hint="secondes perdues par tour sur cette portion, mesurées sur tes chronos"
+          />
+        </>
+      )}
+
+      {/* Repères permanents : ils sont sur toutes les vues */}
+      <LegendItem
+        swatch={
+          <span className="block w-3.5 h-3.5 rounded-full bg-black border-2" style={{ borderColor: APEX_ORANGE }} />
+        }
+        label="Numéros de virage"
+        hint="cliquables ; ce sont les mêmes numéros que dans les conseils de coaching et les graphiques"
+      />
+      <LegendItem swatch={<Dot color="#22c55e" />} label="Départ" hint="début du tour affiché" />
+      <LegendItem swatch={<Dot color="#ef4444" />} label="Arrivée" hint="fin du tour affiché" />
+
+      {/* Ruban de piste : l'échelle réelle */}
+      {hasRibbon && (
+        <LegendItem
+          swatch={<span className="block w-4 h-2.5 rounded-sm bg-white/10 border border-white/25" />}
+          label={`Largeur de piste ${trackWidthM ? `≈ ${trackWidthM} m` : ""}`}
+          hint={trackWidthSource || "largeur réglementaire karting, pour situer ta trajectoire dans la piste réelle"}
+        />
+      )}
+
       {/* Persistent AI Lap legend if synthetic overlay is active */}
       {showSynthetic && profile !== "compare" && (
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: MODEL_GOLD }} />
-            <span className="font-medium text-yellow-400">Tour Parfait IA</span>
-          </div>
-        </div>
+        <LegendItem
+          swatch={<Dot color={MODEL_GOLD} />}
+          label="Tour Parfait IA"
+          hint="trajectoire optimale calculée : courbure minimale dans les limites de piste, vitesses calibrées sur ton grip réel"
+        />
       )}
     </div>
   );

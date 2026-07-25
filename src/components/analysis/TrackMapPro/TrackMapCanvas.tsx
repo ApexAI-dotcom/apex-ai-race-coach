@@ -23,6 +23,21 @@ interface TrackMapCanvasProps {
   onCornerClick: (cornerId: number) => void;
   onCornerHover: (cornerId: number | null) => void;
   isFullscreen?: boolean;
+  /** Ruban de piste (largeur réglementaire) — repère d'échelle pour le pilote. */
+  trackRibbonPath?: string | null;
+  trackWidthM?: number;
+  /** Mini-secteurs : temps perdu mesuré le long du tour. */
+  sectorSegments?: SectorSegment[];
+}
+
+/** Un mini-secteur projeté, coloré par le temps réellement perdu. */
+export interface SectorSegment {
+  path: string;
+  loss: number;
+  color: string;
+  midX: number;
+  midY: number;
+  label: string;
 }
 
 // Direction arrow every N segments
@@ -201,6 +216,9 @@ function TrackMapCanvasComponent({
   onCornerClick,
   onCornerHover,
   isFullscreen,
+  trackRibbonPath,
+  trackWidthM,
+  sectorSegments,
 }: TrackMapCanvasProps) {
   // Invisible hit area for hover detection
   const handleMouseMove = useCallback(
@@ -350,6 +368,64 @@ function TrackMapCanvasComponent({
     return renderCorners(corners, hoveredCornerId, onCornerClick, onCornerHover);
   }, [corners, hoveredCornerId, onCornerClick, onCornerHover]);
 
+  /** Ruban de piste : donne l'échelle réelle (largeur réglementaire karting). */
+  const trackRibbonLayer = useMemo(() => {
+    if (!trackRibbonPath) return null;
+    return (
+      <g className="track-ribbon pointer-events-none">
+        <path d={trackRibbonPath} fill="rgba(255,255,255,0.055)" stroke="none" />
+        <path
+          d={trackRibbonPath}
+          fill="none"
+          stroke="rgba(255,255,255,0.20)"
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+        />
+      </g>
+    );
+  }, [trackRibbonPath]);
+
+  /** Mini-secteurs colorés par temps perdu (profil « Mini-secteurs »). */
+  const sectorsLayer = useMemo(() => {
+    if (profile !== "sectors" || !sectorSegments?.length) return null;
+    const worst = [...sectorSegments].sort((a, b) => b.loss - a.loss).slice(0, 3);
+    return (
+      <g className="sectors-layer pointer-events-none">
+        {sectorSegments.map((s, i) => (
+          <path
+            key={`sec-${i}`}
+            d={s.path}
+            fill="none"
+            stroke={s.color}
+            strokeWidth={7}
+            strokeLinecap="butt"
+            opacity={0.95}
+          />
+        ))}
+        {/* On étiquette uniquement les 3 secteurs les plus coûteux : le pilote
+            doit savoir OÙ agir, pas lire 50 chiffres. */}
+        {worst
+          .filter((s) => s.loss > 0.01)
+          .map((s, i) => (
+            <g key={`secl-${i}`} transform={`translate(${s.midX.toFixed(1)},${s.midY.toFixed(1)})`}>
+              <rect x={-22} y={-9} width={44} height={18} rx={9} fill="rgba(0,0,0,0.78)" stroke={s.color} strokeWidth={1.5} />
+              <text
+                x={0}
+                y={4}
+                textAnchor="middle"
+                fill="#fff"
+                fontSize="10"
+                fontWeight="700"
+                fontFamily="'Space Grotesk', sans-serif"
+              >
+                {s.label}
+              </text>
+            </g>
+          ))}
+      </g>
+    );
+  }, [profile, sectorSegments]);
+
   const startFinishMarkers = useMemo(() => {
     if (!primary || primary.points.length <= 2) return null;
     return (
@@ -467,11 +543,17 @@ function TrackMapCanvasComponent({
 
               {/* Background purely transparent so the CSS container gradient shines through */}
 
+              {/* Ruban de piste (échelle réelle) — sous toutes les trajectoires */}
+              {trackRibbonLayer}
+
+              {/* Mini-secteurs (profil dédié) */}
+              {sectorsLayer}
+
               {/* Reference/comparison lap */}
               {referenceLayer}
 
               {/* Primary lap */}
-              {primaryLayer}
+              {profile === "sectors" ? null : primaryLayer}
 
               {/* Hovered point indicator */}
               {primary && hoveredIndex !== null && hoveredIndex < primary.points.length && (

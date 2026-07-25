@@ -5,22 +5,38 @@ import type {
   CornerMargin,
   CornerDetail,
   TrackMapProfile,
+  TrackEdges,
+  IdealLap,
 } from "@/types/analysis";
 import { useTrackMapGeometry } from "./useTrackMapGeometry";
 import { buildLapProjection, computeGlobalSpeedBounds } from "./useTrackMapStyle";
+
+/** Couleur d'un mini-secteur selon le temps réellement perdu (secondes/tour). */
+function sectorColor(loss: number, maxLoss: number): string {
+  if (loss <= 0.01) return "#22c55e"; // vert : rien à gagner ici
+  const r = maxLoss > 0 ? Math.min(1, loss / maxLoss) : 0;
+  if (r < 0.34) return "#a3e635";
+  if (r < 0.67) return "#f59e0b";
+  return "#ef4444"; // rouge : c'est ici que le temps part
+}
 
 export function useTrackMap(
   corners: TrajectoryCorner[],
   laps: TrajectoryLap[],
   margins: CornerMargin[],
   cornerAnalysis: unknown[],
-  initialSelectedLapNumber: number
+  initialSelectedLapNumber: number,
+  trackEdges?: TrackEdges | null,
+  idealLap?: IdealLap | null
 ) {
   // --- UI State ---
   const [profile, setProfile] = useState<TrackMapProfile>("speed");
   const [selectedLap, setSelectedLap] = useState<number>(initialSelectedLapNumber);
   const [comparisonLap, setComparisonLap] = useState<number | null>(null);
-  const [showSynthetic, setShowSynthetic] = useState<boolean>(false);
+  // Le Tour Parfait IA est la fonctionnalité phare de la carte : on l'affiche
+  // d'emblée plutôt que de le cacher derrière un bouton que peu de pilotes
+  // pensent à activer.
+  const [showSynthetic, setShowSynthetic] = useState<boolean>(true);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   // Hover & Click states for tooltips and corners
@@ -57,7 +73,11 @@ export function useTrackMap(
   }, []);
 
   // --- Base Geometry computation ---
-  const { project, projectedCorners, bounds } = useTrackMapGeometry(laps, corners);
+  const { project, projectedCorners, bounds, trackRibbonPath } = useTrackMapGeometry(
+    laps,
+    corners,
+    trackEdges
+  );
 
   // --- Projection computing ---
   const data = useMemo(() => {
@@ -140,6 +160,48 @@ export function useTrackMap(
       } as CornerDetail;
     });
 
+    // ── Mini-secteurs : on répartit les secteurs mesurés (temps perdu réel)
+    // le long du tour de référence, proportionnellement à la distance parcourue.
+    // Le pilote voit ainsi OÙ, physiquement, le temps lui échappe.
+    let sectorSegments: {
+      path: string; loss: number; color: string; midX: number; midY: number; label: string;
+    }[] = [];
+    const sectors = idealLap?.sectors ?? [];
+    const refLapForSectors =
+      realLaps.find((l) => l.lap_number === idealLap?.best_lap_number) ??
+      realLaps.find((l) => l.is_best) ??
+      primaryLap;
+    if (sectors.length && refLapForSectors?.lat?.length) {
+      const n = refLapForSectors.lat.length;
+      const totalM = sectors[sectors.length - 1]?.end_m || 0;
+      const maxLoss = Math.max(...sectors.map((s) => s.loss_s || 0), 0);
+      if (totalM > 0 && n > 3) {
+        sectorSegments = sectors
+          .map((s) => {
+            const i0 = Math.max(0, Math.min(n - 1, Math.round((s.start_m / totalM) * (n - 1))));
+            const i1 = Math.max(0, Math.min(n - 1, Math.round((s.end_m / totalM) * (n - 1))));
+            if (i1 <= i0) return null;
+            const pts: string[] = [];
+            for (let i = i0; i <= i1; i++) {
+              const [x, y] = project(refLapForSectors.lat[i], refLapForSectors.lon[i]);
+              pts.push(`${i === i0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`);
+            }
+            const mid = Math.floor((i0 + i1) / 2);
+            const [mx, my] = project(refLapForSectors.lat[mid], refLapForSectors.lon[mid]);
+            const loss = s.loss_s || 0;
+            return {
+              path: pts.join(""),
+              loss,
+              color: sectorColor(loss, maxLoss),
+              midX: mx,
+              midY: my,
+              label: `+${loss.toFixed(2)}s`,
+            };
+          })
+          .filter(Boolean) as typeof sectorSegments;
+      }
+    }
+
     return {
       primary,
       reference,
@@ -150,6 +212,8 @@ export function useTrackMap(
       project,
       globalSpeedMin: globalMin,
       globalSpeedMax: globalMax,
+      trackRibbonPath,
+      sectorSegments,
     };
   }, [
     project,
@@ -161,6 +225,8 @@ export function useTrackMap(
     comparisonLap,
     margins,
     cornerAnalysis,
+    trackRibbonPath,
+    idealLap,
   ]);
 
   return {

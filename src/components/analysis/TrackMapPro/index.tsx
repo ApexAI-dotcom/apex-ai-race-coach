@@ -1,6 +1,13 @@
 import { useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import type { TrajectoryCorner, TrajectoryLap, CornerMargin } from "@/types/analysis";
+import type {
+  TrajectoryCorner,
+  TrajectoryLap,
+  CornerMargin,
+  TrackEdges,
+  RacingLineMeta,
+  IdealLap,
+} from "@/types/analysis";
 import { useTrackMap } from "./useTrackMapData";
 import { TrackMapProfiles } from "./TrackMapProfiles";
 import { TrackMapCanvas } from "./TrackMapCanvas";
@@ -17,6 +24,12 @@ interface TrackMapProProps {
   bestLapNumber: number;
   selectedLapNumbers?: number[];
   onReferenceChange?: (lapNumber: number | null, isSynthetic: boolean) => void;
+  /** Bords de piste estimés (ruban à l'échelle réelle). */
+  trackEdges?: TrackEdges | null;
+  /** Métadonnées du Tour Parfait IA. */
+  racingLineMeta?: RacingLineMeta | null;
+  /** Tour idéal mesuré (mini-secteurs + gain potentiel). */
+  idealLap?: IdealLap | null;
 }
 
 export function TrackMapPro({
@@ -27,6 +40,9 @@ export function TrackMapPro({
   bestLapNumber,
   selectedLapNumbers = [],
   onReferenceChange,
+  trackEdges = null,
+  racingLineMeta = null,
+  idealLap = null,
 }: TrackMapProProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +52,9 @@ export function TrackMapPro({
     laps,
     margins,
     cornerAnalysis,
-    selectedLapNumbers[0] ?? bestLapNumber
+    selectedLapNumbers[0] ?? bestLapNumber,
+    trackEdges,
+    idealLap
   );
 
   // Proxy the `onReferenceChange` for the UI Profiles
@@ -98,6 +116,48 @@ export function TrackMapPro({
       ref={containerRef}
       className={`trackmap-pro w-full ${state.isFullscreen ? "fixed inset-0 z-[9999] bg-background flex flex-col p-4 m-0 max-w-none" : "relative rounded-xl overflow-hidden"}`}
     >
+      {/* Bandeau Tour Parfait IA : l'objectif chiffré, immédiatement lisible.
+          Tous les chronos sont mesurés sur les tours réellement exploitables. */}
+      {idealLap?.available && (idealLap.potential_gain_s ?? 0) > 0 && (
+        <div className="mx-3 mt-3 rounded-xl border border-yellow-500/25 bg-yellow-500/[0.06] px-3.5 py-2.5">
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400">
+              Tour Parfait IA
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Meilleur tour{" "}
+              <b className="text-foreground tabular-nums">
+                {idealLap.best_real_lap_time_s?.toFixed(2)}s
+              </b>
+              {idealLap.best_lap_number != null && (
+                <span className="text-muted-foreground"> (tour {idealLap.best_lap_number})</span>
+              )}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Tour idéal{" "}
+              <b className="text-foreground tabular-nums">
+                {idealLap.ideal_lap_time_s?.toFixed(2)}s
+              </b>
+            </span>
+            <span className="text-xs">
+              <span className="text-muted-foreground">À aller chercher </span>
+              <b className="text-emerald-400 tabular-nums">
+                −{idealLap.potential_gain_s?.toFixed(2)}s
+              </b>
+            </span>
+          </div>
+          <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
+            En enchaînant tes meilleurs mini-secteurs
+            {idealLap.laps_used?.length
+              ? ` (mesuré sur tes tours ${idealLap.laps_used.join(", ")})`
+              : ""}
+            . Tu l'as déjà fait — mais pas dans le même tour.
+            {racingLineMeta?.corners_total != null &&
+              ` La trajectoire jaune respecte les ${racingLineMeta.corners_total} virages du circuit.`}
+          </p>
+        </div>
+      )}
+
       <div className="p-3 pb-0 shrink-0">
         <TrackMapProfiles
           active={state.profile}
@@ -158,6 +218,9 @@ export function TrackMapPro({
             onCornerClick={handlers.handleCornerClick}
             onCornerHover={state.setHoveredCornerId}
             isFullscreen={state.isFullscreen}
+            trackRibbonPath={data.trackRibbonPath}
+            trackWidthM={racingLineMeta?.track_width_m}
+            sectorSegments={data.sectorSegments}
           />
         )}
 
@@ -192,6 +255,9 @@ export function TrackMapPro({
           hasModel={data?.reference?.isSynthetic ?? false}
           comparisonLabel={comparisonLabel}
           showSynthetic={state.showSynthetic}
+          trackWidthM={racingLineMeta?.track_width_m}
+          trackWidthSource={racingLineMeta?.track_width_source}
+          hasRibbon={!!data?.trackRibbonPath}
         />
       </div>
     </div>

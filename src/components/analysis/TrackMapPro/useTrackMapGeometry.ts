@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { TrajectoryCorner, TrajectoryLap } from "@/types/analysis";
+import type { TrajectoryCorner, TrajectoryLap, TrackEdges } from "@/types/analysis";
 
 export const SVG_W = 900;
 export const SVG_H = 650;
@@ -93,7 +93,11 @@ export function makeProjector(bounds: TrackBounds, pad: number = DEFAULT_PAD) {
   };
 }
 
-export function useTrackMapGeometry(laps: TrajectoryLap[], corners: TrajectoryCorner[]) {
+export function useTrackMapGeometry(
+  laps: TrajectoryLap[],
+  corners: TrajectoryCorner[],
+  trackEdges?: TrackEdges | null
+) {
   return useMemo(() => {
     const bounds = computeBounds(laps, corners);
     if (!bounds) {
@@ -101,6 +105,7 @@ export function useTrackMapGeometry(laps: TrajectoryLap[], corners: TrajectoryCo
         bounds: null,
         project: () => [0, 0] as [number, number],
         projectedCorners: [] as ProjectedCorner[],
+        trackRibbonPath: null as string | null,
       };
     }
 
@@ -111,6 +116,26 @@ export function useTrackMapGeometry(laps: TrajectoryLap[], corners: TrajectoryCo
       return { ...c, x, y };
     });
 
-    return { bounds, project, projectedCorners };
-  }, [laps, corners]);
+    // Ruban de piste : bord gauche à l'aller, bord droit au retour, refermé.
+    // Donne au pilote l'échelle réelle de la piste (largeur réglementaire),
+    // sans laquelle une trajectoire sur fond noir ne veut pas dire grand-chose.
+    let trackRibbonPath: string | null = null;
+    const L = trackEdges?.left;
+    const R = trackEdges?.right;
+    if (L?.lat?.length && R?.lat?.length && L.lat.length === R.lat.length) {
+      const fwd: string[] = [];
+      for (let i = 0; i < L.lat.length; i++) {
+        const [x, y] = project(L.lat[i], L.lon[i]);
+        fwd.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+      const back: string[] = [];
+      for (let i = R.lat.length - 1; i >= 0; i--) {
+        const [x, y] = project(R.lat[i], R.lon[i]);
+        back.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+      trackRibbonPath = `${fwd.join("")}${back.join("")}Z`;
+    }
+
+    return { bounds, project, projectedCorners, trackRibbonPath };
+  }, [laps, corners, trackEdges]);
 }

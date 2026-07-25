@@ -2,7 +2,7 @@
  * TrackMapPro — Profile selector bar
  */
 import type { TrackMapProfile, TrajectoryLap } from "@/types/analysis";
-import { Activity, Gauge, Map, GitCompare } from "lucide-react";
+import { Activity, Gauge, Map, GitCompare, Timer } from "lucide-react";
 import React from "react";
 
 interface TrackMapProfilesProps {
@@ -18,11 +18,15 @@ interface TrackMapProfilesProps {
   bestLapNumber: number;
 }
 
-const PROFILES: { id: TrackMapProfile; label: string; icon: React.ElementType }[] = [
-  { id: "complete", label: "Complet", icon: Map },
-  { id: "speed", label: "Vitesse", icon: Gauge },
-  { id: "braking", label: "Freinage", icon: Activity },
-  { id: "compare", label: "Comparaison", icon: GitCompare },
+// Chaque vue répond à UNE question précise du pilote (l'info-bulle le dit).
+const PROFILES: {
+  id: TrackMapProfile; label: string; icon: React.ElementType; hint: string;
+}[] = [
+  { id: "complete", label: "Complet", icon: Map, hint: "Vue d'ensemble : vitesse le long du tour + zones de freinage." },
+  { id: "speed", label: "Vitesse", icon: Gauge, hint: "Où tu es rapide, où tu es lent : la piste colorée par ta vitesse." },
+  { id: "braking", label: "Freinage", icon: Activity, hint: "Les phases de freinage, d'accélération et de transition." },
+  { id: "sectors", label: "Mini-secteurs", icon: Timer, hint: "Où le temps se perd réellement : chaque portion colorée par les secondes perdues (mesurées)." },
+  { id: "compare", label: "Comparaison", icon: GitCompare, hint: "Superpose ton tour avec un autre tour ou le Tour Parfait IA." },
 ];
 
 export function TrackMapProfiles({
@@ -48,6 +52,8 @@ export function TrackMapProfiles({
             <button
               key={p.id}
               onClick={() => onChange(p.id)}
+              title={p.hint}
+              aria-label={`${p.label} — ${p.hint}`}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
                 active === p.id
                   ? "trackmap-profile-active text-white shadow-lg"
@@ -60,6 +66,11 @@ export function TrackMapProfiles({
           );
         })}
       </div>
+
+      {/* À quoi sert la vue active : chaque onglet répond à une question. */}
+      <p className="px-1 text-[11px] leading-snug text-muted-foreground">
+        {PROFILES.find((p) => p.id === active)?.hint}
+      </p>
 
       {/* Comparison mode: lap selectors */}
       {active === "compare" && (
