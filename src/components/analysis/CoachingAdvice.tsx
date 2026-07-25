@@ -30,8 +30,9 @@ export function CoachingAdvice({
           Conseils de Coaching
         </CardTitle>
         <CardDescription>
-          Conseils prioritaires pour améliorer votre performance — Basé sur le meilleur tour
-          {fastestLapNumber ? ` (Tour ${fastestLapNumber})` : ""}
+          Classés par temps réellement perdu, mesuré sur tes chronos
+          {fastestLapNumber ? ` — référence : ton meilleur tour (tour ${fastestLapNumber})` : ""}.
+          Les numéros de virage sont ceux de la carte du circuit.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -58,9 +59,15 @@ export function CoachingAdvice({
                     )}
                   </div>
                   {item.impact_seconds > 0 && (
-                    <span className="text-xs text-muted-foreground font-medium">
-                      Gain potentiel :{" "}
-                      <span className="text-green-500">-{item.impact_seconds.toFixed(2)}s</span>
+                    <span
+                      className="text-xs text-muted-foreground font-medium"
+                      title="Temps perdu mesuré sur ce virage, par tour — écart entre ton meilleur tour et ton tour idéal"
+                    >
+                      Temps perdu ici :{" "}
+                      <span className="text-green-500 tabular-nums">
+                        {item.impact_seconds.toFixed(2)}s
+                      </span>
+                      <span className="text-muted-foreground"> / tour</span>
                     </span>
                   )}
                 </div>

@@ -28,6 +28,18 @@ interface TrackMapCanvasProps {
   trackWidthM?: number;
   /** Mini-secteurs : temps perdu mesuré le long du tour. */
   sectorSegments?: SectorSegment[];
+  /** Repères de freinage réels (position + distance à l'apex). */
+  brakingPoints?: BrakingPoint[];
+}
+
+/** Point de freinage mesuré, repère concret pour le pilote en piste. */
+export interface BrakingPoint {
+  x: number;
+  y: number;
+  cornerId: number;
+  distance: number;
+  delta: number;
+  color: string;
 }
 
 /** Un mini-secteur projeté, coloré par le temps réellement perdu. */
@@ -219,6 +231,7 @@ function TrackMapCanvasComponent({
   trackRibbonPath,
   trackWidthM,
   sectorSegments,
+  brakingPoints,
 }: TrackMapCanvasProps) {
   // Invisible hit area for hover detection
   const handleMouseMove = useCallback(
@@ -384,6 +397,45 @@ function TrackMapCanvasComponent({
       </g>
     );
   }, [trackRibbonPath]);
+
+  /** Repères de freinage mesurés : le pilote peut les retrouver en piste. */
+  const brakingRefLayer = useMemo(() => {
+    if (!brakingPoints?.length) return null;
+    if (profile !== "complete" && profile !== "braking") return null;
+    return (
+      <g className="braking-refs pointer-events-none">
+        {brakingPoints.map((b, i) => (
+          <g key={`bref-${i}`} transform={`translate(${b.x.toFixed(1)},${b.y.toFixed(1)})`}>
+            <circle r={6} fill="none" stroke={b.color} strokeWidth={2} opacity={0.9} />
+            <circle r={2} fill={b.color} />
+            <g transform="translate(9,-9)">
+              <rect
+                x={0}
+                y={-8}
+                width={62}
+                height={16}
+                rx={8}
+                fill="rgba(0,0,0,0.8)"
+                stroke={b.color}
+                strokeWidth={1}
+              />
+              <text
+                x={31}
+                y={4}
+                textAnchor="middle"
+                fill="#fff"
+                fontSize="9"
+                fontWeight="700"
+                fontFamily="'Space Grotesk', sans-serif"
+              >
+                {`V${b.cornerId} · ${Math.round(b.distance)}m`}
+              </text>
+            </g>
+          </g>
+        ))}
+      </g>
+    );
+  }, [brakingPoints, profile]);
 
   /** Mini-secteurs colorés par temps perdu (profil « Mini-secteurs »). */
   const sectorsLayer = useMemo(() => {
@@ -574,6 +626,9 @@ function TrackMapCanvasComponent({
                   />
                 </circle>
               )}
+
+              {/* Repères de freinage réels */}
+              {brakingRefLayer}
 
               {/* Corner markers */}
               {cornersLayer}

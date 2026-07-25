@@ -202,6 +202,26 @@ export function useTrackMap(
       }
     }
 
+    // ── Repères de freinage : où le pilote commence RÉELLEMENT à freiner, et à
+    // combien de mètres de l'apex. C'est le repère qu'il peut retrouver en
+    // piste (compter les mètres depuis un panneau, une bordure…).
+    const brakingPoints = (cornerAnalysis as any[])
+      .filter((ca) => ca?.braking_lat != null && ca?.braking_lon != null)
+      .map((ca) => {
+        const [x, y] = project(ca.braking_lat, ca.braking_lon);
+        const delta = Number(ca.braking_delta ?? 0);
+        return {
+          x,
+          y,
+          cornerId: Number(ca.corner_id ?? 0),
+          distance: Number(ca.braking_point_distance ?? 0),
+          delta,
+          // vert = au bon endroit, ambre = perfectible, rouge = trop tard
+          color: Math.abs(delta) < 3 ? "#22c55e" : delta > 0 ? "#f59e0b" : "#ef4444",
+        };
+      })
+      .filter((b) => Number.isFinite(b.x) && Number.isFinite(b.y) && b.distance > 0);
+
     return {
       primary,
       reference,
@@ -214,6 +234,7 @@ export function useTrackMap(
       globalSpeedMax: globalMax,
       trackRibbonPath,
       sectorSegments,
+      brakingPoints,
     };
   }, [
     project,

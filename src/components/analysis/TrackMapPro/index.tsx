@@ -222,6 +222,7 @@ export function TrackMapPro({
             trackRibbonPath={data.trackRibbonPath}
             trackWidthM={racingLineMeta?.track_width_m}
             sectorSegments={data.sectorSegments}
+            brakingPoints={data.brakingPoints}
           />
         )}
 

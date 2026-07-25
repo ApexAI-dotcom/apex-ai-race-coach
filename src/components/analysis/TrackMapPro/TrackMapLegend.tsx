@@ -153,6 +153,29 @@ export function TrackMapLegend({
         </>
       )}
 
+      {/* Repères de freinage : le seul repère utilisable en piste */}
+      {(profile === "complete" || profile === "braking") && (
+        <>
+          <LegendItem
+            swatch={
+              <span className="block w-3 h-3 rounded-full border-2 border-emerald-500" />
+            }
+            label="Point de freinage"
+            hint="là où tu commences réellement à freiner ; l'étiquette donne la distance jusqu'à l'apex — comptable en piste depuis un repère fixe"
+          />
+          <LegendItem
+            swatch={<Dot color="#f59e0b" />}
+            label="Freinage anticipé"
+            hint="tu freines plus tôt que nécessaire pour ta puissance de freinage réelle"
+          />
+          <LegendItem
+            swatch={<Dot color="#ef4444" />}
+            label="Freinage tardif"
+            hint="tu freines après le point optimal : tu corriges dans le virage et perds la relance"
+          />
+        </>
+      )}
+
       {/* Repères permanents : ils sont sur toutes les vues */}
       <LegendItem
         swatch={
