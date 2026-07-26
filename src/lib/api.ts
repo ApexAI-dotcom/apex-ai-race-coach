@@ -1495,6 +1495,57 @@ export async function reconcileCheckout(accessToken: string, sessionId: string):
   return tireSetFetch(accessToken, "/api/stripe/reconcile", "POST", { session_id: sessionId });
 }
 
+/* ───────────────── Calendrier du pilote ───────────────── */
+
+export type PilotEventType = "race" | "training" | "coaching" | "deadline" | "other";
+
+export interface PilotEvent {
+  id: string;
+  title: string;
+  event_type: PilotEventType;
+  starts_at: string;
+  ends_at?: string | null;
+  all_day: boolean;
+  circuit_name?: string | null;
+  location?: string | null;
+  notes?: string | null;
+  completed: boolean;
+  days_until?: number | null;
+}
+
+export type PilotEventInput = Omit<PilotEvent, "id" | "days_until">;
+
+export async function listPilotEvents(accessToken: string): Promise<PilotEvent[]> {
+  const r = await tireSetFetch(accessToken, "/api/calendar/events", "GET");
+  return r?.events ?? [];
+}
+
+export async function listUpcomingEvents(accessToken: string, days = 30): Promise<PilotEvent[]> {
+  const r = await tireSetFetch(accessToken, `/api/calendar/upcoming?days=${days}`, "GET");
+  return r?.events ?? [];
+}
+
+export async function createPilotEvent(
+  accessToken: string,
+  payload: PilotEventInput
+): Promise<PilotEvent> {
+  const r = await tireSetFetch(accessToken, "/api/calendar/events", "POST", payload);
+  return r.event;
+}
+
+export async function updatePilotEvent(
+  accessToken: string,
+  id: string,
+  payload: PilotEventInput
+): Promise<PilotEvent> {
+  const r = await tireSetFetch(accessToken, `/api/calendar/events/${id}`, "PUT", payload);
+  return r.event;
+}
+
+export async function deletePilotEvent(accessToken: string, id: string): Promise<void> {
+  await tireSetFetch(accessToken, `/api/calendar/events/${id}`, "DELETE");
+}
+
 export async function deleteCircuit(accessToken: string, circuitId: string): Promise<any> {
   const controller = createTimeoutController(10000);
   const response = await fetch(`${API_BASE_URL}/api/circuits/${circuitId}`, {
@@ -1559,6 +1610,11 @@ export const api = {
   getAnalyticsOverview,
   getContextStats,
   reconcileCheckout,
+  listPilotEvents,
+  listUpcomingEvents,
+  createPilotEvent,
+  updatePilotEvent,
+  deletePilotEvent,
   getTireSets,
   createTireSet,
   updateTireSet,

@@ -32,6 +32,7 @@ import Legal from "./pages/Legal";
 import CGU from "./pages/legal/CGU";
 import Confidentialite from "./pages/legal/Confidentialite";
 import Parametres from "./pages/Parametres";
+import CalendarPage from "./pages/CalendarPage";
 import AnalysisResultPage from "./pages/AnalysisResultPage";
 import NotFound from "./pages/NotFound";
 import MonKart from "./pages/MonKart";
@@ -137,6 +138,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <Parametres />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/calendrier"
+                  element={
+                    <ProtectedRoute>
+                      <CalendarPage />
                     </ProtectedRoute>
                   }
                 />
