@@ -181,22 +181,18 @@ export async function saveAnalysis(
 
   // ─── Supabase path ───
   if (supaUserId) {
-    const analysisId = result.analysis_id || generateAnalysisId();
+    let analysisId = result.analysis_id || generateAnalysisId();
     const defaultName = `Session du ${new Date().toLocaleDateString("fr-FR")}`;
 
-    // 1. Upload plot images to Storage bucket
-    let plotKeys: string[] = [];
-    if (result.plots && typeof result.plots === "object") {
-      plotKeys = await uploadPlotImages(
-        supaUserId,
-        analysisId,
-        result.plots as Record<string, string>
-      );
-    }
-
-    // 2. Insert row into analyses table
-    const { error } = await supabase.from("analyses").upsert({
-      id: analysisId,
+    // 1. Écrire la ligne AVANT d'envoyer les graphiques.
+    //
+    // L'identifiant vient du backend et n'est pas propre à un pilote : si deux
+    // comptes utilisent le même navigateur, une analyse peut se voir attribuer
+    // l'identifiant d'un autre pilote. L'écriture est alors refusée — et sans
+    // cet ordre, on aurait déjà envoyé une douzaine d'images pour rien.
+    // En cas de refus, on repart sur un identifiant neuf et bien à nous.
+    const buildRow = (id: string) => ({
+      id,
       user_id: supaUserId,
       created_at: new Date().toISOString(),
       score: Math.round(result.performance_score?.overall_score ?? 0),
@@ -221,18 +217,46 @@ export async function saveAnalysis(
         session_name: result.session_conditions?.session_name || defaultName,
       },
       lap_times: result.lap_times,
-      plot_keys: plotKeys,
     });
+
+    let { error } = await supabase.from("analyses").upsert(buildRow(analysisId));
+
+    if (error) {
+      // Refus probable : l'identifiant appartient déjà à un autre pilote. On
+      // réessaie une fois avec un identifiant fraîchement généré.
+      const looksLikeOwnership = /row-level security|duplicate|conflict/i.test(error.message);
+      if (looksLikeOwnership) {
+        analysisId = generateAnalysisId();
+        ({ error } = await supabase.from("analyses").upsert(buildRow(analysisId)));
+      }
+    }
 
     if (error) {
       // Message compréhensible : « row-level security policy » ne dit rien à un
-      // pilote, alors que la cause est presque toujours une session expirée.
+      // pilote, alors que la cause est alors une session expirée.
       const isRls = /row-level security/i.test(error.message);
       throw new Error(
         isRls
           ? "Session expirée : reconnecte-toi puis réessaie d'enregistrer cette analyse."
           : `Enregistrement impossible : ${error.message}`
       );
+    }
+
+    // 2. Les graphiques, une fois la ligne acquise et l'identifiant confirmé.
+    let plotKeys: string[] = [];
+    if (result.plots && typeof result.plots === "object") {
+      plotKeys = await uploadPlotImages(
+        supaUserId,
+        analysisId,
+        result.plots as Record<string, string>
+      );
+      if (plotKeys.length > 0) {
+        await supabase
+          .from("analyses")
+          .update({ plot_keys: plotKeys })
+          .eq("id", analysisId)
+          .eq("user_id", supaUserId);
+      }
     }
 
     // 3. Also cache lightweight metadata in localStorage for fast reads
