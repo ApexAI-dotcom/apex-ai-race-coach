@@ -10,7 +10,6 @@ import type {
 } from "@/types/analysis";
 import { useTrackMapGeometry } from "./useTrackMapGeometry";
 import { buildLapProjection, computeGlobalSpeedBounds } from "./useTrackMapStyle";
-import { APEX_RED, TRACK_GRAY } from "./trackMapColors";
 
 /** Couleur d'un mini-secteur selon le temps réellement perdu (secondes/tour). */
 function sectorColor(loss: number, maxLoss: number): string {
@@ -249,52 +248,10 @@ export function useTrackMap(
       })
       .filter((b) => Number.isFinite(b.x) && Number.isFinite(b.y) && b.distance > 0);
 
-    // ── Aligner la bande de freinage sur le repère mesuré ─────────────────
-    // La bande rouge venait d'une heuristique frontend (chute de vitesse entre
-    // deux points) qui démarre bien plus tôt que le freinage réel : le pilote
-    // voyait la pastille « point de freinage » posée à la FIN de la zone rouge,
-    // ce qui n'a aucun sens. On redessine la phase de freinage entre le repère
-    // mesuré et l'apex du virage : bande et pastille disent enfin la même chose.
-    if (profile === "braking" && primary && brakingPoints.length && primary.points.length > 2) {
-      const nearestIndex = (x: number, y: number) => {
-        let best = -1;
-        let bestD = Infinity;
-        for (let i = 0; i < primary.points.length; i++) {
-          const dx = primary.points[i].x - x;
-          const dy = primary.points[i].y - y;
-          const d = dx * dx + dy * dy;
-          if (d < bestD) {
-            bestD = d;
-            best = i;
-          }
-        }
-        return best;
-      };
-      const apexByCorner = new Map<number, { x: number; y: number }>();
-      for (const c of projectedCorners) apexByCorner.set(c.id, { x: c.x, y: c.y });
-
-      const isBraking = new Array(primary.segments.length).fill(false);
-      for (const b of brakingPoints) {
-        const apex = apexByCorner.get(b.cornerId);
-        if (!apex) continue;
-        const i0 = nearestIndex(b.x, b.y);
-        const i1 = nearestIndex(apex.x, apex.y);
-        if (i0 < 0 || i1 < 0 || i1 <= i0) continue;
-        // Un freinage plus long que la moitié du tour est une erreur d'appariement.
-        if (i1 - i0 > primary.points.length / 2) continue;
-        for (let i = i0; i < Math.min(i1, isBraking.length); i++) isBraking[i] = true;
-      }
-      for (let i = 0; i < primary.segments.length; i++) {
-        const seg = primary.segments[i];
-        if (isBraking[i]) {
-          seg.phase = "braking";
-          seg.color = APEX_RED;
-        } else if (seg.phase === "braking") {
-          seg.phase = "coasting";
-          seg.color = TRACK_GRAY;
-        }
-      }
-    }
+    // La bande de freinage et la pastille proviennent désormais du MÊME signal
+    // physique (accélération longitudinale mesurée) : elles s'alignent d'elles-
+    // mêmes, sans le recalage artificiel qui forçait auparavant la bande à
+    // courir du repère jusqu'à l'apex.
 
     return {
       primary,

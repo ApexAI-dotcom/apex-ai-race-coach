@@ -80,6 +80,8 @@ export interface TrajectoryLap {
   distance_m?: number[];
   rpm?: number[];
   lateral_g?: number[];
+  /** Phase de pilotage par point, calculée côté serveur en unités physiques. */
+  phase?: ("braking" | "acceleration" | "coasting")[];
   is_synthetic?: boolean;
   reference_type?: "model" | "best_real";
   label?: string;

@@ -38,6 +38,11 @@ export function buildLapProjection(
   const speeds = lap.speed_kmh ?? [];
   const throttles = lap.throttle_pct ?? [];
   const brakes = lap.brake_pct ?? [];
+  // Phases calculées par le serveur à partir de l'accélération longitudinale
+  // réelle (en g). On les préfère toujours à une estimation locale : un seuil
+  // exprimé en km/h entre deux échantillons dépend de la fréquence de
+  // l'appareil et donnait des phases différentes d'un fichier à l'autre.
+  const serverPhases = lap.phase;
 
   let sMin = Infinity,
     sMax = -Infinity;
@@ -73,11 +78,21 @@ export function buildLapProjection(
 
     const hasPedals = throttles.some((t) => t > 0) || brakes.some((b) => b > 0);
 
+    const measuredPhase = serverPhases?.[i] as BrakingPhase | undefined;
+
     if (profile === "speed" || profile === "complete") {
       color = speedToColor(avgSpeed, globalSpeedMin, globalSpeedMax, globalSpeedMedian, speedQuantiles);
-      phase = dv < -0.3 ? "braking" : dv > 0.3 ? "acceleration" : "coasting";
+      phase = measuredPhase ?? (dv < -0.3 ? "braking" : dv > 0.3 ? "acceleration" : "coasting");
     } else if (profile === "braking") {
-      if (hasPedals) {
+      if (measuredPhase) {
+        phase = measuredPhase;
+        color =
+          measuredPhase === "braking"
+            ? APEX_RED
+            : measuredPhase === "acceleration"
+              ? TRACK_GREEN
+              : TRACK_GRAY;
+      } else if (hasPedals) {
         const thr = ((throttles[i] ?? 0) + (throttles[i + 1] ?? 0)) / 2;
         const brk = ((brakes[i] ?? 0) + (brakes[i + 1] ?? 0)) / 2;
         color = brakingSegmentColor(thr, brk);
