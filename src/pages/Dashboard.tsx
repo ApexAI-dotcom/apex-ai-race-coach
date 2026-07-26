@@ -31,6 +31,7 @@ import {
   Edit2,
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
+import { UpcomingEventsWidget } from "@/components/calendar/UpcomingEventsWidget";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -588,6 +589,10 @@ export default function Dashboard() {
             </div>
           </div>
         </motion.div>
+
+        {/* Prochaines échéances : le calendrier vient au pilote plutôt que
+            d'attendre qu'il pense à ouvrir la page. */}
+        <UpcomingEventsWidget />
 
         {/* ═══ FEATURED CARD ═══ */}
         {featuredAnalysis && !currentFolderId && (

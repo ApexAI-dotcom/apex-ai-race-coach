@@ -150,6 +150,8 @@ async function rowToAnalysisResult(row: any, userId: string): Promise<AnalysisRe
     },
     session_type: row.session_type || "practice",
     plot_data: row.plot_data,
+    ideal_lap: row.ideal_lap ?? undefined,
+    racing_line: row.racing_line ?? undefined,
   };
 }
 
@@ -199,6 +201,10 @@ export async function saveAnalysis(
       corner_analysis: result.corner_analysis,
       coaching_advice: result.coaching_advice,
       plot_data: result.plot_data,
+      // Sans ces deux champs, rouvrir une analyse ferait disparaitre le bandeau
+      // Tour Parfait IA et la vue mini-secteurs : la valeur serait perdue.
+      ideal_lap: result.ideal_lap ?? null,
+      racing_line: result.racing_line ?? null,
       performance_score: result.performance_score,
       statistics: result.statistics,
       session_conditions: {

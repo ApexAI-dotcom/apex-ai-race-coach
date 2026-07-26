@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { createCheckoutSession } from "@/lib/api";
-import { Check, X, Zap, Trophy, CreditCard, Lock, Loader2, Flag, Car } from "lucide-react";
+import { Check, X, Zap, Trophy, CreditCard, Lock, Loader2, Flag, Car, Ticket } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import PricingSection4 from "@/components/ui/pricing-section-4";
 
 type BillingPeriod = "monthly" | "annual";
@@ -207,6 +208,28 @@ export default function PricingPage() {
           setPeriod={setPeriod}
           isAuthenticated={!!user}
         />
+
+        {/* Activation d'un code — un pilote qui repart d'un circuit avec un
+            Paddock Pass doit pouvoir l'utiliser sans chercher : c'est ici qu'il
+            regarde, au moment de choisir une offre. */}
+        <div className="container mx-auto px-4 pb-4">
+          <div className="max-w-xl mx-auto rounded-2xl border border-border bg-card/60 p-5 text-center">
+            <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 mb-3">
+              <Ticket className="w-5 h-5 text-primary" />
+            </div>
+            <h3 className="font-semibold text-foreground">Tu as un code Paddock Pass&nbsp;?</h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
+              Les codes distribués sur les circuits débloquent ApexAI Premium pendant 24&nbsp;h,
+              sans carte bancaire.
+            </p>
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/redeem">
+                <Ticket className="w-4 h-4" />
+                Activer mon code
+              </Link>
+            </Button>
+          </div>
+        </div>
 
         {/* Paiement sécurisé (centered) */}
         <div className="container mx-auto px-4 pb-16">

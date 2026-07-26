@@ -95,9 +95,10 @@ const emptyForm = (): PilotEventInput => ({
 });
 
 export default function CalendarPage() {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const token = session?.access_token;
 
+  const [knownCircuits, setKnownCircuits] = useState<string[]>([]);
   const [events, setEvents] = useState<PilotEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -120,6 +121,31 @@ export default function CalendarPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Circuits déjà roulés par le pilote, tirés de ses analyses : le calendrier
+  // ne lui redemande pas une information que l'application possède.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { getAllAnalyses } = await import("@/lib/storage");
+        const analyses = await getAllAnalyses(user?.id);
+        const names = Array.from(
+          new Set(
+            analyses
+              .map((a: any) => a?.circuit_name || a?.result?.session_conditions?.circuit_name)
+              .filter((n: unknown): n is string => typeof n === "string" && n.trim().length > 0)
+          )
+        );
+        if (!cancelled) setKnownCircuits(names.slice(0, 12));
+      } catch {
+        /* le calendrier reste utilisable sans suggestions */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   const { upcoming, past } = useMemo(() => {
     const now = Date.now();
@@ -372,12 +398,21 @@ export default function CalendarPage() {
                 <label className="text-xs text-muted-foreground space-y-1">
                   <span>Circuit (optionnel)</span>
                   <Input
+                    list="apex-known-circuits"
                     value={form.circuit_name ?? ""}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, circuit_name: e.target.value || null }))
                     }
-                    placeholder="Ex. Adria Karting Raceway"
+                    placeholder={knownCircuits[0] ?? "Ex. Adria Karting Raceway"}
                   />
+                  {/* Les circuits proposés sont ceux que le pilote a réellement
+                      roulés : le calendrier s'appuie sur ses analyses au lieu de
+                      lui redemander ce que l'app sait déjà. */}
+                  <datalist id="apex-known-circuits">
+                    {knownCircuits.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
                 </label>
               </div>
 
