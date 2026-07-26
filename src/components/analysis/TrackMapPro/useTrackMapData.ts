@@ -87,7 +87,7 @@ export function useTrackMap(
     const realLaps = allLaps.filter((l) => !l.is_synthetic);
     const syntheticLap = allLaps.find((l) => l.is_synthetic) ?? null;
 
-    const { globalMin, globalMax, globalMedian } = computeGlobalSpeedBounds(
+    const { globalMin, globalMax, globalMedian, quantiles } = computeGlobalSpeedBounds(
       realLaps.length > 0 ? realLaps : allLaps
     );
 
@@ -97,7 +97,7 @@ export function useTrackMap(
       realLaps[0];
 
     const primary = primaryLap
-      ? buildLapProjection(primaryLap, project, profile, globalMin, globalMax, globalMedian)
+      ? buildLapProjection(primaryLap, project, profile, globalMin, globalMax, globalMedian, quantiles)
       : null;
 
     let reference = null;
@@ -111,7 +111,8 @@ export function useTrackMap(
           profile,
           globalMin,
           globalMax,
-          globalMedian
+          globalMedian,
+          quantiles
         );
     }
 
@@ -123,7 +124,8 @@ export function useTrackMap(
         profile,
         globalMin,
         globalMax,
-        globalMedian
+        globalMedian,
+        quantiles
       );
     }
 

@@ -55,7 +55,15 @@ export function PaddockPassBanner() {
   const expired = secondsLeft <= 0;
 
   return (
-    <div className={`w-full text-sm ${expired ? "bg-muted" : "bg-primary/10 border-b border-primary/20"}`}>
+    <div
+      /* Collant sous la barre de navigation : le compte à rebours doit rester
+         sous les yeux du pilote pendant toute la durée de son Paddock Pass,
+         y compris lorsqu'il fait défiler la page. Le décalage suit la barre,
+         qui se rétracte et flotte au défilement. */
+      className={`sticky top-0 md:top-2 z-40 w-full text-sm backdrop-blur-md ${
+        expired ? "bg-muted/95" : "bg-primary/15 border-b border-primary/25"
+      }`}
+    >
       <div className="container mx-auto px-4 py-2 flex items-center justify-center gap-3 relative">
         <Ticket className={`w-4 h-4 shrink-0 ${expired ? "text-muted-foreground" : "text-primary"}`} />
         {expired ? (

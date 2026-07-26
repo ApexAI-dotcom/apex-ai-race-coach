@@ -15,15 +15,40 @@ export const REF_WHITE = "#ffffff";
 
 // ── Speed gradient: MAXIMUM contrast Red ↔ Green ──
 // Both extremes are at full brightness and saturation
+/**
+ * Rang d'une vitesse dans la session (0 = la plus lente, 1 = la plus rapide).
+ * Colorer selon le rang plutôt que selon la position entre min et max étale les
+ * couleurs là où les écarts existent réellement : sur un tracé de karting, une
+ * échelle linéaire tasse tout le tour dans les tons orangés.
+ */
+function percentileRank(speed: number, quantiles: number[]): number {
+  const n = quantiles.length;
+  if (n < 2) return 0;
+  if (speed <= quantiles[0]) return 0;
+  if (speed >= quantiles[n - 1]) return 1;
+  let lo = 0;
+  let hi = n - 1;
+  while (lo < hi - 1) {
+    const mid = (lo + hi) >> 1;
+    if (quantiles[mid] <= speed) lo = mid;
+    else hi = mid;
+  }
+  return lo / (n - 1);
+}
+
 export function speedToColor(
   speed: number,
   minSpeed: number,
   maxSpeed: number,
-  medianSpeed?: number
+  medianSpeed?: number,
+  quantiles?: number[]
 ): string {
   if (maxSpeed <= minSpeed) return "#ff0000";
 
-  let t = (speed - minSpeed) / (maxSpeed - minSpeed);
+  let t =
+    quantiles && quantiles.length > 1
+      ? percentileRank(speed, quantiles)
+      : (speed - minSpeed) / (maxSpeed - minSpeed);
   t = Math.max(0, Math.min(1, t));
 
   // Power curve to compress the middle and expand the edges.

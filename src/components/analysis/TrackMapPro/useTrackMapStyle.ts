@@ -27,7 +27,8 @@ export function buildLapProjection(
   profile: TrackMapProfile,
   globalSpeedMin: number,
   globalSpeedMax: number,
-  globalSpeedMedian?: number
+  globalSpeedMedian?: number,
+  speedQuantiles?: number[]
 ): LapProjection {
   const pts: ProjectedPoint[] = [];
   const segments: ColoredSegment[] = [];
@@ -73,7 +74,7 @@ export function buildLapProjection(
     const hasPedals = throttles.some((t) => t > 0) || brakes.some((b) => b > 0);
 
     if (profile === "speed" || profile === "complete") {
-      color = speedToColor(avgSpeed, globalSpeedMin, globalSpeedMax, globalSpeedMedian);
+      color = speedToColor(avgSpeed, globalSpeedMin, globalSpeedMax, globalSpeedMedian, speedQuantiles);
       phase = dv < -0.3 ? "braking" : dv > 0.3 ? "acceleration" : "coasting";
     } else if (profile === "braking") {
       if (hasPedals) {
@@ -131,11 +132,21 @@ export function computeGlobalSpeedBounds(laps: TrajectoryLap[]) {
       if (s > 10) allSpeeds.push(s);
     }
   }
+  // 101 seuils de percentile : ils permettent de colorer selon le RANG d'une
+  // vitesse dans la session plutôt que selon sa position entre le minimum et le
+  // maximum. Sur un tracé de karting, l'essentiel du tour se joue dans une
+  // bande étroite : une échelle linéaire y écrase toutes les nuances (tout
+  // paraît orange). Le classement par percentile étale au contraire les
+  // couleurs là où les écarts existent vraiment.
+  let quantiles: number[] = [];
   if (allSpeeds.length > 0) {
     allSpeeds.sort((a, b) => a - b);
     globalMin = allSpeeds[Math.floor(allSpeeds.length * 0.02)];
     globalMax = allSpeeds[Math.floor(allSpeeds.length * 0.97)];
     globalMedian = allSpeeds[Math.floor(allSpeeds.length * 0.5)];
+    quantiles = Array.from({ length: 101 }, (_, i) =>
+      allSpeeds[Math.min(allSpeeds.length - 1, Math.floor((i / 100) * allSpeeds.length))]
+    );
   }
-  return { globalMin, globalMax, globalMedian };
+  return { globalMin, globalMax, globalMedian, quantiles };
 }

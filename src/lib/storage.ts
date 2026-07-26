@@ -118,7 +118,16 @@ function cleanupOldAnalysesLS(suffix: string): void {
 
 async function getSupabaseUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getUser();
-  return data.user?.id ?? null;
+  if (data.user?.id) return data.user.id;
+  // Jeton expiré : sans rafraîchissement, l'écriture partirait avec une identité
+  // vide et serait rejetée par la sécurité au niveau ligne — avec un message
+  // incompréhensible pour le pilote. On tente une fois de renouveler la session.
+  try {
+    const { data: refreshed } = await supabase.auth.refreshSession();
+    return refreshed.user?.id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -215,7 +224,16 @@ export async function saveAnalysis(
       plot_keys: plotKeys,
     });
 
-    if (error) throw new Error(`Supabase save failed: ${error.message}`);
+    if (error) {
+      // Message compréhensible : « row-level security policy » ne dit rien à un
+      // pilote, alors que la cause est presque toujours une session expirée.
+      const isRls = /row-level security/i.test(error.message);
+      throw new Error(
+        isRls
+          ? "Session expirée : reconnecte-toi puis réessaie d'enregistrer cette analyse."
+          : `Enregistrement impossible : ${error.message}`
+      );
+    }
 
     // 3. Also cache lightweight metadata in localStorage for fast reads
     try {
