@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Check, Zap, Info, MapPin, Gauge, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
@@ -93,6 +93,13 @@ export function AnalysisDashboardContent({
 
   const selectedLapNumbers = providedSelectedLaps || localSelectedLaps;
   const selectedLapNumber = selectedLapNumbers[0] ?? bestLapNumber;
+
+  // Cliquer un conseil emmène le pilote sur la carte, au virage concerné.
+  // Le `token` force la carte à réagir même si on reclique le même virage.
+  const [focusCorner, setFocusCorner] = useState<{ id: number; token: number } | null>(null);
+  const handleFocusCorner = useCallback((cornerId: number) => {
+    setFocusCorner({ id: cornerId, token: Date.now() });
+  }, []);
 
   const referenceTrajectoryLap = useMemo(() => {
     const laps = plotData?.trajectory_2d?.laps ?? [];
@@ -254,6 +261,7 @@ export function AnalysisDashboardContent({
                 fastestLapNumber={bestLapNumber}
                 isLocked={isLocked}
                 hideCta={currentHideCta}
+                onFocusCorner={handleFocusCorner}
               />
             );
           })()}
@@ -274,6 +282,7 @@ export function AnalysisDashboardContent({
                 cornerAnalysis={analysis.corner_analysis as unknown[]}
                 bestLapNumber={bestLapNumber}
                 selectedLapNumbers={selectedLapNumbers}
+                focusCorner={focusCorner}
                 trackEdges={plotData.track_edges ?? analysis.racing_line?.track_edges ?? null}
                 racingLineMeta={plotData.racing_line_meta ?? analysis.racing_line ?? null}
                 idealLap={analysis.ideal_lap ?? null}

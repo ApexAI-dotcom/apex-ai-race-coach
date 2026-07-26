@@ -24,8 +24,10 @@ interface TrackMapProfilesProps {
 const PROFILES: {
   id: TrackMapProfile; label: string; icon: React.ElementType; hint: string;
 }[] = [
-  { id: "complete", label: "Complet", icon: Map, hint: "Vue d'ensemble : vitesse le long du tour + zones de freinage." },
-  { id: "speed", label: "Vitesse", icon: Gauge, hint: "Où tu es rapide, où tu es lent : la piste colorée par ta vitesse." },
+  // L'onglet « Complet » a été retiré : il affichait exactement la même chose
+  // que « Vitesse ». Deux onglets identiques n'apportent rien et font douter
+  // de ce qu'on regarde.
+  { id: "speed", label: "Vitesse", icon: Gauge, hint: "Où tu es rapide, où tu es lent : la piste colorée par ta vitesse, avec tes points de freinage." },
   { id: "braking", label: "Freinage", icon: Activity, hint: "Les phases de freinage, d'accélération et de transition." },
   { id: "sectors", label: "Mini-secteurs", icon: Timer, hint: "Où le temps se perd réellement : chaque portion colorée par les secondes perdues (mesurées)." },
   { id: "compare", label: "Comparaison", icon: GitCompare, hint: "Superpose ton tour avec un autre tour ou le Tour Parfait IA." },

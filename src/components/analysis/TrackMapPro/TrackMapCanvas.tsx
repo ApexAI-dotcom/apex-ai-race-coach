@@ -370,7 +370,9 @@ function TrackMapCanvasComponent({
   /** Repères de freinage mesurés : le pilote peut les retrouver en piste. */
   const brakingRefLayer = useMemo(() => {
     if (!brakingPoints?.length) return null;
-    if (profile !== "complete" && profile !== "braking") return null;
+    // Visibles partout sauf en comparaison (où deux tracés se superposent
+    // déjà) : ce sont LE repère concret que le pilote peut retrouver en piste.
+    if (profile === "compare") return null;
     return (
       <g className="braking-refs pointer-events-none">
         {brakingPoints.map((b, i) => (

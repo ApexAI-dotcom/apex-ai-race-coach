@@ -156,7 +156,7 @@ export function TrackMapLegend({
       )}
 
       {/* Repères de freinage : affichés seulement s'ils existent réellement */}
-      {hasBrakingPoints && (profile === "complete" || profile === "braking") && (
+      {hasBrakingPoints && profile !== "compare" && (
         <LegendItem
           swatch={<span className="block w-3 h-3 rounded-full border-2 border-emerald-500" />}
           label={`Point de freinage « V5 · 32m »`}

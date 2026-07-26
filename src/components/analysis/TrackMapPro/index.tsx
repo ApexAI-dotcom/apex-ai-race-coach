@@ -30,6 +30,8 @@ interface TrackMapProProps {
   racingLineMeta?: RacingLineMeta | null;
   /** Tour idéal mesuré (mini-secteurs + gain potentiel). */
   idealLap?: IdealLap | null;
+  /** Virage à mettre en avant (clic sur un conseil de coaching). */
+  focusCorner?: { id: number; token: number } | null;
 }
 
 export function TrackMapPro({
@@ -43,6 +45,7 @@ export function TrackMapPro({
   trackEdges = null,
   racingLineMeta = null,
   idealLap = null,
+  focusCorner = null,
 }: TrackMapProProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -92,6 +95,8 @@ export function TrackMapPro({
       ? (data.cornerDetails.find((c) => c.id === state.selectedCornerId) ?? null)
       : null;
 
+  const sectorsAvailable = !!data?.sectorSegments?.length;
+
   const comparisonLabel = (() => {
     if (!data?.reference) return undefined;
     if (data.reference.isSynthetic) return "Modèle ApexAI — ligne calculée";
@@ -108,6 +113,19 @@ export function TrackMapPro({
       document.body.style.overflow = "";
     }
   }, [state.isFullscreen]);
+
+  // Un conseil vient d'être cliqué : on ouvre le virage concerné et on bascule
+  // sur les mini-secteurs, la vue où le temps perdu se lit directement.
+  // Le `token` permet de rejouer l'effet même si on reclique le même virage.
+  const setSelectedCornerId = state.setSelectedCornerId;
+  const setProfile = state.setProfile;
+  useEffect(() => {
+    if (!focusCorner) return;
+    setSelectedCornerId(focusCorner.id);
+    if (sectorsAvailable) setProfile("sectors");
+    containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusCorner?.token]);
 
   if (!data?.primary && corners.length === 0) return null;
 
