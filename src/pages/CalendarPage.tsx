@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   CalendarDays,
+  LayoutGrid,
+  List,
   Flag,
   Timer,
   GraduationCap,
@@ -20,6 +22,8 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { MonthGrid } from "@/components/calendar/MonthGrid";
+import { CalendarPrepBanner } from "@/components/calendar/CalendarPrepBanner";
 import { useAuth } from "@/hooks/useAuth";
 import {
   listPilotEvents,
@@ -29,15 +33,20 @@ import {
   type PilotEvent,
   type PilotEventInput,
   type PilotEventType,
+  getCircuits,
 } from "@/lib/api";
 
 /**
  * Calendrier du pilote — la vie sportive au même endroit : courses,
  * entraînements, séances de coaching et échéances administratives.
  *
- * Volontairement chronologique plutôt qu'en grille mensuelle : ce qu'un pilote
- * veut savoir, c'est « qu'est-ce qui arrive et dans combien de temps », pas
- * remplir des cases vides.
+ * Deux lectures complémentaires : la grille mensuelle pour voir sa saison d'un
+ * coup d'œil (semaines chargées, trous où caler une séance), et la liste
+ * chronologique pour savoir ce qui arrive et dans quel ordre.
+ *
+ * Ce qui le distingue d'un agenda générique : il s'appuie sur ce que
+ * l'application sait déjà du pilote — ses circuits, l'état de son matériel —
+ * pour lui éviter de ressaisir et surtout d'oublier.
  */
 
 const TYPES: {
@@ -46,12 +55,13 @@ const TYPES: {
   icon: React.ElementType;
   color: string;
   ring: string;
+  accent: string;
 }[] = [
-  { id: "race", label: "Course", icon: Flag, color: "text-red-400", ring: "border-red-500/40 bg-red-500/10" },
-  { id: "training", label: "Entraînement", icon: Timer, color: "text-sky-400", ring: "border-sky-500/40 bg-sky-500/10" },
-  { id: "coaching", label: "Coaching", icon: GraduationCap, color: "text-violet-400", ring: "border-violet-500/40 bg-violet-500/10" },
-  { id: "deadline", label: "Échéance", icon: AlertCircle, color: "text-amber-400", ring: "border-amber-500/40 bg-amber-500/10" },
-  { id: "other", label: "Autre", icon: CircleDot, color: "text-muted-foreground", ring: "border-white/15 bg-white/5" },
+  { id: "race", label: "Course", icon: Flag, color: "text-red-400", ring: "border-red-500/40 bg-red-500/10", accent: "bg-red-500" },
+  { id: "training", label: "Entraînement", icon: Timer, color: "text-sky-400", ring: "border-sky-500/40 bg-sky-500/10", accent: "bg-sky-500" },
+  { id: "coaching", label: "Coaching", icon: GraduationCap, color: "text-violet-400", ring: "border-violet-500/40 bg-violet-500/10", accent: "bg-violet-500" },
+  { id: "deadline", label: "Échéance", icon: AlertCircle, color: "text-amber-400", ring: "border-amber-500/40 bg-amber-500/10", accent: "bg-amber-500" },
+  { id: "other", label: "Autre", icon: CircleDot, color: "text-muted-foreground", ring: "border-white/15 bg-white/5", accent: "bg-white/25" },
 ];
 
 const typeMeta = (t: PilotEventType) => TYPES.find((x) => x.id === t) ?? TYPES[4];
@@ -105,6 +115,9 @@ export default function CalendarPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<PilotEventInput>(emptyForm);
   const [showForm, setShowForm] = useState(false);
+  const [view, setView] = useState<"list" | "month">("month");
+  const [month, setMonth] = useState<Date>(() => new Date());
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -130,14 +143,27 @@ export default function CalendarPage() {
       try {
         const { getAllAnalyses } = await import("@/lib/storage");
         const analyses = await getAllAnalyses(user?.id);
-        const names = Array.from(
-          new Set(
-            analyses
-              .map((a: any) => a?.circuit_name || a?.result?.session_conditions?.circuit_name)
-              .filter((n: unknown): n is string => typeof n === "string" && n.trim().length > 0)
-          )
-        );
-        if (!cancelled) setKnownCircuits(names.slice(0, 12));
+        const fromAnalyses = analyses
+          .map((a: any) => a?.circuit_name || a?.result?.session_conditions?.circuit_name)
+          .filter((n: unknown): n is string => typeof n === "string" && n.trim().length > 0);
+
+        // On complète avec le catalogue de circuits de l'app (celui que le
+        // pilote alimente dans Réglages) : il n'a pas à ressaisir un nom que
+        // l'application connaît déjà.
+        let fromCatalog: string[] = [];
+        if (token) {
+          try {
+            const res: any = await getCircuits(token);
+            const list = Array.isArray(res) ? res : (res?.circuits ?? []);
+            fromCatalog = list
+              .map((c: any) => c?.name)
+              .filter((n: unknown): n is string => typeof n === "string" && n.trim().length > 0);
+          } catch {
+            /* le catalogue est un bonus, pas une dépendance */
+          }
+        }
+        const names = Array.from(new Set([...fromAnalyses, ...fromCatalog]));
+        if (!cancelled) setKnownCircuits(names.slice(0, 30));
       } catch {
         /* le calendrier reste utilisable sans suggestions */
       }
@@ -145,7 +171,7 @@ export default function CalendarPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, [user?.id, token]);
 
   const { upcoming, past } = useMemo(() => {
     const now = Date.now();
@@ -157,6 +183,17 @@ export default function CalendarPage() {
     old.reverse(); // le passé récent d'abord
     return { upcoming: up, past: old };
   }, [events]);
+
+  const eventsOfSelectedDay = useMemo(() => {
+    if (!selectedDay) return [];
+    return events
+      .filter((e) => {
+        const d = new Date(e.starts_at);
+        const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        return k === selectedDay;
+      })
+      .sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at));
+  }, [events, selectedDay]);
 
   const openCreate = () => {
     setEditingId(null);
@@ -248,9 +285,11 @@ export default function CalendarPage() {
     return (
       <Card
         key={ev.id}
-        className={`bg-secondary/40 border-white/5 ${isPast ? "opacity-60" : ""}`}
+        className={`relative overflow-hidden bg-secondary/40 border-white/5 transition-all hover:border-white/15 hover:bg-secondary/60 ${isPast ? "opacity-60" : ""}`}
       >
-        <CardContent className="p-4 flex items-start gap-3">
+        {/* Accent latéral : la couleur du type se lit avant même le texte */}
+        <span className={`absolute left-0 top-0 bottom-0 w-1 ${meta.accent}`} />
+        <CardContent className="p-4 pl-5 flex items-start gap-3">
           <div className={`shrink-0 w-10 h-10 rounded-xl border flex items-center justify-center ${meta.ring}`}>
             <Icon className={`w-5 h-5 ${meta.color}`} />
           </div>
@@ -448,6 +487,32 @@ export default function CalendarPage() {
           </Card>
         )}
 
+        {/* Croise la prochaine échéance avec l'état réel du matériel */}
+        {!loading && events.length > 0 && <CalendarPrepBanner events={events} />}
+
+        {/* Deux lectures complémentaires : la saison d'un coup d'œil (mois),
+            ou ce qui arrive et dans quel ordre (liste). */}
+        {!loading && events.length > 0 && (
+          <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-1 mb-4 w-fit">
+            <button
+              onClick={() => setView("month")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                view === "month" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" /> Mois
+            </button>
+            <button
+              onClick={() => setView("list")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <List className="w-3.5 h-3.5" /> Liste
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -469,6 +534,35 @@ export default function CalendarPage() {
           </Card>
         ) : (
           <div className="space-y-6">
+            {view === "month" && (
+              <div className="space-y-3">
+                <MonthGrid
+                  month={month}
+                  events={events}
+                  selectedDay={selectedDay}
+                  onMonthChange={setMonth}
+                  onSelectDay={setSelectedDay}
+                />
+                {selectedDay && (
+                  <section className="space-y-2.5">
+                    <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-bold">
+                      {new Date(selectedDay).toLocaleDateString("fr-FR", {
+                        weekday: "long", day: "numeric", month: "long",
+                      })}
+                    </h2>
+                    {eventsOfSelectedDay.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Rien ce jour-là.</p>
+                    ) : (
+                      eventsOfSelectedDay.map((e) =>
+                        renderEvent(e, new Date(e.starts_at).getTime() < Date.now())
+                      )
+                    )}
+                  </section>
+                )}
+              </div>
+            )}
+
+            {view === "list" && (
             <section className="space-y-2.5">
               <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-bold">
                 À venir {upcoming.length > 0 && `(${upcoming.length})`}
@@ -481,8 +575,9 @@ export default function CalendarPage() {
                 upcoming.map((e) => renderEvent(e, false))
               )}
             </section>
+            )}
 
-            {past.length > 0 && (
+            {view === "list" && past.length > 0 && (
               <section className="space-y-2.5">
                 <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-bold">
                   Passé et terminé ({past.length})

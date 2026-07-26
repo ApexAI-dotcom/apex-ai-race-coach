@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Zap, LogOut, User } from "lucide-react";
+import { Zap, LogOut, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
@@ -129,10 +129,15 @@ export const Navbar = () => {
                 {user?.email === ADMIN_EMAIL && (
                   <Link
                     to="/admin"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-600 text-white border border-red-500 shadow-sm hover:bg-red-500 transition-colors"
+                    /* Pastille compacte : sur un compte admin, le libellé
+                       complet volait la place aux liens de navigation. Le texte
+                       réapparaît sur les grands écrans. */
+                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-red-600 text-white border border-red-500 shadow-sm hover:bg-red-500 transition-colors shrink-0"
                     title="Ouvrir le back-office"
+                    aria-label="Ouvrir le back-office"
                   >
-                    Admin
+                    <Shield className="w-3.5 h-3.5" />
+                    <span className="hidden xl:inline">Admin</span>
                   </Link>
                 )}
                 <SubscriptionBadge />

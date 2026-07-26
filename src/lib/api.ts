@@ -93,6 +93,20 @@ export interface CornerAnalysis {
   apex_lat?: number | null;
   apex_lon?: number | null;
   avg_cumulative_distance?: number | null;
+  /** Repères de freinage mesurés (position GPS + distances). */
+  braking_lat?: number | null;
+  braking_lon?: number | null;
+  braking_point_distance?: number;
+  braking_point_optimal?: number;
+  braking_delta?: number;
+  /** Contexte tour par tour : où le pilote a réussi / perdu ce virage. */
+  best_lap_here?: number | null;
+  worst_lap_here?: number | null;
+  lap_spread_s?: number | null;
+  recurring?: boolean;
+  time_lost_source?: "measured" | "unavailable";
+  // Le backend peut enrichir un virage sans que le frontend le perde.
+  [key: string]: unknown;
 }
 
 const CORNER_KEYS: (keyof CornerAnalysis)[] = [
@@ -135,6 +149,11 @@ export function mapCornerData(raw: Record<string, unknown>): CornerAnalysis {
     }
   }
   return {
+    // On repart de l'objet brut : cette fonction NORMALISE quelques clés, elle
+    // ne décide pas de ce que le backend a le droit d'envoyer. Sans ce spread,
+    // tout nouveau champ (repères de freinage, contexte tour par tour…) était
+    // silencieusement supprimé ici et n'atteignait jamais l'interface.
+    ...(raw as Record<string, unknown>),
     corner_id: Number(raw.corner_id ?? 0),
     corner_number: Number(raw.corner_number ?? raw.corner_id ?? 0),
     corner_type,
@@ -182,6 +201,8 @@ function mapAdviceData(raw: Record<string, unknown>): CoachingAdvice {
     console.warn("[ApexAI] coaching: expected 'impact_seconds', got 'time_impact_seconds'");
   }
   return {
+    // Même principe que pour les virages : on normalise, on ne filtre pas.
+    ...(raw as Record<string, unknown>),
     priority: Number(raw.priority ?? 5),
     category: String(raw.category ?? "global"),
     impact_seconds,
