@@ -334,7 +334,7 @@ const TestimonialSlider: React.FC = () => {
               <motion.button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className="relative mx-1.5 focus:outline-none"
+                className="relative mx-0.5 flex h-10 w-8 items-center justify-center focus:outline-none"
                 whileHover={{ scale: 1.25 }}
                 whileTap={{ scale: 0.95 }}
                 aria-label={`Go to testimonial ${index + 1}`}

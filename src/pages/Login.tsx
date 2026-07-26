@@ -280,7 +280,7 @@ export default function Login() {
                         setError(null);
                         setSuccess(null);
                       }}
-                      className="text-primary hover:underline"
+                      className="text-primary hover:underline inline-flex items-center justify-center min-h-[40px] px-2"
                     >
                       Mot de passe oublié ?
                     </button>
@@ -291,7 +291,7 @@ export default function Login() {
                         setError(null);
                         setSuccess(null);
                       }}
-                      className="text-muted-foreground hover:text-foreground"
+                      className="text-muted-foreground hover:text-foreground inline-flex items-center justify-center min-h-[40px] px-2"
                     >
                       {isSignUp
                         ? "Déjà un compte ? Se connecter"
@@ -339,7 +339,7 @@ export default function Login() {
                         setError(null);
                         setSuccess(null);
                       }}
-                      className="text-primary hover:underline"
+                      className="text-primary hover:underline inline-flex items-center justify-center min-h-[40px] px-2"
                     >
                       Retour à la connexion
                     </button>

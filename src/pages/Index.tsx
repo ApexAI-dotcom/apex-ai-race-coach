@@ -585,19 +585,19 @@ export default function Index() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center justify-between gap-6">
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground order-2 md:order-1">
-              <Link to="/pricing" className="hover:text-primary transition-colors duration-200">
+              <Link to="/pricing" className="inline-flex items-center min-h-[36px] hover:text-primary transition-colors duration-200">
                 Plans
               </Link>
-              <Link to="/#contact" className="hover:text-primary transition-colors duration-200">
+              <Link to="/#contact" className="inline-flex items-center min-h-[36px] hover:text-primary transition-colors duration-200">
                 Contact
               </Link>
-              <Link to="/legal" className="hover:text-primary transition-colors duration-200">
+              <Link to="/legal" className="inline-flex items-center min-h-[36px] hover:text-primary transition-colors duration-200">
                 Mentions légales
               </Link>
-              <Link to="/legal/cgu" className="hover:text-primary transition-colors duration-200">
+              <Link to="/legal/cgu" className="inline-flex items-center min-h-[36px] hover:text-primary transition-colors duration-200">
                 CGU
               </Link>
-              <Link to="/legal/confidentialite" className="hover:text-primary transition-colors duration-200">
+              <Link to="/legal/confidentialite" className="inline-flex items-center min-h-[36px] hover:text-primary transition-colors duration-200">
                 Confidentialité
               </Link>
             </div>

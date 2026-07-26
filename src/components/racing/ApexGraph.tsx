@@ -149,7 +149,7 @@ export const ApexGraph = () => {
       </div>
 
       {/* Mini stats */}
-      <div className="grid grid-cols-4 gap-4 mt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-4">
         {[
           { label: "Virages", value: "12" },
           { label: "Apex parfaits", value: "8/12" },

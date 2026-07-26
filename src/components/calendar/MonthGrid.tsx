@@ -76,7 +76,7 @@ export function MonthGrid({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-10 w-10 sm:h-8 sm:w-8"
           aria-label="Mois précédent"
           onClick={() => onMonthChange(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
         >
@@ -86,7 +86,7 @@ export function MonthGrid({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-10 w-10 sm:h-8 sm:w-8"
           aria-label="Mois suivant"
           onClick={() => onMonthChange(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
         >

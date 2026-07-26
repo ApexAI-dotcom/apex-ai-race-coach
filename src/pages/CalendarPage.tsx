@@ -318,11 +318,11 @@ export default function CalendarPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-10 w-10 sm:h-8 sm:w-8"
               onClick={() => toggleDone(ev)}
               title={ev.completed ? "Marquer comme à venir" : "Marquer comme fait"}
               aria-label={ev.completed ? "Marquer comme à venir" : "Marquer comme fait"}
@@ -332,7 +332,7 @@ export default function CalendarPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-10 w-10 sm:h-8 sm:w-8"
               onClick={() => openEdit(ev)}
               title="Modifier"
               aria-label="Modifier"
@@ -342,7 +342,7 @@ export default function CalendarPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 hover:text-red-500"
+              className="h-10 w-10 sm:h-8 sm:w-8 hover:text-red-500"
               onClick={() => remove(ev)}
               title="Supprimer"
               aria-label="Supprimer"

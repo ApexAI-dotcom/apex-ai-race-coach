@@ -12,20 +12,20 @@ export const LegalFooter = () => (
         <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
           <Link
             to="/legal"
-            className="hover:text-foreground hover:underline font-medium transition-colors"
+            className="inline-flex items-center min-h-[32px] py-1 hover:text-foreground hover:underline font-medium transition-colors"
           >
             Mentions légales
           </Link>
           <span className="text-muted-foreground/60" aria-hidden>
             ·
           </span>
-          <Link to="/legal/cgu" className="hover:text-foreground hover:underline transition-colors">
+          <Link to="/legal/cgu" className="inline-flex items-center min-h-[32px] py-1 hover:text-foreground hover:underline transition-colors">
             CGU
           </Link>
           <span className="text-muted-foreground/60" aria-hidden>
             ·
           </span>
-          <Link to="/legal/confidentialite" className="hover:text-foreground hover:underline transition-colors">
+          <Link to="/legal/confidentialite" className="inline-flex items-center min-h-[32px] py-1 hover:text-foreground hover:underline transition-colors">
             Confidentialité
           </Link>
           <span className="text-muted-foreground/60" aria-hidden>
@@ -33,7 +33,7 @@ export const LegalFooter = () => (
           </span>
           <a
             href="mailto:contact@apexai.run"
-            className="hover:text-foreground hover:underline transition-colors"
+            className="inline-flex items-center min-h-[32px] py-1 hover:text-foreground hover:underline transition-colors"
             rel="noopener noreferrer"
           >
             Contact
