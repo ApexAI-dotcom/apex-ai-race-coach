@@ -9,6 +9,7 @@ import { ThrottleBrakeChart } from "./ThrottleBrakeChart";
 import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { TrackMapPro } from "./TrackMapPro";
+import { BrakingPanel } from "./BrakingPanel";
 import { CoachingAdvice } from "./CoachingAdvice";
 import { enrichCornersWithCornerAnalysis } from "./utils";
 import { buildCornerOverlays } from "./cornerOverlays";
@@ -287,6 +288,14 @@ export function AnalysisDashboardContent({
                 racingLineMeta={plotData.racing_line_meta ?? analysis.racing_line ?? null}
                 idealLap={analysis.ideal_lap ?? null}
               />
+              {/* Le détail chiffré prolonge la carte : le pilote lit la bande,
+                  puis les chiffres qui la décrivent, sans changer d'écran. */}
+              <div className="mt-4">
+                <BrakingPanel
+                  braking={plotData.braking ?? null}
+                  onFocusCorner={handleFocusCorner}
+                />
+              </div>
             </section>
           )}
 

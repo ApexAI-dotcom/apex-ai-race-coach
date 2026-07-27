@@ -77,22 +77,45 @@ export function TrackMapLegend({
         </div>
       )}
 
-      {/* Braking legend */}
+      {/* Vue Freinage : bande, temps mort, repère — expliqués un par un */}
       {profile === "braking" && (
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: APEX_RED }} />
-            <span>Freinage</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: TRACK_GREEN }} />
-            <span>Accélération</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: TRACK_GRAY }} />
-            <span>Transition</span>
-          </div>
-        </div>
+        <>
+          <LegendItem
+            swatch={<span className="block w-4 h-1.5 rounded-full" style={{ background: APEX_RED }} />}
+            label="Zone de freinage"
+            hint="du premier appui jusqu'au relâcher, mesuré sur la décélération réelle. Plus la bande est épaisse, plus tu freines fort"
+          />
+          <LegendItem
+            swatch={
+              <span
+                className="block w-4 h-0 border-t-2 border-dashed"
+                style={{ borderColor: "#fb923c" }}
+              />
+            }
+            label="Temps mort"
+            hint="ni frein ni gaz : le kart roule en roue libre. En karting il n'y a pas de transfert de masse à attendre, ce temps est perdu"
+          />
+          <LegendItem
+            swatch={<span className="block w-0.5 h-3.5 rounded-full bg-emerald-500" />}
+            label="Repère « V7 · 39m · 0.87g »"
+            hint="la barre marque le début de ta zone de freinage — c'est exactement le premier point de la bande. L'étiquette donne le virage, la distance jusqu'à l'apex (à compter en piste depuis un panneau ou une bordure) et la décélération de crête"
+          />
+          <LegendItem
+            swatch={<span className="block w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+            label="Vert = rien à gagner"
+            hint="tu freines déjà comme sur ton meilleur passage de la session à ce virage"
+          />
+          <LegendItem
+            swatch={<span className="block w-2.5 h-2.5 rounded-full bg-amber-500" />}
+            label="Couleur = marge détectée"
+            hint="ambre : tu peux freiner plus tard · orange : temps mort · bleu : ton meilleur tour anticipait davantage · violet : freinage trop mou · rose : point instable. Le détail chiffré est sous la carte"
+          />
+          <LegendItem
+            swatch={<span className="text-[10px]">⚠</span>}
+            label="Double freinage"
+            hint="tu as repris du frein après l'avoir relâché : une correction, signe que le premier appui n'était pas au bon endroit"
+          />
+        </>
       )}
 
       {/* Complete mode legend addon */}
@@ -153,15 +176,6 @@ export function TrackMapLegend({
             hint="total perdu sur ce virage (approche, courbe et relance comprises) — c'est exactement le chiffre repris dans les conseils de coaching"
           />
         </>
-      )}
-
-      {/* Repères de freinage : affichés seulement s'ils existent réellement */}
-      {hasBrakingPoints && profile === "braking" && (
-        <LegendItem
-          swatch={<span className="block w-3 h-3 rounded-full border-2 border-emerald-500" />}
-          label={`Point de freinage « V5 · 32m »`}
-          hint="cercle = là où tu commences réellement à freiner, l'étiquette = distance jusqu'à l'apex de ce virage (à compter en piste depuis un repère fixe). Vert : bien placé · orange : tu freines trop tôt · rouge : trop tard"
-        />
       )}
 
       {/* Repères permanents : ils sont sur toutes les vues */}

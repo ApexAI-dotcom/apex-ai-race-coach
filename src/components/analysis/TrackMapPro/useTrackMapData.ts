@@ -10,6 +10,27 @@ import type {
 } from "@/types/analysis";
 import { useTrackMapGeometry } from "./useTrackMapGeometry";
 import { buildLapProjection, computeGlobalSpeedBounds } from "./useTrackMapStyle";
+import { BRAKING_VERDICT_COLORS } from "./trackMapColors";
+
+/** Zone de freinage projetée dans le repère de la carte, prête à dessiner. */
+export interface BrakingZoneView {
+  cornerId: number;
+  /** Position du repère = premier point de la bande, par construction. */
+  x: number;
+  y: number;
+  /** Orientation locale de la piste, pour tracer le repère perpendiculairement. */
+  angle: number;
+  path: string;
+  coastPath: string;
+  distance: number;
+  peakG: number;
+  coasting: number;
+  entrySpeed: number;
+  minSpeed: number;
+  doubleBrake: boolean;
+  verdict: string;
+  color: string;
+}
 
 /** Couleur d'un mini-secteur selon le temps réellement perdu (secondes/tour). */
 function sectorColor(loss: number, maxLoss: number): string {
@@ -228,30 +249,58 @@ export function useTrackMap(
       }
     }
 
-    // ── Repères de freinage : où le pilote commence RÉELLEMENT à freiner, et à
-    // combien de mètres de l'apex. C'est le repère qu'il peut retrouver en
-    // piste (compter les mètres depuis un panneau, une bordure…).
-    const brakingPoints = (cornerAnalysis as any[])
-      .filter((ca) => ca?.braking_lat != null && ca?.braking_lon != null)
-      .map((ca) => {
-        const [x, y] = project(ca.braking_lat, ca.braking_lon);
-        const delta = Number(ca.braking_delta ?? 0);
+    // ── Zones de freinage du tour affiché ───────────────────────────────────
+    // Tout vient du serveur, déjà segmenté : la bande, son point de départ et
+    // les chiffres sont UN SEUL objet. La carte ne fait que projeter des
+    // coordonnées — elle ne réapplique aucun seuil, donc elle ne peut plus
+    // placer une pastille ailleurs que sur sa bande.
+    const verdictById: Record<number, string> = {};
+    for (const ca of cornerAnalysis as any[]) {
+      if (ca?.corner_id != null) verdictById[Number(ca.corner_id)] = ca.braking_verdict ?? "optimal";
+    }
+
+    const toPath = (lats?: number[], lons?: number[]) => {
+      if (!lats?.length || !lons?.length) return "";
+      const pts: string[] = [];
+      for (let i = 0; i < Math.min(lats.length, lons.length); i++) {
+        const [x, y] = project(lats[i], lons[i]);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+        pts.push(`${pts.length === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+      return pts.length > 1 ? pts.join("") : "";
+    };
+
+    const brakingZones = (primaryLap?.braking_zones ?? [])
+      .map((z) => {
+        if (z.start_lat == null || z.start_lon == null) return null;
+        const [x, y] = project(z.start_lat, z.start_lon);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+        // Direction locale du début de zone : sert à tracer le repère
+        // PERPENDICULAIRE à la piste, comme un vrai panneau de freinage.
+        let angle = 0;
+        if (z.lat.length > 1) {
+          const [x2, y2] = project(z.lat[1], z.lon[1]);
+          angle = (Math.atan2(y2 - y, x2 - x) * 180) / Math.PI;
+        }
+        const verdict = verdictById[z.corner_id] ?? "optimal";
         return {
+          cornerId: z.corner_id,
           x,
           y,
-          cornerId: Number(ca.corner_id ?? 0),
-          distance: Number(ca.braking_point_distance ?? 0),
-          delta,
-          // vert = au bon endroit, ambre = perfectible, rouge = trop tard
-          color: Math.abs(delta) < 3 ? "#22c55e" : delta > 0 ? "#f59e0b" : "#ef4444",
+          angle,
+          path: toPath(z.lat, z.lon),
+          coastPath: toPath(z.coasting_lat, z.coasting_lon),
+          distance: z.distance_to_apex_m,
+          peakG: z.peak_g,
+          coasting: z.coasting_s,
+          entrySpeed: z.entry_speed_kmh,
+          minSpeed: z.min_speed_kmh,
+          doubleBrake: z.double_brake,
+          verdict,
+          color: BRAKING_VERDICT_COLORS[verdict] ?? BRAKING_VERDICT_COLORS.optimal,
         };
       })
-      .filter((b) => Number.isFinite(b.x) && Number.isFinite(b.y) && b.distance > 0);
-
-    // La bande de freinage et la pastille proviennent désormais du MÊME signal
-    // physique (accélération longitudinale mesurée) : elles s'alignent d'elles-
-    // mêmes, sans le recalage artificiel qui forçait auparavant la bande à
-    // courir du repère jusqu'à l'apex.
+      .filter(Boolean) as BrakingZoneView[];
 
     return {
       primary,
@@ -265,7 +314,7 @@ export function useTrackMap(
       globalSpeedMax: globalMax,
       trackRibbonPath,
       sectorSegments,
-      brakingPoints,
+      brakingZones,
     };
   }, [
     project,

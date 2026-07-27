@@ -69,6 +69,38 @@ export interface TrajectoryCorner {
   apex_speed: number;
 }
 
+/**
+ * Zone de freinage d'un virage, sur un tour donné.
+ *
+ * Le tracé arrive en coordonnées GPS toutes prêtes : la carte le dessine tel
+ * quel, sans réappliquer le moindre seuil. `start_lat`/`start_lon` sont, par
+ * construction, le PREMIER point de `lat`/`lon` — la pastille ne peut donc
+ * jamais se retrouver ailleurs que sur sa bande.
+ */
+export interface BrakingZone {
+  corner_id: number;
+  kind: "braking";
+  lat: number[];
+  lon: number[];
+  start_lat: number | null;
+  start_lon: number | null;
+  /** Décélération de crête (g) : l'intensité réelle de l'appui. */
+  peak_g: number;
+  length_m: number;
+  duration_s: number;
+  /** Distance entre le déclenchement et l'apex : le repère à compter en piste. */
+  distance_to_apex_m: number;
+  entry_speed_kmh: number;
+  min_speed_kmh: number;
+  /** Temps sans frein ni gaz, entre le relâcher et la remise des gaz. */
+  coasting_s: number;
+  coasting_lat: number[];
+  coasting_lon: number[];
+  time_lost_s: number;
+  /** Le pilote a repris du frein après avoir relâché : une retouche. */
+  double_brake: boolean;
+}
+
 export interface TrajectoryLap {
   lap_number?: number;
   is_best?: boolean;
@@ -82,9 +114,65 @@ export interface TrajectoryLap {
   lateral_g?: number[];
   /** Phase de pilotage par point, calculée côté serveur en unités physiques. */
   phase?: ("braking" | "acceleration" | "coasting")[];
+  /** Zones de freinage de CE tour, prêtes à tracer. */
+  braking_zones?: BrakingZone[];
   is_synthetic?: boolean;
   reference_type?: "model" | "best_real";
   label?: string;
+}
+
+/** Verdict de freinage : le défaut dominant, mesuré. */
+export type BrakingVerdict =
+  | "soft"
+  | "coasting"
+  | "brake_later"
+  | "brake_earlier"
+  | "inconsistent"
+  | "optimal";
+
+/** Synthèse de freinage d'un virage, tous tours représentatifs confondus. */
+export interface BrakingCorner {
+  corner_id: number;
+  laps: number;
+  reference_lap: number;
+  braking_lat: number | null;
+  braking_lon: number | null;
+  braking_point_distance: number;
+  braking_point_optimal: number;
+  braking_delta: number;
+  braking_verdict: BrakingVerdict;
+  braking_length_m: number;
+  braking_duration_s: number;
+  braking_peak_g: number;
+  braking_avg_g: number;
+  braking_build_up_m: number;
+  braking_entry_speed: number;
+  braking_min_speed: number;
+  braking_delta_v: number;
+  /** Distance minimale autorisée par la physique — une borne, pas une promesse. */
+  braking_theoretical_min_m: number;
+  trail_braking_ratio: number;
+  coasting_s: number;
+  coasting_m: number;
+  coasting_best_s: number;
+  coasting_excess_s: number;
+  braking_time_lost: number;
+  /** Écart-type du point de freinage : le marqueur de régularité. */
+  braking_consistency_m: number;
+  braking_best_lap: number;
+  braking_best_point_m: number;
+  braking_best_min_speed: number;
+  braking_best_peak_g: number;
+  braking_corner_peak_g: number;
+  braking_capability_g: number;
+  double_brake_laps: number;
+}
+
+/** Analyse de freinage de la session. */
+export interface BrakingAnalysis {
+  /** Décélération que le pilote a réellement démontrée (g). */
+  capability_g: number;
+  corners: BrakingCorner[];
 }
 
 export type TrackMapProfile = "speed" | "braking" | "sectors" | "compare" | "complete";
@@ -163,6 +251,8 @@ export interface PlotData {
   trajectory_2d: { corners: TrajectoryCorner[]; laps?: TrajectoryLap[] };
   track_edges?: TrackEdges;
   racing_line_meta?: RacingLineMeta;
+  /** Freinages mesurés — même source que les bandes de la carte. */
+  braking?: BrakingAnalysis;
   time_delta_laps?: {
     best_lap_number: number;
     laps: {

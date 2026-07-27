@@ -241,7 +241,7 @@ export function TrackMapPro({
             trackRibbonPath={data.trackRibbonPath}
             trackWidthM={racingLineMeta?.track_width_m}
             sectorSegments={data.sectorSegments}
-            brakingPoints={data.brakingPoints}
+            brakingZones={data.brakingZones}
           />
         )}
 
@@ -279,7 +279,7 @@ export function TrackMapPro({
           trackWidthM={racingLineMeta?.track_width_m}
           trackWidthSource={racingLineMeta?.track_width_source}
           hasRibbon={!!data?.trackRibbonPath}
-          hasBrakingPoints={!!data?.brakingPoints?.length}
+          hasBrakingPoints={!!data?.brakingZones?.length}
         />
       </div>
     </div>

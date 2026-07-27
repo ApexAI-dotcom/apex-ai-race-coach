@@ -7,6 +7,7 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import type { TrackMapProfile } from "@/types/analysis";
 import type { ProjectedCorner } from "./useTrackMapGeometry";
 import type { LapProjection, ColoredSegment } from "./useTrackMapStyle";
+import type { BrakingZoneView } from "./useTrackMapData";
 import { SVG_W, SVG_H } from "./useTrackMapGeometry";
 import { APEX_ORANGE, APEX_RED, MODEL_GOLD, TRACK_BG_DARK, REF_WHITE } from "./trackMapColors";
 
@@ -28,18 +29,8 @@ interface TrackMapCanvasProps {
   trackWidthM?: number;
   /** Mini-secteurs : temps perdu mesuré le long du tour. */
   sectorSegments?: SectorSegment[];
-  /** Repères de freinage réels (position + distance à l'apex). */
-  brakingPoints?: BrakingPoint[];
-}
-
-/** Point de freinage mesuré, repère concret pour le pilote en piste. */
-export interface BrakingPoint {
-  x: number;
-  y: number;
-  cornerId: number;
-  distance: number;
-  delta: number;
-  color: string;
+  /** Zones de freinage du tour affiché (bande + repère + temps mort). */
+  brakingZones?: BrakingZoneView[];
 }
 
 /** Un mini-secteur projeté, coloré par le temps réellement perdu. */
@@ -203,7 +194,7 @@ function TrackMapCanvasComponent({
   trackRibbonPath,
   trackWidthM,
   sectorSegments,
-  brakingPoints,
+  brakingZones,
 }: TrackMapCanvasProps) {
   // Invisible hit area for hover detection
   const handleMouseMove = useCallback(
@@ -367,32 +358,91 @@ function TrackMapCanvasComponent({
     );
   }, [trackRibbonPath]);
 
-  /** Repères de freinage mesurés : le pilote peut les retrouver en piste. */
+  /**
+   * Zones de freinage — la vue « Freinage ».
+   *
+   * Trois éléments qui racontent la même chose, du plus visible au plus précis :
+   *  1. la BANDE rouge, épaissie selon l'intensité réellement mesurée ;
+   *  2. la bande AMBRE en pointillés juste après : le temps mort, ni frein ni gaz ;
+   *  3. le REPÈRE perpendiculaire à la piste, comme un panneau de freinage, posé
+   *     sur le premier point de la bande — c'est le même point, pas une position
+   *     recalculée.
+   */
   const brakingRefLayer = useMemo(() => {
-    if (!brakingPoints?.length) return null;
-    // Réservés à la vue « Freinage » : ce sont des repères précieux, mais les
-    // superposer à la vue vitesse ou aux mini-secteurs surcharge la carte et
-    // nuit à la lecture de ces deux vues.
-    if (profile !== "braking") return null;
+    if (!brakingZones?.length || profile !== "braking") return null;
     return (
-      <g className="braking-refs pointer-events-none">
-        {brakingPoints.map((b, i) => (
-          <g key={`bref-${i}`} transform={`translate(${b.x.toFixed(1)},${b.y.toFixed(1)})`}>
-            <circle r={6} fill="none" stroke={b.color} strokeWidth={2} opacity={0.9} />
-            <circle r={2} fill={b.color} />
-            <g transform="translate(9,-9)">
+      <g className="braking-zones pointer-events-none">
+        {/* 1. Les bandes, tracées d'abord pour rester sous les repères */}
+        {brakingZones.map((z, i) =>
+          z.path ? (
+            <g key={`bzone-${i}`}>
+              <path
+                d={z.path}
+                fill="none"
+                stroke={APEX_RED}
+                strokeWidth={5 + Math.min(7, z.peakG * 7)}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.16}
+              />
+              <path
+                d={z.path}
+                fill="none"
+                stroke={APEX_RED}
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.85}
+              />
+            </g>
+          ) : null
+        )}
+
+        {/* 2. Le temps mort : visible, mais jamais confondu avec du freinage */}
+        {brakingZones.map((z, i) =>
+          z.coastPath && z.coasting >= 0.12 ? (
+            <path
+              key={`bcoast-${i}`}
+              d={z.coastPath}
+              fill="none"
+              stroke="#fb923c"
+              strokeWidth={3}
+              strokeDasharray="3 4"
+              strokeLinecap="round"
+              opacity={0.9}
+            />
+          ) : null
+        )}
+
+        {/* 3. Les repères */}
+        {brakingZones.map((z, i) => (
+          <g key={`bmark-${i}`} transform={`translate(${z.x.toFixed(1)},${z.y.toFixed(1)})`}>
+            {/* Barre en travers de la piste : un repère de freinage, pas un point */}
+            <g transform={`rotate(${z.angle.toFixed(1)})`}>
+              <line
+                x1={0}
+                y1={-9}
+                x2={0}
+                y2={9}
+                stroke={z.color}
+                strokeWidth={3}
+                strokeLinecap="round"
+              />
+            </g>
+            <circle r={3.5} fill={TRACK_BG_DARK} stroke={z.color} strokeWidth={2} />
+            <g transform="translate(10,-10)">
               <rect
                 x={0}
-                y={-8}
-                width={62}
-                height={16}
-                rx={8}
-                fill="rgba(0,0,0,0.8)"
-                stroke={b.color}
+                y={-9}
+                width={z.doubleBrake ? 92 : 78}
+                height={18}
+                rx={9}
+                fill="rgba(0,0,0,0.82)"
+                stroke={z.color}
                 strokeWidth={1}
               />
               <text
-                x={31}
+                x={(z.doubleBrake ? 92 : 78) / 2}
                 y={4}
                 textAnchor="middle"
                 fill="#fff"
@@ -400,14 +450,16 @@ function TrackMapCanvasComponent({
                 fontWeight="700"
                 fontFamily="'Space Grotesk', sans-serif"
               >
-                {`V${b.cornerId} · ${Math.round(b.distance)}m`}
+                {`V${z.cornerId} · ${Math.round(z.distance)}m · ${z.peakG.toFixed(2)}g${
+                  z.doubleBrake ? " ⚠" : ""
+                }`}
               </text>
             </g>
           </g>
         ))}
       </g>
     );
-  }, [brakingPoints, profile]);
+  }, [brakingZones, profile]);
 
   /** Mini-secteurs colorés par temps perdu (profil « Mini-secteurs »). */
   const sectorsLayer = useMemo(() => {

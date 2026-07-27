@@ -94,6 +94,28 @@ export function brakingPhase(throttlePct: number, brakePct: number): BrakingPhas
   return "coasting";
 }
 
+// ── Freinage : une couleur par verdict mesuré ──
+// Le code couleur répond à une seule question : « y a-t-il quelque chose à
+// aller chercher ici ? ». Le détail chiffré est dans l'étiquette et dans le
+// panneau Freinages ; la carte doit rester lisible d'un coup d'œil.
+export const BRAKING_VERDICT_COLORS: Record<string, string> = {
+  optimal: "#22c55e",       // rien à gagner : tu es déjà à ton meilleur
+  brake_later: "#f59e0b",   // marge de retard identifiée
+  brake_earlier: "#38bdf8", // ton meilleur passage anticipait davantage
+  coasting: "#fb923c",      // temps mort entre frein et gaz
+  soft: "#a78bfa",          // intensité en dessous de ta capacité
+  inconsistent: "#f472b6",  // point de déclenchement instable
+};
+
+export const BRAKING_VERDICT_LABELS: Record<string, string> = {
+  optimal: "À ton meilleur",
+  brake_later: "Freinage tardif possible",
+  brake_earlier: "Anticiper davantage",
+  coasting: "Temps mort",
+  soft: "Freinage trop mou",
+  inconsistent: "Point instable",
+};
+
 // ── Grade → color ──
 export function gradeColor(grade: string): string {
   switch (grade.toUpperCase()) {

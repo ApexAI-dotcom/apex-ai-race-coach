@@ -93,12 +93,35 @@ export interface CornerAnalysis {
   apex_lat?: number | null;
   apex_lon?: number | null;
   avg_cumulative_distance?: number | null;
-  /** Repères de freinage mesurés (position GPS + distances). */
+  /**
+   * Freinage mesuré (src/analysis/braking.py). Absent des virages pris à plat :
+   * `has_braking_zone` distingue « pas de freinage ici » de « donnée manquante ».
+   */
+  has_braking_zone?: boolean;
   braking_lat?: number | null;
   braking_lon?: number | null;
   braking_point_distance?: number;
   braking_point_optimal?: number;
   braking_delta?: number;
+  braking_verdict?: string;
+  braking_peak_g?: number;
+  braking_avg_g?: number;
+  braking_length_m?: number;
+  braking_duration_s?: number;
+  braking_entry_speed?: number;
+  braking_min_speed?: number;
+  braking_delta_v?: number;
+  braking_theoretical_min_m?: number;
+  braking_consistency_m?: number;
+  braking_best_lap?: number;
+  braking_best_point_m?: number;
+  braking_capability_g?: number;
+  braking_time_lost?: number;
+  coasting_s?: number;
+  coasting_best_s?: number;
+  coasting_excess_s?: number;
+  trail_braking_ratio?: number;
+  double_brake_laps?: number;
   /** Contexte tour par tour : où le pilote a réussi / perdu ce virage. */
   best_lap_here?: number | null;
   worst_lap_here?: number | null;
