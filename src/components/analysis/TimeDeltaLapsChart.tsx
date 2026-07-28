@@ -13,6 +13,8 @@ import {
   Label,
 } from "recharts";
 import { downsample } from "./utils";
+import { useChartZoom, sliceToDomain } from "./useChartZoom";
+import { ChartZoomFrame } from "./ChartZoomFrame";
 import { BlurOverlay } from "../ui/BlurOverlay";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useNavigate } from "react-router-dom";
@@ -52,22 +54,37 @@ export function TimeDeltaLapsChart({
   const visible = isChartVisible("delta_time", circuitName);
   const cta = getCtaDetails(circuitName);
 
+  const refDist = useMemo(() => {
+    const best = data.laps.find((l) => l.is_best);
+    const sel = data.laps.filter((l) => selectedLaps.includes(l.lap_number));
+    return (best ?? sel[0])?.distance_m ?? [];
+  }, [data, selectedLaps]);
+
+  const zoom = useChartZoom(refDist[0] ?? 0, refDist[refDist.length - 1] ?? 1);
+
   const { series, activeLaps } = useMemo(() => {
     const selectedLapData = data.laps.filter((l) => selectedLaps.includes(l.lap_number));
-    if (selectedLapData.length === 0) return { series: [], activeLaps: [] };
+    if (selectedLapData.length === 0 || refDist.length === 0) {
+      return { series: [], activeLaps: [] };
+    }
 
-    const bestLap = data.laps.find((l) => l.is_best);
-    const refDist = bestLap ? bestLap.distance_m : selectedLapData[0].distance_m;
-    const distOut = downsample(refDist, 120);
+    // Fenêtre d'abord, sous-échantillonnage ensuite : zoomer sur un virage doit
+    // révéler du détail, pas agrandir les mêmes points.
+    const span: [number, number] = [refDist[0], refDist[refDist.length - 1]];
+    const [i0, i1] = sliceToDomain(refDist, zoom.domain);
+    const windowDist = refDist.slice(i0, i1 + 1);
+    const maxPoints = zoom.isZoomed ? 240 : 120;
+    const distOut = windowDist.length > maxPoints ? downsample(windowDist, maxPoints) : windowDist;
 
-    const series = distOut.map((d, i) => {
+    const series = distOut.map((d) => {
       const point: Record<string, number> = { distance_m: Math.round(d * 10) / 10 };
 
       selectedLapData.forEach((lap) => {
-        const idx = Math.min(
-          Math.round((i / (distOut.length - 1 || 1)) * (lap.distance_m.length - 1)),
-          lap.distance_m.length - 1
-        );
+        // Repérage par DISTANCE et non par rang : les tours n'ont pas tous le
+        // même nombre d'échantillons, un index commun les décalerait.
+        const n = lap.distance_m.length;
+        const frac = (d - span[0]) / Math.max(1e-6, span[1] - span[0]);
+        const idx = Math.min(n - 1, Math.max(0, Math.round(frac * (n - 1))));
         point[`delta_lap_${lap.lap_number}`] = Math.round((lap.delta_s[idx] ?? 0) * 1000) / 1000;
       });
 
@@ -75,7 +92,7 @@ export function TimeDeltaLapsChart({
     });
 
     return { series, activeLaps: selectedLapData };
-  }, [data, selectedLaps]);
+  }, [data, selectedLaps, refDist, zoom.domain, zoom.isZoomed]);
 
   if (series.length === 0) return null;
 
@@ -89,11 +106,8 @@ export function TimeDeltaLapsChart({
       }
       hideButton={hideCta}
     >
-      <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-        <div
-          className="h-[280px] sm:h-[300px] w-[800px] md:w-full"
-          aria-label="Time delta by distance"
-        >
+      <div className="w-full" aria-label="Time delta by distance">
+        <ChartZoomFrame zoom={zoom} heightClass="h-[280px] sm:h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -123,8 +137,9 @@ export function TimeDeltaLapsChart({
                 dataKey="distance_m"
                 stroke="hsl(var(--border))"
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                domain={["dataMin", "dataMax"]}
-                tickFormatter={(v) => `${v}m`}
+                domain={zoom.domain}
+                allowDataOverflow
+                tickFormatter={(v) => `${Math.round(v)}m`}
               />
               <YAxis
                 stroke="hsl(var(--border))"
@@ -177,7 +192,7 @@ export function TimeDeltaLapsChart({
               })}
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </ChartZoomFrame>
       </div>
     </BlurOverlay>
   );

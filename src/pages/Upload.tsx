@@ -12,6 +12,10 @@ import {
   TrendingUp,
   Car,
   FolderOpen,
+  Map as MapIcon,
+  Gauge,
+  Timer,
+  MessageSquare,
 } from "lucide-react";
 
 const supportedFormats = [
@@ -19,6 +23,35 @@ const supportedFormats = [
   { name: "AiM", icon: TrendingUp },
   { name: "RaceBox", icon: Car },
   { name: "CSV standard", icon: FolderOpen },
+];
+
+// Livrables réels du moteur d'analyse : chacun correspond à une section du
+// rapport. Rien ici qui ne soit pas produit par le pipeline.
+const deliverables = [
+  {
+    icon: MapIcon,
+    title: "Carte du circuit et Tour Parfait IA",
+    description:
+      "Tes virages numérotés, la vitesse en dégradé et la ligne de course optimale calculée dans les limites de piste.",
+  },
+  {
+    icon: Gauge,
+    title: "Analyse des freinages",
+    description:
+      "Point de déclenchement, décélération de crête, temps mort et régularité — virage par virage.",
+  },
+  {
+    icon: Timer,
+    title: "Temps perdu par virage",
+    description:
+      "Le chrono de chaque mini-secteur comparé à ton meilleur passage. On ne t'annonce que des secondes mesurées.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Conseils de coaching",
+    description:
+      "Hiérarchisés par gain réel, adaptés aux conditions de piste et au potentiel de ton kart, avec le tour de référence cité.",
+  },
 ];
 
 const features = [
@@ -116,60 +149,33 @@ export default function Upload() {
           ))}
         </motion.div>
 
-        {/* Sample Data Preview */}
+        {/* Ce que l'analyse produit réellement — l'ancien tableau d'exemple
+            affichait des lignes inventées, sans rapport avec la sortie du
+            moteur : il occupait la page sans rien apprendre au pilote. */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
           className="mt-16 max-w-4xl mx-auto"
         >
-          <h3 className="font-display font-semibold text-lg text-foreground mb-4 text-center">
-            Exemple de données analysées
+          <h3 className="font-display font-semibold text-lg text-foreground mb-2 text-center">
+            Ce que tu obtiens
           </h3>
-          <div className="glass-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="px-4 py-3 text-left text-muted-foreground font-medium">
-                      Horodatage
-                    </th>
-                    <th className="px-4 py-3 text-left text-muted-foreground font-medium">
-                      Lat. GPS
-                    </th>
-                    <th className="px-4 py-3 text-left text-muted-foreground font-medium">
-                      Long. GPS
-                    </th>
-                    <th className="px-4 py-3 text-left text-muted-foreground font-medium">
-                      Vitesse
-                    </th>
-                    <th className="px-4 py-3 text-left text-muted-foreground font-medium">
-                      Accélération G
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ["00:12.345", "46.2041", "6.1434", "72 km/h", "1.2G"],
-                    ["00:12.450", "46.2042", "6.1436", "68 km/h", "1.8G"],
-                    ["00:12.555", "46.2044", "6.1439", "65 km/h", "2.1G"],
-                    ["00:12.660", "46.2047", "6.1442", "70 km/h", "1.5G"],
-                    ["00:12.765", "46.2050", "6.1445", "78 km/h", "0.8G"],
-                  ].map((row, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-border last:border-0 hover:bg-muted/50"
-                    >
-                      {row.map((cell, cellIndex) => (
-                        <td key={cellIndex} className="px-4 py-3 text-foreground">
-                          {cell}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <p className="text-sm text-muted-foreground text-center mb-6">
+            Chaque chiffre est mesuré sur tes tours. Rien n'est estimé.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {deliverables.map((item) => (
+              <div key={item.title} className="glass-card p-5 flex gap-4">
+                <div className="w-10 h-10 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="font-semibold text-foreground text-sm mb-1">{item.title}</h4>
+                  <p className="text-sm text-muted-foreground leading-snug">{item.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </motion.div>
       </div>

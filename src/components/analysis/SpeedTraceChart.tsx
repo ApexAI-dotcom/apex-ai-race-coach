@@ -13,6 +13,8 @@ import {
 } from "recharts";
 import type { SpeedTraceData } from "@/types/analysis";
 import { downsample } from "./utils";
+import { useChartZoom, sliceToDomain } from "./useChartZoom";
+import { ChartZoomFrame } from "./ChartZoomFrame";
 import { BlurOverlay } from "../ui/BlurOverlay";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useNavigate } from "react-router-dom";
@@ -33,33 +35,38 @@ const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4
 function buildSeries(
   laps: SpeedTraceData["laps"],
   selectedLapNumbers: number[],
-  maxPoints: number
+  maxPoints: number,
+  domain?: [number, number]
 ) {
   const selectedLaps = laps.filter((l) => selectedLapNumbers.includes(l.lap_number));
-  if (selectedLaps.length === 0) return { series: [], activeLaps: [] };
+  if (selectedLaps.length === 0) return { series: [], activeLaps: [], bounds: [0, 1] as [number, number] };
 
   const referenceLap = selectedLaps[0];
   const dist = referenceLap.distance_m;
-  const len = dist.length;
+  const bounds: [number, number] = [dist[0] ?? 0, dist[dist.length - 1] ?? 1];
 
-  const needDownsample = len > maxPoints;
-  const distOut = needDownsample ? downsample(dist, maxPoints) : dist;
+  // On restreint AVANT de sous-échantillonner : en zoomant sur un virage, le
+  // pilote obtient réellement plus de points, pas la même courbe grossie.
+  const [i0, i1] = domain ? sliceToDomain(dist, domain) : [0, dist.length - 1];
+  const windowDist = dist.slice(i0, i1 + 1);
+  const distOut = windowDist.length > maxPoints ? downsample(windowDist, maxPoints) : windowDist;
 
   const series = distOut.map((d, i) => {
     const point: any = { distance_m: Math.round(d * 10) / 10 };
 
     selectedLaps.forEach((lap) => {
-      const idx = Math.min(
-        Math.round((i / (distOut.length - 1 || 1)) * (lap.distance_m.length - 1)),
-        lap.distance_m.length - 1
-      );
+      // Chaque tour a sa propre grille : on cherche l'échantillon à la même
+      // distance plutôt qu'au même rang, sinon les tours se décalent entre eux.
+      const n = lap.distance_m.length;
+      const frac = (d - bounds[0]) / Math.max(1e-6, bounds[1] - bounds[0]);
+      const idx = Math.min(n - 1, Math.max(0, Math.round(frac * (n - 1))));
       point[`speed_lap_${lap.lap_number}`] = Math.round((lap.speed_kmh[idx] ?? 0) * 10) / 10;
     });
 
     return point;
   });
 
-  return { series, activeLaps: selectedLaps };
+  return { series, activeLaps: selectedLaps, bounds };
 }
 
 function SpeedTraceChartComponent({
@@ -77,9 +84,19 @@ function SpeedTraceChartComponent({
   const visible = isChartVisible("speed_trace", circuitName);
   const cta = getCtaDetails(circuitName);
 
+  const bounds = useMemo(() => {
+    const ref = data.laps.find((l) => selectedLaps.includes(l.lap_number));
+    const d = ref?.distance_m ?? [];
+    return { min: d[0] ?? 0, max: d[d.length - 1] ?? 1 };
+  }, [data.laps, selectedLaps]);
+
+  const zoom = useChartZoom(bounds.min, bounds.max);
+
+  // 100 points sur tout le tour, 220 dès qu'on zoome : la fenêtre est plus
+  // courte, on peut donc y mettre plus de détail sans alourdir le rendu.
   const { series, activeLaps } = useMemo(
-    () => buildSeries(data.laps, selectedLaps, 100),
-    [data.laps, selectedLaps]
+    () => buildSeries(data.laps, selectedLaps, zoom.isZoomed ? 220 : 100, zoom.domain),
+    [data.laps, selectedLaps, zoom.domain, zoom.isZoomed]
   );
 
   if (series.length === 0) return null;
@@ -94,11 +111,10 @@ function SpeedTraceChartComponent({
       }
       hideButton={hideCta}
     >
-      <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-        <div
-          className="h-[320px] sm:h-[350px] w-[800px] md:w-full"
-          aria-label="Speed trace by distance"
-        >
+      {/* Plus de largeur fixe à 800 px : le zoom remplace le défilement
+          horizontal, qui obligeait à pousser la courbe du doigt sur téléphone. */}
+      <div className="w-full" aria-label="Speed trace by distance">
+        <ChartZoomFrame zoom={zoom}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -127,8 +143,9 @@ function SpeedTraceChartComponent({
                 dataKey="distance_m"
                 stroke="hsl(var(--border))"
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                domain={["dataMin", "dataMax"]}
-                tickFormatter={(v) => `${v}m`}
+                domain={zoom.domain}
+                allowDataOverflow
+                tickFormatter={(v) => `${Math.round(v)}m`}
               />
               <YAxis
                 stroke="hsl(var(--border))"
@@ -174,7 +191,7 @@ function SpeedTraceChartComponent({
               })}
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </ChartZoomFrame>
       </div>
     </BlurOverlay>
   );

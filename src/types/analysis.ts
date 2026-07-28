@@ -194,6 +194,9 @@ export interface RacingLineMeta {
   corners_preserved?: number;
   reference_lap?: number;
   laps_used?: number[];
+  /** Le grip mesuré dément l'état de piste déclaré (case cochée par erreur). */
+  conditions_mismatch?: boolean;
+  conditions_label?: string;
 }
 
 /** Mini-secteur : temps perdu mesuré sur une portion de piste. */
@@ -298,6 +301,23 @@ export interface AnalysisResponse {
     track_condition: string;
     track_temperature?: number;
     circuit_name?: string;
+    /**
+     * Conditions traduites en paramètres physiques par le serveur : c'est ce
+     * qui a réellement servi au calcul (adhérence de référence, plancher de
+     * freinage, conseils autorisés), et non l'étiquette déclarée.
+     */
+    resolved?: {
+      condition: string;
+      label: string;
+      temperature_c?: number | null;
+      grip_factor: number;
+      mu_reference: number;
+      braking_min_g: number;
+      braking_max_g: number;
+      allow_brake_later: boolean;
+      allow_speed_push: boolean;
+      summary: string;
+    };
   };
   /** Tour idéal (meilleurs mini-secteurs recombinés) — chronos réels mesurés. */
   ideal_lap?: IdealLap;

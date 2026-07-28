@@ -415,48 +415,59 @@ function TrackMapCanvasComponent({
         )}
 
         {/* 3. Les repères */}
-        {brakingZones.map((z, i) => (
-          <g key={`bmark-${i}`} transform={`translate(${z.x.toFixed(1)},${z.y.toFixed(1)})`}>
-            {/* Barre en travers de la piste : un repère de freinage, pas un point */}
-            <g transform={`rotate(${z.angle.toFixed(1)})`}>
-              <line
-                x1={0}
-                y1={-9}
-                x2={0}
-                y2={9}
-                stroke={z.color}
-                strokeWidth={3}
-                strokeLinecap="round"
-              />
+        {brakingZones.map((z, i) => {
+          const w = z.doubleBrake ? 92 : 78;
+          // L'étiquette se rabat du côté où il reste de la place. Posée
+          // systématiquement en haut à droite, elle sortait du cadre sur les
+          // virages proches d'un bord — le repère du dernier virage se
+          // retrouvait tronqué, donc illisible.
+          const flipX = z.x + w + 16 > SVG_W;
+          const flipY = z.y - 24 < 0;
+          const dx = flipX ? -(w + 10) : 10;
+          const dy = flipY ? 18 : -10;
+          return (
+            <g key={`bmark-${i}`} transform={`translate(${z.x.toFixed(1)},${z.y.toFixed(1)})`}>
+              {/* Barre en travers de la piste : un repère de freinage, pas un point */}
+              <g transform={`rotate(${z.angle.toFixed(1)})`}>
+                <line
+                  x1={0}
+                  y1={-9}
+                  x2={0}
+                  y2={9}
+                  stroke={z.color}
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                />
+              </g>
+              <circle r={3.5} fill={TRACK_BG_DARK} stroke={z.color} strokeWidth={2} />
+              <g transform={`translate(${dx},${dy})`}>
+                <rect
+                  x={0}
+                  y={-9}
+                  width={w}
+                  height={18}
+                  rx={9}
+                  fill="rgba(0,0,0,0.82)"
+                  stroke={z.color}
+                  strokeWidth={1}
+                />
+                <text
+                  x={w / 2}
+                  y={4}
+                  textAnchor="middle"
+                  fill="#fff"
+                  fontSize="9"
+                  fontWeight="700"
+                  fontFamily="'Space Grotesk', sans-serif"
+                >
+                  {`V${z.cornerId} · ${Math.round(z.distance)}m · ${z.peakG.toFixed(2)}g${
+                    z.doubleBrake ? " ⚠" : ""
+                  }`}
+                </text>
+              </g>
             </g>
-            <circle r={3.5} fill={TRACK_BG_DARK} stroke={z.color} strokeWidth={2} />
-            <g transform="translate(10,-10)">
-              <rect
-                x={0}
-                y={-9}
-                width={z.doubleBrake ? 92 : 78}
-                height={18}
-                rx={9}
-                fill="rgba(0,0,0,0.82)"
-                stroke={z.color}
-                strokeWidth={1}
-              />
-              <text
-                x={(z.doubleBrake ? 92 : 78) / 2}
-                y={4}
-                textAnchor="middle"
-                fill="#fff"
-                fontSize="9"
-                fontWeight="700"
-                fontFamily="'Space Grotesk', sans-serif"
-              >
-                {`V${z.cornerId} · ${Math.round(z.distance)}m · ${z.peakG.toFixed(2)}g${
-                  z.doubleBrake ? " ⚠" : ""
-                }`}
-              </text>
-            </g>
-          </g>
-        ))}
+          );
+        })}
       </g>
     );
   }, [brakingZones, profile]);

@@ -15,6 +15,8 @@ import {
 } from "recharts";
 import type { ThrottleBrakeLap } from "@/types/analysis";
 import { downsample } from "./utils";
+import { useChartZoom, sliceToDomain } from "./useChartZoom";
+import { ChartZoomFrame } from "./ChartZoomFrame";
 import { BlurOverlay } from "../ui/BlurOverlay";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useNavigate } from "react-router-dom";
@@ -44,22 +46,35 @@ export function ThrottleBrakeChart({
   const visible = isChartVisible("throttle_brake", circuitName);
   const cta = getCtaDetails(circuitName);
 
+  const refDist = useMemo(() => {
+    const sel = data.laps.filter((l) => selectedLaps.includes(l.lap_number));
+    return sel[0]?.distance_m ?? [];
+  }, [data, selectedLaps]);
+
+  const zoom = useChartZoom(refDist[0] ?? 0, refDist[refDist.length - 1] ?? 1);
+
   const { series, activeLaps, isSingleLap } = useMemo(() => {
     const selectedLapData = data.laps.filter((l) => selectedLaps.includes(l.lap_number));
-    if (selectedLapData.length === 0) return { series: [], activeLaps: [], isSingleLap: true };
+    if (selectedLapData.length === 0 || refDist.length === 0) {
+      return { series: [], activeLaps: [], isSingleLap: true };
+    }
 
-    const referenceLap = selectedLapData[0];
-    const dist = referenceLap.distance_m;
-    const distOut = downsample(dist, 100);
+    // Fenêtre visible d'abord, sous-échantillonnage ensuite : c'est ce qui fait
+    // apparaître le vrai détail d'un freinage quand on zoome dessus.
+    const span: [number, number] = [refDist[0], refDist[refDist.length - 1]];
+    const [i0, i1] = sliceToDomain(refDist, zoom.domain);
+    const windowDist = refDist.slice(i0, i1 + 1);
+    const maxPoints = zoom.isZoomed ? 220 : 100;
+    const distOut = windowDist.length > maxPoints ? downsample(windowDist, maxPoints) : windowDist;
 
-    const series = distOut.map((d, i) => {
+    const series = distOut.map((d) => {
       const point: any = { distance_m: Math.round(d * 10) / 10 };
 
       selectedLapData.forEach((lap) => {
-        const idx = Math.min(
-          Math.round((i / (distOut.length - 1 || 1)) * (lap.distance_m.length - 1)),
-          lap.distance_m.length - 1
-        );
+        // Repérage par DISTANCE : les tours n'ont pas le même nombre de points.
+        const n = lap.distance_m.length;
+        const frac = (d - span[0]) / Math.max(1e-6, span[1] - span[0]);
+        const idx = Math.min(n - 1, Math.max(0, Math.round(frac * (n - 1))));
         if (selectedLapData.length === 1) {
           point["throttle_pct"] = Math.round((lap.throttle_pct[idx] ?? 0) * 10) / 10;
           point["brake_pct"] = Math.round((lap.brake_pct[idx] ?? 0) * 10) / 10;
@@ -74,18 +89,15 @@ export function ThrottleBrakeChart({
     });
 
     return { series, activeLaps: selectedLapData, isSingleLap: selectedLapData.length === 1 };
-  }, [data, selectedLaps]);
+  }, [data, selectedLaps, refDist, zoom.domain, zoom.isZoomed]);
 
   if (series.length === 0) return null;
 
   const renderContent = () => {
     if (isSingleLap) {
       return (
-        <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-          <div
-            className="h-[300px] sm:h-[350px] w-[800px] md:w-full"
-            aria-label="Throttle and brake by distance"
-          >
+        <div className="w-full" aria-label="Throttle and brake by distance">
+          <ChartZoomFrame zoom={zoom} heightClass="h-[300px] sm:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -114,7 +126,8 @@ export function ThrottleBrakeChart({
                   dataKey="distance_m"
                   stroke="hsl(var(--border))"
                   tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                  domain={["dataMin", "dataMax"]}
+                  domain={zoom.domain}
+                  allowDataOverflow
                   tickFormatter={(v) => `${v}m`}
                 />
                 <YAxis
@@ -154,17 +167,14 @@ export function ThrottleBrakeChart({
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
+          </ChartZoomFrame>
         </div>
       );
     }
 
     return (
-      <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-        <div
-          className="h-[300px] sm:h-[350px] w-[800px] md:w-full"
-          aria-label="Throttle and brake by distance (multi-lap)"
-        >
+      <div className="w-full" aria-label="Throttle and brake by distance (multi-lap)">
+        <ChartZoomFrame zoom={zoom} heightClass="h-[300px] sm:h-[350px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -193,7 +203,8 @@ export function ThrottleBrakeChart({
                 dataKey="distance_m"
                 stroke="hsl(var(--border))"
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                domain={["dataMin", "dataMax"]}
+                domain={zoom.domain}
+                allowDataOverflow
                 tickFormatter={(v) => `${v}m`}
               />
               <YAxis
@@ -247,7 +258,7 @@ export function ThrottleBrakeChart({
               })}
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </ChartZoomFrame>
       </div>
     );
   };
