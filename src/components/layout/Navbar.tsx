@@ -230,8 +230,8 @@ export const Navbar = () => {
                   <MenuToggleIcon open={isOpen} className="w-6 h-6" duration={300} />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[350px] bg-background border-l border-border backdrop-blur-xl flex flex-col p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(1.5rem+var(--safe-bottom))]">
-                <div className="flex items-center gap-2 mb-8 mt-2">
+              <SheetContent side="right" className="w-[300px] sm:w-[350px] bg-background border-l border-border backdrop-blur-xl flex flex-col p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(1.5rem+var(--safe-bottom))] overflow-y-auto overscroll-contain">
+                <div className="flex items-center gap-2 mb-6 mt-1 shrink-0">
                   <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
                     <Zap className="w-4 h-4 text-primary-foreground" />
                   </div>
@@ -241,13 +241,13 @@ export const Navbar = () => {
                 </div>
                 
                 {/* Navigation Items (Vertical List) */}
-                <div className="flex flex-col gap-4 flex-1">
+                <div className="flex flex-col gap-3 flex-1 shrink-0">
                   {filteredNavItems.map((item) => (
                     <SheetClose asChild key={item.path + item.name}>
                       <Link
                         to={item.path}
                         // py-3 : une cible tactile confortable fait au moins 44 px de haut.
-                        className={`text-base font-medium py-3 transition-all ${
+                        className={`text-base font-medium py-2.5 transition-all ${
                           (item as any).isHero
                             ? "gradient-primary text-primary-foreground px-4 py-2 rounded-full text-center shadow-lg shadow-primary/30 active:scale-95 animate-pulse-neon"
                             : location.pathname === item.path
@@ -262,7 +262,7 @@ export const Navbar = () => {
                 </div>
 
                 {/* User Account / CTA Section at the Bottom */}
-                <div className="border-t border-border pt-6 mt-auto">
+                <div className="border-t border-border pt-4 mt-auto shrink-0">
                   {loading ? (
                     <div className="w-full h-10 animate-pulse bg-secondary rounded" />
                   ) : isAuthenticated ? (
