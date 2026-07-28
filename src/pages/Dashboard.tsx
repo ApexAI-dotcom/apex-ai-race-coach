@@ -640,7 +640,7 @@ export default function Dashboard() {
                       <div className="text-sm sm:text-xl font-bold text-foreground">
                         {(featuredAnalysis?.lap_time || latestAnalysis?.lap_time || 0).toFixed(2)}s
                       </div>
-                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
+                      <div className="text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
                         Meilleur tour
                       </div>
                     </div>
@@ -648,13 +648,13 @@ export default function Dashboard() {
                       <div className="text-sm sm:text-xl font-bold text-foreground">
                         {featuredAnalysis?.corners_detected || latestAnalysis?.corner_count || 0}
                       </div>
-                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
+                      <div className="text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
                         Virages
                       </div>
                     </div>
                     <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
                       <div className="text-sm sm:text-xl font-bold text-green-500">+1.2s</div>
-                      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase mt-1 font-bold tracking-wider">
+                      <div className="text-[10px] text-muted-foreground uppercase mt-1 font-bold tracking-wider">
                         Gain estimé
                       </div>
                     </div>

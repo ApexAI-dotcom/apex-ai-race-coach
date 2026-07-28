@@ -600,7 +600,7 @@ export default function SetupPage() {
                 size="lg" 
                 onClick={handleGenerateRecommendations}
                 disabled={!isFormReadyToRecommend || isAnalyzing || hasGeneratedRecs}
-                className="mt-2 font-bold gap-2 text-md shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all min-w-[280px] disabled:opacity-80"
+                className="mt-2 font-bold gap-2 text-md shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all w-full sm:w-auto sm:min-w-[280px] disabled:opacity-80"
               >
                 {isAnalyzing ? (
                   <>

@@ -243,7 +243,8 @@ export const Navbar = () => {
                     <SheetClose asChild key={item.path + item.name}>
                       <Link
                         to={item.path}
-                        className={`text-base font-medium py-2 transition-all ${
+                        // py-3 : une cible tactile confortable fait au moins 44 px de haut.
+                        className={`text-base font-medium py-3 transition-all ${
                           (item as any).isHero
                             ? "gradient-primary text-primary-foreground px-4 py-2 rounded-full text-center shadow-lg shadow-primary/30 active:scale-95 animate-pulse-neon"
                             : location.pathname === item.path
