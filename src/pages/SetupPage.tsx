@@ -600,7 +600,7 @@ export default function SetupPage() {
                 size="lg" 
                 onClick={handleGenerateRecommendations}
                 disabled={!isFormReadyToRecommend || isAnalyzing || hasGeneratedRecs}
-                className="mt-2 font-bold gap-2 text-md shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all w-full sm:w-auto sm:min-w-[280px] disabled:opacity-80"
+                className="mt-2 font-bold gap-2 text-sm sm:text-base whitespace-normal leading-tight shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all w-full sm:w-auto sm:min-w-[280px] disabled:opacity-80"
               >
                 {isAnalyzing ? (
                   <>
@@ -609,12 +609,12 @@ export default function SetupPage() {
                   </>
                 ) : hasGeneratedRecs ? (
                   <>
-                    <Brain className="w-5 h-5 text-primary" />
+                    <Brain className="w-5 h-5 shrink-0 text-primary" />
                     Configuration Active
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-5 h-5" />
+                    <Sparkles className="w-5 h-5 shrink-0" />
                     Générer les recommandations ApexAI
                   </>
                 )}

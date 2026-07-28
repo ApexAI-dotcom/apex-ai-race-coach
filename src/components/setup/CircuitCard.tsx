@@ -317,19 +317,21 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
             <div className="grid grid-cols-2 gap-4">
               <Button
                 variant="outline"
-                className="gap-2 h-12 bg-background/50 border-primary/20 text-primary hover:bg-primary/5 rounded-xl"
+                // Deux boutons sur une demi-largeur d'écran : à la taille de
+                // texte par défaut, le libellé débordait de son cadre.
+                className="gap-1.5 sm:gap-2 h-12 px-3 text-[13px] sm:text-sm bg-background/50 border-primary/20 text-primary hover:bg-primary/5 rounded-xl"
                 onClick={() => setIsMagicOpen(true)}
               >
-                <Sparkles className="w-4 h-4 text-primary" />
-                Depuis la Télémétrie
+                <Sparkles className="w-4 h-4 shrink-0 text-primary" />
+                <span className="truncate">Depuis la Télémétrie</span>
               </Button>
               <Button
                 variant="outline"
-                className="gap-2 h-12 bg-background/50 border-border hover:bg-muted/50 rounded-xl"
+                className="gap-1.5 sm:gap-2 h-12 px-3 text-[13px] sm:text-sm bg-background/50 border-border hover:bg-muted/50 rounded-xl"
                 onClick={handleCreateNew}
               >
-                <Plus className="w-4 h-4" />
-                Nouveau Circuit
+                <Plus className="w-4 h-4 shrink-0" />
+                <span className="truncate">Nouveau Circuit</span>
               </Button>
             </div>
           </div>

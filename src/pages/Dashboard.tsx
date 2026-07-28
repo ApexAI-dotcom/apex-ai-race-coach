@@ -85,6 +85,7 @@ import { useSubscriptionLegacy } from "@/hooks/useSubscriptionLegacy";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useAuth } from "@/hooks/useAuth";
 import { mapApiResultToResponse } from "@/hooks/useAnalysis";
+import { SessionComparison } from "@/components/analysis/SessionComparison";
 import { AnalysisDashboardContent } from "@/components/analysis/AnalysisDashboardContent";
 import { TrackMap } from "@/components/analysis/TrackMap";
 import { PageMeta } from "@/components/seo/PageMeta";
@@ -1248,60 +1249,15 @@ export default function Dashboard() {
                 </Button>
               </div>
 
-              <div className="flex-1 flex flex-col md:flex-row overflow-x-hidden overflow-y-auto">
-                <div className="flex-1 w-full p-4 md:p-8 border-b md:border-b-0 md:border-r border-white/5 bg-background">
-                  <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20 flex justify-between items-center">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-primary block mb-1">
-                        Session A
-                      </span>
-                      <h3 className="font-bold text-lg">
-                        {compareResult1.session_conditions?.session_name ||
-                          compareResult1.session_conditions?.circuit_name ||
-                          compareResult1.analysis_id ||
-                          "Session A"}
-                      </h3>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-black text-primary">
-                        {getDisplayScore(compareResult1.performance_score)}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {compareResult1.lap_time.toFixed(2)}s
-                      </div>
-                    </div>
-                  </div>
-                  <AnalysisDashboardContent
-                    analysis={mapApiResultToResponse(compareResult1)}
-                    embedded
-                  />
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-background">
-                  <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20 flex justify-between items-center">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-primary block mb-1">
-                        Session B
-                      </span>
-                      <h3 className="font-bold text-lg">
-                        {compareResult2.session_conditions?.session_name ||
-                          compareResult2.session_conditions?.circuit_name ||
-                          compareResult2.analysis_id ||
-                          "Session B"}
-                      </h3>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-black text-primary">
-                        {getDisplayScore(compareResult2.performance_score)}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {compareResult2.lap_time.toFixed(2)}s
-                      </div>
-                    </div>
-                  </div>
-                  <AnalysisDashboardContent
-                    analysis={mapApiResultToResponse(compareResult2)}
-                    embedded
+              {/* Un VRAI comparateur : superposition des deux meilleurs tours,
+                  écart chronométré, détail par virage. L'ancienne version posait
+                  deux tableaux de bord complets côte à côte — le pilote devait
+                  tout confronter à l'œil, et sur téléphone ils s'empilaient. */}
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 custom-scrollbar bg-background">
+                <div className="max-w-5xl mx-auto">
+                  <SessionComparison
+                    a={mapApiResultToResponse(compareResult1)}
+                    b={mapApiResultToResponse(compareResult2)}
                   />
                 </div>
               </div>
