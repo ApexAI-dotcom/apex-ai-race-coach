@@ -73,7 +73,9 @@ export const Navbar = () => {
   return (
     <header
       className={cn(
+        // pt-[--safe-top] : sur iPhone installé, la barre passait sous l'encoche.
         "fixed left-0 right-0 z-50 mx-auto w-full transition-all duration-500 ease-in-out transform-gpu border-b",
+        "pt-[var(--safe-top)] pl-[var(--safe-left)] pr-[var(--safe-right)]",
         scrolled && !isOpen
           ? "bg-background/70 backdrop-blur-xl border-border/80 shadow-lg shadow-primary/5 md:top-4 md:max-w-5xl md:rounded-2xl"
           : "bg-background/75 backdrop-blur-md border-border/40 md:top-0 md:max-w-full md:rounded-none",

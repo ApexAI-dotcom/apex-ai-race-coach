@@ -18,6 +18,18 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#0A0A0C" />
+
+    <!-- Installation sur l'écran d'accueil iOS.
+         `apple-mobile-web-app-capable` est ce qui fait disparaître la barre
+         d'adresse de Safari : sans lui, l'icône ouvre un simple onglet et
+         l'impression « vraie app » tombe à plat.
+         `black-translucent` laisse le contenu passer sous la barre d'état —
+         d'où la gestion des zones sûres dans index.css, sinon la navigation
+         se retrouverait sous l'encoche. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ApexAI" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <style>
       body { background-color: #0A0A0C; }
     </style>

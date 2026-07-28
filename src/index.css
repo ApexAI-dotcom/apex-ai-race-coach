@@ -5,6 +5,21 @@
 @tailwind utilities;
 @layer base {
   :root {
+    /*
+      Zones sûres iOS. Avec `viewport-fit=cover` et la barre d'état
+      translucide, le contenu passe SOUS l'encoche et sous la barre d'accueil.
+      Sans ces marges, la barre de navigation d'une app installée se retrouve
+      à moitié cachée par l'encoche — le défaut qui trahit immédiatement une
+      page web déguisée en application.
+
+      `env()` vaut 0 partout ailleurs : rien ne change sur ordinateur ni dans
+      un navigateur classique.
+    */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+
     --background: 0 0% 4%;
     --foreground: 0 0% 98%;
 
