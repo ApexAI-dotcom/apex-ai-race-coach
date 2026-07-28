@@ -52,6 +52,8 @@ export function ThrottleBrakeChart({
   }, [data, selectedLaps]);
 
   const zoom = useChartZoom(refDist[0] ?? 0, refDist[refDist.length - 1] ?? 1);
+  // Origine du tour : l'axe est recalé dessus à l'affichage seulement.
+  const lapStart = refDist[0] ?? 0;
 
   const { series, activeLaps, isSingleLap } = useMemo(() => {
     const selectedLapData = data.laps.filter((l) => selectedLaps.includes(l.lap_number));
@@ -128,7 +130,7 @@ export function ThrottleBrakeChart({
                   tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                   domain={zoom.domain}
                   allowDataOverflow
-                  tickFormatter={(v) => `${v}m`}
+                  tickFormatter={(v) => `${Math.round(v - lapStart)}m`}
                 />
                 <YAxis
                   stroke="hsl(var(--border))"
@@ -146,7 +148,7 @@ export function ThrottleBrakeChart({
                   itemStyle={{ color: "hsl(var(--foreground))" }}
                   labelStyle={{ color: "hsl(var(--muted-foreground))" }}
                   formatter={(value: number) => [`${value}%`, ""]}
-                  labelFormatter={(label) => `Position: ${label} m`}
+                  labelFormatter={(label) => `Position : ${Math.round(Number(label) - lapStart)} m`}
                 />
                 <Legend />
                 <Area
@@ -205,7 +207,7 @@ export function ThrottleBrakeChart({
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                 domain={zoom.domain}
                 allowDataOverflow
-                tickFormatter={(v) => `${v}m`}
+                tickFormatter={(v) => `${Math.round(v - lapStart)}m`}
               />
               <YAxis
                 stroke="hsl(var(--border))"

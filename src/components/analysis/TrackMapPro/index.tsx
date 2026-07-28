@@ -7,6 +7,7 @@ import type {
   TrackEdges,
   RacingLineMeta,
   IdealLap,
+  TrackMapProfile,
 } from "@/types/analysis";
 import { useTrackMap } from "./useTrackMapData";
 import { TrackMapProfiles } from "./TrackMapProfiles";
@@ -24,6 +25,8 @@ interface TrackMapProProps {
   bestLapNumber: number;
   selectedLapNumbers?: number[];
   onReferenceChange?: (lapNumber: number | null, isSynthetic: boolean) => void;
+  /** Vue active de la carte, remontée au parent (vitesse / freinage / …). */
+  onProfileSelect?: (profile: TrackMapProfile) => void;
   /** Bords de piste estimés (ruban à l'échelle réelle). */
   trackEdges?: TrackEdges | null;
   /** Métadonnées du Tour Parfait IA. */
@@ -42,6 +45,7 @@ export function TrackMapPro({
   bestLapNumber,
   selectedLapNumbers = [],
   onReferenceChange,
+  onProfileSelect,
   trackEdges = null,
   racingLineMeta = null,
   idealLap = null,
@@ -61,7 +65,12 @@ export function TrackMapPro({
   );
 
   // Proxy the `onReferenceChange` for the UI Profiles
-  const onProfileChange = (p: any) => handlers.handleProfileChange(p, onReferenceChange);
+  const onProfileChange = (p: any) => {
+    handlers.handleProfileChange(p, onReferenceChange);
+    // Le parent en a besoin pour n'afficher le détail des freinages que sur la
+    // vue concernée : ce panneau est long, il encombrerait les autres vues.
+    onProfileSelect?.(p);
+  };
   const onCompareChange = (lap: number | null) => {
     state.setComparisonLap(lap);
     if (onReferenceChange) onReferenceChange(lap, lap === -1);

@@ -421,10 +421,22 @@ function TrackMapCanvasComponent({
           // systématiquement en haut à droite, elle sortait du cadre sur les
           // virages proches d'un bord — le repère du dernier virage se
           // retrouvait tronqué, donc illisible.
-          const flipX = z.x + w + 16 > SVG_W;
-          const flipY = z.y - 24 < 0;
-          const dx = flipX ? -(w + 10) : 10;
-          const dy = flipY ? 18 : -10;
+          //
+          // On teste ensuite les quatre placements possibles et on retient
+          // celui qui ne recouvre aucune pastille de virage : l'étiquette du
+          // V12 se posait pile sur le numéro du V11, rendant les deux illisibles.
+          const candidates: Array<[number, number]> = [
+            [10, -10], [-(w + 10), -10], [10, 20], [-(w + 10), 20],
+          ];
+          const fits = ([ox, oy]: [number, number]) => {
+            const x0 = z.x + ox;
+            const y0 = z.y + oy - 9;
+            if (x0 < 2 || x0 + w > SVG_W - 2 || y0 < 2 || y0 + 18 > SVG_H - 2) return false;
+            return !corners.some(
+              (c) => c.x > x0 - 9 && c.x < x0 + w + 9 && c.y > y0 - 9 && c.y < y0 + 27
+            );
+          };
+          const [dx, dy] = candidates.find(fits) ?? candidates[0];
           return (
             <g key={`bmark-${i}`} transform={`translate(${z.x.toFixed(1)},${z.y.toFixed(1)})`}>
               {/* Barre en travers de la piste : un repère de freinage, pas un point */}
@@ -470,7 +482,7 @@ function TrackMapCanvasComponent({
         })}
       </g>
     );
-  }, [brakingZones, profile]);
+  }, [brakingZones, profile, corners]);
 
   /** Mini-secteurs colorés par temps perdu (profil « Mini-secteurs »). */
   const sectorsLayer = useMemo(() => {

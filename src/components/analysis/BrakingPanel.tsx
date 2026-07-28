@@ -18,6 +18,12 @@ import { BRAKING_VERDICT_COLORS, BRAKING_VERDICT_LABELS } from "./TrackMapPro/tr
 
 interface BrakingPanelProps {
   braking?: BrakingAnalysis | null;
+  /**
+   * Temps perdu MESURÉ par virage, tel qu'affiché sur la carte, dans les
+   * conseils et dans le PDF. Le panneau n'invente plus son propre chiffre :
+   * il annonçait 0,77 s là où le reste du rapport donnait 0,00 s.
+   */
+  cornerLosses?: Record<number, number>;
   /** Remonte au virage sélectionné sur la carte du circuit. */
   onFocusCorner?: (cornerId: number) => void;
 }
@@ -56,10 +62,13 @@ function Metric({
 function CornerRow({
   c,
   capability,
+  measuredLoss,
   onFocusCorner,
 }: {
   c: BrakingCorner;
   capability: number;
+  /** Perte MESURÉE du virage — même chiffre que la carte et les conseils. */
+  measuredLoss: number;
   onFocusCorner?: (id: number) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -92,9 +101,12 @@ function CornerRow({
             {c.braking_min_speed.toFixed(0)} km/h
           </span>
         </span>
-        {c.braking_time_lost > 0.02 && (
-          <span className="shrink-0 text-[11px] font-semibold text-amber-400 tabular-nums">
-            +{c.braking_time_lost.toFixed(2)}s
+        {measuredLoss > 0.02 && (
+          <span
+            className="shrink-0 text-[11px] font-semibold text-amber-400 tabular-nums"
+            title="Temps perdu mesuré sur ce virage — identique à la carte, aux conseils et au PDF"
+          >
+            +{measuredLoss.toFixed(2)}s
           </span>
         )}
         <ChevronDown
@@ -200,18 +212,19 @@ function CornerRow({
   );
 }
 
-export function BrakingPanel({ braking, onFocusCorner }: BrakingPanelProps) {
+export function BrakingPanel({ braking, cornerLosses, onFocusCorner }: BrakingPanelProps) {
+  const losses = cornerLosses ?? {};
   const corners = useMemo(
     () =>
       [...(braking?.corners ?? [])].sort(
-        (a, b) => (b.braking_time_lost ?? 0) - (a.braking_time_lost ?? 0)
+        (a, b) => (losses[b.corner_id] ?? 0) - (losses[a.corner_id] ?? 0)
       ),
-    [braking]
+    [braking, cornerLosses]
   );
 
   if (!corners.length) return null;
   const capability = braking?.capability_g ?? 0;
-  const totalLoss = corners.reduce((s, c) => s + (c.braking_time_lost ?? 0), 0);
+  const totalLoss = corners.reduce((s, c) => s + (losses[c.corner_id] ?? 0), 0);
 
   return (
     <section className="rounded-xl border border-white/10 bg-black/20 p-3 sm:p-4 space-y-3">
@@ -255,6 +268,7 @@ export function BrakingPanel({ braking, onFocusCorner }: BrakingPanelProps) {
             key={c.corner_id}
             c={c}
             capability={capability}
+            measuredLoss={losses[c.corner_id] ?? 0}
             onFocusCorner={onFocusCorner}
           />
         ))}

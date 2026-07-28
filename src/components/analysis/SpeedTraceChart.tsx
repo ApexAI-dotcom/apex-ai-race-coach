@@ -145,7 +145,11 @@ function SpeedTraceChartComponent({
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                 domain={zoom.domain}
                 allowDataOverflow
-                tickFormatter={(v) => `${Math.round(v)}m`}
+                // Distance affichée depuis le DÉBUT DU TOUR. Les valeurs
+                // internes restent absolues : elles servent à positionner les
+                // zones de virages. Seul l'affichage est recalé, sinon le
+                // pilote lisait « 5 000 m » sur un tour de 1 225 m.
+                tickFormatter={(v) => `${Math.round(v - bounds.min)}m`}
               />
               <YAxis
                 stroke="hsl(var(--border))"
@@ -168,7 +172,7 @@ function SpeedTraceChartComponent({
                 itemStyle={{ color: "hsl(var(--foreground))" }}
                 labelStyle={{ color: "hsl(var(--muted-foreground))" }}
                 formatter={(value: number, name: string) => [value, name]}
-                labelFormatter={(label) => `Distance: ${label} m`}
+                labelFormatter={(label) => `Distance : ${Math.round(Number(label) - bounds.min)} m`}
               />
               <Legend />
 

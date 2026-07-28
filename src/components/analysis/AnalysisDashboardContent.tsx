@@ -13,7 +13,7 @@ import { BrakingPanel } from "./BrakingPanel";
 import { CoachingAdvice } from "./CoachingAdvice";
 import { enrichCornersWithCornerAnalysis } from "./utils";
 import { buildCornerOverlays } from "./cornerOverlays";
-import type { AnalysisResponse as AnalysisResult } from "@/types/analysis";
+import type { AnalysisResponse as AnalysisResult, TrackMapProfile } from "@/types/analysis";
 
 interface AnalysisDashboardContentProps {
   analysis: AnalysisResult;
@@ -98,6 +98,20 @@ export function AnalysisDashboardContent({
   // Cliquer un conseil emmène le pilote sur la carte, au virage concerné.
   // Le `token` force la carte à réagir même si on reclique le même virage.
   const [focusCorner, setFocusCorner] = useState<{ id: number; token: number } | null>(null);
+  // Vue active de la carte : le détail des freinages ne s'affiche que dessus.
+  const [mapProfile, setMapProfile] = useState<TrackMapProfile>("speed");
+
+  // Perte de temps MESURÉE par virage — la même que la carte, les conseils et
+  // le PDF. Le panneau de freinage la reprend telle quelle plutôt que de
+  // calculer son propre chiffre, qui pouvait annoncer 0,77 s là où le reste du
+  // rapport affichait 0,00 s.
+  const cornerLosses = useMemo(() => {
+    const m: Record<number, number> = {};
+    for (const c of analysis.corner_analysis ?? []) {
+      if (c?.corner_id != null) m[Number(c.corner_id)] = Number(c.time_lost ?? 0);
+    }
+    return m;
+  }, [analysis.corner_analysis]);
   const handleFocusCorner = useCallback((cornerId: number) => {
     setFocusCorner({ id: cornerId, token: Date.now() });
   }, []);
@@ -287,15 +301,21 @@ export function AnalysisDashboardContent({
                 trackEdges={plotData.track_edges ?? analysis.racing_line?.track_edges ?? null}
                 racingLineMeta={plotData.racing_line_meta ?? analysis.racing_line ?? null}
                 idealLap={analysis.ideal_lap ?? null}
+                onProfileSelect={setMapProfile}
               />
-              {/* Le détail chiffré prolonge la carte : le pilote lit la bande,
-                  puis les chiffres qui la décrivent, sans changer d'écran. */}
-              <div className="mt-4">
-                <BrakingPanel
-                  braking={plotData.braking ?? null}
-                  onFocusCorner={handleFocusCorner}
-                />
-              </div>
+              {/* Le détail chiffré prolonge la carte, mais UNIQUEMENT sur la
+                  vue Freinage : ce panneau est long et encombrait les vues
+                  Vitesse, Mini-secteurs et Comparaison. Il reste inconditionnel
+                  dans le PDF, où la place ne manque pas. */}
+              {mapProfile === "braking" && (
+                <div className="mt-4">
+                  <BrakingPanel
+                    braking={plotData.braking ?? null}
+                    cornerLosses={cornerLosses}
+                    onFocusCorner={handleFocusCorner}
+                  />
+                </div>
+              )}
             </section>
           )}
 

@@ -206,15 +206,23 @@ export function exportAnalysisReportPDF(analysis: any, opts?: { charts?: PdfChar
   };
   if (Object.keys(bd).length) {
     y = sectionTitle(doc, y, "Détail du Score");
-    y = apexTable(
-      doc, y,
-      ["Critère", "Obtenu", "Maximum", "Réussite"],
-      Object.keys(bdLabels).map((k) => {
-        const val = Number(bd[k] ?? 0);
-        const max = bdMax[k] ?? 25;
-        return [bdLabels[k], val.toFixed(1), String(max), `${Math.round((val / max) * 100)} %`];
-      })
+    const rows = Object.keys(bdLabels).map((k) => {
+      const val = Number(bd[k] ?? 0);
+      const max = bdMax[k] ?? 25;
+      return [bdLabels[k], val.toFixed(1), String(max), `${Math.round((val / max) * 100)} %`];
+    });
+    // Le bonus conditions ENTRE dans le score global : l'omettre donnait un
+    // tableau qui ne totalisait pas le score affiché.
+    const bonus = Number(bd.conditions_bonus ?? 0);
+    if (bonus > 0) {
+      rows.push(["Bonus conditions difficiles", `+${bonus.toFixed(1)}`, "—", "—"]);
+    }
+    const total = rows.reduce(
+      (acc, r) => acc + (Number.parseFloat(String(r[1]).replace("+", "")) || 0),
+      0
     );
+    rows.push(["TOTAL", total.toFixed(1), "100", `${Math.round(total)} %`]);
+    y = apexTable(doc, y, ["Critère", "Obtenu", "Maximum", "Réussite"], rows);
   }
 
   // ── Pages Graphiques : les visuels exacts affichés dans l'app ──
@@ -269,6 +277,40 @@ export function exportAnalysisReportPDF(analysis: any, opts?: { charts?: PdfChar
         `Potentiel cumulé sur ce tour : ${totalLost.toFixed(2)} s. Ce chiffre additionne le temps perdu virage par virage face à la trajectoire optimale calculée — il représente la marge de progression théorique, pas un objectif immédiat.`);
     }
     y = notesArea(doc, y, 3, "Observations pilote / ingénieur");
+  }
+
+  // ── Analyse des freinages ──
+  // Le panneau n'est visible à l'écran que sur la vue Freinage ; ici il est
+  // toujours présent, c'est le document que le pilote emporte en piste.
+  const braking = analysis?.plot_data?.braking;
+  const brakingCorners = braking?.corners ?? [];
+  if (brakingCorners.length) {
+    y = addApexPage(doc, header);
+    y = sectionTitle(doc, y, "Analyse des Freinages");
+    // Le temps perdu affiché est celui du VIRAGE, mesuré : le même que le
+    // tableau précédent, la carte et les conseils.
+    const lossById: Record<number, number> = {};
+    for (const c of corners) lossById[Number(c.corner_id)] = Number(c.time_lost ?? 0);
+    y = apexTable(
+      doc, y,
+      ["Virage", "Point", "Ton meilleur", "Mini physique", "Crête", "Durée", "Temps mort", "Régularité", "Perdu"],
+      brakingCorners.map((b: any) => [
+        `V${b.corner_id}`,
+        `${Math.round(b.braking_point_distance)} m`,
+        `${Math.round(b.braking_best_point_m)} m`,
+        `${Math.round(b.braking_theoretical_min_m ?? 0)} m`,
+        `${Number(b.braking_peak_g).toFixed(2)} g`,
+        `${Number(b.braking_duration_s).toFixed(2)} s`,
+        `${Number(b.coasting_s).toFixed(2)} s`,
+        `± ${Math.round(b.braking_consistency_m)} m`,
+        `${(lossById[Number(b.corner_id)] ?? 0).toFixed(2)} s`,
+      ])
+    );
+    y = noteBox(doc, y,
+      `Capacité de freinage démontrée sur la séance : ${Number(braking.capability_g ?? 0).toFixed(2)} g. ` +
+      `« Ton meilleur » est le point de déclenchement de ton passage le plus rapide sur ce même virage — ` +
+      `un repère que tu as déjà réalisé, donc atteignable. « Mini physique » est la distance minimale ` +
+      `théorique pour la vitesse concernée : une borne, pas un objectif. Les virages pris à plat n'apparaissent pas.`);
   }
 
   // ── P3 : plan de travail ──
