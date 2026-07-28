@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Zap, LogOut, User, Shield } from "lucide-react";
+import { Zap, LogOut, User, Shield, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,7 @@ import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { ADMIN_EMAIL } from "@/constants";
 import { cn } from "@/lib/utils";
 import { MenuToggleIcon } from "@/components/ui/menu-toggle-icon";
+import { canAddToHomeScreen, requestAddToHomeScreenHint } from "./AddToHomeScreenHint";
 import { useScroll } from "@/components/ui/use-scroll";
 import {
   DropdownMenu,
@@ -229,7 +230,7 @@ export const Navbar = () => {
                   <MenuToggleIcon open={isOpen} className="w-6 h-6" duration={300} />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[350px] bg-background border-l border-border backdrop-blur-xl flex flex-col p-6">
+              <SheetContent side="right" className="w-[300px] sm:w-[350px] bg-background border-l border-border backdrop-blur-xl flex flex-col p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(1.5rem+var(--safe-bottom))]">
                 <div className="flex items-center gap-2 mb-8 mt-2">
                   <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
                     <Zap className="w-4 h-4 text-primary-foreground" />
@@ -313,6 +314,21 @@ export const Navbar = () => {
                                 Plans
                               </Button>
                             </Link>
+                          </SheetClose>
+                        )}
+                        {/* L'invite d'installation ne s'affiche qu'une fois.
+                            Sans point d'entrée permanent, un pilote qui l'a
+                            balayée n'a plus aucun moyen de la retrouver. */}
+                        {canAddToHomeScreen() && (
+                          <SheetClose asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start gap-2 bg-muted/50 border-border hover:bg-muted"
+                              onClick={requestAddToHomeScreenHint}
+                            >
+                              <Smartphone className="w-4 h-4 text-primary" />
+                              Ajouter à l'écran d'accueil
+                            </Button>
                           </SheetClose>
                         )}
                         <SheetClose asChild>

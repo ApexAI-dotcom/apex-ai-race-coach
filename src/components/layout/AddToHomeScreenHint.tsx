@@ -17,12 +17,39 @@ import { Share, X, Plus } from "lucide-react";
 
 const DISMISS_KEY = "apexai:a2hs-dismissed";
 const DELAY_MS = 20_000;
+/** Rappel manuel depuis le menu, une fois l'invite refusée. */
+export const SHOW_A2HS_EVENT = "apexai:show-a2hs";
 
 function isStandalone(): boolean {
   // `navigator.standalone` est la propriété historique d'iOS ; le media query
   // couvre les navigateurs modernes.
   const legacy = (window.navigator as unknown as { standalone?: boolean }).standalone;
   return Boolean(legacy) || window.matchMedia("(display-mode: standalone)").matches;
+}
+
+/**
+ * L'appareil peut-il installer ApexAI sur son écran d'accueil ?
+ *
+ * Exporté pour que le menu n'affiche l'entrée « Ajouter à l'écran d'accueil »
+ * que là où elle a un sens : proposer un geste impossible ailleurs serait pire
+ * que de ne rien proposer.
+ */
+export function canAddToHomeScreen(): boolean {
+  try {
+    return !isStandalone() && isIosSafari();
+  } catch {
+    return false;
+  }
+}
+
+/** Réaffiche l'invite, même refusée auparavant. */
+export function requestAddToHomeScreenHint(): void {
+  try {
+    localStorage.removeItem(DISMISS_KEY);
+  } catch {
+    /* sans stockage, l'invite s'affichera quand même */
+  }
+  window.dispatchEvent(new CustomEvent(SHOW_A2HS_EVENT));
 }
 
 function isIosSafari(): boolean {
@@ -50,6 +77,16 @@ export function AddToHomeScreenHint() {
     }
     const t = window.setTimeout(() => setVisible(true), DELAY_MS);
     return () => window.clearTimeout(t);
+  }, []);
+
+  // Rappel depuis le menu : le pilote qui a refusé une fois doit pouvoir
+  // revenir sur sa décision sans avoir à vider les données de Safari.
+  useEffect(() => {
+    const onRequest = () => {
+      if (canAddToHomeScreen()) setVisible(true);
+    };
+    window.addEventListener(SHOW_A2HS_EVENT, onRequest);
+    return () => window.removeEventListener(SHOW_A2HS_EVENT, onRequest);
   }, []);
 
   if (!visible) return null;

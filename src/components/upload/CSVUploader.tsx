@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
@@ -140,6 +140,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
   const [laps, setLaps] = useState<LapInfo[] | null>(null);
   const [lapsLoading, setLapsLoading] = useState(false);
 
@@ -276,6 +277,21 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     // Reset l'input pour permettre de re-sélectionner le même fichier
     e.target.value = "";
   }, []);
+
+  /*
+   * Retour en haut après le choix du fichier.
+   *
+   * Sur téléphone, le sélecteur de fichiers d'iOS rend la main en laissant la
+   * page là où elle était — souvent tout en bas, après avoir fait défiler pour
+   * trouver la zone d'import. Le bouton « Analyser » se retrouve alors hors de
+   * l'écran, et rien n'indique qu'il faut remonter.
+   *
+   * `scroll-mt-24` sur la cible compense la barre de navigation fixe.
+   */
+  useEffect(() => {
+    if (!file) return;
+    dropZoneRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [file]);
 
   // ─── Reset complet ────────────────────────────────────────────────────────
 
@@ -962,10 +978,11 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
             exit={{ opacity: 0 }}
           >
             <div
+              ref={dropZoneRef}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
+              className={`relative scroll-mt-24 border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
                 isDragging
                   ? "border-primary bg-primary/5 scale-[1.01]"
                   : file
