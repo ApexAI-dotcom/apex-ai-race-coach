@@ -66,7 +66,7 @@ function MonKartMock() {
 
       {/* Colonne droite : jauges + import + stock */}
       <div className="lg:col-span-7 space-y-4">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {gauge("Moteur", "9h", 60, "#ef4444")}
           {gauge("Pneus", "120", 45, "#f59e0b")}
           {gauge("Freins", "OK", 80, "#10b981")}

@@ -101,7 +101,7 @@ export function KartSetupPanel({
         </CardTitle>
         {savedSetups.length > 0 && (
           <Select onValueChange={handleLoadSetup}>
-            <SelectTrigger className="w-[180px] h-8 text-xs bg-background border-border">
+            <SelectTrigger className="w-full sm:w-[180px] h-9 sm:h-8 text-xs bg-background border-border">
               <SelectValue placeholder="Charger un setup..." />
             </SelectTrigger>
             <SelectContent>

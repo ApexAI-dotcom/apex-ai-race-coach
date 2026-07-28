@@ -63,35 +63,37 @@ export function KartHealthStatus({ profile }: { profile: KartProfile }) {
           </span>
         </div>
 
-        <div className="grid grid-cols-4 gap-1.5 text-center">
+        {/* Deux colonnes sur téléphone : à quatre, chaque case tombait sous
+            80 px de large avec un libellé en 9 px — illisible en piste. */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
             <Flame className="w-4 h-4 text-red-500 mb-1" />
-            <span className="text-[11px] font-semibold">{Math.round(engineHealth)}%</span>
-            <span className="text-[9px] text-muted-foreground uppercase mt-0.5">Moteur</span>
+            <span className="text-xs sm:text-[11px] font-semibold">{Math.round(engineHealth)}%</span>
+            <span className="text-[10px] sm:text-[9px] text-muted-foreground uppercase mt-0.5">Moteur</span>
             {engineIgnored && (
               <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
             )}
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
             <Disc className="w-4 h-4 text-purple-500 mb-1" />
-            <span className="text-[11px] font-semibold">{Math.round(tiresHealth)}%</span>
-            <span className="text-[9px] text-muted-foreground uppercase mt-0.5">Pneus</span>
+            <span className="text-xs sm:text-[11px] font-semibold">{Math.round(tiresHealth)}%</span>
+            <span className="text-[10px] sm:text-[9px] text-muted-foreground uppercase mt-0.5">Pneus</span>
             {tiresIgnored && (
               <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
             )}
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
             <Loader2 className="w-4 h-4 text-orange-500 mb-1" />
-            <span className="text-[11px] font-semibold">{Math.round(brakesHealth)}%</span>
-            <span className="text-[9px] text-muted-foreground uppercase mt-0.5">Freins</span>
+            <span className="text-xs sm:text-[11px] font-semibold">{Math.round(brakesHealth)}%</span>
+            <span className="text-[10px] sm:text-[9px] text-muted-foreground uppercase mt-0.5">Freins</span>
             {brakesIgnored && (
               <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
             )}
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
             <Wrench className="w-4 h-4 text-blue-500 mb-1" />
-            <span className="text-[11px] font-semibold">{Math.round(chainHealth)}%</span>
-            <span className="text-[9px] text-muted-foreground uppercase mt-0.5">Chaîne</span>
+            <span className="text-xs sm:text-[11px] font-semibold">{Math.round(chainHealth)}%</span>
+            <span className="text-[10px] sm:text-[9px] text-muted-foreground uppercase mt-0.5">Chaîne</span>
             {chainIgnored && (
               <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
             )}
