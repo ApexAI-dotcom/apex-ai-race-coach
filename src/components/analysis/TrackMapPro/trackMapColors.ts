@@ -107,8 +107,12 @@ export const BRAKING_VERDICT_COLORS: Record<string, string> = {
   inconsistent: "#f472b6",  // point de déclenchement instable
 };
 
+// Ces libellés ne jugent QUE le freinage. Un virage peut afficher « Freinage à
+// ton meilleur » et perdre du temps par ailleurs (vitesse de passage,
+// placement d'apex) : sans le mot « freinage », les deux se lisaient comme une
+// contradiction — « ton meilleur virage » à côté de « +0,27 s ».
 export const BRAKING_VERDICT_LABELS: Record<string, string> = {
-  optimal: "À ton meilleur",
+  optimal: "Freinage à ton meilleur",
   brake_later: "Freinage tardif possible",
   brake_earlier: "Anticiper davantage",
   coasting: "Temps mort",

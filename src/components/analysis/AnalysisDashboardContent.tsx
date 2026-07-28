@@ -112,6 +112,37 @@ export function AnalysisDashboardContent({
     }
     return m;
   }, [analysis.corner_analysis]);
+
+  // Un virage peut avoir un freinage impeccable ET perdre du temps : la perte
+  // vient alors de la vitesse de passage ou du placement d'apex. Sans le dire,
+  // « Freinage à ton meilleur » posé à côté de « +0,27 s » se lit comme une
+  // contradiction. On nomme donc la cause dominante, mesurée.
+  const cornerHints = useMemo(() => {
+    const m: Record<number, string> = {};
+    for (const c of analysis.corner_analysis ?? []) {
+      if (c?.corner_id == null) continue;
+      const loss = Number(c.time_lost ?? 0);
+      if (loss <= 0.02) continue;
+      const apexErr = Number(c.apex_distance_error ?? 0);
+      const real = Number(c.apex_speed_real ?? 0);
+      const target = Number(c.apex_speed_optimal ?? 0);
+      const speedGap = target > 0 && real > 0 ? target - real : 0;
+      if (speedGap >= Math.max(1.5, 0.025 * real)) {
+        m[Number(c.corner_id)] =
+          `Le temps ne se perd pas au freinage ici, mais à la vitesse de passage : ` +
+          `${real.toFixed(0)} km/h contre ${target.toFixed(0)} km/h sur ton meilleur passage.`;
+      } else if (apexErr >= 1.0) {
+        m[Number(c.corner_id)] =
+          `Le temps ne se perd pas au freinage ici, mais au placement : ` +
+          `ton point de corde est décalé de ${apexErr.toFixed(1)} m.`;
+      } else {
+        m[Number(c.corner_id)] =
+          `Le freinage est à ton meilleur niveau : le temps se perd sur la sortie ` +
+          `et la relance, pas à l'entrée.`;
+      }
+    }
+    return m;
+  }, [analysis.corner_analysis]);
   const handleFocusCorner = useCallback((cornerId: number) => {
     setFocusCorner({ id: cornerId, token: Date.now() });
   }, []);
@@ -312,6 +343,7 @@ export function AnalysisDashboardContent({
                   <BrakingPanel
                     braking={plotData.braking ?? null}
                     cornerLosses={cornerLosses}
+                    cornerHints={cornerHints}
                     onFocusCorner={handleFocusCorner}
                   />
                 </div>

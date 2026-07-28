@@ -24,6 +24,12 @@ interface BrakingPanelProps {
    * il annonçait 0,77 s là où le reste du rapport donnait 0,00 s.
    */
   cornerLosses?: Record<number, number>;
+  /**
+   * D'où vient la perte quand le freinage est déjà au meilleur niveau du
+   * pilote : sans cette phrase, « Freinage à ton meilleur » affiché à côté de
+   * « +0,27 s » se lit comme une contradiction.
+   */
+  cornerHints?: Record<number, string>;
   /** Remonte au virage sélectionné sur la carte du circuit. */
   onFocusCorner?: (cornerId: number) => void;
 }
@@ -63,12 +69,15 @@ function CornerRow({
   c,
   capability,
   measuredLoss,
+  hint,
   onFocusCorner,
 }: {
   c: BrakingCorner;
   capability: number;
   /** Perte MESURÉE du virage — même chiffre que la carte et les conseils. */
   measuredLoss: number;
+  /** Cause dominante de cette perte, quand elle n'est pas au freinage. */
+  hint?: string;
   onFocusCorner?: (id: number) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -182,12 +191,23 @@ function CornerRow({
               tone={cons.tone}
             />
             <Metric
-              label="Trail braking"
+              label="Frein gardé en virage"
               value={`${Math.round(c.trail_braking_ratio * 100)}`}
               unit="%"
-              hint="part de ton freinage réalisée kart déjà inscrit en courbe. Un peu de trail braking aide à faire tourner ; trop en charge l'avant et fait glisser l'arrière."
+              hint="appelé « trail braking » : la part de ton freinage réalisée alors que le kart est déjà braqué. Un peu aide à faire tourner ; trop charge l'avant et fait glisser l'arrière."
             />
           </div>
+
+          {/* Le verdict ne juge QUE le freinage : on nomme la cause réelle
+              quand le temps se perd ailleurs. */}
+          {hint && c.braking_verdict === "optimal" && (
+            <p className="text-[11px] text-muted-foreground">
+              <span className="font-medium text-foreground">
+                +{measuredLoss.toFixed(2)} s perdues sur ce virage.
+              </span>{" "}
+              {hint}
+            </p>
+          )}
 
           {c.double_brake_laps > 0 && (
             <p className="text-[11px] text-amber-400/90">
@@ -212,7 +232,7 @@ function CornerRow({
   );
 }
 
-export function BrakingPanel({ braking, cornerLosses, onFocusCorner }: BrakingPanelProps) {
+export function BrakingPanel({ braking, cornerLosses, cornerHints, onFocusCorner }: BrakingPanelProps) {
   const losses = cornerLosses ?? {};
   const corners = useMemo(
     () =>
@@ -269,6 +289,7 @@ export function BrakingPanel({ braking, cornerLosses, onFocusCorner }: BrakingPa
             c={c}
             capability={capability}
             measuredLoss={losses[c.corner_id] ?? 0}
+            hint={cornerHints?.[c.corner_id]}
             onFocusCorner={onFocusCorner}
           />
         ))}
