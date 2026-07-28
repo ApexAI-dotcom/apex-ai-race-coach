@@ -104,7 +104,7 @@ function EditableGauge({ current, max, label, icon, unit, onUpdate }: GaugeProps
               <span className="text-2xl font-bold font-display leading-none group-hover:text-primary transition-colors">
                 {current % 1 === 0 ? current : current.toFixed(1)}
               </span>
-              <Edit2 className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Edit2 className="w-3 h-3 text-muted-foreground opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
             </div>
           )}
           <span className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap overflow-visible">

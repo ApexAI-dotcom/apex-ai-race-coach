@@ -118,7 +118,7 @@ export const WearGauge = ({
                 <span className="text-2xl font-bold font-display leading-none">
                   {safeCurrent % 1 !== 0 ? safeCurrent.toFixed(1) : safeCurrent}
                 </span>
-                <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Pencil className="w-3 h-3 text-muted-foreground opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
               </div>
             )}
             <span className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap">
