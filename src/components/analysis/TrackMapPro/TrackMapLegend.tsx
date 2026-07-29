@@ -80,10 +80,23 @@ export function TrackMapLegend({
       {/* Vue Freinage : bande, temps mort, repère — expliqués un par un */}
       {profile === "braking" && (
         <>
+          {/* La TRACE elle-même est colorée par phase. Sans ces trois entrées,
+              le gris n'apparaissait nulle part dans la légende et le pilote
+              n'avait aucun moyen de savoir ce qu'il regardait. */}
+          <LegendItem
+            swatch={<span className="block w-4 h-1.5 rounded-full" style={{ background: TRACK_GREEN }} />}
+            label="Sur les gaz"
+            hint="tu accélères ou tu maintiens ta vitesse. Un kart ne garde jamais sa vitesse sans gaz : la traînée le ralentirait"
+          />
           <LegendItem
             swatch={<span className="block w-4 h-1.5 rounded-full" style={{ background: APEX_RED }} />}
-            label="Zone de freinage"
-            hint="du premier appui jusqu'au relâcher, mesuré sur la décélération réelle. Plus la bande est épaisse, plus tu freines fort"
+            label="Freinage"
+            hint="décélération franche mesurée. La bande épaisse le long de la piste marque la même zone : plus elle est épaisse, plus tu freines fort"
+          />
+          <LegendItem
+            swatch={<span className="block w-4 h-1.5 rounded-full" style={{ background: TRACK_GRAY }} />}
+            label="Ni frein ni gaz"
+            hint="tu as levé le pied sans freiner : le kart ralentit sur sa seule traînée. Rare et normalement court — s'il y en a beaucoup, c'est du temps perdu"
           />
           <LegendItem
             swatch={
