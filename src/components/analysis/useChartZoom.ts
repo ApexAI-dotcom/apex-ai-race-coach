@@ -28,11 +28,25 @@ export interface ChartZoom {
   containerRef: React.RefObject<HTMLDivElement>;
   /** Niveau de zoom, pour l'afficher au pilote. */
   zoomLabel: string;
+  /** La molette est-elle active ? Faux tant que le pilote n'a pas cliqué. */
+  armed: boolean;
 }
 
 export function useChartZoom(min: number, max: number): ChartZoom {
   const containerRef = useRef<HTMLDivElement>(null);
   const [window_, setWindowState] = useState<[number, number] | null>(null);
+  /*
+   * La molette ne pilote le zoom qu'APRÈS un clic sur le graphique.
+   *
+   * Sans ce verrou, il suffisait de faire défiler la page en frôlant la courbe
+   * pour zoomer dedans par accident — la page se bloquait et le graphique
+   * partait dans un virage au hasard. Le même défaut existait sur la carte.
+   *
+   * Le pincement à deux doigts, lui, reste toujours actif : personne ne pince
+   * un écran par mégarde.
+   */
+  const [armed, setArmed] = useState(false);
+  const armedRef = useRef(false);
   // Les gestes lisent la fenêtre courante via une ref : sans elle, l'effet se
   // réabonnerait à chaque déplacement et le glissement en cours serait perdu.
   const windowRef = useRef<[number, number] | null>(null);
@@ -49,6 +63,22 @@ export function useChartZoom(min: number, max: number): ChartZoom {
   }, []);
 
   const reset = useCallback(() => setWindow(null), [setWindow]);
+
+  const setArmedBoth = useCallback((v: boolean) => {
+    armedRef.current = v;
+    setArmed(v);
+  }, []);
+
+  // Un clic ailleurs dans la page rend la molette au défilement.
+  useEffect(() => {
+    if (!armed) return;
+    const onOutside = (e: PointerEvent) => {
+      const el = containerRef.current;
+      if (el && e.target instanceof Node && !el.contains(e.target)) setArmedBoth(false);
+    };
+    document.addEventListener("pointerdown", onOutside);
+    return () => document.removeEventListener("pointerdown", onOutside);
+  }, [armed, setArmedBoth]);
 
   // Le pilote change de tour : une fenêtre calculée sur l'ancien n'a plus de
   // sens, on repart du tour complet.
@@ -94,6 +124,9 @@ export function useChartZoom(min: number, max: number): ChartZoom {
     // `passive: false` est indispensable : sans lui le navigateur ignore le
     // preventDefault et la page défile au lieu de zoomer.
     const onWheel = (e: WheelEvent) => {
+      // Tant que le graphique n'a pas été activé d'un clic, la molette
+      // appartient à la page : on ne lui vole pas le défilement.
+      if (!armedRef.current) return;
       if (Math.abs(e.deltaY) < 1) return;
       e.preventDefault();
       applyZoom(e.clientX, e.deltaY > 0 ? 1.25 : 0.8);
@@ -104,6 +137,8 @@ export function useChartZoom(min: number, max: number): ChartZoom {
     let pan: { x: number; win: [number, number] } | null = null;
 
     const onPointerDown = (e: PointerEvent) => {
+      // Premier contact avec le graphique : la molette lui est confiée.
+      if (e.pointerType === "mouse") setArmedBoth(true);
       pointers.set(e.pointerId, e.clientX);
       if (pointers.size === 2) {
         const [a, b] = [...pointers.values()];
@@ -172,7 +207,7 @@ export function useChartZoom(min: number, max: number): ChartZoom {
       el.removeEventListener("pointerleave", endPointer);
       el.removeEventListener("dblclick", reset);
     };
-  }, [full, clamp, reset, setWindow]);
+  }, [full, clamp, reset, setWindow, setArmedBoth]);
 
   const domain = window_ ?? full;
   const ratio = (domain[1] - domain[0]) / Math.max(1e-6, full[1] - full[0]);
@@ -183,6 +218,7 @@ export function useChartZoom(min: number, max: number): ChartZoom {
     reset,
     containerRef,
     zoomLabel: `×${(1 / ratio).toFixed(1)}`,
+    armed,
   };
 }
 

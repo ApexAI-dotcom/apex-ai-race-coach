@@ -47,12 +47,18 @@ export function ChartZoomFrame({
           {zoom.zoomLabel}
         </button>
       ) : (
+        // L'indication change selon que la molette est rendue au graphique ou
+        // à la page : sans ça, le pilote ne comprend pas pourquoi elle zoome
+        // parfois et fait défiler le reste du temps.
         <span
-          className="pointer-events-none absolute top-1 right-1 z-10 rounded-md
-                     bg-background/70 px-2 py-1 text-[10px] text-muted-foreground
-                     border border-border/60 hidden sm:block"
+          className={`pointer-events-none absolute top-1 right-1 z-10 rounded-md px-2 py-1
+                      text-[10px] border hidden sm:block transition-colors ${
+                        zoom.armed
+                          ? "bg-primary/10 border-primary/40 text-primary"
+                          : "bg-background/70 border-border/60 text-muted-foreground"
+                      }`}
         >
-          Molette ou pincement pour zoomer
+          {zoom.armed ? "Molette pour zoomer" : "Clique pour activer le zoom"}
         </span>
       )}
     </div>
