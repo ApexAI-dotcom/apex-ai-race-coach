@@ -86,7 +86,7 @@ export function TrackMapLegend({
           <LegendItem
             swatch={<span className="block w-4 h-1.5 rounded-full" style={{ background: TRACK_GREEN }} />}
             label="Sur les gaz"
-            hint="tu accélères ou tu maintiens ta vitesse. Un kart ne garde jamais sa vitesse sans gaz : la traînée le ralentirait"
+            hint="tu accélères, ou tu tiens ta vitesse de pointe. En bout de ligne droite l'accélération tombe à zéro alors que tu es à fond : c'est normal, la traînée compense le moteur. Un kart ne tient jamais sa vitesse sans gaz"
           />
           <LegendItem
             swatch={<span className="block w-4 h-1.5 rounded-full" style={{ background: APEX_RED }} />}
@@ -96,7 +96,7 @@ export function TrackMapLegend({
           <LegendItem
             swatch={<span className="block w-4 h-1.5 rounded-full" style={{ background: TRACK_GRAY }} />}
             label="Ni frein ni gaz"
-            hint="tu as levé le pied sans freiner : le kart ralentit sur sa seule traînée. Rare et normalement court — s'il y en a beaucoup, c'est du temps perdu"
+            hint="tu as levé le pied sans freiner : le kart ralentit sur sa seule traînée. On le voit surtout entre le relâcher de frein et la remise des gaz, à l'intérieur des virages. Court, c'est normal ; long ou répété, c'est du temps perdu"
           />
           <LegendItem
             swatch={
