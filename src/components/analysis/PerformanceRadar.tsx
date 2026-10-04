@@ -77,7 +77,7 @@ export function PerformanceRadar({
               fillOpacity={0.4}
               strokeWidth={1.5}
             />
-            <Tooltip
+            <Tooltip isAnimationActive={false}
               contentStyle={{
                 backgroundColor: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",

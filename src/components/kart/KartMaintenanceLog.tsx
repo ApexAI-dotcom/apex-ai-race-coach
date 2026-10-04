@@ -355,7 +355,7 @@ export function KartMaintenanceLog({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 sm:h-7 sm:w-7 shrink-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                      className="h-9 w-9 sm:h-7 sm:w-7 shrink-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-100 can-hover:opacity-0 can-hover:group-hover:opacity-100 transition-opacity"
                       onClick={() => onDeleteEntry(log.id)}
                       title="Supprimer cette entrée"
                     >

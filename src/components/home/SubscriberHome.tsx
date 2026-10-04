@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   getAllAnalyses,
+  peekCachedAnalyses,
   getObjectives,
   saveObjectives,
   type AnalysisSummary,
@@ -81,9 +82,12 @@ export default function SubscriberHome() {
   const { user, session } = useAuth();
   const { tier, fetchSubscription, isLoading: subLoading } = useSubscription();
 
-  const [analyses, setAnalyses] = useState<AnalysisSummary[]>([]);
-  const [objectives, setObjectives] = useState<UserObjective[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Dernière liste connue affichée tout de suite, rafraîchie en arrière-plan.
+  const [analyses, setAnalyses] = useState<AnalysisSummary[]>(
+    () => peekCachedAnalyses(user?.id) ?? []
+  );
+  const [objectives, setObjectives] = useState<UserObjective[]>(() => getObjectives(user?.id));
+  const [loading, setLoading] = useState(() => !peekCachedAnalyses(user?.id)?.length);
   const [editingObjective, setEditingObjective] = useState<UserObjective | null>(null);
   const [tempValue, setTempValue] = useState("");
 
@@ -325,7 +329,7 @@ export default function SubscriberHome() {
                   dy={10}
                 />
                 <YAxis hide domain={[0, 100]} />
-                <Tooltip
+                <Tooltip isAnimationActive={false}
                   cursor={{ fill: "rgba(255,255,255,0.05)" }}
                   contentStyle={{
                     backgroundColor: "#0d1117",

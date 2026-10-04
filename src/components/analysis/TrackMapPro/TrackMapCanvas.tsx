@@ -74,7 +74,40 @@ function renderSegments(segments: ColoredSegment[], strokeWidth: number, opacity
 }
 
 // Restore Apex ADN glow effects
+/**
+ * Sur écran tactile, un filtre de flou SVG est recalculé à chaque image du
+ * pincement ou du glissement de la carte : c'était la principale source de
+ * saccades au doigt. Le halo y est reproduit par deux traits larges et très
+ * transparents superposés — même rendu à l'œil, sans aucun filtre.
+ */
+const SOFT_GLOW =
+  typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+
 function renderGlow(polyline: string, color: string) {
+  if (SOFT_GLOW) {
+    return (
+      <g opacity={0.12}>
+        <polyline
+          points={polyline}
+          fill="none"
+          stroke={color}
+          strokeWidth={28}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.45}
+        />
+        <polyline
+          points={polyline}
+          fill="none"
+          stroke={color}
+          strokeWidth={14}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.7}
+        />
+      </g>
+    );
+  }
   return (
     <polyline
       points={polyline}
@@ -295,8 +328,8 @@ function TrackMapCanvasComponent({
               strokeWidth={12}
               strokeLinecap="round"
               strokeLinejoin="round"
-              opacity={0.2}
-              style={{ filter: "blur(6px)" }}
+              opacity={SOFT_GLOW ? 0.12 : 0.2}
+              style={SOFT_GLOW ? undefined : { filter: "blur(6px)" }}
             />
             {/* Core dashed line */}
             <polyline
@@ -569,7 +602,10 @@ function TrackMapCanvasComponent({
       wheel={{ step: 0.1, activationKeys: ["Control"] }}
       doubleClick={{ mode: "zoomIn" }}
       zoomAnimation={{ animationType: "easeOut" }}
-      panning={{ velocityDisabled: true }}
+      // Inertie au glissement : la carte continue sur son élan puis
+      // s'arrête en douceur, comme une carte Plans sur iPhone.
+      panning={{ velocityDisabled: false }}
+      velocityAnimation={{ animationTime: 450, animationType: "easeOut" }}
       onZoom={() => onPointHover(null, 0, 0)}
       onPanning={() => onPointHover(null, 0, 0)}
     >

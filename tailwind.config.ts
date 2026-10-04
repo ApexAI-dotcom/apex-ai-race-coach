@@ -1,14 +1,22 @@
 import type { Config } from "tailwindcss";
 import tailwindAnimate from "tailwindcss-animate";
+import plugin from "tailwindcss/plugin";
 
 export default {
   darkMode: ["class"],
+  // Sur écran tactile, un « hover » reste collé après le tap : une carte qui
+  // remonte de 8 px et ne redescend plus, c'est le défaut qui trahit un site
+  // web. Les effets de survol ne s'appliquent plus que là où une souris existe.
+  future: { hoverOnlyWhenSupported: true },
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      // 2 rem de chaque côté sur un écran de 375 px, c'était 17 % de la
+      // largeur perdue — et davantage une fois les marges des cartes
+      // ajoutées. Le téléphone garde 1 rem ; rien ne change dès la tablette.
+      padding: { DEFAULT: "1rem", md: "2rem" },
       screens: {
         "2xl": "1400px",
       },
@@ -84,6 +92,12 @@ export default {
           accent: "#f97316",
         },
       },
+      // Courbes d'animation d'iOS : départ vif, arrivée longue et douce.
+      transitionTimingFunction: {
+        DEFAULT: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        ios: "cubic-bezier(0.32, 0.72, 0, 1)",
+        "out-expo": "cubic-bezier(0.16, 1, 0.3, 1)",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -118,13 +132,20 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.6s ease-out forwards",
-        "slide-in-right": "slide-in-right 0.6s ease-out forwards",
-        "scale-in": "scale-in 0.4s ease-out forwards",
+        "fade-in": "fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "slide-in-right": "slide-in-right 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "scale-in": "scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
       },
     },
   },
-  plugins: [tailwindAnimate],
+  plugins: [
+    tailwindAnimate,
+    // `can-hover:` — uniquement là où une souris existe. Sert aux actions
+    // masquées « jusqu'au survol » : au doigt, elles doivent rester visibles.
+    plugin(({ addVariant }) => {
+      addVariant("can-hover", "@media (hover: hover) and (pointer: fine)");
+    }),
+  ],
 } satisfies Config;
 

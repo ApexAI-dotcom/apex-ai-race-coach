@@ -1,7 +1,17 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+
+/**
+ * Mur d'images en perspective qui défile en fond d'accueil.
+ *
+ * Le mouvement des colonnes était piloté en JavaScript image par image
+ * (framer-motion, propriété `y`) : sur téléphone, ce calcul permanent
+ * concurrençait le défilement et le faisait saccader. Il est désormais confié
+ * au compositeur via une animation CSS de `transform`, mise en pause dès que
+ * le fond sort de l'écran.
+ */
 export const ThreeDMarquee = ({
   images,
   className,
@@ -15,10 +25,23 @@ export const ThreeDMarquee = ({
     const start = colIndex * chunkSize;
     return images.slice(start, start + chunkSize);
   });
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <div
+      ref={rootRef}
       className={cn(
         "mx-auto block h-[600px] overflow-hidden rounded-2xl max-sm:h-100",
+        !visible && "marquee-paused",
         className,
       )}
     >
@@ -31,38 +54,30 @@ export const ThreeDMarquee = ({
             className="relative grid size-full origin-center grid-cols-4 gap-8 transform-3d"
           >
             {chunks.map((subarray, colIndex) => (
-              <motion.div
-                animate={{ y: colIndex % 2 === 0 ? 100 : -100 }}
-                transition={{
-                  duration: colIndex % 2 === 0 ? 10 : 15,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                }}
+              <div
                 key={colIndex + "marquee"}
-                className="flex flex-col items-start gap-8"
+                className={cn(
+                  "flex flex-col items-start gap-8 will-change-transform",
+                  colIndex % 2 === 0 ? "marquee-col-down" : "marquee-col-up",
+                )}
               >
                 <GridLineVertical className="-left-4" offset="80px" />
                 {subarray.map((image, imageIndex) => (
                   <div className="relative" key={imageIndex + image}>
                     <GridLineHorizontal className="-top-4" offset="20px" />
-                    <motion.img
-                      whileHover={{
-                        y: -10,
-                      }}
-                      transition={{
-                        duration: 0.3,
-                        ease: "easeInOut",
-                      }}
+                    <img
                       key={imageIndex + image}
                       src={image}
-                      alt={`Image ${imageIndex + 1}`}
-                      className="aspect-[970/700] rounded-lg object-cover ring ring-gray-950/5 hover:shadow-2xl"
+                      alt=""
+                      decoding="async"
+                      draggable={false}
+                      className="aspect-[970/700] rounded-lg object-cover ring ring-gray-950/5"
                       width={970}
                       height={700}
                     />
                   </div>
                 ))}
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>

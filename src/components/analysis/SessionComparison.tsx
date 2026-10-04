@@ -430,7 +430,7 @@ export function SessionComparison({ a, b, labelA, labelB }: SessionComparisonPro
                   tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                   tickFormatter={(v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}s`}
                 />
-                <Tooltip
+                <Tooltip isAnimationActive={false}
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",

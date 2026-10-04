@@ -299,18 +299,9 @@ const TestimonialSlider: React.FC = () => {
                         <div className="flex items-center">
                           <div className="relative flex-shrink-0 w-10 h-10 rounded-full border border-primary/20 bg-primary/5 shadow-inner flex items-center justify-center overflow-hidden">
                             <HelmetIcon />
-                            <motion.div
-                              className="absolute inset-0 rounded-full bg-primary/10"
-                              animate={{
-                                scale: [1, 1.3, 1],
-                                opacity: [0, 0.4, 0],
-                              }}
-                              transition={{
-                                duration: 2.5,
-                                repeat: Infinity,
-                                repeatDelay: 1,
-                              }}
-                            />
+                            {/* Pulsation en CSS (compositeur) : la version
+                                JavaScript tournait sans fin pendant le défilement. */}
+                            <div className="absolute inset-0 rounded-full bg-primary/10 soft-pulse" />
                           </div>
                           <div className="ml-3 text-left">
                             <h4 className="font-bold text-base text-foreground">
@@ -339,31 +330,13 @@ const TestimonialSlider: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 aria-label={`Go to testimonial ${index + 1}`}
               >
-                <motion.div
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                    index === currentIndex ? "bg-primary" : "bg-white/20"
+                <div
+                  className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${
+                    index === currentIndex ? "bg-primary dot-beat" : "bg-white/20"
                   }`}
-                  animate={{
-                    scale: index === currentIndex ? [1, 1.15, 1] : 1,
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: index === currentIndex ? Infinity : 0,
-                    repeatDelay: 1,
-                  }}
                 />
                 {index === currentIndex && (
-                  <motion.div
-                    className="absolute inset-0 rounded-full bg-primary/30"
-                    animate={{
-                      scale: [1, 1.8],
-                      opacity: [1, 0],
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                    }}
-                  />
+                  <div className="absolute inset-0 rounded-full bg-primary/30 dot-ring" />
                 )}
               </motion.button>
             ))}

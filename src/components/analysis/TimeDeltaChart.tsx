@@ -59,7 +59,7 @@ export function TimeDeltaChart({ data, circuitName = null }: TimeDeltaChartProps
               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
               tickFormatter={(v) => `${v >= 0 ? "+" : ""}${v}s`}
             />
-            <Tooltip
+            <Tooltip isAnimationActive={false}
               contentStyle={{
                 backgroundColor: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",

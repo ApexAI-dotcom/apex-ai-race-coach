@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Zap, LogOut, User, Shield, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { MenuToggleIcon } from "@/components/ui/menu-toggle-icon";
 import { canAddToHomeScreen, requestAddToHomeScreenHint } from "./AddToHomeScreenHint";
 import { useScroll } from "@/components/ui/use-scroll";
+import { prefetchRoute } from "@/pages/loaders";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,7 @@ import {
   SheetContent,
   SheetTrigger,
   SheetClose,
+  SheetTitle,
 } from "@/components/ui/sheet";
 
 const guestNavItems = [
@@ -55,6 +57,13 @@ export const Navbar = () => {
   const scrolled = useScroll(10);
   const [isOpen, setIsOpen] = useState(false);
 
+  // La barre n'est plus remontée à chaque page (voir AppShell) : son état
+  // survit à la navigation. Le menu doit donc se refermer de lui-même quand
+  // on change d'écran, quel que soit le bouton qui a déclenché le changement.
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
   const navItems = isAuthenticated ? subscriberNavItems : guestNavItems;
 
   const filteredNavItems = navItems.filter((item) => {
@@ -75,7 +84,8 @@ export const Navbar = () => {
     <header
       className={cn(
         // pt-[--safe-top] : sur iPhone installé, la barre passait sous l'encoche.
-        "fixed left-0 right-0 z-50 mx-auto w-full transition-all duration-500 ease-in-out transform-gpu border-b",
+        "fixed left-0 right-0 z-50 mx-auto w-full border-b transform-gpu",
+        "transition-[background-color,border-color,box-shadow,top,max-width,border-radius] duration-500 ease-ios",
         "pt-[var(--safe-top)] pl-[var(--safe-left)] pr-[var(--safe-right)]",
         scrolled && !isOpen
           ? "bg-background/70 backdrop-blur-xl border-border/80 shadow-lg shadow-primary/5 md:top-4 md:max-w-5xl md:rounded-2xl"
@@ -86,8 +96,10 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div
           className={cn(
-            "flex items-center justify-between transition-all duration-500 ease-in-out",
-            scrolled && !isOpen ? "h-14" : "h-16"
+            // Sur téléphone, la barre garde une hauteur fixe : un en-tête qui
+            // rétrécit au défilement fait « sauter » l'écran sous le pouce.
+            "flex items-center justify-between h-16 md:transition-[height] md:duration-500 md:ease-ios",
+            scrolled && !isOpen ? "md:h-14" : "md:h-16"
           )}
         >
           {/* Logo */}
@@ -110,6 +122,8 @@ export const Navbar = () => {
               <Link
                 key={item.path + item.name}
                 to={item.path}
+                onMouseEnter={() => prefetchRoute(item.path)}
+                onPointerDown={() => prefetchRoute(item.path)}
                 className={`text-sm font-medium transition-all ${
                   (item as any).isHero
                     ? "gradient-primary text-primary-foreground px-4 py-1.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100 animate-pulse-neon animate-shimmer active-shimmer"
@@ -231,6 +245,8 @@ export const Navbar = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[350px] bg-background border-l border-border backdrop-blur-xl flex flex-col p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(1.5rem+var(--safe-bottom))] overflow-y-auto overscroll-contain">
+                {/* Titre lu par les lecteurs d'écran (Radix l'exige). */}
+                <SheetTitle className="sr-only">Menu</SheetTitle>
                 <div className="flex items-center gap-2 mb-6 mt-1 shrink-0">
                   <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
                     <Zap className="w-4 h-4 text-primary-foreground" />
@@ -246,6 +262,7 @@ export const Navbar = () => {
                     <SheetClose asChild key={item.path + item.name}>
                       <Link
                         to={item.path}
+                        onPointerDown={() => prefetchRoute(item.path)}
                         // py-3 : une cible tactile confortable fait au moins 44 px de haut.
                         className={`text-base font-medium py-2.5 transition-all ${
                           (item as any).isHero

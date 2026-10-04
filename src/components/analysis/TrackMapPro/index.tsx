@@ -141,7 +141,7 @@ export function TrackMapPro({
   const content = (
     <div
       ref={containerRef}
-      className={`trackmap-pro w-full ${state.isFullscreen ? "fixed inset-0 z-[9999] bg-background flex flex-col p-4 m-0 max-w-none" : "relative rounded-xl overflow-hidden"}`}
+      className={`trackmap-pro w-full ${state.isFullscreen ? "fixed inset-0 z-[9999] bg-background flex flex-col p-4 pt-[calc(1rem+var(--safe-top))] pb-[calc(1rem+var(--safe-bottom))] m-0 max-w-none" : "relative rounded-xl overflow-hidden"}`}
     >
       {/* Bandeau Tour Parfait IA : l'objectif chiffré, immédiatement lisible.
           Tous les chronos sont mesurés sur les tours réellement exploitables. */}

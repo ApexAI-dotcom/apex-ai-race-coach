@@ -1,47 +1,58 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-
-function ScrollToTop() {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
-}
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SubscriptionProvider, useSubscription } from "@/hooks/useSubscription.tsx";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AppShell } from "@/components/layout/AppShell";
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import Admin from "./pages/Admin";
+import NotFound from "./pages/NotFound";
+import { loaders, prefetchCoreRoutes } from "./pages/loaders";
 import { usePageTracking } from "./hooks/usePageTracking";
 import { AdminStatsWidget } from "./components/admin/AdminStatsWidget";
-import RedeemPage from "./pages/RedeemPage";
-import Upload from "./pages/Upload";
-import PricingPage from "./pages/PricingPage";
-import Profile from "./pages/Profile";
-import Login from "./pages/Login";
-import ResetPassword from "./pages/ResetPassword";
-import Success from "./pages/Success";
-import Legal from "./pages/Legal";
-import CGU from "./pages/legal/CGU";
-import Confidentialite from "./pages/legal/Confidentialite";
-import Parametres from "./pages/Parametres";
-import CalendarPage from "./pages/CalendarPage";
-import AnalysisResultPage from "./pages/AnalysisResultPage";
-import NotFound from "./pages/NotFound";
-import MonKart from "./pages/MonKart";
-import SetupPage from "./pages/SetupPage";
-import { SetupPreviewPage } from "./pages/SetupPreviewPage";
-import { MonKartPreviewPage } from "./pages/MonKartPreviewPage";
 import { useAuth } from "@/hooks/useAuth";
 
+// L'accueil reste dans le paquet principal : c'est la porte d'entrée de tout
+// le monde, il doit s'afficher sans attendre un second téléchargement.
+// Tout le reste est chargé à la demande — et préchargé au repos (loaders.ts).
+const Dashboard = lazy(loaders.dashboard);
+const Admin = lazy(loaders.admin);
+const RedeemPage = lazy(loaders.redeem);
+const Upload = lazy(loaders.upload);
+const PricingPage = lazy(loaders.pricing);
+const Profile = lazy(loaders.profile);
+const Login = lazy(loaders.login);
+const ResetPassword = lazy(loaders.resetPassword);
+const Success = lazy(loaders.success);
+const Legal = lazy(loaders.legal);
+const CGU = lazy(loaders.cgu);
+const Confidentialite = lazy(loaders.confidentialite);
+const Parametres = lazy(loaders.parametres);
+const CalendarPage = lazy(loaders.calendar);
+const AnalysisResultPage = lazy(loaders.analysisResult);
+const MonKart = lazy(loaders.monKart);
+const SetupPage = lazy(loaders.setup);
+const SetupPreviewPage = lazy(() =>
+  loaders.setupPreview().then((m) => ({ default: m.SetupPreviewPage }))
+);
+const MonKartPreviewPage = lazy(() =>
+  loaders.monKartPreview().then((m) => ({ default: m.MonKartPreviewPage }))
+);
+
 const queryClient = new QueryClient();
+
+function RoutePrefetcher() {
+  useEffect(() => {
+    // Après le premier affichage seulement : rien ne doit lui voler la vedette.
+    const t = window.setTimeout(prefetchCoreRoutes, 1200);
+    return () => window.clearTimeout(t);
+  }, []);
+  return null;
+}
 
 function SetupRouteWrapper() {
   const { isAuthenticated, loading } = useAuth();
@@ -90,13 +101,17 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        {/* v7_startTransition : la page actuelle reste affichée tant que la
+            suivante n'est pas prête — jamais d'écran vide entre deux pages. */}
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ThemeInit />
-          <ScrollToTop />
+          <RoutePrefetcher />
           <AuthProvider>
             <SubscriptionProvider>
               <PageTracker />
               <AdminStatsWidget />
+              <AppShell>
+              <Suspense fallback={null}>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
@@ -154,6 +169,8 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
+              </AppShell>
             </SubscriptionProvider>
           </AuthProvider>
         </BrowserRouter>

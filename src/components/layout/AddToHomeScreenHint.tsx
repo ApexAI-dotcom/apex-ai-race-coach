@@ -104,10 +104,10 @@ export function AddToHomeScreenHint() {
     <div
       role="dialog"
       aria-label="Installer ApexAI sur l'écran d'accueil"
-      className="fixed inset-x-3 z-[120] bottom-[calc(0.75rem+var(--safe-bottom))]
+      className="fixed inset-x-3 z-[120] bottom-[calc(0.75rem+var(--tabbar-h)+var(--safe-bottom))]
                  rounded-2xl border border-primary/30 bg-background/95 backdrop-blur-xl
                  shadow-2xl shadow-black/50 p-3 flex items-start gap-3
-                 animate-in slide-in-from-bottom-4 duration-300"
+                 animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-ios"
     >
       <div className="w-10 h-10 shrink-0 rounded-xl gradient-primary flex items-center justify-center">
         <Plus className="w-5 h-5 text-primary-foreground" />

@@ -138,7 +138,7 @@ export function ThrottleBrakeChart({
                   domain={[0, 100]}
                   tickFormatter={(v) => `${v}%`}
                 />
-                <Tooltip
+                <Tooltip isAnimationActive={false}
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",
@@ -215,7 +215,7 @@ export function ThrottleBrakeChart({
                 domain={[0, 100]}
                 tickFormatter={(v) => `${v}%`}
               />
-              <Tooltip
+              <Tooltip isAnimationActive={false}
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
                   border: "1px solid hsl(var(--border))",

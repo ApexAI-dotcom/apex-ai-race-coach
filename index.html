@@ -31,8 +31,36 @@
     <meta name="apple-mobile-web-app-title" content="ApexAI" />
     <meta name="mobile-web-app-capable" content="yes" />
     <style>
-      body { background-color: #0A0A0C; }
+      html, body { background-color: #0A0A0C; }
     </style>
+    <script>
+      /*
+       * iOS agrandit toute la page dès qu'on touche un champ dont le texte fait
+       * moins de 16 px, et ne la remet jamais à l'échelle : l'écran reste zoomé
+       * et décalé après la saisie. `maximum-scale=1` supprime ce zoom
+       * automatique ; Safari iOS laisse malgré tout le pincement libre, donc
+       * l'accessibilité est intacte. Réservé à iOS : ailleurs, ce réglage
+       * bloquerait le zoom au pincement.
+       */
+      (function () {
+        var ua = navigator.userAgent;
+        var iOS = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+        if (!iOS) return;
+        var vp = document.querySelector('meta[name="viewport"]');
+        if (vp) vp.setAttribute("content", vp.getAttribute("content") + ", maximum-scale=1");
+      })();
+    </script>
+
+    <!-- Polices : connexion ouverte dès le début du chargement, et une seule
+         fonte variable par famille au lieu de sept fichiers de graisse.
+         Avant, elles étaient appelées par un @import au fond de la feuille de
+         style : trois allers-retours réseau en série avant le premier texte. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&family=Space+Grotesk:wght@400..700&display=swap"
+    />
     <script>
       /*
        * Service worker DÉSACTIVÉ : il causait des états périmés (écran noir

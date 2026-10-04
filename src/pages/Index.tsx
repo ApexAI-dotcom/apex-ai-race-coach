@@ -15,11 +15,10 @@ import {
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
-import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
-import SubscriberHome from "@/components/home/SubscriberHome";
+import { getAllAnalyses, peekCachedAnalyses } from "@/lib/storage";
 import {
   Accordion,
   AccordionContent,
@@ -32,17 +31,31 @@ import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GetStartedButton } from "@/components/ui/get-started-button";
 import { FeedbackBox } from "@/components/feedback/FeedbackBox";
 
+// Le tableau de bord abonné embarque toute la bibliothèque de graphiques :
+// la page vitrine des visiteurs n'a pas à la télécharger. Pour un pilote déjà
+// connecté (session présente sur l'appareil), on lance son chargement dès
+// l'ouverture de l'app, en parallèle du reste.
+const loadSubscriberHome = () => import("@/components/home/SubscriberHome");
+const SubscriberHome = lazy(loadSubscriberHome);
+try {
+  if (Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))) {
+    loadSubscriberHome();
+  }
+} catch {
+  /* stockage indisponible : chargement à la demande */
+}
+
 const marqueeImages = [
-  "/showcase/1.png",
-  "/showcase/2.png",
-  "/showcase/3.png",
-  "/showcase/4.png",
-  "/showcase/5.png",
-  "/showcase/6.png",
-  "/showcase/7.png",
-  "/showcase/8.png",
-  "/showcase/9.png",
-  "/showcase/10.png"
+  "/showcase/1.webp",
+  "/showcase/2.webp",
+  "/showcase/3.webp",
+  "/showcase/4.webp",
+  "/showcase/5.webp",
+  "/showcase/6.webp",
+  "/showcase/7.webp",
+  "/showcase/8.webp",
+  "/showcase/9.webp",
+  "/showcase/10.webp"
 ];
 
 const stats = [
@@ -128,17 +141,27 @@ export default function Index() {
   const success = searchParams.get("success");
   const canceled = searchParams.get("canceled");
   const sessionId = searchParams.get("session_id");
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
   const { tier, isLoading: subLoading } = useSubscription();
   const [hasAnalyses, setHasAnalyses] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      getAllAnalyses(user.id).then((data) => setHasAnalyses(data.length > 0));
+      getAllAnalyses(user.id)
+        .then((data) => setHasAnalyses(data.length > 0))
+        .catch(() => setHasAnalyses(false));
     } else {
       setHasAnalyses(false);
     }
   }, [isAuthenticated, user]);
+
+  // Ce qu'on sait déjà sans attendre le réseau : la liste de la dernière visite.
+  const cachedHasAnalyses = user ? (peekCachedAnalyses(user.id)?.length ?? 0) > 0 : false;
+  const showHub = isAuthenticated && (hasAnalyses ?? cachedHasAnalyses);
+  // Un pilote connecté ne doit jamais voir passer la page vitrine (et son
+  // fond animé) avant son tableau de bord : tant qu'on ne sait pas encore
+  // quel accueil lui servir, l'écran reste simplement vide.
+  const deciding = authLoading || (isAuthenticated && hasAnalyses === null && !cachedHasAnalyses);
 
   // Nettoyer les paramètres après 5 secondes
   useEffect(() => {
@@ -150,12 +173,22 @@ export default function Index() {
     }
   }, [success, canceled, setSearchParams]);
 
-  // If subscriber and has analyses, show personalized hub
-  if (isAuthenticated && hasAnalyses === true) {
+  if (deciding) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-12 pt-24">
-          <SubscriberHome />
+        <div className="min-h-[70vh]" />
+      </Layout>
+    );
+  }
+
+  // If subscriber and has analyses, show personalized hub
+  if (showHub) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 pt-6 pb-12 md:pt-24">
+          <Suspense fallback={<div className="min-h-[70vh]" />}>
+            <SubscriberHome />
+          </Suspense>
         </div>
       </Layout>
     );
@@ -220,7 +253,9 @@ export default function Index() {
             images={marqueeImages}
           />
           {/* Overlay to dim the marquee and make text readable */}
-          <div className="absolute inset-0 z-10 bg-background/55 dark:bg-background/75 backdrop-blur-[1px]" />
+          {/* Pas de flou ici : un flou d'1 px, invisible, imposait au GPU de
+              recalculer tout l'écran à chaque image du fond animé. */}
+          <div className="absolute inset-0 z-10 bg-background/55 dark:bg-background/75" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10 py-20">

@@ -85,7 +85,7 @@ export function KartTrendsChart({ sessions }: { sessions: any[] }) {
                 axisLine={false}
                 domain={[0, "auto"]}
               />
-              <Tooltip
+              <Tooltip isAnimationActive={false}
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
                   border: "1px solid hsl(var(--border))",

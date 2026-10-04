@@ -153,7 +153,7 @@ export function TimeDeltaLapsChart({
                   fontSize: 11,
                 }}
               />
-              <Tooltip
+              <Tooltip isAnimationActive={false}
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
                   border: "1px solid hsl(var(--border))",

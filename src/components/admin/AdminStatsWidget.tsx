@@ -56,7 +56,7 @@ export function AdminStatsWidget() {
   if (location.pathname === "/admin") return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[90] print:hidden">
+    <div className="fixed bottom-[calc(1rem+var(--tabbar-h)+var(--safe-bottom))] md:bottom-4 right-4 z-[90] print:hidden">
       {open ? (
         <div className="w-72 rounded-2xl border border-border bg-card/95 backdrop-blur-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">

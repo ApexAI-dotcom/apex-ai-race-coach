@@ -117,6 +117,13 @@ function cleanupOldAnalysesLS(suffix: string): void {
 // ============================================================================
 
 async function getSupabaseUserId(): Promise<string | null> {
+  // `getSession()` lit la session locale (et la renouvelle d'elle-même si le
+  // jeton a expiré) ; `getUser()` interrogeait le serveur d'authentification à
+  // CHAQUE lecture — un aller-retour réseau de plus avant chaque liste,
+  // chaque analyse ouverte. L'identifiant ne sert qu'à filtrer : la sécurité
+  // au niveau ligne de Supabase revalide de toute façon le jeton.
+  const { data: local } = await supabase.auth.getSession();
+  if (local.session?.user?.id) return local.session.user.id;
   const { data } = await supabase.auth.getUser();
   if (data.user?.id) return data.user.id;
   // Jeton expiré : sans rafraîchissement, l'écriture partirait avec une identité
@@ -177,6 +184,7 @@ export async function saveAnalysis(
   result: AnalysisResult,
   userId?: string | null
 ): Promise<string> {
+  invalidateSummaries();
   const supaUserId = await getSupabaseUserId();
 
   // ─── Supabase path ───
@@ -303,9 +311,50 @@ export async function saveAnalysis(
 }
 
 /**
+ * Dernière liste connue, lue SANS attendre le réseau.
+ *
+ * Permet d'afficher immédiatement l'écran tel qu'il était à la dernière
+ * visite, puis de le rafraîchir en arrière-plan — au lieu d'un spinner à
+ * chaque ouverture. Renvoie null si rien n'est en cache.
+ */
+export function peekCachedAnalyses(userId?: string | null): AnalysisSummary[] | null {
+  if (!userId) return null;
+  try {
+    const raw = localStorage.getItem(`apex_cache_${userId}`);
+    if (!raw) return null;
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? (list as AnalysisSummary[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * L'accueil, son tableau de bord et l'abonnement demandent la liste au même
+ * moment : un seul appel réseau est partagé entre eux.
+ */
+const inflightSummaries = new Map<string, Promise<AnalysisSummary[]>>();
+
+/** Après une écriture, une liste demandée juste avant ne doit plus être servie. */
+function invalidateSummaries() {
+  inflightSummaries.clear();
+}
+
+/**
  * Get all analysis summaries (lightweight list).
  */
-export async function getAllAnalyses(userId?: string | null): Promise<AnalysisSummary[]> {
+export function getAllAnalyses(userId?: string | null): Promise<AnalysisSummary[]> {
+  const key = getStorageSuffix(userId);
+  let pending = inflightSummaries.get(key);
+  if (!pending) {
+    pending = fetchAllAnalyses(userId).finally(() => inflightSummaries.delete(key));
+    inflightSummaries.set(key, pending);
+  }
+  // Une copie par appelant : aucun écran ne peut trier la liste d'un autre.
+  return pending.then((list) => list.slice());
+}
+
+async function fetchAllAnalyses(userId?: string | null): Promise<AnalysisSummary[]> {
   const supaUserId = await getSupabaseUserId();
 
   // ─── Supabase path ───
@@ -426,6 +475,7 @@ export async function getAnalysisById(
  * Delete an analysis.
  */
 export async function deleteAnalysis(id: string, userId?: string | null): Promise<boolean> {
+  invalidateSummaries();
   if (!id || !id.trim()) return false;
 
   const supaUserId = await getSupabaseUserId();
@@ -499,6 +549,7 @@ export async function updateAnalysis(
   updates: { session_name?: string; session_type?: string; folder_id?: string | null },
   userId?: string | null
 ): Promise<boolean> {
+  invalidateSummaries();
   if (!id || !id.trim()) return false;
 
   const supaUserId = await getSupabaseUserId();
@@ -606,6 +657,7 @@ export async function getAnalysesCount(userId?: string | null): Promise<number> 
  * Clear all analyses.
  */
 export async function clearAllAnalyses(userId?: string | null): Promise<number> {
+  invalidateSummaries();
   const supaUserId = await getSupabaseUserId();
 
   if (supaUserId) {
@@ -839,6 +891,7 @@ export function saveObjectives(objectives: UserObjective[], userId?: string | nu
  * Called once on first Dashboard load for authenticated users.
  */
 export async function migrateLocalStorageToSupabase(userId: string): Promise<number> {
+  invalidateSummaries();
   const migrationKey = `${MIGRATION_KEY_PREFIX}${userId}`;
 
   // Already migrated?
@@ -897,6 +950,7 @@ export async function migrateLocalStorageToSupabase(userId: string): Promise<num
 
 // Also try migrating "guest" analyses if the user was previously a guest
 export async function migrateGuestAnalyses(): Promise<number> {
+  invalidateSummaries();
   const supaUserId = await getSupabaseUserId();
   if (!supaUserId) return 0;
 

@@ -238,7 +238,9 @@ export function AnalysisDashboardContent({
     analysis.corner_analysis,
     timeDeltaDomain,
   ]);
-  const wrapperClass = embedded ? "space-y-6" : "max-w-7xl mx-auto p-4 md:p-8 space-y-8";
+  // Sur téléphone, les deux pages qui l'affichent posent déjà leur marge :
+  // la doubler ici rognait la carte et les graphiques de 32 px.
+  const wrapperClass = embedded ? "space-y-6" : "max-w-7xl mx-auto md:p-8 space-y-8";
   const sectionClass = embedded
     ? "mb-6 md:mb-8 rounded-lg border border-white/5 bg-secondary/50 p-3 md:p-4"
     : "glass-card p-4 md:p-6 mb-6 md:mb-8";
@@ -263,8 +265,8 @@ export function AnalysisDashboardContent({
           {/* LAPS SELECTION */}
           <section className={sectionClass}>
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <h2 className={`${titleClass} mb-0`}>Sélection des tours</h2>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <h2 className={`${titleClass} mb-0 shrink-0`}>Sélection des tours</h2>
                 <p className="text-xs text-muted-foreground">
                   Cliquez sur un tour pour l'ajouter ou le retirer des graphiques. Le point vert
                   indique le meilleur tour.
@@ -279,7 +281,7 @@ export function AnalysisDashboardContent({
                     <Badge
                       key={idx}
                       variant={isSelected ? "default" : "outline"}
-                      className={`cursor-pointer gap-1.5 py-1.5 px-3 transition-all ${
+                      className={`cursor-pointer select-none gap-1.5 py-2 md:py-1.5 px-3 transition-[background-color,border-color,color,transform] duration-150 active:scale-95 ${
                         isSelected
                           ? "bg-primary text-white border-transparent"
                           : "bg-transparent border-white/10 text-muted-foreground hover:border-[#ff6b35]/50"

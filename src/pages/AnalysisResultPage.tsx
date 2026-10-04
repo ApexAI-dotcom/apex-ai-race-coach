@@ -60,7 +60,7 @@ export default function AnalysisResultPage() {
         description="Résultats détaillés de votre session."
         path={`/analysis/${data.analysis_id}`}
       />
-      <div className="min-h-screen bg-[#0d1117] text-[#e6edf3] p-4 md:p-6">
+      <div className="min-h-screen bg-[#0d1117] text-[#e6edf3] py-4 md:p-6">
         <div className="container mx-auto">
           <Button
             variant="ghost"

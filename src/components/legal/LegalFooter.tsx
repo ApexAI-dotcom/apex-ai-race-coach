@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 export const LegalFooter = () => (
-  <footer className="border-t border-white/5 bg-card/30 py-6 pb-24 md:pb-6 mt-auto">
+  <footer className="border-t border-white/5 bg-card/30 py-6 mt-auto">
     <div className="container mx-auto px-4">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
         <div>

@@ -80,7 +80,7 @@ export function ApexMarginChart({
               unit=" km/h"
               width={36}
             />
-            <Tooltip
+            <Tooltip isAnimationActive={false}
               contentStyle={{
                 backgroundColor: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",

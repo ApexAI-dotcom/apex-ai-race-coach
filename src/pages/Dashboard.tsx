@@ -72,6 +72,7 @@ import {
   updateAnalysis,
   migrateLocalStorageToSupabase,
   migrateGuestAnalyses,
+  peekCachedAnalyses,
   type AnalysisSummary,
   type AnalysisFolder,
 } from "@/lib/storage";
@@ -93,6 +94,18 @@ import { Helmet } from "react-helmet-async";
 import { ADMIN_EMAIL } from "@/constants";
 import { exportAnalysisReportPDF, captureAnalysisCharts } from "@/lib/pdf/analysisReport";
 import { toast } from "sonner";
+
+/**
+ * Dernière analyse complète déjà téléchargée. Revenir sur le tableau de bord
+ * ne la retélécharge pas (elle pèse lourd : tracés, télémétrie).
+ */
+const featuredCache = new Map<string, AnalysisResult>();
+
+/** Liste en cache, si elle a quelque chose à montrer. */
+function usableCache(userId?: string | null) {
+  const cached = peekCachedAnalyses(userId);
+  return cached && cached.length > 0 ? cached : null;
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -119,8 +132,10 @@ export default function Dashboard() {
       : 0;
 
   // States
-  const [analyses, setAnalyses] = useState<AnalysisSummary[]>([]);
-  const [folders, setFolders] = useState<AnalysisFolder[]>([]);
+  // Affichage immédiat de la dernière liste connue ; le réseau la rafraîchit
+  // ensuite en silence. Le spinner n'apparaît qu'à la toute première visite.
+  const [analyses, setAnalyses] = useState<AnalysisSummary[]>(() => usableCache(user?.id) ?? []);
+  const [folders, setFolders] = useState<AnalysisFolder[]>(() => getAllFolders(user?.id));
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisResult | null>(null);
   const [showDetailOverlay, setShowDetailOverlay] = useState(false);
@@ -131,7 +146,7 @@ export default function Dashboard() {
   const [showCompare, setShowCompare] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !usableCache(user?.id));
   const [error, setError] = useState<string | null>(null);
   const [moveAnalysisId, setMoveAnalysisId] = useState<string | null>(null);
   const [moveTargetFolderId, setMoveTargetFolderId] = useState<string>("root");
@@ -143,7 +158,11 @@ export default function Dashboard() {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   // Featured: latest analysis full data
-  const [featuredAnalysis, setFeaturedAnalysis] = useState<AnalysisResult | null>(null);
+  const [featuredAnalysis, setFeaturedAnalysis] = useState<AnalysisResult | null>(() => {
+    const latestId = usableCache(user?.id)?.[0]?.id;
+    return (latestId && featuredCache.get(latestId)) || null;
+  });
+  const [featuredLoading, setFeaturedLoading] = useState(false);
 
   const featuredBestLapIdx = useMemo(() => {
     if (!featuredAnalysis?.plot_data?.trajectory_2d?.laps) return 0;
@@ -158,9 +177,14 @@ export default function Dashboard() {
   }, [featuredAnalysis]);
 
   // Load data
-  const loadData = useCallback(async () => {
+  // Rechargement SILENCIEUX : appelée aussi après chaque action (dossier,
+  // déplacement…), elle ne doit plus jamais faire réapparaître un spinner
+  // plein écran sur des données déjà affichées.
+  // `reuseFeatured` : seulement à l'ouverture de la page. Après une action
+  // (renommage, suppression…), la carte doit refléter la base, pas le cache.
+  const loadData = useCallback(async (reuseFeatured = false) => {
+    if (!reuseFeatured) featuredCache.clear();
     try {
-      setLoading(true);
       const uid = user?.id ?? undefined;
 
       // One-shot migration: localStorage → Supabase
@@ -179,12 +203,31 @@ export default function Dashboard() {
       ]);
       setAnalyses(allAnalyses);
       setFolders(allFolders);
+      // La liste est là : on l'affiche sans attendre la carte « dernière
+      // session », bien plus lourde, qui arrive juste après.
+      setLoading(false);
 
       // Load the latest analysis for featured card
       if (allAnalyses.length > 0) {
         const latestId = allAnalyses[0].id;
-        const latest = await getAnalysisById(latestId, uid);
-        setFeaturedAnalysis(latest);
+        const cached = featuredCache.get(latestId);
+        if (cached) {
+          setFeaturedAnalysis(cached);
+        } else {
+          setFeaturedLoading(true);
+          try {
+            const latest = await getAnalysisById(latestId, uid);
+            if (latest) {
+              featuredCache.clear();
+              featuredCache.set(latestId, latest);
+            }
+            setFeaturedAnalysis(latest);
+          } finally {
+            setFeaturedLoading(false);
+          }
+        }
+      } else {
+        setFeaturedAnalysis(null);
       }
     } catch (err) {
       setError("Erreur lors du chargement des données");
@@ -195,7 +238,7 @@ export default function Dashboard() {
   }, [user?.id]);
 
   useEffect(() => {
-    loadData();
+    loadData(true);
   }, [loadData]);
 
   // Folder Actions
@@ -596,6 +639,14 @@ export default function Dashboard() {
         <UpcomingEventsWidget />
 
         {/* ═══ FEATURED CARD ═══ */}
+        {/* Réserve la place de la carte pendant son chargement : la liste ne
+            « saute » pas vers le bas quand elle arrive. */}
+        {!featuredAnalysis && featuredLoading && !currentFolderId && (
+          <div
+            aria-hidden
+            className="mb-8 md:mb-12 h-[380px] md:h-[340px] rounded-2xl border-2 border-primary/20 bg-primary/5 animate-pulse"
+          />
+        )}
         {featuredAnalysis && !currentFolderId && (
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
@@ -792,7 +843,7 @@ export default function Dashboard() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-muted-foreground opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity h-8 w-8"
+                    className="text-muted-foreground opacity-100 can-hover:opacity-0 can-hover:group-hover:opacity-100 transition-opacity h-8 w-8"
                     onClick={(e) => handleFolderDelete(folder.id, e)}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1149,12 +1200,16 @@ export default function Dashboard() {
         <AnimatePresence>
           {showDetailOverlay && selectedAnalysis && (
             <motion.div
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 100 }}
-              className="fixed inset-0 z-[100] bg-background flex flex-col md:flex-row shadow-2xl overflow-hidden"
+              // Écran poussé depuis la droite, avec la courbe des transitions
+              // de navigation d'iOS.
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
+              // Zones sûres : dans l'app installée, l'en-tête passait sous l'encoche.
+              className="fixed inset-0 z-[100] bg-background flex flex-col md:flex-row shadow-2xl overflow-hidden pt-[var(--safe-top)] pb-[var(--safe-bottom)]"
             >
-              <div className="w-full h-full flex flex-col overflow-y-auto custom-scrollbar bg-background">
+              <div className="w-full h-full flex flex-col overflow-y-auto overscroll-contain custom-scrollbar bg-background">
                 <div className="sticky top-0 z-10 p-4 md:p-6 flex items-center justify-between border-b border-white/5 bg-background/80 backdrop-blur-xl">
                   <div className="flex items-center gap-2 md:gap-4">
                     <Button
@@ -1229,10 +1284,11 @@ export default function Dashboard() {
         <AnimatePresence>
           {showCompare && compareResult1 && compareResult2 && (
             <motion.div
-              initial={{ opacity: 0, y: "100%" }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: "100%" }}
-              className="fixed inset-0 z-[110] bg-background flex flex-col overflow-hidden"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "tween", duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+              className="fixed inset-0 z-[110] bg-background flex flex-col overflow-hidden pt-[var(--safe-top)] pb-[var(--safe-bottom)]"
             >
               <div className="p-4 md:p-6 flex items-center justify-between bg-secondary/50 border-b border-white/5 backdrop-blur-xl">
                 <div className="flex items-center gap-3 md:gap-4 text-foreground">
@@ -1253,7 +1309,7 @@ export default function Dashboard() {
                   écart chronométré, détail par virage. L'ancienne version posait
                   deux tableaux de bord complets côte à côte — le pilote devait
                   tout confronter à l'œil, et sur téléphone ils s'empilaient. */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 custom-scrollbar bg-background">
+              <div className="flex-1 overflow-y-auto overscroll-contain overflow-x-hidden p-4 md:p-8 custom-scrollbar bg-background">
                 <div className="max-w-5xl mx-auto">
                   <SessionComparison
                     a={mapApiResultToResponse(compareResult1)}
