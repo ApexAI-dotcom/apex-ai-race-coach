@@ -53,7 +53,7 @@ export function KartMaintenanceLog({
   const ignoredAlerts = profile?.setup_json?.ignored_alerts || [];
   const recommendations: {
     id: string;
-    component: "engine" | "tires" | "brakes";
+    component: "engine" | "tires" | "brakes" | "chain";
     message: string;
     actionLabel: string;
     severity: "warning" | "critical";

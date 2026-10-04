@@ -279,7 +279,7 @@ export function SessionComparison({ a, b, labelA, labelB }: SessionComparisonPro
       return {
         brakePoint: avg((c) => c.braking_point_distance),
         peakG: avg((c) => c.braking_peak_g),
-        coasting: zones.reduce((s, c) => s + (Number(c.coasting_s) || 0), 0),
+        coasting: zones.reduce((s: number, c: any) => s + (Number(c.coasting_s) || 0), 0),
         spread: avg((c) => c.braking_consistency_m),
         zones: zones.length,
       };

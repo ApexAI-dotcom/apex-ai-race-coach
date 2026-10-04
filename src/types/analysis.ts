@@ -209,6 +209,8 @@ export interface IdealLapSector {
   loss_s: number;
   from_lap: number;
   corner_id?: number | null;
+  /** Vrai sur la partie courbée du virage, faux sur la relance qui suit. */
+  in_corner?: boolean;
 }
 
 /** Tour idéal : meilleurs mini-secteurs recombinés (chronos réels). */
@@ -292,12 +294,15 @@ export interface AnalysisResponse {
   best_lap_time: number;
   lap_times: number[];
   performance_score: AnalysisPerformanceScore;
-  corner_analysis: unknown[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  corner_analysis: Record<string, any>[];
   coaching_advice: CoachingAdvice[];
   plots: Record<string, string>;
   plot_data?: PlotData;
-  statistics: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  statistics: Record<string, any>;
   session_conditions?: {
+    session_name?: string;
     track_condition: string;
     track_temperature?: number;
     circuit_name?: string;

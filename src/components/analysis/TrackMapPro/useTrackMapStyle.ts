@@ -11,6 +11,8 @@ import {
 } from "./trackMapColors";
 import type { ProjectedPoint, ColoredSegment } from "./useTrackMapGeometry";
 
+export type { ColoredSegment };
+
 export interface LapProjection {
   lap: TrajectoryLap;
   points: ProjectedPoint[];

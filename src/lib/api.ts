@@ -13,7 +13,7 @@ export const CSV_UPLOAD_HINT_SHORT = `Fichier CSV uniquement (max ${MAX_FILE_SIZ
 // ============================================================================
 // TYPES
 // ============================================================================
-import { type PlotData } from "@/types/analysis";
+import { type PlotData, type IdealLap, type RacingLineMeta, type TrackEdges } from "@/types/analysis";
 
 export interface ScoreBreakdown {
   apex_precision: number;
@@ -330,6 +330,8 @@ export interface AnalysisResult {
   session_type?: string;
   plot_data?: PlotData;
   track_features?: TrackFeatures | null;
+  ideal_lap?: IdealLap | null;
+  racing_line?: (RacingLineMeta & { track_edges?: TrackEdges }) | null;
 }
 
 export interface LapInfo {

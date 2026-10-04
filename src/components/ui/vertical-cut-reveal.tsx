@@ -69,8 +69,9 @@ const VerticalCutReveal = forwardRef<VerticalCutRevealRef, TextProps>(
     // Разделение текста на символы с поддержкой Unicode и эмодзи
     const splitIntoCharacters = (text: string): string[] => {
       if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
-        const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" });
-        return Array.from(segmenter.segment(text), ({ segment }) => segment);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const segmenter = new (Intl as any).Segmenter("en", { granularity: "grapheme" });
+        return Array.from(segmenter.segment(text), ({ segment }: { segment: string }) => segment);
       }
       return Array.from(text);
     };

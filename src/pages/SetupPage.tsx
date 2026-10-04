@@ -139,8 +139,8 @@ export default function SetupPage() {
 
   const isFormReadyToRecommend = 
     setupState.circuit !== null &&
-    setupState.weather !== '' &&
-    setupState.grip !== '' &&
+    (setupState.weather as string) !== '' &&
+    (setupState.grip as string) !== '' &&
     setupState.airTemp !== '' &&
     setupState.trackTemp !== '' &&
     setupState.driverWeight !== '' &&
@@ -632,7 +632,7 @@ export default function SetupPage() {
                   <p className="font-semibold flex items-center gap-1.5"><Brain className="w-3.5 h-3.5" /> Informations requises :</p>
                   <ul className="list-disc list-inside text-muted-foreground text-[11px] space-y-0.5">
                     {setupState.circuit === null && <li>Sélectionner un circuit</li>}
-                    {(setupState.weather === '' || setupState.grip === '' || setupState.airTemp === '' || setupState.trackTemp === '') && <li>Remplir le contexte de piste (Météo/Temp/Grip)</li>}
+                    {((setupState.weather as string) === '' || (setupState.grip as string) === '' || setupState.airTemp === '' || setupState.trackTemp === '') && <li>Remplir le contexte de piste (Météo/Temp/Grip)</li>}
                     {(setupState.driverWeight === '' || setupState.kartWeight === '') && <li>Indiquer les poids du pilote et du kart</li>}
                   </ul>
                 </div>

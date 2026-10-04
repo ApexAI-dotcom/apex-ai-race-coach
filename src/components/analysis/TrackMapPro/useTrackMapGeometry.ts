@@ -12,6 +12,18 @@ export interface ProjectedPoint {
   lon: number;
 }
 
+/** Portion de trace entre deux points projetés, colorée selon le profil. */
+export interface ColoredSegment {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  color: string;
+  speed: number;
+  phase?: string;
+  index: number;
+}
+
 export interface ProjectedCorner extends ProjectedPoint {
   id: number;
   label: string;
