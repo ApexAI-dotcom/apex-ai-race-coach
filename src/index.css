@@ -500,10 +500,15 @@
   }
 }
 
-/* Notifications : sous l'encoche dans l'app installée, pas dessous. */
+/* Notifications : sous l'encoche dans l'app installée, pas dessous, et
+   au-dessus de la barre d'onglets plutôt que derrière elle. */
 @media (max-width: 600px) {
   [data-sonner-toaster][data-y-position="top"] {
     top: calc(var(--safe-top) + 0.75rem) !important;
+  }
+
+  [data-sonner-toaster][data-y-position="bottom"] {
+    bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 0.75rem) !important;
   }
 }
 
