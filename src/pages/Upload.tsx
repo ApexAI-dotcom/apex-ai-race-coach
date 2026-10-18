@@ -5,7 +5,6 @@ import { CSVUploader } from "@/components/upload/CSVUploader";
 import { PageMeta } from "@/components/seo/PageMeta";
 import {
   FileSpreadsheet,
-  CheckCircle,
   Shield,
   Zap,
   BarChart3,
@@ -64,11 +63,6 @@ const features = [
     icon: Shield,
     title: "Données sécurisées",
     description: "Vos fichiers sont chiffrés et privés",
-  },
-  {
-    icon: CheckCircle,
-    title: "Fiabilité 99%",
-    description: "Détection précise de chaque point de corde",
   },
 ];
 
@@ -136,7 +130,7 @@ export default function Upload() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto"
         >
           {features.map((feature, index) => (
             <div key={feature.title} className="glass-card p-6 text-center">

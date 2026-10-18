@@ -687,7 +687,7 @@ export default function Dashboard() {
                           : (featuredAnalysis.session_type || "practice").toUpperCase()}
                   </p>
 
-                  <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 md:mb-8 max-w-2xl">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-6 md:mb-8 max-w-2xl">
                     <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
                       <div className="text-sm sm:text-xl font-bold text-foreground">
                         {(featuredAnalysis?.lap_time || latestAnalysis?.lap_time || 0).toFixed(2)}s
@@ -702,12 +702,6 @@ export default function Dashboard() {
                       </div>
                       <div className="text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
                         Virages
-                      </div>
-                    </div>
-                    <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
-                      <div className="text-sm sm:text-xl font-bold text-green-500">+1.2s</div>
-                      <div className="text-[10px] text-muted-foreground uppercase mt-1 font-bold tracking-wider">
-                        Gain estimé
                       </div>
                     </div>
                   </div>

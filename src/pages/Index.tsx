@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Zap,
   Target,
-  Timer,
   TrendingUp,
   Star,
   CheckCircle2,
@@ -58,12 +57,6 @@ const marqueeImages = [
   "/showcase/10.webp"
 ];
 
-const stats = [
-  { value: "12,847", label: "Tours analysés", icon: Target },
-  { value: "+1.2s", label: "Gain moyen dès la 1re session", icon: Timer },
-  { value: "99%", label: "Fiabilité des métriques", icon: TrendingUp },
-];
-
 const features = [
   {
     title: "Analyse IA des virages",
@@ -114,7 +107,7 @@ const faqs = [
   {
     question: "Combien de temps je peux gagner avec l'analyse IA ?",
     answer:
-      "Nos utilisateurs constatent un gain moyen de 1,2 seconde dès la première analyse. En optimisant votre pilotage karting avec nos conseils, vous pouvez rapidement descendre sous vos records personnels.",
+      "En optimisant votre pilotage karting avec nos conseils, vous pouvez rapidement descendre sous vos records personnels.",
   },
   {
     question: "Est-ce que c'est adapté aux débutants ?",
@@ -313,30 +306,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 border-t border-border">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="glass-card-hover p-8 text-center group hover:-translate-y-2 hover:shadow-2xl transition-all duration-300"
-              >
-                <stat.icon className="w-8 h-8 text-primary mx-auto mb-4" />
-                <div className="text-4xl font-display font-bold text-foreground mb-2 group-hover:scale-105 transition-transform duration-300">
-                  {stat.value}
-                </div>
-                <div className="text-muted-foreground">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Features Section — analyse + modules produit réunis en un seul bloc */}
       <section className="py-16">
         <div className="container mx-auto px-4">
@@ -515,7 +484,7 @@ export default function Index() {
                 Prêt à améliorer tes temps ?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-                Rejoins les 127 pilotes qui utilisent déjà APEX AI pour dominer les circuits.
+                Rejoins les pilotes qui utilisent déjà APEX AI pour dominer les circuits.
               </p>
               <Link
                 to={isAuthenticated ? "/upload" : "/login?mode=signup"}
