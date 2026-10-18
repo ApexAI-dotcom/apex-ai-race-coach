@@ -60,8 +60,8 @@ export default function Confidentialite() {
             <h2 className="text-xl font-semibold text-foreground mb-4">6. Contact</h2>
             <p className="text-muted-foreground">
               Pour exercer vos droits ou pour toute question sur notre politique de gestion des données, veuillez nous contacter à :{" "}
-              <a href="mailto:contact@apexai.run" className="text-primary hover:underline">
-                contact@apexai.run
+              <a href="mailto:contact@apexai.racing" className="text-primary hover:underline">
+                contact@apexai.racing
               </a>.
             </p>
           </section>

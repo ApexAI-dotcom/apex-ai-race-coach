@@ -26,8 +26,8 @@ export default function Legal() {
               France
               <br />
               Contact :{" "}
-              <a href="mailto:contact@apexai.run" className="text-primary hover:underline">
-                contact@apexai.run
+              <a href="mailto:contact@apexai.racing" className="text-primary hover:underline">
+                contact@apexai.racing
               </a>
             </p>
           </section>
@@ -75,15 +75,15 @@ export default function Legal() {
             <p className="text-muted-foreground">
               Conditions générales de vente (CGV) et conditions générales d'utilisation (CGU)
               disponibles sur demande à{" "}
-              <a href="mailto:contact@apexai.run" className="text-primary hover:underline">
-                contact@apexai.run
+              <a href="mailto:contact@apexai.racing" className="text-primary hover:underline">
+                contact@apexai.racing
               </a>
               .
             </p>
             <p className="text-muted-foreground text-sm mt-2">
               Pour toute demande :{" "}
               <a
-                href="mailto:contact@apexai.run?subject=Demande%20CGV-CGU"
+                href="mailto:contact@apexai.racing?subject=Demande%20CGV-CGU"
                 className="text-primary hover:underline"
               >
                 Demander les CGV/CGU par email
@@ -116,8 +116,8 @@ export default function Legal() {
               suppression et de portabilité de vos données personnelles.
               <br />
               Contact :{" "}
-              <a href="mailto:contact@apexai.run" className="text-primary hover:underline">
-                contact@apexai.run
+              <a href="mailto:contact@apexai.racing" className="text-primary hover:underline">
+                contact@apexai.racing
               </a>
             </p>
           </section>

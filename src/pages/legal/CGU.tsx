@@ -60,8 +60,8 @@ export default function CGU() {
             <h2 className="text-xl font-semibold text-foreground mb-4">6. Contact</h2>
             <p className="text-muted-foreground">
               Pour toute question relative aux présentes conditions, vous pouvez nous écrire à :{" "}
-              <a href="mailto:contact@apexai.run" className="text-primary hover:underline">
-                contact@apexai.run
+              <a href="mailto:contact@apexai.racing" className="text-primary hover:underline">
+                contact@apexai.racing
               </a>.
             </p>
           </section>

@@ -32,7 +32,7 @@ export const LegalFooter = () => (
             ·
           </span>
           <a
-            href="mailto:contact@apexai.run"
+            href="mailto:contact@apexai.racing"
             className="inline-flex items-center min-h-[32px] py-1 hover:text-foreground hover:underline transition-colors"
             rel="noopener noreferrer"
           >

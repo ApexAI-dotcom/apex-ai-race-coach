@@ -71,7 +71,8 @@ const features = [
   },
   {
     title: "Compatible MyChron",
-    description: "Import direct des données MyChron5, AiM, RaceBox et autres.",
+    description:
+      "Import direct des fichiers MyChron 5 et 6, AiM et RaceBox. Alfano et d'autres boîtiers sont en préparation.",
     icon: Zap,
   },
 ];
@@ -82,7 +83,7 @@ const faqs = [
   {
     question: "C'est quoi ApexAI ?",
     answer:
-      "ApexAI est la première plateforme d'analyse karting par intelligence artificielle. Nous transformons vos données de télémétrie en conseils concrets pour améliorer vos temps au tour instantanément.",
+      "ApexAI réunit dans un seul outil l'analyse de votre télémétrie, le suivi de votre kart, vos réglages et votre calendrier : de quoi mener votre saison comme une équipe pro, sans équipe technique. Vos fichiers deviennent des conseils concrets, virage par virage.",
   },
   {
     question: "Comment analyser mes données MyChron ?",
