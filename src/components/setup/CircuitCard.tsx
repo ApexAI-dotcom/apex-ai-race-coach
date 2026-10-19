@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { CircuitPicker } from './CircuitPicker';
 import { TrackSignatureForm } from './TrackSignatureForm';
 import { SetupState } from '@/pages/SetupPage';
-import { api, uploadAndAnalyzeCSV, normalizeCircuit } from '@/lib/api';
+import { api, uploadAndAnalyzeCSV, normalizeCircuit, isTelemetryFile, TELEMETRY_ACCEPT } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -212,10 +212,10 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
   const handleFileUploadAndAnalyze = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
-    if (!selectedFile.name.endsWith(".csv")) {
+    if (!isTelemetryFile(selectedFile.name)) {
       toast({
         title: "Format invalide",
-        description: "Seuls les fichiers de télémétrie .csv sont acceptés.",
+        description: "Seuls les fichiers de télémétrie .csv ou .xrk (AiM) sont acceptés.",
         variant: "destructive"
       });
       return;
@@ -475,17 +475,17 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
 
             <div className="border-t border-border/50 pt-3">
               <label className="block text-xs font-semibold text-muted-foreground mb-2">
-                Ou analyser un nouveau fichier de télémétrie (.csv)
+                Ou analyser un nouveau fichier de télémétrie (.csv ou .xrk)
               </label>
               <div className="relative border border-dashed border-border rounded-xl p-4 hover:border-primary/55 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer group text-center">
                 <input 
                   type="file" 
-                  accept=".csv"
+                  accept={TELEMETRY_ACCEPT}
                   className="absolute inset-0 opacity-0 cursor-pointer" 
                   onChange={handleFileUploadAndAnalyze}
                 />
                 <Upload className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                <span className="text-xs font-bold text-foreground">Importer et analyser un CSV</span>
+                <span className="text-xs font-bold text-foreground">Importer et analyser une session</span>
                 <span className="text-[9px] text-muted-foreground">MyChron5, AiM, RaceBox standard</span>
               </div>
             </div>

@@ -8,7 +8,12 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:80
 const API_TIMEOUT_MS = 30000; // 30 secondes
 export const MAX_FILE_SIZE_MB = 50;
 export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-export const CSV_UPLOAD_HINT_SHORT = `Fichier CSV uniquement (max ${MAX_FILE_SIZE_MB} Mo). Compatible avec les exports MyChron 5 et 6 via Race Studio. Si le fichier est trop lourd, réduisez les canaux ou appliquez une décimation (ex. 1:10) dans Race Studio.`;
+export const CSV_UPLOAD_HINT_SHORT = `Fichier CSV ou .xrk AiM (max ${MAX_FILE_SIZE_MB} Mo). Compatible avec les enregistreurs AiM / MyChron : dépose directement le fichier .xrk de Race Studio, ou un export CSV. Si le fichier est trop lourd, réduisez les canaux ou appliquez une décimation (ex. 1:10) dans Race Studio.`;
+
+/** Formats de télémétrie acceptés : CSV (export Race Studio) et fichiers AiM natifs. */
+export const TELEMETRY_ACCEPT = ".csv,.xrk,.xrz";
+export const TELEMETRY_FORMAT_ERROR = "Format invalide — formats acceptés : .csv ou .xrk (AiM Race Studio).";
+export const isTelemetryFile = (name: string): boolean => /\.(csv|xrk|xrz)$/i.test(name);
 
 // ============================================================================
 // TYPES
@@ -396,14 +401,14 @@ function createTimeoutController(timeoutMs: number): AbortController {
 }
 
 /**
- * Valide un fichier CSV avant upload
+ * Valide un fichier de télémétrie (CSV ou .xrk) avant upload
  */
 function validateCSVFile(file: File): { valid: boolean; error?: string } {
   // Vérifier extension
-  if (!file.name.toLowerCase().endsWith(".csv")) {
+  if (!isTelemetryFile(file.name)) {
     return {
       valid: false,
-      error: "Le fichier doit être un CSV (.csv)",
+      error: "Le fichier doit être un CSV (.csv) ou un fichier AiM (.xrk)",
     };
   }
 
@@ -419,7 +424,7 @@ function validateCSVFile(file: File): { valid: boolean; error?: string } {
   if (file.size < 1000) {
     return {
       valid: false,
-      error: "Fichier trop petit (<1KB). Vérifiez que c'est un CSV valide.",
+      error: "Fichier trop petit (<1KB). Vérifiez que c'est un fichier de télémétrie valide.",
     };
   }
 

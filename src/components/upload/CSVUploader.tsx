@@ -61,6 +61,9 @@ import {
   API_BASE_URL,
   getDisplayScore,
   CSV_UPLOAD_HINT_SHORT,
+  TELEMETRY_ACCEPT,
+  TELEMETRY_FORMAT_ERROR,
+  isTelemetryFile,
   type AnalysisResult,
   type ApiError,
   type LapInfo,
@@ -258,21 +261,21 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile?.name.endsWith(".csv")) {
+    if (droppedFile && isTelemetryFile(droppedFile.name)) {
       setFile(droppedFile);
       setError(null);
     } else if (droppedFile) {
-      setError("Format invalide — seuls les fichiers .csv sont acceptés.");
+      setError(TELEMETRY_FORMAT_ERROR);
     }
   }, []);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile?.name.endsWith(".csv")) {
+    if (selectedFile && isTelemetryFile(selectedFile.name)) {
       setFile(selectedFile);
       setError(null);
     } else if (selectedFile) {
-      setError("Format invalide — seuls les fichiers .csv sont acceptés.");
+      setError(TELEMETRY_FORMAT_ERROR);
     }
     // Reset l'input pour permettre de re-sélectionner le même fichier
     e.target.value = "";
@@ -992,7 +995,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
             >
               <input
                 type="file"
-                accept=".csv"
+                accept={TELEMETRY_ACCEPT}
                 onChange={handleFileSelect}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />

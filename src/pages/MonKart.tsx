@@ -21,6 +21,7 @@ import api, {
   addKartHistoryEntry,
   deleteKartHistoryEntry,
   deleteKartSessionDay,
+  TELEMETRY_ACCEPT,
 } from "@/lib/api";
 import { AlertBanner } from "@/components/kart/AlertBanner";
 import { KartSchematic } from "@/components/kart/KartSchematic";
@@ -570,7 +571,7 @@ export default function MonKart() {
                 <Input
                   type="file"
                   multiple
-                  accept=".csv"
+                  accept={TELEMETRY_ACCEPT}
                   onChange={(e) => setFiles(e.target.files)}
                   disabled={importing}
                   className="bg-background border-border"
