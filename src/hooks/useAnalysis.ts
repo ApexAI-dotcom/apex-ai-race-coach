@@ -2,6 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { getAnalysisById } from "@/lib/storage";
 import type { AnalysisResponse } from "@/types/analysis";
 import type { AnalysisResult } from "@/lib/api";
+import { toDriverVocabulary } from "@/lib/vocabulary";
+
+function withDriverVocabulary(pd: AnalysisResponse["plot_data"]): AnalysisResponse["plot_data"] {
+  const axes = pd?.performance_radar?.axes;
+  if (!pd || !Array.isArray(axes)) return pd;
+  return { ...pd, performance_radar: { ...pd.performance_radar, axes: axes.map(toDriverVocabulary) } };
+}
+
 
 /**
  * Passage unique du résultat brut (serveur ou base) à ce que affiche la vue
@@ -30,9 +38,15 @@ export function mapApiResultToResponse(r: AnalysisResult): AnalysisResponse {
       percentile: ps?.percentile ?? 0,
     },
     corner_analysis: r.corner_analysis ?? [],
-    coaching_advice: r.coaching_advice ?? [],
+    // Les analyses enregistrées avant le passage à « point de corde » portent
+    // encore l'ancien mot : on le corrige à l'affichage.
+    coaching_advice: (r.coaching_advice ?? []).map((a) => ({
+      ...a,
+      message: toDriverVocabulary(a.message),
+      explanation: toDriverVocabulary(a.explanation),
+    })),
     plots: r.plots ?? {},
-    plot_data: r.plot_data as AnalysisResponse["plot_data"],
+    plot_data: withDriverVocabulary(r.plot_data as AnalysisResponse["plot_data"]),
     statistics: r.statistics ?? {},
     session_conditions: (r.session_conditions ?? undefined) as AnalysisResponse["session_conditions"],
     ideal_lap: (r.ideal_lap ?? undefined) as AnalysisResponse["ideal_lap"],

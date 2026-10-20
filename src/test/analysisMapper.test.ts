@@ -43,6 +43,17 @@ describe("mapApiResultToResponse", () => {
     expect(out.session_conditions?.session_name).toBe("Test");
   });
 
+  it("corrige à l'affichage l'ancien vocabulaire des analyses enregistrées", () => {
+    const out = mapApiResultToResponse({
+      ...raw,
+      coaching_advice: [
+        { priority: 1, category: "apex", message: "V3 — Apex décalé de 2m", explanation: "Regarde l'apex.", impact_seconds: 0.1, difficulty: "moyen" },
+      ],
+    } as unknown as AnalysisResult);
+    expect(out.coaching_advice[0].message).toBe("V3 — Point de corde décalé de 2m");
+    expect(out.coaching_advice[0].explanation).toBe("Regarde le point de corde.");
+  });
+
   it("comble les trous sans planter", () => {
     const out = mapApiResultToResponse({
       ...raw,

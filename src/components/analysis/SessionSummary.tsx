@@ -130,7 +130,7 @@ export function SessionSummary({ result }: { result: AnalysisResult }) {
                   if (result.statistics.max_speed != null && result.statistics.max_speed > 0)
                     return `${result.statistics.max_speed.toFixed(1)} km/h`;
                   // Frontend fallback: compute from speed_trace plot data
-                  const laps = (result as any).plot_data?.speed_trace?.laps;
+                  const laps: { speed_kmh?: number[] }[] | undefined = result.plot_data?.speed_trace?.laps;
                   if (laps && Array.isArray(laps)) {
                     let maxV = 0;
                     for (const lap of laps) {
