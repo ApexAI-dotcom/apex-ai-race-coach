@@ -48,7 +48,7 @@ export const ApexGraph = () => {
           </div>
           <div className="flex items-center gap-2">
             <Star className="w-4 h-4 text-primary fill-primary" />
-            <span className="text-muted-foreground">Apex optimal</span>
+            <span className="text-muted-foreground">Point de corde optimal</span>
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@ export const ApexGraph = () => {
                   {point.speed} km/h · R{point.radius}m
                 </div>
                 <div className={point.optimal ? "text-success" : "text-warning"}>
-                  {point.optimal ? "Apex optimal" : "À améliorer"}
+                  {point.optimal ? "Point de corde optimal" : "À améliorer"}
                 </div>
               </div>
             </div>
@@ -152,7 +152,7 @@ export const ApexGraph = () => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-4">
         {[
           { label: "Virages", value: "12" },
-          { label: "Apex parfaits", value: "8/12" },
+          { label: "Points de corde parfaits", value: "8/12" },
           { label: "Vitesse moy.", value: "72 km/h" },
           { label: "Temps perdu", value: "-2.3s" },
         ].map((stat) => (

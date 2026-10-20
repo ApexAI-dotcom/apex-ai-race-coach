@@ -88,7 +88,7 @@ const faqs = [
   {
     question: "Comment analyser mes données MyChron ?",
     answer:
-      "C'est très simple : exportez votre fichier au format CSV depuis votre logiciel MyChron, importez-le sur ApexAI, et notre IA scanne chaque virage pour détecter vos erreurs de trajectoire et de freinage.",
+      "C'est très simple : importez sur ApexAI le fichier de votre session (le .xrk de Race Studio), et notre IA scanne chaque virage pour détecter vos erreurs de trajectoire et de freinage.",
   },
   {
     question: "Comment améliorer mes temps en karting ?",
@@ -98,12 +98,12 @@ const faqs = [
   {
     question: "ApexAI fonctionne avec quels boîtiers de télémétrie ?",
     answer:
-      "Compatible avec AiM MyChron 5 et MyChron 6 (export CSV via Race Studio). D'autres formats à venir",
+      "Compatible avec AiM MyChron 5 et MyChron 6 : déposez directement le fichier .xrk de Race Studio. D'autres enregistreurs à venir",
   },
   {
-    question: "Comment lire un fichier CSV de données karting ?",
+    question: "Comment lire les données d'une session de karting ?",
     answer:
-      "Pas besoin d'être un ingénieur ! ApexAI lit vos fichiers CSV bruts et les traduit en graphiques simples : tracé de piste, zones de freinage et courbes de vitesse, avec un score de performance clair.",
+      "Pas besoin d'être un ingénieur ! ApexAI lit directement les fichiers de votre enregistreur et les traduit en graphiques simples : tracé de piste, zones de freinage et courbes de vitesse, avec un score de performance clair.",
   },
   {
     question: "Combien de temps je peux gagner avec l'analyse IA ?",
@@ -351,7 +351,7 @@ export default function Index() {
               {[
                 { t: "Mon Kart", d: "Suivi d'usure automatique du moteur, des pneus et des freins depuis la télémétrie, garage virtuel et journal d'entretien." },
                 { t: "Carnet d'Ingénieur", d: "Consigne tes réglages châssis et moteur, associés aux conditions de piste, avec les recommandations d'ApexAI." },
-                { t: "Analyse Télémétrie", d: "Importe tes données MyChron, AiM et autres CSV et obtiens la vue détaillée de tes trajectoires réelles." },
+                { t: "Analyse Télémétrie", d: "Importe tes données MyChron, AiM et autres enregistreurs et obtiens la vue détaillée de tes trajectoires réelles." },
                 { t: "Stock de Pneus", d: "Déclare et tracke l'usure de tes trains (neufs, rodés, pluie) pour la recommandation du bon train à chaque session." },
               ].map((m) => (
                 <div key={m.t} className="p-5 rounded-xl bg-card/50 border border-border hover:border-primary/30 transition-colors">

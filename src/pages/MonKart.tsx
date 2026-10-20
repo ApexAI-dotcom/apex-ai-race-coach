@@ -224,7 +224,7 @@ export default function MonKart() {
                     <div>
                       <h4 className="font-bold text-sm text-foreground">Suivi Moteur & Freins</h4>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Calcul automatique des heures de fonctionnement et des taux d'usure calculés à chaque fichier CSV uploadé.
+                        Calcul automatique des heures de fonctionnement et des taux d'usure calculés à chaque session analysée.
                       </p>
                     </div>
                   </div>

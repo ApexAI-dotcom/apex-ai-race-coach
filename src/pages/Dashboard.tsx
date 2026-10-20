@@ -88,6 +88,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { mapApiResultToResponse } from "@/hooks/useAnalysis";
 import { SessionComparison } from "@/components/analysis/SessionComparison";
 import { AnalysisDashboardContent } from "@/components/analysis/AnalysisDashboardContent";
+import { SessionSummary } from "@/components/analysis/SessionSummary";
 import { TrackMap } from "@/components/analysis/TrackMap";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Helmet } from "react-helmet-async";
@@ -572,7 +573,7 @@ export default function Dashboard() {
             <h2 className="text-3xl font-display font-bold text-foreground mb-4">
               Aucune analyse sauvegardée
             </h2>
-            <p className="text-muted-foreground mb-8">Téléversez un fichier CSV pour commencer.</p>
+            <p className="text-muted-foreground mb-8">Envoyez le fichier de votre première session pour commencer.</p>
             <Button variant="hero" size="lg" onClick={() => navigate("/upload")}>
               Analyser une session
             </Button>
@@ -1266,7 +1267,9 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="p-4 md:p-8 pb-32 max-w-7xl mx-auto w-full">
+                <div className="p-4 md:p-8 pb-32 max-w-7xl mx-auto w-full space-y-6">
+                  {/* Même résumé et même vue que juste après l'analyse. */}
+                  <SessionSummary result={selectedAnalysis} />
                   <AnalysisDashboardContent analysis={mapApiResultToResponse(selectedAnalysis)} />
                 </div>
               </div>

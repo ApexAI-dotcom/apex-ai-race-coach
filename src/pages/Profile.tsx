@@ -37,9 +37,9 @@ import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
 import { ADMIN_EMAIL } from "@/constants";
 
 const achievements = [
-  { icon: Trophy, title: "Pro Apex", description: "10 analyses complétées" },
+  { icon: Trophy, title: "Pro de la corde", description: "10 analyses complétées" },
   { icon: Zap, title: "Démon de la vitesse", description: "Score > 80 atteint" },
-  { icon: Target, title: "Précision", description: "5 apex parfaits consécutifs" },
+  { icon: Target, title: "Précision", description: "5 points de corde parfaits consécutifs" },
 ];
 
 export default function Profile() {

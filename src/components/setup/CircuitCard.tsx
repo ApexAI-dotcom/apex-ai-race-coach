@@ -215,7 +215,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
     if (!isTelemetryFile(selectedFile.name)) {
       toast({
         title: "Format invalide",
-        description: "Seuls les fichiers de télémétrie .csv ou .xrk (AiM) sont acceptés.",
+        description: "Envoyez le fichier de session de votre enregistreur (le .xrk d'AiM Race Studio).",
         variant: "destructive"
       });
       return;
@@ -437,7 +437,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
               Charger depuis la Télémétrie
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Sélectionnez une session existante ou importez directement un fichier CSV pour en extraire les caractéristiques de la piste.
+              Sélectionnez une session existante ou importez directement un fichier de session pour en extraire les caractéristiques de la piste.
             </DialogDescription>
           </DialogHeader>
 
@@ -475,7 +475,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
 
             <div className="border-t border-border/50 pt-3">
               <label className="block text-xs font-semibold text-muted-foreground mb-2">
-                Ou analyser un nouveau fichier de télémétrie (.csv ou .xrk)
+                Ou analyser un nouveau fichier de session (.xrk)
               </label>
               <div className="relative border border-dashed border-border rounded-xl p-4 hover:border-primary/55 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer group text-center">
                 <input 

@@ -92,10 +92,10 @@ export function TrackMapCornerPanel({ corner, onClose }: TrackMapCornerPanelProp
         {corner.entry_speed > 0 && (
           <Row label="Vitesse entrée" value={corner.entry_speed.toFixed(1)} unit=" km/h" />
         )}
-        <Row label="Vitesse apex" value={corner.apex_speed_real.toFixed(1)} unit=" km/h" />
+        <Row label="Vitesse au point de corde" value={corner.apex_speed_real.toFixed(1)} unit=" km/h" />
         {corner.apex_speed_optimal > 0 && (
           <Row
-            label="Apex optimal"
+            label="Point de corde optimal"
             value={corner.apex_speed_optimal.toFixed(1)}
             unit=" km/h"
             color="text-yellow-500"

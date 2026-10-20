@@ -522,7 +522,7 @@ export const KartSetupWizard = ({ token, onComplete, initialProfile }: KartSetup
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Cela permet à ApexAI de mieux interpréter vos exports CSV.
+                  Cela permet à ApexAI de mieux interpréter les données de vos sessions.
                 </p>
               </div>
             </div>

@@ -72,7 +72,7 @@ export default function Success() {
             <ul className="text-left text-muted-foreground space-y-2 max-w-md mx-auto">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Analyses illimitées de fichiers CSV MyChron</span>
+                <span>Analyses illimitées de vos sessions MyChron</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />

@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { SpeedTraceChart } from "./SpeedTraceChart";
 import { PerformanceRadar } from "./PerformanceRadar";
-import { ApexMarginChart } from "./ApexMarginChart";
 import { ThrottleBrakeChart } from "./ThrottleBrakeChart";
 import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
@@ -114,7 +113,7 @@ export function AnalysisDashboardContent({
   }, [analysis.corner_analysis]);
 
   // Un virage peut avoir un freinage impeccable ET perdre du temps : la perte
-  // vient alors de la vitesse de passage ou du placement d'apex. Sans le dire,
+  // vient alors de la vitesse de passage ou du placement du point de corde. Sans le dire,
   // « Freinage à ton meilleur » posé à côté de « +0,27 s » se lit comme une
   // contradiction. On nomme donc la cause dominante, mesurée.
   const cornerHints = useMemo(() => {
@@ -428,29 +427,10 @@ export function AnalysisDashboardContent({
               );
             })()}
 
-          {/* APEX MARGIN */}
-          {plotData.apex_margin?.corners?.length > 0 &&
-            (() => {
-              const isLocked = !isChartVisible("apex_margin", circuitName);
-              const currentHideCta = isLocked ? ctaShown : false;
-              if (isLocked) ctaShown = true;
-              return (
-                <section className={sectionClass} data-pdf-chart="apex_margin" data-pdf-title="Points de Corde (Apex)">
-                  <h2 className={titleClass}>Points de Corde (Apex)</h2>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Écart de vitesse entre votre passage et l'idéal théorique au point de corde de
-                    chaque virage. Un écart positif signifie que vous portez trop de vitesse
-                    (souvent au détriment de la réaccélération), un écart négatif que vous pouvez
-                    passer plus fort.
-                  </p>
-                  <ApexMarginChart
-                    data={plotData.apex_margin.corners}
-                    circuitName={circuitName}
-                    hideCta={currentHideCta}
-                  />
-                </section>
-              );
-            })()}
+          {/* Le graphique « écart au point de corde » a été retiré à dessein : le
+              détail virage par virage ci-dessous dit la même chose, en plus
+              lisible. Retiré ICI, donc partout (analyse fraîche, tableau de
+              bord, page de résultat) — c'est le même composant. */}
 
           {/* THROTTLE & BRAKE */}
           {hasThrottleBrake &&

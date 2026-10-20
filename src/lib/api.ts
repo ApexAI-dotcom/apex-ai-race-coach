@@ -8,11 +8,11 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:80
 const API_TIMEOUT_MS = 30000; // 30 secondes
 export const MAX_FILE_SIZE_MB = 50;
 export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-export const CSV_UPLOAD_HINT_SHORT = `Fichier CSV ou .xrk AiM (max ${MAX_FILE_SIZE_MB} Mo). Compatible avec les enregistreurs AiM / MyChron : dépose directement le fichier .xrk de Race Studio, ou un export CSV. Si le fichier est trop lourd, réduisez les canaux ou appliquez une décimation (ex. 1:10) dans Race Studio.`;
+export const CSV_UPLOAD_HINT_SHORT = `Fichier de session AiM, le .xrk de Race Studio (max ${MAX_FILE_SIZE_MB} Mo). Compatible avec les enregistreurs AiM / MyChron ; les exports de données d'autres appareils sont aussi acceptés. Si le fichier est trop lourd, réduisez les canaux ou appliquez une décimation (ex. 1:10) dans Race Studio.`;
 
 /** Formats de télémétrie acceptés : CSV (export Race Studio) et fichiers AiM natifs. */
 export const TELEMETRY_ACCEPT = ".csv,.xrk,.xrz";
-export const TELEMETRY_FORMAT_ERROR = "Format invalide — formats acceptés : .csv ou .xrk (AiM Race Studio).";
+export const TELEMETRY_FORMAT_ERROR = "Format non reconnu — envoyez le fichier de session de votre enregistreur (le .xrk d'AiM Race Studio).";
 export const isTelemetryFile = (name: string): boolean => /\.(csv|xrk|xrz)$/i.test(name);
 
 // ============================================================================
@@ -408,7 +408,7 @@ function validateCSVFile(file: File): { valid: boolean; error?: string } {
   if (!isTelemetryFile(file.name)) {
     return {
       valid: false,
-      error: "Le fichier doit être un CSV (.csv) ou un fichier AiM (.xrk)",
+      error: "Le fichier doit être un fichier de session de votre enregistreur (le .xrk d'AiM Race Studio)",
     };
   }
 
@@ -609,7 +609,7 @@ export async function uploadAndAnalyzeCSV(
       throw {
         success: false,
         error: "analysis_failed",
-        message: "L'analyse a échoué. Vérifiez que le fichier CSV est valide.",
+        message: "L'analyse a échoué. Vérifiez que le fichier est valide.",
       } as ApiError;
     }
 
@@ -621,7 +621,7 @@ export async function uploadAndAnalyzeCSV(
     }
 
     // Sinon, gérer comme erreur fetch
-    throw handleFetchError(error, "l'upload et l'analyse du CSV");
+    throw handleFetchError(error, "l'envoi et l'analyse du fichier");
   }
 }
 
@@ -927,7 +927,7 @@ export async function fetchHomeTips(): Promise<HomeTipsResponse> {
           badge: "Populaire",
           badge_color: "purple",
           title: "Le regard en sortie",
-          body: "Regarde toujours la sortie du virage, pas l'apex. Ta trajectoire suivra ton regard.",
+          body: "Regarde toujours la sortie du virage, pas le point de corde. Ta trajectoire suivra ton regard.",
         },
       ],
     };

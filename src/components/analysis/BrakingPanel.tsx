@@ -105,7 +105,7 @@ function CornerRow({
             {label}
           </span>
           <span className="block text-[11px] text-muted-foreground truncate">
-            Déclenchement à {Math.round(c.braking_point_distance)} m de l'apex ·{" "}
+            Déclenchement à {Math.round(c.braking_point_distance)} m du point de corde ·{" "}
             {c.braking_peak_g.toFixed(2)} g · {c.braking_entry_speed.toFixed(0)} →{" "}
             {c.braking_min_speed.toFixed(0)} km/h
           </span>
@@ -148,7 +148,7 @@ function CornerRow({
               label="Point"
               value={c.braking_point_distance.toFixed(0)}
               unit="m"
-              hint="distance entre ton premier appui sur le frein et l'apex du virage. C'est le repère à compter en piste depuis un panneau ou une bordure."
+              hint="distance entre ton premier appui sur le frein et le point de corde du virage. C'est le repère à compter en piste depuis un panneau ou une bordure."
             />
             <Metric
               label="Ton meilleur"

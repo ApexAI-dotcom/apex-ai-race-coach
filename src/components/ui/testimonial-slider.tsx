@@ -40,7 +40,7 @@ const testimonials: Testimonial[] = [
   {
     id: 5,
     quote:
-      "Incroyable. J'ai importé mon CSV, et j'ai instantanément compris pourquoi je perdais du temps dans le double gauche.",
+      "Incroyable. J'ai importé ma session, et j'ai instantanément compris pourquoi je perdais du temps dans le double gauche.",
     name: "Thomas B.",
     username: "@thomas_b_kart",
   },

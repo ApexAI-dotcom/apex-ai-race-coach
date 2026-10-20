@@ -361,7 +361,7 @@ function TrackMapCanvasComponent({
         {/* Les anciens points de freinage (pastilles rouges/dorées sans
             étiquette ni légende) ont été retirés : ils doublonnaient avec les
             repères de freinage mesurés côté backend, qui indiquent en plus le
-            virage concerné et la distance jusqu'à l'apex. Deux systèmes de
+            virage concerné et la distance jusqu'au point de corde. Deux systèmes de
             marqueurs superposés rendaient la carte illisible. */}
 
         {/* Direction arrows */}

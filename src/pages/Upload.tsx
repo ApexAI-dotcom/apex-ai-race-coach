@@ -21,7 +21,7 @@ const supportedFormats = [
   { name: "MyChron5", icon: BarChart3 },
   { name: "AiM", icon: TrendingUp },
   { name: "RaceBox", icon: Car },
-  { name: "CSV standard", icon: FolderOpen },
+  { name: "Autres enregistreurs", icon: FolderOpen },
 ];
 
 // Livrables réels du moteur d'analyse : chacun correspond à une section du
@@ -73,9 +73,9 @@ export default function Upload() {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <PageMeta
-        title="Upload CSV MyChron5 → Analyse IA Immédiate | ApexAI"
-        description="Upload MyChron5, AiM RaceBox → IA analyse apices, freinage. Score + coaching 30s."
-        ogTitle="Analyse CSV MyChron5 → IA ApexAI"
+        title="Analyse IA immédiate de votre session MyChron5 | ApexAI"
+        description="Déposez votre session MyChron5 ou AiM RaceBox : l'IA analyse vos points de corde et vos freinages. Score + coaching en 30 s."
+        ogTitle="Analyse de session MyChron5 par l'IA ApexAI"
         path="/upload"
       />
       <div className="container mx-auto px-4 py-8">
@@ -89,7 +89,7 @@ export default function Upload() {
             Analysez votre <span className="text-gradient-primary">session</span>
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Importez votre fichier CSV depuis votre data logger et obtenez une analyse complète en
+            Importez le fichier de votre session depuis votre data logger et obtenez une analyse complète en
             quelques secondes.
           </p>
         </motion.div>

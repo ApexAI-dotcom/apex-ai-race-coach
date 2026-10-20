@@ -111,7 +111,7 @@ export function TrackMapLegend({
           <LegendItem
             swatch={<span className="block w-0.5 h-3.5 rounded-full bg-emerald-500" />}
             label="Repère « V7 · 39m · 0.87g »"
-            hint="la barre marque le début de ta zone de freinage — c'est exactement le premier point de la bande. L'étiquette donne le virage, la distance jusqu'à l'apex (à compter en piste depuis un panneau ou une bordure) et la décélération de crête"
+            hint="la barre marque le début de ta zone de freinage — c'est exactement le premier point de la bande. L'étiquette donne le virage, la distance jusqu'au point de corde (à compter en piste depuis un panneau ou une bordure) et la décélération de crête"
           />
           <LegendItem
             swatch={<span className="block w-2.5 h-2.5 rounded-full bg-emerald-500" />}
