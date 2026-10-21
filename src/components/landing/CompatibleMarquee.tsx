@@ -57,8 +57,8 @@ export default function CompatibleMarquee() {
         ))}
       </Marquee>
       <p className="mx-auto mt-5 max-w-xl px-4 text-center text-[11px] leading-relaxed text-muted-foreground/70">
-        Import direct du fichier .xrk de Race Studio 3. D'autres enregistreurs sont en préparation. Marques citées à
-        titre indicatif pour la compatibilité, propriétés de leurs détenteurs respectifs.
+        Import direct du fichier .xrk de Race Studio 3. D'autres enregistreurs sont en préparation. MyChron et Race
+        Studio sont des marques d'AiM. ApexAI n'est pas affilié à AiM.
       </p>
     </section>
   );

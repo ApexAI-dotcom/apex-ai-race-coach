@@ -77,7 +77,7 @@ const faqs = [
   {
     question: "ApexAI fonctionne avec quels boîtiers de télémétrie ?",
     answer:
-      "Il est compatible avec AiM MyChron 5 et MyChron 6 : dépose directement le fichier .xrk de Race Studio. D'autres enregistreurs sont en préparation.",
+      "Il est compatible avec AiM MyChron 5 et MyChron 6 : dépose directement le fichier .xrk de Race Studio. D'autres enregistreurs sont en préparation. MyChron et Race Studio sont des marques d'AiM. ApexAI n'est pas affilié à AiM.",
   },
   {
     question: "Comment lire les données d'une session de karting ?",
