@@ -73,6 +73,21 @@ export const Navbar = () => {
     return true;
   });
 
+  /*
+   * État « condensé » : au défilement, la barre devient une pastille flottante
+   * plus étroite ET plus basse. Son contenu doit suivre le même mouvement.
+   *
+   * Avant, l'effet se voyait parce que le contenu, à l'étroit, se réorganisait
+   * de lui-même. Maintenant qu'il a de la place, un cadre qui se resserre
+   * autour d'éléments figés donne une animation morte. On réduit donc aussi le
+   * logo, le nom et les liens — ce qui, au passage, libère encore de la marge
+   * dans la pastille.
+   *
+   * Uniquement à partir de md : sur téléphone la barre garde sa taille, un
+   * en-tête qui se réorganise sous le pouce fait « sauter » la lecture.
+   */
+  const dense = scrolled && !isOpen;
+
   const handleSignOut = async () => {
     const { error } = await signOut();
     if (!error) {
@@ -108,10 +123,31 @@ export const Navbar = () => {
             replace
             className="flex items-center gap-2 shrink-0 group transition-opacity hover:opacity-90 cursor-pointer no-underline"
           >
-            <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 group-hover:shadow-primary/50 transition-transform duration-200 cursor-pointer">
-              <Zap className="w-5 h-5 text-primary-foreground" />
+            <div
+              className={cn(
+                "rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30",
+                "group-hover:scale-110 group-hover:shadow-primary/50 cursor-pointer",
+                "transition-[width,height,transform,box-shadow] duration-500 ease-ios",
+                "w-10 h-10",
+                dense && "md:w-8 md:h-8"
+              )}
+            >
+              <Zap
+                className={cn(
+                  "text-primary-foreground transition-[width,height] duration-500 ease-ios",
+                  "w-5 h-5",
+                  dense && "md:w-4 md:h-4"
+                )}
+              />
             </div>
-            <span className="font-display font-bold text-xl text-foreground group-hover:text-primary/90 transition-colors">
+            <span
+              className={cn(
+                "font-display font-bold text-foreground group-hover:text-primary/90",
+                "transition-[font-size,color] duration-500 ease-ios",
+                "text-xl",
+                dense && "md:text-lg"
+              )}
+            >
               APEX<span className="text-primary">AI</span>
             </span>
           </Link>
@@ -120,16 +156,26 @@ export const Navbar = () => {
           {/* Barre complète à partir de lg seulement : un compte admin demande
               ~1 085 px (logo, six liens, badges, nom). L'afficher dès 768 px
               forçait les libellés à passer sur deux lignes. */}
-          <div className="hidden lg:flex items-center gap-4 xl:gap-6 min-w-0">
+          <div
+            className={cn(
+              "hidden lg:flex items-center min-w-0",
+              "transition-[gap] duration-500 ease-ios",
+              dense ? "gap-3 xl:gap-5" : "gap-4 xl:gap-6"
+            )}
+          >
             {filteredNavItems.map((item) => (
               <Link
                 key={item.path + item.name}
                 to={item.path}
                 onMouseEnter={() => prefetchRoute(item.path)}
                 onPointerDown={() => prefetchRoute(item.path)}
-                className={`text-sm font-medium whitespace-nowrap transition-all ${
+                className={`font-medium whitespace-nowrap transition-all duration-500 ease-ios ${
+                  dense ? "text-[13px]" : "text-sm"
+                } ${
                   (item as any).isHero
-                    ? "gradient-primary text-primary-foreground px-4 py-1.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100 animate-pulse-neon animate-shimmer active-shimmer"
+                    ? `gradient-primary text-primary-foreground rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100 animate-pulse-neon animate-shimmer active-shimmer ${
+                        dense ? "px-3 py-1" : "px-4 py-1.5"
+                      }`
                     : location.pathname === item.path
                       ? "text-primary"
                       : "text-muted-foreground hover:text-primary hover:underline underline-offset-4"
@@ -141,7 +187,13 @@ export const Navbar = () => {
           </div>
 
           {/* Desktop CTA */}
-          <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
+          <div
+            className={cn(
+              "hidden lg:flex items-center shrink-0",
+              "transition-[gap] duration-500 ease-ios",
+              dense ? "gap-1.5 xl:gap-2" : "gap-2 xl:gap-3"
+            )}
+          >
             {loading ? (
               <div className="w-8 h-8 animate-pulse bg-secondary rounded" />
             ) : isAuthenticated ? (
@@ -152,7 +204,12 @@ export const Navbar = () => {
                     /* Pastille compacte : sur un compte admin, le libellé
                        complet volait la place aux liens de navigation. Le texte
                        réapparaît sur les grands écrans. */
-                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-red-600 text-white border border-red-500 shadow-sm hover:bg-red-500 transition-colors shrink-0"
+                    className={cn(
+                      "inline-flex items-center gap-1.5 py-1 rounded-full text-xs font-medium",
+                      "bg-red-600 text-white border border-red-500 shadow-sm hover:bg-red-500 shrink-0",
+                      "transition-[background-color,padding] duration-500 ease-ios",
+                      dense ? "px-1.5" : "px-2"
+                    )}
                     title="Ouvrir le back-office"
                     aria-label="Ouvrir le back-office"
                   >
@@ -167,7 +224,12 @@ export const Navbar = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-2 select-none focus-visible:ring-0">
                       {(user?.user_metadata?.avatar_url as string) ? (
-                        <Avatar className="w-6 h-6 rounded-lg">
+                        <Avatar
+                          className={cn(
+                            "rounded-lg transition-[width,height] duration-500 ease-ios",
+                            dense ? "w-5 h-5" : "w-6 h-6"
+                          )}
+                        >
                           <AvatarImage
                             src={user.user_metadata.avatar_url as string}
                             alt=""
@@ -183,7 +245,13 @@ export const Navbar = () => {
                       ) : (
                         <User className="w-4 h-4" />
                       )}
-                      <span className="hidden xl:inline max-w-[12ch] truncate">
+                      <span
+                        className={cn(
+                          "hidden xl:inline max-w-[12ch] truncate",
+                          "transition-[font-size] duration-500 ease-ios",
+                          dense ? "text-[13px]" : "text-sm"
+                        )}
+                      >
                         {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
                       </span>
                     </Button>
