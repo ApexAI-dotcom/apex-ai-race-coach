@@ -28,7 +28,18 @@ const TIER_CONFIG: Record<
   },
 };
 
-export function SubscriptionBadge() {
+interface SubscriptionBadgeProps {
+  /**
+   * Masque le libellé sous xl, ne laissant que l'icône.
+   *
+   * Dans la barre de navigation, « Team » ou « Racer » écrit en toutes lettres
+   * coûte une cinquantaine de pixels que les liens réclament en priorité : le
+   * plan se devine à l'icône et à la couleur, pas un nom de page.
+   */
+  compact?: boolean;
+}
+
+export function SubscriptionBadge({ compact = false }: SubscriptionBadgeProps = {}) {
   const { tier, isLoading } = useSubscription();
   const config = TIER_CONFIG[tier];
   const Icon = config.Icon;
@@ -48,11 +59,11 @@ export function SubscriptionBadge() {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${config.className}`}
+      className={`inline-flex items-center gap-1.5 ${compact ? "px-2 xl:px-2.5" : "px-2.5"} py-1 rounded-full text-xs font-medium border transition-colors shrink-0 ${config.className}`}
       title={`Plan ${config.label}`}
     >
-      <Icon className="w-3.5 h-3.5" aria-hidden />
-      <span>{config.label}</span>
+      <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden />
+      <span className={compact ? "hidden xl:inline" : undefined}>{config.label}</span>
     </span>
   );
 }

@@ -88,7 +88,7 @@ export const Navbar = () => {
         "transition-[background-color,border-color,box-shadow,top,max-width,border-radius] duration-500 ease-ios",
         "pt-[var(--safe-top)] pl-[var(--safe-left)] pr-[var(--safe-right)]",
         scrolled && !isOpen
-          ? "bg-background/70 backdrop-blur-xl border-border/80 shadow-lg shadow-primary/5 md:top-4 md:max-w-5xl md:rounded-2xl"
+          ? "bg-background/70 backdrop-blur-xl border-border/80 shadow-lg shadow-primary/5 md:top-4 md:max-w-5xl lg:max-w-6xl md:rounded-2xl"
           : "bg-background/75 backdrop-blur-md border-border/40 md:top-0 md:max-w-full md:rounded-none",
         isOpen ? "bg-background/95 border-border" : ""
       )}
@@ -106,7 +106,7 @@ export const Navbar = () => {
           <Link
             to="/"
             replace
-            className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer no-underline"
+            className="flex items-center gap-2 shrink-0 group transition-opacity hover:opacity-90 cursor-pointer no-underline"
           >
             <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 group-hover:shadow-primary/50 transition-transform duration-200 cursor-pointer">
               <Zap className="w-5 h-5 text-primary-foreground" />
@@ -117,14 +117,17 @@ export const Navbar = () => {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Barre complète à partir de lg seulement : un compte admin demande
+              ~1 085 px (logo, six liens, badges, nom). L'afficher dès 768 px
+              forçait les libellés à passer sur deux lignes. */}
+          <div className="hidden lg:flex items-center gap-4 xl:gap-6 min-w-0">
             {filteredNavItems.map((item) => (
               <Link
                 key={item.path + item.name}
                 to={item.path}
                 onMouseEnter={() => prefetchRoute(item.path)}
                 onPointerDown={() => prefetchRoute(item.path)}
-                className={`text-sm font-medium transition-all ${
+                className={`text-sm font-medium whitespace-nowrap transition-all ${
                   (item as any).isHero
                     ? "gradient-primary text-primary-foreground px-4 py-1.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100 animate-pulse-neon animate-shimmer active-shimmer"
                     : location.pathname === item.path
@@ -138,7 +141,7 @@ export const Navbar = () => {
           </div>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
             {loading ? (
               <div className="w-8 h-8 animate-pulse bg-secondary rounded" />
             ) : isAuthenticated ? (
@@ -157,8 +160,8 @@ export const Navbar = () => {
                     <span className="hidden xl:inline">Admin</span>
                   </Link>
                 )}
-                <SubscriptionBadge />
-                
+                <SubscriptionBadge compact />
+
                 {/* Profile Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -180,7 +183,9 @@ export const Navbar = () => {
                       ) : (
                         <User className="w-4 h-4" />
                       )}
-                      {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
+                      <span className="hidden xl:inline max-w-[12ch] truncate">
+                        {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Profil"}
+                      </span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56 bg-popover border-border backdrop-blur-xl">
@@ -236,7 +241,7 @@ export const Navbar = () => {
           </div>
 
           {/* Mobile Navigation Trigger & Drawer */}
-          <div className="flex md:hidden items-center gap-3">
+          <div className="flex lg:hidden items-center gap-3">
             {isAuthenticated && <SubscriptionBadge />}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
