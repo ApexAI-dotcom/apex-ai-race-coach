@@ -128,6 +128,15 @@ export default {
           "0%, 100%": { boxShadow: "0 0 20px -10px hsl(var(--primary) / 0.5)" },
           "50%": { boxShadow: "0 0 40px -10px hsl(var(--primary) / 0.8)" },
         },
+        // Bandeau défilant (components/ui/marquee.tsx) : le contenu est écrit
+        // deux fois, on glisse d'exactement une copie puis on recommence.
+        marquee: {
+          to: { transform: "translate3d(-50%, 0, 0)" },
+        },
+        "marquee-reverse": {
+          from: { transform: "translate3d(-50%, 0, 0)" },
+          to: { transform: "translate3d(0, 0, 0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -136,6 +145,8 @@ export default {
         "slide-in-right": "slide-in-right 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "scale-in": "scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        marquee: "marquee var(--duration, 30s) linear infinite",
+        "marquee-reverse": "marquee-reverse var(--duration, 30s) linear infinite",
       },
     },
   },

@@ -5,6 +5,7 @@ import {
   MapPin, Cpu,
 } from "lucide-react";
 import { PreviewShell, PreviewFeature } from "@/components/preview/PreviewShell";
+import { MassVisual, PdfSheetVisual, PressureVisual, RecommendationVisual } from "@/components/preview/visuals/SetupVisuals";
 
 const FEATURES: PreviewFeature[] = [
   {
@@ -12,24 +13,28 @@ const FEATURES: PreviewFeature[] = [
     title: "Recommandations d'ingénieur",
     description:
       "Pressions, voies, chasse, arbre, transmission, carburation : ApexAI calcule un réglage de base pour CE circuit et CES conditions, avec l'explication physique de chaque choix.",
+    visual: RecommendationVisual,
   },
   {
     icon: Disc3,
     title: "Pneu monté & pressions ciblées",
     description:
       "Le train monté depuis ton stock alimente les pressions à froid et à chaud selon les abaques constructeur (Vega, MG, LeCont…) et la météo.",
+    visual: PressureVisual,
   },
   {
     icon: Scale,
     title: "Bilan des masses automatique",
     description:
       "Poids kart + pilote estimé depuis ton garage, marge de conformité au poids mini règlement, gestion du lest.",
+    visual: MassVisual,
   },
   {
     icon: FileText,
     title: "Fiche de réglages PDF",
     description:
       "Exporte une fiche A4 « Esprit Paddock » avec toutes tes constantes, à imprimer et annoter dans les stands.",
+    visual: PdfSheetVisual,
   },
 ];
 

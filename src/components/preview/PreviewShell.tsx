@@ -5,6 +5,9 @@ import { PageMeta } from "@/components/seo/PageMeta";
 import { Button } from "@/components/ui/button";
 import { Lock, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
+import { DemoTag } from "@/components/landing/atoms";
+import { useInViewFlag } from "@/components/landing/hooks";
 
 /**
  * Base visuelle commune aux pages vitrines (Mon Kart / Réglages), pour que
@@ -12,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
  *
  *   - hero identique (badge, titre en dégradé, sous-titre)
  *   - aperçu réaliste du VRAI produit, flouté et non interactif, en fond
- *   - encarts de fonctionnalités nets par-dessus
+ *   - encarts de fonctionnalités nets par-dessus, chacun avec son petit visuel
  *   - bandeau CTA final commun
  */
 
@@ -20,6 +23,12 @@ export interface PreviewFeature {
   icon: React.ElementType;
   title: string;
   description: string;
+  /**
+   * Petit visuel net (données d'exemple) pour comprendre sans lire. Son cadre
+   * porte la classe `lp-on` tant qu'il est à l'écran : les animations `lp-*`
+   * ne tournent donc que sous les yeux du visiteur, et rejouent à chaque retour.
+   */
+  visual?: React.ComponentType;
 }
 
 interface PreviewShellProps {
@@ -75,25 +84,13 @@ export function PreviewShell({
 
           {/* Contenu net par-dessus */}
           <div className="relative p-5 md:p-10">
-            <div className="grid md:grid-cols-2 gap-4 md:gap-5 mb-8">
+            <div className="grid md:grid-cols-2 gap-4 md:gap-5">
               {features.map((f, i) => (
-                <motion.div
-                  key={f.title}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.05 }}
-                  className="flex gap-3.5 p-4 rounded-2xl bg-card/90 backdrop-blur-md border border-border shadow-lg"
-                >
-                  <div className="shrink-0 w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <f.icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground text-sm">{f.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{f.description}</p>
-                  </div>
-                </motion.div>
+                <FeatureCard key={f.title} feature={f} index={i} />
               ))}
+            </div>
+            <div className="flex justify-center mt-4 mb-8 min-h-4">
+              {features.some((f) => f.visual) && <DemoTag>Aperçus illustrés avec des données d'exemple</DemoTag>}
             </div>
 
             {/* CTA central */}
@@ -150,6 +147,44 @@ export function PreviewShell({
         <PreviewCrossLink current={meta.path} />
       </div>
     </Layout>
+  );
+}
+
+/** Un encart de fonctionnalité : le petit visuel en haut, le texte dessous. */
+function FeatureCard({ feature: f, index }: { feature: PreviewFeature; index: number }) {
+  // Le visuel ne s'anime que tant qu'il est à l'écran, et rejoue à chaque retour.
+  const [ref, play] = useInViewFlag<HTMLDivElement>({ threshold: 0.35 });
+  const Visual = f.visual;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.05 }}
+      className="flex flex-col gap-3.5 p-4 rounded-2xl bg-card/90 backdrop-blur-md border border-border shadow-lg"
+    >
+      {Visual && (
+        <div
+          ref={ref}
+          aria-hidden="true"
+          className={cn(
+            "relative h-[140px] overflow-hidden rounded-xl border border-white/[0.07] bg-[#0b0b0d]",
+            play && "lp-on"
+          )}
+        >
+          <Visual />
+        </div>
+      )}
+      <div className="flex gap-3.5">
+        <div className="shrink-0 w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+          <f.icon className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-foreground text-sm">{f.title}</h3>
+          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{f.description}</p>
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
