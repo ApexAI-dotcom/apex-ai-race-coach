@@ -3,13 +3,14 @@ import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { CSVUploader } from "@/components/upload/CSVUploader";
 import { PageMeta } from "@/components/seo/PageMeta";
+import CompatibleMarquee from "@/components/landing/CompatibleMarquee";
+import { useAuth } from "@/hooks/useAuth";
 import {
   FileSpreadsheet,
   Shield,
   Zap,
   BarChart3,
   TrendingUp,
-  Car,
   FolderOpen,
   Map as MapIcon,
   Gauge,
@@ -20,8 +21,7 @@ import {
 const supportedFormats = [
   { name: "MyChron5", icon: BarChart3 },
   { name: "AiM", icon: TrendingUp },
-  { name: "RaceBox", icon: Car },
-  { name: "CSV standard", icon: FolderOpen },
+  { name: "Autres boîtiers", icon: FolderOpen },
 ];
 
 // Livrables réels du moteur d'analyse : chacun correspond à une section du
@@ -57,25 +57,26 @@ const features = [
   {
     icon: Zap,
     title: "Analyse en 3 secondes",
-    description: "Notre IA traite vos données instantanément",
+    description: "Notre IA traite tes données instantanément",
   },
   {
     icon: Shield,
     title: "Données sécurisées",
-    description: "Vos fichiers sont chiffrés et privés",
+    description: "Tes fichiers sont chiffrés et privés",
   },
 ];
 
 export default function Upload() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   return (
     <Layout>
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <PageMeta
-        title="Upload CSV MyChron5 → Analyse IA Immédiate | ApexAI"
-        description="Upload MyChron5, AiM RaceBox → IA analyse apices, freinage. Score + coaching 30s."
-        ogTitle="Analyse CSV MyChron5 → IA ApexAI"
+        title="Analyse IA immédiate de ta session MyChron5 | ApexAI"
+        description="Dépose ta session MyChron5 ou AiM : l'IA analyse tes points de corde et tes freinages. Score + coaching en 30 s."
+        ogTitle="Analyse de session MyChron5 par l'IA ApexAI"
         path="/upload"
       />
       <div className="container mx-auto px-4 py-8">
@@ -86,10 +87,10 @@ export default function Upload() {
           className="text-center mb-12"
         >
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Analysez votre <span className="text-gradient-primary">session</span>
+            Analyse ta <span className="text-gradient-primary">session</span>
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Importez votre fichier CSV depuis votre data logger et obtenez une analyse complète en
+            Importe le fichier de ta session depuis ton boîtier d'acquisition et obtiens une analyse complète en
             quelques secondes.
           </p>
         </motion.div>
@@ -99,31 +100,44 @@ export default function Upload() {
           <CSVUploader />
         </div>
 
-        {/* Supported Formats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="max-w-3xl mx-auto mb-12"
-        >
-          <h3 className="text-center text-sm font-medium text-muted-foreground mb-4">
-            Formats supportés
-          </h3>
-          <div className="flex flex-wrap justify-center gap-4">
-            {supportedFormats.map((format) => {
-              const Icon = format.icon;
-              return (
-                <div
-                  key={format.name}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border"
-                >
-                  <Icon className="w-5 h-5 text-primary" />
-                  <span className="text-sm text-foreground">{format.name}</span>
-                </div>
-              );
-            })}
-          </div>
-        </motion.div>
+        {/* Boîtiers compatibles : la barre logos + mention légale pour un visiteur
+            non connecté (même bloc que sur l'accueil), la liste simple sinon. */}
+        {!authLoading && !isAuthenticated && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-12"
+          >
+            <CompatibleMarquee />
+          </motion.div>
+        )}
+        {isAuthenticated && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="max-w-3xl mx-auto mb-12"
+          >
+            <h3 className="text-center text-sm font-medium text-muted-foreground mb-4">
+              Formats supportés
+            </h3>
+            <div className="flex flex-wrap justify-center gap-4">
+              {supportedFormats.map((format) => {
+                const Icon = format.icon;
+                return (
+                  <div
+                    key={format.name}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border"
+                  >
+                    <Icon className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-foreground">{format.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
 
         {/* Features */}
         <motion.div

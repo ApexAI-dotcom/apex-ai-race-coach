@@ -31,6 +31,8 @@ interface TrackMapCanvasProps {
   sectorSegments?: SectorSegment[];
   /** Zones de freinage du tour affiché (bande + repère + temps mort). */
   brakingZones?: BrakingZoneView[];
+  /** Aperçu fixe : ni zoom, ni déplacement de la carte (elle ne vole pas le défilement de la page). */
+  readOnly?: boolean;
 }
 
 /** Un mini-secteur projeté, coloré par le temps réellement perdu. */
@@ -228,6 +230,7 @@ function TrackMapCanvasComponent({
   trackWidthM,
   sectorSegments,
   brakingZones,
+  readOnly = false,
 }: TrackMapCanvasProps) {
   // Invisible hit area for hover detection
   const handleMouseMove = useCallback(
@@ -361,7 +364,7 @@ function TrackMapCanvasComponent({
         {/* Les anciens points de freinage (pastilles rouges/dorées sans
             étiquette ni légende) ont été retirés : ils doublonnaient avec les
             repères de freinage mesurés côté backend, qui indiquent en plus le
-            virage concerné et la distance jusqu'à l'apex. Deux systèmes de
+            virage concerné et la distance jusqu'au point de corde. Deux systèmes de
             marqueurs superposés rendaient la carte illisible. */}
 
         {/* Direction arrows */}
@@ -595,6 +598,7 @@ function TrackMapCanvasComponent({
 
   return (
     <TransformWrapper
+      disabled={readOnly}
       initialScale={1}
       minScale={0.5}
       maxScale={6}
@@ -614,7 +618,9 @@ function TrackMapCanvasComponent({
           className={`relative w-full ${isFullscreen ? "flex-1 h-full" : "h-full max-h-[600px]"}`}
         >
           {/* Zoom Controls */}
-          <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-secondary/80 p-1.5 rounded-md border border-white/10 backdrop-blur-sm shadow-xl">
+          <div
+            className={`absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-secondary/80 p-1.5 rounded-md border border-white/10 backdrop-blur-sm shadow-xl ${readOnly ? "hidden" : ""}`}
+          >
             <button
               onClick={() => zoomIn()}
               className="p-1.5 hover:bg-white/10 rounded transition-colors text-white"

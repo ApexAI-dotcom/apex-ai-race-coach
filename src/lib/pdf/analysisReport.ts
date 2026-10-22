@@ -185,7 +185,7 @@ export function exportAnalysisReportPDF(analysis: any, opts?: { charts?: PdfChar
     ["Sens de rotation", tf.rotation === "anti-horaire" ? "Anti-horaire" : tf.rotation === "horaire" ? "Horaire" : "—"],
     ["Épingles / courbes rapides", tf.hairpins_count != null ? `${tf.hairpins_count} / ${tf.fast_corners_count ?? "—"}` : "—"],
     ["Longueur du tour", tf.track_length_m ? `${Math.round(tf.track_length_m)} m` : "—"],
-    ["Vitesse apex moyenne", tf.avg_apex_speed_kmh ? `${tf.avg_apex_speed_kmh} km/h` : "—"],
+    ["Vitesse moyenne au point de corde", tf.avg_apex_speed_kmh ? `${tf.avg_apex_speed_kmh} km/h` : "—"],
     ["Vitesse max relevée", stats.max_speed ? `${Math.round(stats.max_speed)} km/h` : "—"],
     ["Conditions piste", COND_LABELS[sc.track_condition] || sc.track_condition || "—"],
     ["Température piste", sc.track_temperature != null ? `${sc.track_temperature} °C` : "—"],
@@ -199,7 +199,7 @@ export function exportAnalysisReportPDF(analysis: any, opts?: { charts?: PdfChar
     apex_precision: 30, trajectory_consistency: 25, apex_speed: 25, sector_times: 20,
   };
   const bdLabels: Record<string, string> = {
-    apex_precision: "Précision aux apex",
+    apex_precision: "Précision aux points de corde",
     trajectory_consistency: "Régularité de trajectoire",
     apex_speed: "Vitesse de passage",
     sector_times: "Temps par secteur",
@@ -250,7 +250,7 @@ export function exportAnalysisReportPDF(analysis: any, opts?: { charts?: PdfChar
     y = sectionTitle(doc, y, "Analyse Virage par Virage");
     y = apexTable(
       doc, y,
-      ["Virage", "Type", "Apex réel", "Apex cible", "Rendement", "G lat.", "Temps perdu", "Note"],
+      ["Virage", "Type", "Vit. au pt de corde", "Vit. cible", "Rendement", "G lat.", "Temps perdu", "Note"],
       corners.map((c) => [
         c.label || `V${c.corner_number ?? c.corner_id}`,
         c.corner_type === "left" ? "Gauche" : c.corner_type === "right" ? "Droite" : "—",

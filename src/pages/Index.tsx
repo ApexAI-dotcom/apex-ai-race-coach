@@ -3,17 +3,12 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowRight,
   Zap,
-  Target,
-  TrendingUp,
-  Star,
   CheckCircle2,
   XCircle,
   HelpCircle,
-  Calendar,
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
@@ -25,10 +20,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import heroImage from "@/assets/hero-racing.jpg";
-import TestimonialSlider from "@/components/ui/testimonial-slider";
 import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GetStartedButton } from "@/components/ui/get-started-button";
 import { FeedbackBox } from "@/components/feedback/FeedbackBox";
+import CompatibleMarquee from "@/components/landing/CompatibleMarquee";
+import AnalysisShowcase from "@/components/landing/AnalysisShowcase";
+import EcosystemBento from "@/components/landing/EcosystemBento";
+import PricingTeaser from "@/components/landing/PricingTeaser";
 
 // Le tableau de bord abonné embarque toute la bibliothèque de graphiques :
 // la page vitrine des visiteurs n'a pas à la télécharger. Pour un pilote déjà
@@ -57,68 +55,51 @@ const marqueeImages = [
   "/showcase/10.webp"
 ];
 
-const features = [
-  {
-    title: "Analyse IA des virages",
-    description:
-      "Notre algorithme identifie chaque point de corde et calcule votre trajectoire optimale.",
-    icon: Target,
-  },
-  {
-    title: "Score de performance",
-    description: "Obtenez un score /100 détaillé avec des conseils personnalisés.",
-    icon: Star,
-  },
-  {
-    title: "Compatible MyChron",
-    description:
-      "Import direct des fichiers MyChron 5 et 6, AiM et RaceBox. Alfano et d'autres boîtiers sont en préparation.",
-    icon: Zap,
-  },
-];
-
-// Testimonials are managed and animated within the TestimonialSlider component
-
 const faqs = [
   {
     question: "C'est quoi ApexAI ?",
     answer:
-      "ApexAI réunit dans un seul outil l'analyse de votre télémétrie, le suivi de votre kart, vos réglages et votre calendrier : de quoi mener votre saison comme une équipe pro, sans équipe technique. Vos fichiers deviennent des conseils concrets, virage par virage.",
+      "ApexAI est ton ingénieur de course IA. Il réunit dans un seul outil l'analyse de ta télémétrie, le suivi de ton kart, tes réglages et ton calendrier : de quoi mener ta saison comme une équipe pro, sans équipe technique. Tes fichiers deviennent des conseils concrets, virage par virage.",
   },
   {
     question: "Comment analyser mes données MyChron ?",
     answer:
-      "C'est très simple : exportez votre fichier au format CSV depuis votre logiciel MyChron, importez-le sur ApexAI, et notre IA scanne chaque virage pour détecter vos erreurs de trajectoire et de freinage.",
+      "C'est très simple : importe sur ApexAI le fichier de ta session (le .xrk de Race Studio), et notre IA scanne chaque virage pour détecter tes erreurs de trajectoire et de freinage.",
   },
   {
     question: "Comment améliorer mes temps en karting ?",
     answer:
-      "La clé pour gagner des secondes est la précision de la trajectoire kart. ApexAI analyse vos points de corde, votre vitesse d'entrée et votre réaccélération pour vous donner un plan d'action précis virage par virage.",
+      "La clé, c'est la précision de ta trajectoire en kart. ApexAI analyse tes points de corde, ta vitesse d'entrée et ta réaccélération pour te donner un plan d'action précis, virage par virage.",
   },
   {
     question: "ApexAI fonctionne avec quels boîtiers de télémétrie ?",
     answer:
-      "Compatible avec AiM MyChron 5 et MyChron 6 (export CSV via Race Studio). D'autres formats à venir",
+      "Il est compatible avec AiM MyChron 5 et MyChron 6 : dépose directement le fichier .xrk de Race Studio. D'autres boîtiers sont en préparation. AiM, MyChron et Race Studio sont des marques d'AiM. ApexAI n'est pas affilié à AiM.",
   },
   {
-    question: "Comment lire un fichier CSV de données karting ?",
+    question: "Comment lire les données d'une session de karting ?",
     answer:
-      "Pas besoin d'être un ingénieur ! ApexAI lit vos fichiers CSV bruts et les traduit en graphiques simples : tracé de piste, zones de freinage et courbes de vitesse, avec un score de performance clair.",
+      "Pas besoin d'être ingénieur ! ApexAI lit directement le fichier de ton boîtier et le traduit en graphiques simples : tracé de piste, zones de freinage et courbes de vitesse, avec un score de performance clair.",
   },
   {
     question: "Combien de temps je peux gagner avec l'analyse IA ?",
     answer:
-      "En optimisant votre pilotage karting avec nos conseils, vous pouvez rapidement descendre sous vos records personnels.",
+      "Impossible de te promettre un chrono : ça dépend de ton niveau, de ton circuit et de ton travail. Ce qu'ApexAI mesure, c'est ce qui est atteignable pour toi. Dans la session de démo, le Tour parfait IA est 1,23 s sous le meilleur tour réel, en enchaînant ses meilleurs mini-secteurs. Tu vois où tu perds du temps et quoi corriger en priorité.",
   },
   {
     question: "Est-ce que c'est adapté aux débutants ?",
     answer:
-      "Absolument. Contrairement aux logiciels complexes, ApexAI est conçu pour être intuitif. C'est l'outil idéal pour apprendre les bases de la trajectoire et progresser sans passer des heures à étudier des graphiques.",
+      "Oui. ApexAI est conçu pour rester simple : il traduit ta télémétrie en conseils clairs, virage par virage, sans que tu aies à passer des heures sur des courbes. C'est une bonne façon d'apprendre les bases de la trajectoire en voyant exactement où tu perds du temps.",
   },
   {
     question: "Comment fonctionne le score /100 ?",
     answer:
-      "Le score global évalue votre régularité, votre précision aux points de corde et l'efficacité de votre freinage. C'est un indicateur simple pour suivre votre progression et comparer vos performances à chaque session karting.",
+      "Le score /100 additionne quatre critères : la précision au point de corde (sur 30), la régularité (sur 25), la vitesse au point de corde (sur 25) et les temps par secteur (sur 20). C'est un repère simple pour suivre ta progression d'une session karting à l'autre.",
+  },
+  {
+    question: "Faut-il un compte pour essayer ?",
+    answer:
+      "Non : ta première analyse est offerte, sans compte. Ensuite, le plan Rookie est gratuit (3 analyses par mois) et le plan Racer, à 9,90 € par mois ou 99 € par an, débloque les analyses illimitées, Mon Kart et les réglages IA.",
   },
 ];
 
@@ -229,7 +210,7 @@ export default function Index() {
             <div className="flex items-center justify-center gap-3 text-center">
               <XCircle className="w-5 h-5 text-white shrink-0" />
               <p className="text-white font-medium text-xs sm:text-sm">
-                Paiement annulé. Vous pouvez réessayer plus tard.
+                Paiement annulé. Tu peux réessayer plus tard.
               </p>
             </div>
           </div>
@@ -307,161 +288,17 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Features Section — analyse + modules produit réunis en un seul bloc */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-10"
-          >
-            <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
-              Analyse <span className="text-gradient-primary">intelligente</span>
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Notre IA analyse chaque virage pour vous donner des conseils précis et personnalisés.
-            </p>
-          </motion.div>
+      {/* Compatible avec… : la preuve la plus rapide qu'ApexAI lit ton boîtier d'acquisition */}
+      <CompatibleMarquee />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="glass-card-hover p-8 group hover:-translate-y-2 hover:shadow-2xl transition-all duration-300"
-              >
-                <div className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center mb-6">
-                  <feature.icon className="w-7 h-7 text-primary-foreground" />
-                </div>
-                <h3 className="font-display text-xl font-bold text-foreground mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-muted-foreground">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
+      {/* L'analyse : dépôt du fichier → analyse → résultat */}
+      <AnalysisShowcase />
 
-          {/* Modules produit (dans le même souffle que l'analyse) */}
-          <div className="max-w-5xl mx-auto mt-12">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
-              {[
-                { t: "Mon Kart", d: "Suivi d'usure automatique du moteur, des pneus et des freins depuis la télémétrie, garage virtuel et journal d'entretien." },
-                { t: "Carnet d'Ingénieur", d: "Consigne tes réglages châssis et moteur, associés aux conditions de piste, avec les recommandations d'ApexAI." },
-                { t: "Analyse Télémétrie", d: "Importe tes données MyChron, AiM et autres CSV et obtiens la vue détaillée de tes trajectoires réelles." },
-                { t: "Stock de Pneus", d: "Déclare et tracke l'usure de tes trains (neufs, rodés, pluie) pour la recommandation du bon train à chaque session." },
-              ].map((m) => (
-                <div key={m.t} className="p-5 rounded-xl bg-card/50 border border-border hover:border-primary/30 transition-colors">
-                  <h4 className="font-bold text-foreground mb-2">{m.t}</h4>
-                  <p className="text-sm text-muted-foreground">{m.d}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Tout ton karting : Mon Kart, Réglages, Calendrier */}
+      <EcosystemBento isAuthenticated={isAuthenticated} />
 
-      {/* Roadmap Section */}
-      <section className="py-16 border-t border-border">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
-              Feuille de <span className="text-gradient-primary">route</span>
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Découvre les prochaines fonctionnalités en cours de développement chez ApexAI.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="glass-card p-6 rounded-2xl border border-border hover:border-primary/25 transition-all duration-300 relative overflow-hidden group flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-secondary rounded-xl text-primary">
-                    <TrendingUp className="w-6 h-6" />
-                  </div>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse-neon">
-                    Bientôt
-                  </Badge>
-                </div>
-                <h3 className="font-display text-xl font-bold text-foreground mb-2">
-                  Comparaison télémétrie
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Compare tes trajectoires et tes courbes de vitesse directement avec d'autres pilotes pour identifier précisément où tu perds du temps.
-                </p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="glass-card p-6 rounded-2xl border border-border hover:border-primary/25 transition-all duration-300 relative overflow-hidden group flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-secondary rounded-xl text-primary">
-                    <Calendar className="w-6 h-6" />
-                  </div>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse-neon">
-                    Bientôt
-                  </Badge>
-                </div>
-                <h3 className="font-display text-xl font-bold text-foreground mb-2">
-                  Calendrier & Rappels
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Un calendrier athlète complet couplé à des alertes mécaniques intelligentes pour planifier tes révisions moteurs et vidanges à temps.
-                </p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-              className="glass-card p-6 rounded-2xl border border-border hover:border-primary/25 transition-all duration-300 relative overflow-hidden group flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-secondary rounded-xl text-primary">
-                    <Star className="w-6 h-6" />
-                  </div>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse-neon">
-                    Bientôt
-                  </Badge>
-                </div>
-                <h3 className="font-display text-xl font-bold text-foreground mb-2">
-                  Académie vidéo
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Accède à des tutoriels vidéo exclusifs réalisés par des ingénieurs de piste pour apprendre à mieux interpréter tes graphiques de télémétrie.
-                </p>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Slider */}
-      <TestimonialSlider />
+      {/* Tarifs */}
+      <PricingTeaser isAuthenticated={isAuthenticated} />
 
       {/* Boîte à recommandations — ouverte à tous les pilotes connectés */}
       <section className="py-16 border-t border-border">
@@ -485,7 +322,7 @@ export default function Index() {
                 Prêt à améliorer tes temps ?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-                Rejoins les pilotes qui utilisent déjà APEX AI pour dominer les circuits.
+                Dépose ta première session : en quelques secondes, tu vois où tu perds du temps, virage par virage, et ce qu'il faut corriger.
               </p>
               <Link
                 to={isAuthenticated ? "/upload" : "/login?mode=signup"}
@@ -496,7 +333,7 @@ export default function Index() {
                   size="xl"
                   className="w-full group-hover:bg-orange-500 group-hover:scale-105 group-hover:shadow-lg transition-all duration-300"
                 >
-                  S'inscrire maintenant
+                  {isAuthenticated ? "Analyser une session" : "S'inscrire maintenant"}
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
@@ -528,7 +365,7 @@ export default function Index() {
               Questions <span className="text-gradient-primary">Fréquentes</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Tout ce que vous devez savoir sur l'analyse de données IA et l'amélioration de votre
+              Tout ce que tu dois savoir sur l'analyse de données IA et l'amélioration de ton
               pilotage karting.
             </p>
           </motion.div>
@@ -578,7 +415,7 @@ export default function Index() {
                 href="mailto:contact@apexai.racing"
                 className="text-primary hover:underline font-bold"
               >
-                Contactez notre support
+                Contacte notre support
               </a>
             </p>
           </motion.div>

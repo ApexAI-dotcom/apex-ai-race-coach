@@ -213,8 +213,7 @@ export default function PricingSection4({
           customVariants={revealVariants}
           className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto leading-relaxed font-light"
         >
-          Rejoignez des centaines de pilotes de karting et optimisez vos trajectoires grâce à la
-          puissance de notre IA.
+          Optimise tes trajectoires grâce à la puissance de notre IA.
         </TimelineContent>
 
         <TimelineContent

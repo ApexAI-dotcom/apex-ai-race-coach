@@ -69,7 +69,7 @@ export const AlertBanner = ({ profile, recent_sessions = [], onUpdate }: AlertBa
   if (profile.chain_hours_life && profile.chain_hours_current !== undefined && !ignoredAlerts.includes("chain_wear")) {
     const ratio = profile.chain_hours_current / profile.chain_hours_life;
     if (ratio >= critLimit)
-      alerts.push({ id: "chain_wear", level: "critical", message: "Chaîne : Usure critique détectée, remplacez la chaîne." });
+      alerts.push({ id: "chain_wear", level: "critical", message: "Chaîne : Usure critique détectée, remplace la chaîne." });
     else if (ratio >= warnLimit)
       alerts.push({ id: "chain_wear", level: "warning", message: "Chaîne : Graissage et vérification de la tension recommandés." });
   }

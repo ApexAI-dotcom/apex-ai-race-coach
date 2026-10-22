@@ -138,7 +138,7 @@ export default function Login() {
       </Helmet>
       <PageMeta
         title="Connexion | ApexAI"
-        description="Connectez-vous pour accéder à votre tableau de bord et vos analyses."
+        description="Connecte-toi pour accéder à ton tableau de bord et à tes analyses."
         path="/login"
       />
       <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[calc(100vh-4rem)]">
@@ -160,8 +160,8 @@ export default function Login() {
                 {view === "forgot_password"
                   ? "Indique ton email pour recevoir un lien de réinitialisation."
                   : isSignUp
-                    ? "Inscrivez-vous pour commencer vos analyses"
-                    : "Connectez-vous à votre compte APEX AI"}
+                    ? "Inscris-toi pour commencer tes analyses"
+                    : "Connecte-toi à ton compte APEX AI"}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -205,7 +205,7 @@ export default function Login() {
                     Continuer avec Google
                   </Button>
                   <p className="text-[10px] text-center text-muted-foreground mt-2 px-4">
-                    En continuant, vous acceptez nos{" "}
+                    En continuant, tu acceptes nos{" "}
                     <a href="/legal" className="underline hover:text-primary">
                       CGU
                     </a>{" "}
@@ -234,7 +234,7 @@ export default function Login() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Votre adresse email"
+                      placeholder="Ton adresse email"
                       className="bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground"
                       required
                       disabled={submitLoading}
@@ -249,7 +249,7 @@ export default function Login() {
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Votre mot de passe"
+                      placeholder="Ton mot de passe"
                       className="bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground"
                       required={!isSignUp}
                       disabled={submitLoading}
@@ -310,7 +310,7 @@ export default function Login() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Votre adresse email"
+                      placeholder="Ton adresse email"
                       className="bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground"
                       required
                       disabled={submitLoading}

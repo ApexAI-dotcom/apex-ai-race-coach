@@ -135,7 +135,7 @@ export default function Parametres() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     if (!file.type.startsWith("image/")) {
-      toast.error("Choisissez une image (JPG, PNG, WebP).");
+      toast.error("Choisis une image (JPG, PNG, WebP).");
       return;
     }
     if (file.size > 2 * 1024 * 1024) {

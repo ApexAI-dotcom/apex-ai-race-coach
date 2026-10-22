@@ -96,7 +96,7 @@ export default function MonKart() {
       <Layout>
         <PageMeta
           title="Mon Kart - Garage Virtuel & Suivi d'Usure | ApexAI"
-          description="Gérez votre karting, suivez l'usure de votre moteur, pneus et freins automatiquement depuis vos sessions de télémétrie."
+          description="Gère ton karting, suis l'usure de ton moteur, de tes pneus et de tes freins automatiquement depuis tes sessions de télémétrie."
           path="/mon-kart"
         />
 
@@ -115,7 +115,7 @@ export default function MonKart() {
               Mon <span className="text-gradient-primary">Kart</span>
             </h1>
             <p className="text-muted-foreground max-w-xl mx-auto text-sm md:text-base">
-              Suivez automatiquement l'usure de votre moteur, pneus, freins et batterie à partir de vos fichiers de télémétrie.
+              Suis automatiquement l'usure de ton moteur, de tes pneus, de tes freins et de ta batterie à partir de tes fichiers de télémétrie.
             </p>
           </motion.div>
 
@@ -208,11 +208,11 @@ export default function MonKart() {
                 </div>
 
                 <h2 className="text-2xl md:text-4xl font-display font-bold text-foreground">
-                  Gérez votre <span className="text-gradient-primary">Garage Virtuel</span>
+                  Gère ton <span className="text-gradient-primary">Garage Virtuel</span>
                 </h2>
 
                 <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
-                  Anticipez l'usure mécanique de votre matériel et optimisez vos performances en toute sécurité.
+                  Anticipe l'usure mécanique de ton matériel et optimise tes performances en toute sécurité.
                 </p>
 
                 {/* Feature Highlights Grid */}
@@ -224,7 +224,7 @@ export default function MonKart() {
                     <div>
                       <h4 className="font-bold text-sm text-foreground">Suivi Moteur & Freins</h4>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Calcul automatique des heures de fonctionnement et des taux d'usure calculés à chaque fichier CSV uploadé.
+                        Calcul automatique des heures de fonctionnement et des taux d'usure calculés à chaque session analysée.
                       </p>
                     </div>
                   </div>
@@ -236,7 +236,7 @@ export default function MonKart() {
                     <div>
                       <h4 className="font-bold text-sm text-foreground">Gestion du Stock de Pneus</h4>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Déclarez vos trains de pneus (neufs, rodés, pluie) et suivez le nombre exact de sessions effectuées par chaque train.
+                        Déclare tes trains de pneus (neufs, rodés, pluie) et suis le nombre exact de sessions effectuées par chaque train.
                       </p>
                     </div>
                   </div>
@@ -248,7 +248,7 @@ export default function MonKart() {
                     <div>
                       <h4 className="font-bold text-sm text-foreground">Journal d'Entretien</h4>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Consignez les vidanges, changements de chaînes, bougies et révisions pour conserver un historique limpide.
+                        Consigne les vidanges, changements de chaînes, bougies et révisions pour conserver un historique limpide.
                       </p>
                     </div>
                   </div>
@@ -260,7 +260,7 @@ export default function MonKart() {
                     <div>
                       <h4 className="font-bold text-sm text-foreground">Alertes Mécaniques Préventives</h4>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Recevez des avertissements personnalisés avant l'atteinte des seuils critiques de maintenance moteur.
+                        Reçois des avertissements personnalisés avant l'atteinte des seuils critiques de maintenance moteur.
                       </p>
                     </div>
                   </div>
@@ -658,7 +658,7 @@ export default function MonKart() {
               <CardHeader>
                 <CardTitle>Historique des Journées de Roulage</CardTitle>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Résumé agrégé de vos sorties en piste. Chaque ligne rassemble les sessions d'une même
+                  Résumé agrégé de tes sorties en piste. Chaque ligne rassemble les sessions d'une même
                   journée.
                 </p>
               </CardHeader>

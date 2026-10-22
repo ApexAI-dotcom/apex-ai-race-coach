@@ -367,3 +367,18 @@ export const useSubscription = () => {
   if (!context) throw new Error("useSubscription must be used within a SubscriptionProvider");
   return context;
 };
+
+/**
+ * Montre les composants d'analyse sans leur flou d'abonnement. Sert aux aperçus
+ * de la page d'accueil, qui exposent les vrais graphiques sur une session de
+ * démonstration : un visiteur ne doit pas y voir un « Débloque… » devant des
+ * données d'exemple. Aucun effet ailleurs : le reste du contexte est inchangé.
+ */
+export const UnlockedChartsScope: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const base = useSubscription();
+  const value = useMemo(
+    () => ({ ...base, isChartVisible: () => true }),
+    [base]
+  );
+  return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;
+};

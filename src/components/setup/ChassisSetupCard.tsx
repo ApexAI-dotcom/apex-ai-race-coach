@@ -30,9 +30,9 @@ export function ChassisSetupCard({ state, onChange, recommendations }: ChassisSe
         
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
-            <h4 className="font-semibold text-sm">Voies (mm)</h4>
+            <h4 className="font-semibold text-sm">Voies</h4>
             <div className="space-y-3">
-              <Label className="text-xs text-muted-foreground">Avant</Label>
+              <Label className="text-xs text-muted-foreground">Avant (cm)</Label>
               <Input 
                 type="number" 
                 placeholder="Ex: 120" 
@@ -43,7 +43,7 @@ export function ChassisSetupCard({ state, onChange, recommendations }: ChassisSe
               <FieldRecommendation recommendation={recommendations?.trackWidthFront} />
             </div>
             <div className="space-y-3">
-              <Label className="text-xs text-muted-foreground">Arrière</Label>
+              <Label className="text-xs text-muted-foreground">Arrière (mm)</Label>
               <Input 
                 type="number" 
                 placeholder="Ex: 1400" 

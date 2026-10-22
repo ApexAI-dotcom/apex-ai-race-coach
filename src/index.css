@@ -529,3 +529,217 @@
     animation-iteration-count: infinite !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Page d'accueil : aperçus animés (components/landing).
+   Tout passe par `opacity` et `transform`, déclenchés en CSS : aucun calcul
+   JavaScript pendant l'animation. « Réduire les animations » les fige via la
+   règle globale plus bas.
+   ───────────────────────────────────────────────────────────────────────── */
+@keyframes landing-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes landing-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes landing-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  80%,
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes landing-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Carte du circuit : le tracé se dessine tronçon par tronçon. */
+.lp-seg {
+  opacity: 0;
+}
+.lp-draw .lp-seg {
+  animation: landing-fade-in 0.2s ease-out both;
+  animation-delay: calc(var(--k) * 12ms);
+}
+.lp-ai {
+  opacity: 0;
+}
+.lp-draw .lp-ai {
+  animation: landing-fade-in 0.6s ease-out 1.1s both;
+}
+.lp-badge {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+.lp-draw .lp-badge {
+  animation: landing-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(0.35s + var(--k) * 70ms);
+}
+.lp-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: landing-ping 1.6s ease-out infinite;
+}
+
+/* Éléments qui montent en place, l'un après l'autre (--d = retard). */
+.lp-rise {
+  opacity: 0;
+}
+.lp-on .lp-rise {
+  animation: landing-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0s);
+}
+.lp-pop {
+  opacity: 0;
+}
+.lp-on .lp-pop {
+  animation: landing-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: var(--d, 0s);
+}
+
+/* Barre de progression de l'étape en cours (--dur = durée de la scène). */
+.lp-progress {
+  transform-origin: left center;
+  animation: landing-progress var(--dur, 5s) linear both;
+}
+
+/* « Réduire les animations » : pas de retard échelonné non plus — l'état final
+   s'affiche d'emblée, sans attendre que les éléments « arrivent » un à un. */
+@media (prefers-reduced-motion: reduce) {
+  .lp-seg,
+  .lp-ai,
+  .lp-badge,
+  .lp-rise,
+  .lp-pop {
+    animation-delay: 0s !important;
+  }
+  .lp-halo {
+    animation: none !important;
+    opacity: 0.45;
+  }
+}
+
+/* Anneau de progression de l'analyse (pathLength = 100). */
+@keyframes landing-ring {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.lp-ring {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+}
+.lp-on .lp-ring {
+  animation: landing-ring var(--dur, 4.2s) cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Remplissage d'une jauge ou d'une barre : s'étire depuis la gauche. */
+.lp-grow {
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+.lp-on .lp-grow {
+  animation: landing-progress 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0s);
+}
+
+/* Schéma du kart : les tubes se tracent, puis les capteurs s'allument. */
+@keyframes landing-trace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.lp-trace {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.lp-on .lp-trace {
+  animation: landing-trace 1.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: var(--d, 0s);
+}
+.lp-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+.lp-on .lp-node {
+  animation: landing-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: var(--d, 0s);
+}
+.lp-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+.lp-on .lp-pulse {
+  animation: landing-ping 2.4s ease-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+/* Anneau de score : se remplit jusqu'à --v (sur 100). */
+@keyframes landing-gauge {
+  from {
+    stroke-dasharray: 0 100;
+  }
+  to {
+    stroke-dasharray: var(--v, 100) 100;
+  }
+}
+.lp-gauge {
+  stroke-dasharray: 0 100;
+}
+.lp-on .lp-gauge {
+  animation: landing-gauge 1.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-trace,
+  .lp-node,
+  .lp-gauge {
+    animation-delay: 0s !important;
+  }
+  .lp-on .lp-pulse {
+    animation: none !important;
+    opacity: 0;
+  }
+}

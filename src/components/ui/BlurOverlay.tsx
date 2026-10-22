@@ -32,7 +32,7 @@ export const BlurOverlay: React.FC<BlurOverlayProps> = ({
           {!hideButton && (
             <>
               <p className="text-gray-300 text-sm mb-6 max-w-[250px]">
-                Débloquez toutes les analyses et visualisez vos performances complètes.
+                Débloque toutes les analyses et visualise tes performances complètes.
               </p>
               <Button
                 onClick={onCtaClick}

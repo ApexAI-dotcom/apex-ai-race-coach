@@ -5,6 +5,7 @@ import {
   Cpu, HeartPulse,
 } from "lucide-react";
 import { PreviewShell, PreviewFeature } from "@/components/preview/PreviewShell";
+import { GarageVisual, HealthAlertsVisual, TireStockVisual, WearVisual } from "@/components/preview/visuals/KartVisuals";
 
 const FEATURES: PreviewFeature[] = [
   {
@@ -12,24 +13,28 @@ const FEATURES: PreviewFeature[] = [
     title: "Suivi d'usure automatique",
     description:
       "Importe tes fichiers de télémétrie : ApexAI décompte tout seul les heures moteur, les tours pneus, l'usure freins et la chaîne. Plus de carnet papier.",
+    visual: WearVisual,
   },
   {
     icon: Disc3,
     title: "Stock de trains de pneus",
     description:
       "Déclare tes trains (neuf, rodé, pluie), suis leur usure individuelle, et ApexAI recommande lequel monter selon la session — warm-up, qualif ou course.",
+    visual: TireStockVisual,
   },
   {
     icon: HeartPulse,
     title: "Santé du kart en un coup d'œil",
     description:
       "Un score d'état global et des alertes avant la casse : révision moteur qui approche, plaquettes à contrôler, batterie faible.",
+    visual: HealthAlertsVisual,
   },
   {
     icon: Cpu,
     title: "Garage complet",
     description:
       "Châssis, moteur, freins, acquisition : ton matériel est catalogué avec ses données constructeur (durées de vie, poids) qui alimentent tes réglages.",
+    visual: GarageVisual,
   },
 ];
 

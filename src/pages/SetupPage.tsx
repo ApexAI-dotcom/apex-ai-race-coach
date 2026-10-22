@@ -283,7 +283,7 @@ export default function SetupPage() {
       
       toast({
         title: "Recommandations appliquées",
-        description: "Le Cerveau ApexAI a pré-rempli vos réglages optimaux.",
+        description: "Le Cerveau ApexAI a pré-rempli tes réglages optimaux.",
       });
 
       // Défilement fluide
@@ -297,7 +297,7 @@ export default function SetupPage() {
     if (!session?.access_token) {
       toast({
         title: "Erreur d'authentification",
-        description: "Vous devez être connecté pour sauvegarder un réglage.",
+        description: "Tu dois être connecté pour sauvegarder un réglage.",
         variant: "destructive"
       });
       return;
@@ -329,7 +329,7 @@ export default function SetupPage() {
       await api.saveKartSetup(session.access_token, sanitizedState);
       toast({
         title: setupState.id ? "Réglage mis à jour !" : "Réglage sauvegardé !",
-        description: setupState.id ? "Le réglage a été mis à jour avec succès." : "Vos réglages ont été enregistrés avec succès."
+        description: setupState.id ? "Le réglage a été mis à jour avec succès." : "Tes réglages ont été enregistrés avec succès."
       });
       
       setRefreshKey(prev => prev + 1);
@@ -378,7 +378,7 @@ export default function SetupPage() {
     <Layout>
       <PageMeta
         title="Carnet d'Ingénieur | ApexAI"
-        description="Gérez et optimisez les setups techniques de votre kart avec le Cerveau ApexAI."
+        description="Gère et optimise les setups techniques de ton kart avec le Cerveau ApexAI."
       />
       
       <div className="min-h-screen bg-background text-foreground pb-20">
@@ -593,7 +593,7 @@ export default function SetupPage() {
               </div>
               <h3 className="text-xl font-bold">L'ingénieur ApexAI est prêt</h3>
               <p className="text-muted-foreground text-xs max-w-md">
-                Laissez notre moteur d'intelligence analyser vos conditions de piste et votre matériel pour obtenir une configuration de base optimale.
+                Laisse notre moteur d'intelligence analyser tes conditions de piste et ton matériel pour obtenir une configuration de base optimale.
               </p>
               
               <Button 

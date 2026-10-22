@@ -240,7 +240,7 @@ export function circuitMap(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
   doc.setTextColor(...PDF_COLORS.muted);
-  doc.text("Tracé GPS réel · apex numérotés", x0 + 3, y + boxH - 2.5);
+  doc.text("Tracé GPS réel · points de corde numérotés", x0 + 3, y + boxH - 2.5);
 
   return y + boxH + 5;
 }

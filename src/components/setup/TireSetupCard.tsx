@@ -76,7 +76,7 @@ export function TireSetupCard({ state, onChange, recommendations, tireSetAdvice,
               onValueChange={(v) => { if (v !== '__custom__') onChange({ tireModel: v }); }}
             >
               <SelectTrigger className={inputClass}>
-                <SelectValue placeholder="Choisir un train de votre stock..." />
+                <SelectValue placeholder="Choisir un train de ton stock..." />
               </SelectTrigger>
               <SelectContent>
                 {tireSets.map((s) => (
@@ -103,7 +103,7 @@ export function TireSetupCard({ state, onChange, recommendations, tireSetAdvice,
           )}
           {tireSets.length === 0 && (
             <p className="text-[11px] text-muted-foreground">
-              Déclarez vos trains dans « Mon Kart » pour les retrouver ici.
+              Déclare tes trains dans « Mon Kart » pour les retrouver ici.
             </p>
           )}
         </div>

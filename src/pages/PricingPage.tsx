@@ -165,12 +165,12 @@ export default function PricingPage() {
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
           <Loader2 className="w-12 h-12 animate-spin text-primary" />
           <p className="text-white font-medium">Redirection vers Stripe…</p>
-          <p className="text-sm text-slate-400">Ne fermez pas cette page.</p>
+          <p className="text-sm text-slate-400">Ne ferme pas cette page.</p>
         </div>
       )}
       <PageMeta
         title="Tarifs ApexAI | Rookie, Racer, Team"
-        description="Choisissez votre plan : Rookie gratuit, Racer illimité, Team avec comparaison. Paiement sécurisé Stripe."
+        description="Choisis ton plan : Rookie gratuit, Racer illimité, Team avec comparaison. Paiement sécurisé Stripe."
         path="/pricing"
       />
       <div className="min-h-screen bg-[#0a0a0b] text-slate-100 pt-0 relative overflow-hidden">
@@ -184,7 +184,7 @@ export default function PricingPage() {
                 <X className="h-4 w-4 text-amber-500" />
                 <AlertTitle className="text-amber-500">Paiement annulé</AlertTitle>
                 <AlertDescription className="text-amber-500/90">
-                  Vous pouvez réessayer quand vous le souhaitez.
+                  Tu peux réessayer quand tu le souhaites.
                 </AlertDescription>
               </Alert>
             )}
@@ -219,8 +219,7 @@ export default function PricingPage() {
             </div>
             <h3 className="font-semibold text-foreground">Tu as un code Paddock Pass&nbsp;?</h3>
             <p className="text-sm text-muted-foreground mt-1 mb-4">
-              Les codes distribués sur les circuits débloquent ApexAI Premium pendant 24&nbsp;h,
-              sans carte bancaire.
+              Les codes distribués sur les circuits débloquent ApexAI Premium pendant 24&nbsp;h.
             </p>
             <Button asChild variant="outline" className="gap-2">
               <Link to="/redeem">

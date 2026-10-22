@@ -474,7 +474,7 @@ export function SessionComparison({ a, b, labelA, labelB }: SessionComparisonPro
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] text-muted-foreground truncate">
-                    Apex {r.apexA.toFixed(0)} → {r.apexB.toFixed(0)} km/h
+                    Pt de corde {r.apexA.toFixed(0)} → {r.apexB.toFixed(0)} km/h
                     {r.dBrake !== null && Math.abs(r.dBrake) >= 1 && (
                       <>
                         {" · "}

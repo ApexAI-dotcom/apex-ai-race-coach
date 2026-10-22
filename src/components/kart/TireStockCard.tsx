@@ -87,7 +87,7 @@ export function TireStockCard({ token, tireSets, onRefresh }: TireStockCardProps
 
   const handleSave = async () => {
     if (!form.componentId && !form.customModel) {
-      toast.error("Choisissez un modèle de pneu (catalogue ou saisie libre).");
+      toast.error("Choisis un modèle de pneu (catalogue ou saisie libre).");
       return;
     }
     setSaving(true);
@@ -159,7 +159,7 @@ export function TireStockCard({ token, tireSets, onRefresh }: TireStockCardProps
       <CardContent className="space-y-3">
         {tireSets.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">
-            Aucun train déclaré. Déclarez vos trains (neuf, rodé, pluie…) pour
+            Aucun train déclaré. Déclare tes trains (neuf, rodé, pluie…) pour
             qu'ApexAI recommande le bon pneu à chaque session.
           </p>
         ) : (

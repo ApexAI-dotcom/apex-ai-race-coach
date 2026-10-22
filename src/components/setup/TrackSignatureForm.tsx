@@ -94,7 +94,7 @@ export function TrackSignatureForm({ open, onOpenChange, onSave, circuitName, in
             Caractéristiques de la Piste
           </DialogTitle>
           <DialogDescription className="text-xs">
-            {circuitName ? `Ajustez les spécificités de la piste pour "${circuitName}"` : "Définissez les caractéristiques du nouveau circuit."}
+            {circuitName ? `Ajuste les spécificités de la piste pour "${circuitName}"` : "Définis les caractéristiques du nouveau circuit."}
           </DialogDescription>
         </DialogHeader>
 

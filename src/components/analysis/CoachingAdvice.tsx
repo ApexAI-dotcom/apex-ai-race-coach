@@ -15,6 +15,16 @@ interface CoachingAdviceProps {
   onFocusCorner?: (cornerId: number) => void;
 }
 
+// Libellés affichés pour les catégories renvoyées par le moteur.
+const CATEGORY_LABEL: Record<string, string> = {
+  apex: "Point de corde",
+  speed: "Vitesse",
+  braking: "Freinage",
+  consistency: "Régularité",
+  tire: "Pneus",
+  info: "Contexte",
+};
+
 export function CoachingAdvice({
   advice,
   fastestLapNumber,
@@ -90,8 +100,8 @@ export function CoachingAdvice({
                     <Badge variant="outline" className="text-xs border-white/10">
                       Priorité {item.priority}
                     </Badge>
-                    <Badge variant="outline" className="text-xs capitalize border-white/10">
-                      {item.category}
+                    <Badge variant="outline" className="text-xs border-white/10">
+                      {CATEGORY_LABEL[item.category] ?? item.category}
                     </Badge>
                     {item.corner && (
                       <Badge
@@ -138,9 +148,9 @@ export function CoachingAdvice({
                 <div className="bg-red-600/20 p-2 rounded-full mb-3 border border-red-500/50 backdrop-blur-sm">
                   <Lock className="w-5 h-5 text-red-500" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">Débloquez tous les conseils</h3>
+                <h3 className="text-lg font-bold text-white mb-2">Débloque tous les conseils</h3>
                 <p className="text-gray-300 text-sm mb-4">
-                  Créez un compte gratuitement pour révéler tous les conseils de coaching
+                  Crée un compte gratuitement pour révéler tous les conseils de coaching
                   personnalisés.
                 </p>
                 <Button
