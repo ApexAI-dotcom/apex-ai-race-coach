@@ -20,7 +20,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import heroImage from "@/assets/hero-racing.jpg";
-import TestimonialSlider from "@/components/ui/testimonial-slider";
 import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GetStartedButton } from "@/components/ui/get-started-button";
 import { FeedbackBox } from "@/components/feedback/FeedbackBox";
@@ -55,8 +54,6 @@ const marqueeImages = [
   "/showcase/9.webp",
   "/showcase/10.webp"
 ];
-
-// Testimonials are managed and animated within the TestimonialSlider component
 
 const faqs = [
   {
@@ -297,14 +294,11 @@ export default function Index() {
       {/* L'analyse : dépôt du fichier → analyse → résultat */}
       <AnalysisShowcase />
 
-      {/* Tout ton karting : Mon Kart, Réglages, Calendrier, comparaison de tours */}
+      {/* Tout ton karting : Mon Kart, Réglages, Calendrier */}
       <EcosystemBento isAuthenticated={isAuthenticated} />
 
       {/* Tarifs */}
       <PricingTeaser isAuthenticated={isAuthenticated} />
-
-      {/* Testimonials Slider */}
-      <TestimonialSlider />
 
       {/* Boîte à recommandations — ouverte à tous les pilotes connectés */}
       <section className="py-16 border-t border-border">

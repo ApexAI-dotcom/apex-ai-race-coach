@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DemoTag, SectionHeading } from "./atoms";
 import { NearView } from "./LazyOnView";
+import { TiltCard } from "./TiltCard";
 
 // Chaque écran est un module à part, téléchargé quand on s'en approche. Ce sont
 // les vrais composants de l'app (schéma du kart, carte Pneumatiques, vue mois),
@@ -60,9 +61,12 @@ function Panel({ value, tag, title, text, link, minHeight, note, children }: Pan
         </div>
 
         <div>
-          <NearView minHeight={minHeight}>
-            <Suspense fallback={<div style={{ minHeight }} />}>{children}</Suspense>
-          </NearView>
+          {/* Une carte légèrement inclinée, qui suit la souris (écran large seulement) */}
+          <TiltCard rest={{ x: 2, y: 3 }} range={3} glare={false}>
+            <NearView minHeight={minHeight}>
+              <Suspense fallback={<div style={{ minHeight }} />}>{children}</Suspense>
+            </NearView>
+          </TiltCard>
           <DemoTag className="mt-3 text-center">{note}</DemoTag>
         </div>
       </div>
@@ -103,7 +107,7 @@ export default function EcosystemBento({ isAuthenticated = false }: { isAuthenti
             title="Ton kart suivi à la pièce"
             text="Importe tes sessions : ApexAI compte les heures moteur, les tours de pneus, l'usure des freins et de la chaîne, et te prévient avant la casse."
             link={{ to: "/mon-kart", label: "Découvrir Mon Kart" }}
-            minHeight={520}
+            minHeight={640}
             note="Données d'exemple"
           >
             <KartPanel />
@@ -115,8 +119,8 @@ export default function EcosystemBento({ isAuthenticated = false }: { isAuthenti
             title="Un réglage de base pour chaque session"
             text="Circuit, conditions, pneu monté : ApexAI propose pressions, géométrie et transmission, et t'explique le pourquoi de chaque choix."
             link={{ to: "/setup", label: "Découvrir les Réglages" }}
-            minHeight={520}
-            note="Données d'exemple · clique sur une recommandation pour lire l'explication"
+            minHeight={640}
+            note="Valeurs de base · change la météo, clique sur une recommandation pour lire l'explication"
           >
             <SetupPanel />
           </Panel>

@@ -99,7 +99,7 @@ function formatLapTime(seconds: number): string {
 const ANALYSIS_STEPS = [
   { icon: Wifi, message: "Connexion au serveur…", duration: 1200 },
   { icon: Upload, message: "Envoi du fichier…", duration: 1500 },
-  { icon: Brain, message: "L'IA analyse vos points de corde…", duration: 3000 },
+  { icon: Brain, message: "L'IA analyse tes points de corde…", duration: 3000 },
   { icon: BarChart3, message: "Calcul du score de performance…", duration: 2000 },
   { icon: Target, message: "Génération des graphiques…", duration: 1500 },
 ];
@@ -369,7 +369,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       if (guestUsed) {
         toast({
           title: "Connexion requise",
-          description: "Connectez-vous pour effectuer d'autres analyses.",
+          description: "Connecte-toi pour effectuer d'autres analyses.",
           action: (
             <ToastAction altText="Se connecter" onClick={() => navigate("/login")}>
               Se connecter
@@ -379,7 +379,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       } else {
         toast({
           title: "1 analyse gratuite disponible",
-          description: "Cliquez sur Essayer pour analyser sans compte.",
+          description: "Clique sur Essayer pour analyser sans compte.",
           action: (
             <ToastAction altText="Essayer" onClick={guestUpload}>
               Essayer
@@ -401,7 +401,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         throw {
           success: false,
           error: "backend_unavailable",
-          message: `Serveur inaccessible (${API_BASE_URL}). Vérifiez votre connexion ou réessayez dans quelques instants.`,
+          message: `Serveur inaccessible (${API_BASE_URL}). Vérifie ta connexion ou réessaie dans quelques instants.`,
         } as ApiError;
       }
 
@@ -428,7 +428,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
           // If different circuit, we still save it but it will be blurred in results
           toast({
             title: "Circuit restreint",
-            description: `En tant que Rookie, vous ne pouvez analyser que le circuit ${limits.allowed_circuit}. Cette analyse sera floutée.`,
+            description: `En tant que Rookie, tu ne peux analyser que le circuit ${limits.allowed_circuit}. Cette analyse sera floutée.`,
           });
         }
       }
@@ -467,7 +467,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       } else {
         setError(
           apiError?.message ??
-            "Une erreur inattendue s'est produite. Réessayez dans quelques instants."
+            "Une erreur inattendue s'est produite. Réessaie dans quelques instants."
         );
       }
     }
@@ -565,10 +565,10 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Limite atteinte</DialogTitle>
-            <DialogDescription>Passez à Racer pour des analyses illimitées.</DialogDescription>
+            <DialogDescription>Passe à Racer pour des analyses illimitées.</DialogDescription>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Vous avez utilisé vos 3 analyses du mois. Passez au plan Racer pour analyser sans
+            Tu as utilisé tes 3 analyses du mois. Passe au plan Racer pour analyser sans
             limite.
           </p>
           <DialogFooter>
@@ -630,7 +630,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                 Analyse terminée !
               </h3>
               <p className="text-muted-foreground mb-4">
-                Votre session a été analysée avec succès.
+                Ta session a été analysée avec succès.
               </p>
               {result.session_conditions && (
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-muted-foreground mb-6">
@@ -772,7 +772,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
             <h3 className="text-xl font-display font-bold text-foreground mb-2">
               Analyse en cours…
             </h3>
-            <p className="text-muted-foreground mb-4">Notre IA analyse vos données de course</p>
+            <p className="text-muted-foreground mb-4">Notre IA analyse tes données de course</p>
 
             {/* Message d'étape animé */}
             <AnimatePresence mode="wait">
@@ -857,11 +857,11 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     <Upload className="w-8 h-8 text-muted-foreground" />
                   </div>{" "}
                   <p className="text-lg font-medium text-foreground mb-1">
-                    Glissez le fichier de votre session ici
+                    Glisse le fichier de ta session ici
                   </p>
-                  <p className="text-sm text-muted-foreground mb-4">ou cliquez pour sélectionner</p>
+                  <p className="text-sm text-muted-foreground mb-4">ou clique pour sélectionner</p>
                   <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground mb-3">
-                    {["MyChron 5", "MyChron 6", "AiM", "RaceBox"].map((label) => (
+                    {["MyChron 5", "MyChron 6", "AiM"].map((label) => (
                       <span key={label} className="px-2 py-1 rounded bg-secondary">
                         {label}
                       </span>
@@ -879,7 +879,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
               <Card className="mt-6 glass-card border-white/10 w-full max-w-2xl mx-auto">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Informations de Session</CardTitle>
-                  <CardDescription>Configurez l'analyse avant le lancement</CardDescription>
+                  <CardDescription>Configure l'analyse avant le lancement</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0 space-y-6">
                   {/* Nom de Session */}
@@ -983,7 +983,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     <AlertCircle className="h-4 w-4 text-amber-500" />
                     <AlertTitle>Limite du plan gratuit atteinte</AlertTitle>
                     <AlertDescription className="flex items-center gap-2 flex-wrap">
-                      Vous avez utilisé vos {limits?.analyses_per_month ?? 3} analyses du mois.
+                      Tu as utilisé tes {limits?.analyses_per_month ?? 3} analyses du mois.
                       <Button variant="outline" size="sm" asChild>
                         <Link to="/pricing">Passer à Racer</Link>
                       </Button>
@@ -1000,14 +1000,14 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     <AlertDescription className="flex items-center gap-2 flex-wrap">
                       {guestUsed ? (
                         <>
-                          Connectez-vous pour continuer.
+                          Connecte-toi pour continuer.
                           <Button variant="outline" size="sm" onClick={() => navigate("/login")}>
                             Se connecter
                           </Button>
                         </>
                       ) : (
                         <>
-                          Testez sans compte — cliquez Essayer puis Analyser.
+                          Teste sans compte — clique sur Essayer puis Analyser.
                           <Button variant="outline" size="sm" onClick={guestUpload}>
                             Essayer
                           </Button>

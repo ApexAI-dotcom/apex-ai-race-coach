@@ -32,7 +32,7 @@ export default function Success() {
           </h1>
 
           <p className="text-xl text-muted-foreground mb-2">
-            Votre abonnement <span className="text-primary font-semibold">ApexAI Pro</span> est
+            Ton abonnement <span className="text-primary font-semibold">ApexAI Pro</span> est
             maintenant actif
           </p>
 
@@ -68,11 +68,11 @@ export default function Success() {
             transition={{ delay: 0.6 }}
             className="mt-12 p-6 glass-card rounded-xl"
           >
-            <h3 className="font-semibold text-foreground mb-2">Ce qui vous attend maintenant :</h3>
+            <h3 className="font-semibold text-foreground mb-2">Ce qui t'attend maintenant :</h3>
             <ul className="text-left text-muted-foreground space-y-2 max-w-md mx-auto">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Analyses illimitées de vos sessions MyChron</span>
+                <span>Analyses illimitées de tes sessions MyChron</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />

@@ -66,7 +66,7 @@ export function FeedbackBox() {
 
   const handleSend = async () => {
     if (!token || !subject.trim() || !body.trim()) {
-      toast.error("Renseignez un sujet et un message.");
+      toast.error("Renseigne un sujet et un message.");
       return;
     }
     setSending(true);
@@ -77,7 +77,7 @@ export function FeedbackBox() {
         body: body.trim(),
         context: { page: window.location.pathname },
       });
-      toast.success("Merci ! Votre retour a bien été transmis.");
+      toast.success("Merci ! Ton retour a bien été transmis.");
       setSubject("");
       setBody("");
       setCategory("idea");
@@ -101,7 +101,7 @@ export function FeedbackBox() {
             Boîte à recommandations
           </CardTitle>
           <p className="text-sm text-muted-foreground mt-2">
-            ApexAI est construit avec les pilotes. Partagez vos idées et les
+            ApexAI est construit avec les pilotes. Partage tes idées et les
             problèmes rencontrés en piste : chaque retour est lu par l'équipe et
             oriente les prochaines fonctionnalités.
           </p>
@@ -128,7 +128,7 @@ export function FeedbackBox() {
           </CardTitle>
           <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
             <Lock className="w-3 h-3" />
-            Échange privé avec l'équipe ApexAI — votre avis de pilote nous guide.
+            Échange privé avec l'équipe ApexAI — ton avis de pilote nous guide.
           </p>
         </div>
         <Button
@@ -209,13 +209,13 @@ export function FeedbackBox() {
             </div>
 
             <div className="space-y-2">
-              <Label>Votre message</Label>
+              <Label>Ton message</Label>
               <Textarea
                 value={body}
                 maxLength={4000}
                 rows={6}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="Décrivez votre idée ou le problème rencontré, avec le contexte (circuit, session, matériel) si utile."
+                placeholder="Décris ton idée ou le problème rencontré, avec le contexte (circuit, session, matériel) si utile."
               />
               <p className="text-[11px] text-muted-foreground text-right">{body.length}/4000</p>
             </div>

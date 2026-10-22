@@ -88,7 +88,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
       fetchData();
       toast({
         title: "Circuit supprimé",
-        description: `"${active.name}" a été retiré de votre liste.`,
+        description: `"${active.name}" a été retiré de ta liste.`,
       });
     } catch (err: any) {
       toast({
@@ -135,7 +135,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
         savedCircuit = res.circuit;
         toast({
           title: "Circuit créé",
-          description: `Le circuit "${savedCircuit.name}" a été ajouté à votre compte.`,
+          description: `Le circuit "${savedCircuit.name}" a été ajouté à ton compte.`,
         });
       }
 
@@ -215,7 +215,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
     if (!isTelemetryFile(selectedFile.name)) {
       toast({
         title: "Format invalide",
-        description: "Envoyez le fichier de session de votre enregistreur (le .xrk d'AiM Race Studio).",
+        description: "Envoie le fichier de session de ton boîtier (le .xrk d'AiM Race Studio).",
         variant: "destructive"
       });
       return;
@@ -437,7 +437,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
               Charger depuis la Télémétrie
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Sélectionnez une session existante ou importez directement un fichier de session pour en extraire les caractéristiques de la piste.
+              Sélectionne une session existante ou importe directement un fichier de session pour en extraire les caractéristiques de la piste.
             </DialogDescription>
           </DialogHeader>
 
@@ -486,7 +486,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
                 />
                 <Upload className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 <span className="text-xs font-bold text-foreground">Importer et analyser une session</span>
-                <span className="text-[9px] text-muted-foreground">MyChron5, AiM, RaceBox standard</span>
+                <span className="text-[9px] text-muted-foreground">MyChron5, AiM</span>
               </div>
             </div>
           </div>

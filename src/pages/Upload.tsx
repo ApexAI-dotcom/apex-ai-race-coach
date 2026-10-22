@@ -11,7 +11,6 @@ import {
   Zap,
   BarChart3,
   TrendingUp,
-  Car,
   FolderOpen,
   Map as MapIcon,
   Gauge,
@@ -22,8 +21,7 @@ import {
 const supportedFormats = [
   { name: "MyChron5", icon: BarChart3 },
   { name: "AiM", icon: TrendingUp },
-  { name: "RaceBox", icon: Car },
-  { name: "Autres enregistreurs", icon: FolderOpen },
+  { name: "Autres boîtiers", icon: FolderOpen },
 ];
 
 // Livrables réels du moteur d'analyse : chacun correspond à une section du
@@ -59,12 +57,12 @@ const features = [
   {
     icon: Zap,
     title: "Analyse en 3 secondes",
-    description: "Notre IA traite vos données instantanément",
+    description: "Notre IA traite tes données instantanément",
   },
   {
     icon: Shield,
     title: "Données sécurisées",
-    description: "Vos fichiers sont chiffrés et privés",
+    description: "Tes fichiers sont chiffrés et privés",
   },
 ];
 
@@ -76,8 +74,8 @@ export default function Upload() {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <PageMeta
-        title="Analyse IA immédiate de votre session MyChron5 | ApexAI"
-        description="Déposez votre session MyChron5 ou AiM RaceBox : l'IA analyse vos points de corde et vos freinages. Score + coaching en 30 s."
+        title="Analyse IA immédiate de ta session MyChron5 | ApexAI"
+        description="Dépose ta session MyChron5 ou AiM : l'IA analyse tes points de corde et tes freinages. Score + coaching en 30 s."
         ogTitle="Analyse de session MyChron5 par l'IA ApexAI"
         path="/upload"
       />
@@ -89,10 +87,10 @@ export default function Upload() {
           className="text-center mb-12"
         >
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Analysez votre <span className="text-gradient-primary">session</span>
+            Analyse ta <span className="text-gradient-primary">session</span>
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Importez le fichier de votre session depuis votre data logger et obtenez une analyse complète en
+            Importe le fichier de ta session depuis ton boîtier d'acquisition et obtiens une analyse complète en
             quelques secondes.
           </p>
         </motion.div>

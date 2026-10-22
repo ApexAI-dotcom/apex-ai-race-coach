@@ -8,11 +8,11 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:80
 const API_TIMEOUT_MS = 30000; // 30 secondes
 export const MAX_FILE_SIZE_MB = 50;
 export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-export const CSV_UPLOAD_HINT_SHORT = `Fichier de session AiM, le .xrk de Race Studio (max ${MAX_FILE_SIZE_MB} Mo). Compatible avec les enregistreurs AiM / MyChron ; les exports de données d'autres appareils sont aussi acceptés. Si le fichier est trop lourd, réduisez les canaux ou appliquez une décimation (ex. 1:10) dans Race Studio.`;
+export const CSV_UPLOAD_HINT_SHORT = `Fichier de session AiM, le .xrk de Race Studio (max ${MAX_FILE_SIZE_MB} Mo). Compatible avec les boîtiers AiM / MyChron ; les exports de données d'autres appareils sont aussi acceptés. Si le fichier est trop lourd, réduis les canaux ou applique une décimation (ex. 1:10) dans Race Studio.`;
 
 /** Formats de télémétrie acceptés : CSV (export Race Studio) et fichiers AiM natifs. */
 export const TELEMETRY_ACCEPT = ".csv,.xrk,.xrz";
-export const TELEMETRY_FORMAT_ERROR = "Format non reconnu — envoyez le fichier de session de votre enregistreur (le .xrk d'AiM Race Studio).";
+export const TELEMETRY_FORMAT_ERROR = "Format non reconnu — envoie le fichier de session de ton boîtier (le .xrk d'AiM Race Studio).";
 export const isTelemetryFile = (name: string): boolean => /\.(csv|xrk|xrz)$/i.test(name);
 
 // ============================================================================
@@ -408,7 +408,7 @@ function validateCSVFile(file: File): { valid: boolean; error?: string } {
   if (!isTelemetryFile(file.name)) {
     return {
       valid: false,
-      error: "Le fichier doit être un fichier de session de votre enregistreur (le .xrk d'AiM Race Studio)",
+      error: "Le fichier doit être un fichier de session de ton boîtier (le .xrk d'AiM Race Studio)",
     };
   }
 
@@ -417,14 +417,14 @@ function validateCSVFile(file: File): { valid: boolean; error?: string } {
     const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
     return {
       valid: false,
-      error: `Fichier trop volumineux (${sizeMB} Mo). Maximum : ${MAX_FILE_SIZE_MB} Mo. Astuce : sous Race Studio, réduisez les canaux exportés ou appliquez une décimation (1:10) pour réduire la taille.`,
+      error: `Fichier trop volumineux (${sizeMB} Mo). Maximum : ${MAX_FILE_SIZE_MB} Mo. Astuce : sous Race Studio, réduis les canaux exportés ou applique une décimation (1:10) pour réduire la taille.`,
     };
   }
 
   if (file.size < 1000) {
     return {
       valid: false,
-      error: "Fichier trop petit (<1KB). Vérifiez que c'est un fichier de télémétrie valide.",
+      error: "Fichier trop petit (<1KB). Vérifie que c'est un fichier de télémétrie valide.",
     };
   }
 
@@ -451,7 +451,7 @@ function handleFetchError(error: unknown, context: string): ApiError {
       return {
         success: false,
         error: "network",
-        message: `Impossible de se connecter au serveur. Vérifiez que le backend est accessible (${API_BASE_URL})`,
+        message: `Impossible de se connecter au serveur. Vérifie que le backend est accessible (${API_BASE_URL})`,
       };
     }
 
@@ -573,7 +573,7 @@ export async function uploadAndAnalyzeCSV(
           success: false,
           error: isRateLimit ? "rate_limit" : d.error || "http_error",
           message: isRateLimit
-            ? "Limite de requêtes atteinte. Veuillez patienter un instant avant de réessayer."
+            ? "Limite de requêtes atteinte. Patiente un instant avant de réessayer."
             : defaultMsg || `Erreur HTTP ${response.status}`,
           details: d.details,
         };
@@ -609,7 +609,7 @@ export async function uploadAndAnalyzeCSV(
       throw {
         success: false,
         error: "analysis_failed",
-        message: "L'analyse a échoué. Vérifiez que le fichier est valide.",
+        message: "L'analyse a échoué. Vérifie que le fichier est valide.",
       } as ApiError;
     }
 
@@ -658,7 +658,7 @@ export async function parseLaps(file: File): Promise<ParseLapsResponse> {
       success: false,
       error: isRateLimit ? "rate_limit" : err.error || "http_error",
       message: isRateLimit
-        ? "Limite de requêtes atteinte. Veuillez patienter un instant."
+        ? "Limite de requêtes atteinte. Patiente un instant."
         : defaultMsg || `Erreur ${response.status}`,
     } as ApiError;
   }

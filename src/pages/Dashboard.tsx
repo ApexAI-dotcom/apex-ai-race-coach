@@ -253,7 +253,7 @@ export default function Dashboard() {
 
   const handleFolderDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Voulez-vous supprimer ce dossier et tout son contenu ?")) {
+    if (confirm("Veux-tu supprimer ce dossier et tout son contenu ?")) {
       deleteFolder(id, user?.id);
       loadData();
     }
@@ -420,12 +420,12 @@ export default function Dashboard() {
   const handleCompareAdd = (id: string) => {
     if (!compareSlot1) {
       setCompareSlot1(id);
-      toast.info("Analyse ajoutée au slot 1. Sélectionnez une 2e analyse.");
+      toast.info("Analyse ajoutée au slot 1. Sélectionne une 2e analyse.");
     } else if (!compareSlot2 && id !== compareSlot1) {
       setCompareSlot2(id);
-      toast.success("2 analyses sélectionnées ! Cliquez 'Comparer' pour voir la comparaison.");
+      toast.success("2 analyses sélectionnées ! Clique sur 'Comparer' pour voir la comparaison.");
     } else {
-      toast.info("Les 2 slots sont déjà remplis. Videz un slot d'abord.");
+      toast.info("Les 2 slots sont déjà remplis. Vide un slot d'abord.");
     }
   };
 
@@ -573,7 +573,7 @@ export default function Dashboard() {
             <h2 className="text-3xl font-display font-bold text-foreground mb-4">
               Aucune analyse sauvegardée
             </h2>
-            <p className="text-muted-foreground mb-8">Envoyez le fichier de votre première session pour commencer.</p>
+            <p className="text-muted-foreground mb-8">Envoie le fichier de ta première session pour commencer.</p>
             <Button variant="hero" size="lg" onClick={() => navigate("/upload")}>
               Analyser une session
             </Button>
@@ -604,7 +604,7 @@ export default function Dashboard() {
       </Helmet>
       <PageMeta
         title="Tableau de bord | ApexAI"
-        description="Historique de vos analyses et comparaison de sessions."
+        description="Historique de tes analyses et comparaison de sessions."
         path="/dashboard"
       />
 
@@ -890,7 +890,7 @@ export default function Dashboard() {
                       const a = analyses.find((x) => x.id === compareSlot1);
                       return `${a?.score}/100 — ${a?.session_name || a?.circuit_name || "Session"}`;
                     })()
-                  : "Choisir une analyse (cliquez ⇆)"}
+                  : "Choisir une analyse (clique sur ⇆)"}
               </span>
               {compareSlot1 && (
                 <Button
@@ -1323,7 +1323,7 @@ export default function Dashboard() {
           <DialogContent className="glass-card">
             <DialogHeader>
               <DialogTitle>Déplacer l'analyse</DialogTitle>
-              <DialogDescription>Choisissez le dossier de destination.</DialogDescription>
+              <DialogDescription>Choisis le dossier de destination.</DialogDescription>
             </DialogHeader>
             <div className="py-4">
               <Select value={moveTargetFolderId} onValueChange={setMoveTargetFolderId}>
@@ -1374,7 +1374,7 @@ export default function Dashboard() {
           <DialogContent className="glass-card">
             <DialogHeader>
               <DialogTitle>Renommer la session</DialogTitle>
-              <DialogDescription>Modifiez le nom et le type de votre analyse.</DialogDescription>
+              <DialogDescription>Modifie le nom et le type de ton analyse.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">

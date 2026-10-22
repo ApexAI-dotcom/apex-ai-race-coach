@@ -8,13 +8,14 @@ import { DemoTag, SectionHeading } from "./atoms";
 import { DEMO_LABEL } from "./data/demoLabel";
 import { useInViewFlag } from "./hooks";
 import { NearView } from "./LazyOnView";
+import { TiltCard } from "./TiltCard";
 
 // Les trois scènes sont des modules à part : rien n'est téléchargé tant que
-// cette section n'approche pas de l'écran. La dernière est la VRAIE carte du
-// circuit de l'app, alimentée par la session de démo.
+// cette section n'approche pas de l'écran. La dernière est le VRAI résultat de l'app
+// (carte, conseils, graphiques), alimenté par l'analyse d'une session de démo.
 const ImportScene = lazy(() => import("./previews/ImportScene"));
 const AnalyzingScene = lazy(() => import("./previews/AnalyzingScene"));
-const MapScene = lazy(() => import("./previews/MapScene"));
+const ResultScene = lazy(() => import("./previews/ResultScene"));
 
 const STEPS = [
   {
@@ -35,12 +36,12 @@ const STEPS = [
     n: "03",
     short: "Corrige",
     title: "Tu sais quoi corriger",
-    text: "La carte de ton circuit, colorée par ta vitesse, avec ton Tour parfait IA : tu vois où aller chercher du temps.",
+    text: "Ta carte du circuit, tes conseils de coaching classés par temps perdu et tes courbes : tu vois où aller chercher du temps.",
     duration: 0,
   },
 ] as const;
 
-const SCENES = [ImportScene, AnalyzingScene, MapScene];
+const SCENES = [ImportScene, AnalyzingScene, ResultScene];
 
 export default function AnalysisShowcase() {
   const reduce = useReducedMotion();
@@ -157,8 +158,8 @@ export default function AnalysisShowcase() {
           </div>
 
           {/* ── L'écran de l'app : l'import, l'analyse, puis la vraie carte ── */}
-          <div>
-            <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0c0c0c]">
+          <div className="min-w-0">
+            <TiltCard className="overflow-hidden rounded-xl border border-white/10 bg-[#0c0c0c] shadow-[0_40px_80px_-40px_rgba(0,0,0,0.9)]">
               {/* Les trois scènes occupent la même case : le cadre garde la
                   hauteur de la plus grande, rien ne saute d'une étape à l'autre. */}
               <NearView minHeight={560} className="grid min-h-[560px]">
@@ -180,7 +181,7 @@ export default function AnalysisShowcase() {
                   ))}
                 </Suspense>
               </NearView>
-            </div>
+            </TiltCard>
             <div className="mt-3 flex justify-center">
               <DemoTag>{DEMO_LABEL}</DemoTag>
             </div>

@@ -46,7 +46,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
 
   const handleDelete = async (setupId: string) => {
     if (!session?.access_token) return;
-    if (!confirm("Voulez-vous vraiment supprimer ce réglage ?")) return;
+    if (!confirm("Veux-tu vraiment supprimer ce réglage ?")) return;
     try {
       await api.deleteKartSetup(session.access_token, setupId);
       setSetups(prev => prev.filter(s => s.id !== setupId));

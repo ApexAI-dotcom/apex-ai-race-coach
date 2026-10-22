@@ -206,7 +206,7 @@ export default function Profile() {
       <Layout>
         <div className="container mx-auto px-4 py-8">
           <Alert variant="destructive">
-            <AlertDescription>Vous devez être connecté pour voir votre profil.</AlertDescription>
+            <AlertDescription>Tu dois être connecté pour voir ton profil.</AlertDescription>
           </Alert>
         </div>
       </Layout>
@@ -492,7 +492,7 @@ export default function Profile() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Changez de plan, mettez à jour vos moyens de paiement ou annulez depuis le
+                    Change de plan, mets à jour tes moyens de paiement ou annule depuis le
                     portail Stripe.
                   </p>
                   <div className="flex flex-col gap-2">

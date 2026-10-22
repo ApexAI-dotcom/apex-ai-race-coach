@@ -153,7 +153,7 @@ function TrackMapLegendBody({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: APEX_ORANGE }} />
-            <span>Votre tour</span>
+            <span>Ton tour</span>
           </div>
           {hasModel && comparisonLabel ? (
             <div className="flex items-center gap-1">

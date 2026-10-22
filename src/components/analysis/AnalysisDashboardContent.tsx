@@ -267,7 +267,7 @@ export function AnalysisDashboardContent({
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                 <h2 className={`${titleClass} mb-0 shrink-0`}>Sélection des tours</h2>
                 <p className="text-xs text-muted-foreground">
-                  Cliquez sur un tour pour l'ajouter ou le retirer des graphiques. Le point vert
+                  Clique sur un tour pour l'ajouter ou le retirer des graphiques. Le point vert
                   indique le meilleur tour.
                 </p>
               </div>
@@ -318,8 +318,8 @@ export function AnalysisDashboardContent({
             <section className={sectionClass} data-pdf-chart="track_map" data-pdf-title="Carte du Circuit">
               <h2 className={titleClass}>Carte du Circuit</h2>
               <p className="text-xs text-muted-foreground mb-3">
-                Vue aérienne de votre trajectoire réelle sur le circuit. Sélectionnez un profil de
-                visualisation pour explorer les données de vitesse, freinage, ou comparer votre
+                Vue aérienne de ta trajectoire réelle sur le circuit. Sélectionne un profil de
+                visualisation pour explorer les données de vitesse, freinage, ou comparer ta
                 ligne à la trajectoire cible.
               </p>
               <TrackMapPro
@@ -362,8 +362,8 @@ export function AnalysisDashboardContent({
                 <section className={sectionClass} data-pdf-chart="speed_trace" data-pdf-title="Trace de Vitesse">
                   <h2 className={titleClass}>Trace de Vitesse</h2>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Vitesse en km/h en fonction de la distance. Repérez les zones où vous freinez
-                    trop tôt ou réaccélérez trop tard. L'objectif est de porter plus de vitesse dans
+                    Vitesse en km/h en fonction de la distance. Repère les zones où tu freines
+                    trop tôt ou réaccélères trop tard. L'objectif est de porter plus de vitesse dans
                     le virage pour sortir plus fort.
                   </p>
                   <SpeedTraceChart
@@ -389,8 +389,8 @@ export function AnalysisDashboardContent({
                 <section className={sectionClass} data-pdf-chart="time_delta" data-pdf-title="Delta Temps">
                   <h2 className={titleClass}>Delta Temps</h2>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Écart de temps cumulé entre vos tours et le meilleur tour. Si la courbe monte,
-                    vous perdez du temps. Concentrez votre travail sur les zones où la pente est la
+                    Écart de temps cumulé entre tes tours et le meilleur tour. Si la courbe monte,
+                    tu perds du temps. Concentre ton travail sur les zones où la pente est la
                     plus forte pour gagner des secondes.
                   </p>
                   <TimeDeltaLapsChart
@@ -414,8 +414,8 @@ export function AnalysisDashboardContent({
                 <section className={sectionClass} data-pdf-chart="radar" data-pdf-title="Radar de Performance">
                   <h2 className={titleClass}>Radar de Performance</h2>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Synthèse de votre pilotage (freinage, trajectoire, régularité…). Une zone faible
-                    (près du centre) indique un point à travailler spécifiquement lors de votre
+                    Synthèse de ton pilotage (freinage, trajectoire, régularité…). Une zone faible
+                    (près du centre) indique un point à travailler spécifiquement lors de ta
                     prochaine session.
                   </p>
                   <PerformanceRadar
@@ -442,8 +442,8 @@ export function AnalysisDashboardContent({
                 <section className={sectionClass} data-pdf-chart="throttle_brake" data-pdf-title="Accélérateur & Frein">
                   <h2 className={titleClass}>Accélérateur & Frein</h2>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Usage des pédales en fonction de la distance. Recherchez des transitions
-                    franches entre frein et gaz. Évitez de garder du frein en phase de
+                    Usage des pédales en fonction de la distance. Recherche des transitions
+                    franches entre frein et gaz. Évite de garder du frein en phase de
                     réaccélération pour ne pas étouffer le moteur.
                   </p>
                   <ThrottleBrakeChart
@@ -463,7 +463,7 @@ export function AnalysisDashboardContent({
               <h2 className={titleClass}>Détails des virages</h2>
               <p className="text-xs text-muted-foreground mb-3">
                 Analyse virage par virage : vitesse au point de corde, vitesse d'entrée/sortie, note
-                et temps perdu. Concentrez-vous sur les virages les moins bien notés pour
+                et temps perdu. Concentre-toi sur les virages les moins bien notés pour
                 progresser.
               </p>
               <CornerDetailsGrid

@@ -57,7 +57,7 @@ export default function AnalysisResultPage() {
     <Layout>
       <PageMeta
         title="Résultat d'analyse | ApexAI"
-        description="Résultats détaillés de votre session."
+        description="Résultats détaillés de ta session."
         path={`/analysis/${data.analysis_id}`}
       />
       <div className="min-h-screen bg-[#0d1117] text-[#e6edf3] py-4 md:p-6">
