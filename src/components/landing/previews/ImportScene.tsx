@@ -4,11 +4,10 @@ import { cn } from "@/lib/utils";
 
 /**
  * Étape 1 — « Dépose ta session ». Reproduit l'écran d'import de l'app : la
- * zone de dépôt reçoit un fichier d'enregistreur AiM, le reconnaît, puis les
+ * zone de dépôt reçoit un fichier AiM, le reconnaît, puis les
  * conditions de la session se règlent d'elles-mêmes.
  */
 
-const FORMATS = ["AiM MyChron 5", "AiM MyChron 6", "Race Studio (.xrk)"];
 const CONDITIONS = ["Sec", "Humide", "Mouillée", "Pluie"];
 const TYPES = ["Essais", "Qualifications", "Course"];
 
@@ -38,7 +37,7 @@ export default function ImportScene({ play }: { play: boolean }) {
           Analyse ta <span className="text-gradient-primary">session</span>
         </h3>
         <p className="mx-auto mt-1.5 max-w-md text-xs text-muted-foreground sm:text-sm">
-          Importe le fichier de ton enregistreur et obtiens une analyse complète en quelques secondes.
+          Importe le fichier de ton boîtier et obtiens une analyse complète en quelques secondes.
         </p>
       </div>
 
@@ -56,13 +55,6 @@ export default function ImportScene({ play }: { play: boolean }) {
             </span>
             <p className="text-sm font-semibold text-foreground">Glisse le fichier de ta session ici</p>
             <p className="text-[11px] text-muted-foreground">ou clique pour le sélectionner</p>
-            <div className="mt-1 flex flex-wrap justify-center gap-1.5">
-              {FORMATS.map((f) => (
-                <span key={f} className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] text-muted-foreground">
-                  {f}
-                </span>
-              ))}
-            </div>
           </div>
         ) : (
           <div className="lp-on flex flex-col items-center gap-1.5">

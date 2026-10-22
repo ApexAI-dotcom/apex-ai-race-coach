@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Check, Tag } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SectionHeading, SpotlightCard } from "./atoms";
@@ -41,7 +41,6 @@ export default function PricingTeaser({ isAuthenticated = false }: PricingTeaser
       <div className="container mx-auto px-4">
         <SectionHeading
           eyebrow="Tarifs"
-          icon={Tag}
           title={
             <>
               Commence gratuitement. <span className="text-gradient-primary">Passe à Racer</span> quand tu veux.

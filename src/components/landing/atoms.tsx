@@ -1,6 +1,5 @@
 import { CSSProperties, ElementType, ReactNode, useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
-import { User, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clamp01, easeOutExpo } from "./hooks";
 
@@ -12,21 +11,15 @@ import { clamp01, easeOutExpo } from "./hooks";
 
 interface SectionHeadingProps {
   eyebrow: string;
-  icon?: ElementType;
   title: ReactNode;
   sub?: ReactNode;
   className?: string;
 }
 
-export function SectionHeading({ eyebrow, icon: Icon, title, sub, className }: SectionHeadingProps) {
+export function SectionHeading({ eyebrow, title, sub, className }: SectionHeadingProps) {
   return (
     <div className={cn("text-center max-w-3xl mx-auto", className)}>
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-border mb-5">
-        {Icon && <Icon className="w-3.5 h-3.5 text-primary" aria-hidden="true" />}
-        <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-          {eyebrow}
-        </span>
-      </div>
+      <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary">{eyebrow}</p>
       <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-foreground tracking-tight text-balance">
         {title}
       </h2>
@@ -42,20 +35,7 @@ export function SectionHeading({ eyebrow, icon: Icon, title, sub, className }: S
 /* ── Mention « session de démo » ─────────────────────────────────────── */
 
 export function DemoTag({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <p
-      className={cn(
-        "inline-flex items-center gap-2 text-[11px] text-muted-foreground/80 tracking-wide",
-        className
-      )}
-    >
-      <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
-        <span className="absolute inline-flex h-full w-full rounded-full bg-primary/60 animate-ping motion-reduce:animate-none" />
-        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-      </span>
-      {children}
-    </p>
-  );
+  return <p className={cn("text-[11px] text-muted-foreground/70 tracking-wide", className)}>{children}</p>;
 }
 
 /* ── Compteur animé (sans re-rendu React) ────────────────────────────── */
@@ -114,76 +94,6 @@ export function CountUp({
     <span ref={ref} className={cn("tabular-nums", className)}>
       {fmt(play && reduce ? to : from)}
     </span>
-  );
-}
-
-/* ── Fenêtre d'application ───────────────────────────────────────────── */
-
-const NAV = ["Accueil", "Tableau de bord", "Analyser", "Mon Kart", "Réglages", "Calendrier"];
-
-/** Logo de la barre de navigation, comme dans l'app. */
-export function BrandMark({ className }: { className?: string }) {
-  return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
-      <span className="flex h-6 w-6 items-center justify-center rounded-md gradient-primary shadow-[0_6px_12px_-4px_rgba(255,66,66,0.45)]">
-        <Zap className="h-3.5 w-3.5 text-primary-foreground" aria-hidden="true" />
-      </span>
-      <span className="font-display text-[13px] font-bold leading-none text-foreground">
-        APEX<span className="text-primary">AI</span>
-      </span>
-    </span>
-  );
-}
-
-interface AppWindowProps {
-  /** Entrée de menu mise en avant (pastille rouge). */
-  active?: string;
-  children: ReactNode;
-  className?: string;
-  bodyClassName?: string;
-}
-
-/**
- * Cadre « app » : barre de navigation reproduite d'après la vraie, puis le
- * contenu. Sert de décor aux aperçus pour qu'on y reconnaisse le produit.
- */
-export function AppWindow({ active = "Analyser", children, className, bodyClassName }: AppWindowProps) {
-  return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]",
-        "shadow-[0_40px_90px_-30px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.02)]",
-        className
-      )}
-    >
-      <div className="flex h-11 items-center gap-3 border-b border-white/[0.06] bg-[#0d0d0d] px-3.5">
-        <BrandMark />
-        <nav
-          aria-hidden="true"
-          className="ml-auto hidden items-center gap-0.5 text-[11px] text-muted-foreground sm:flex"
-        >
-          {NAV.map((item) => (
-            <span
-              key={item}
-              className={cn(
-                "rounded-full px-2.5 py-1 leading-none whitespace-nowrap",
-                item === active &&
-                  "bg-gradient-to-b from-[#FF4242] to-[#E60000] font-semibold text-white shadow-[0_6px_16px_-6px_rgba(255,66,66,0.7)]"
-              )}
-            >
-              {item}
-            </span>
-          ))}
-        </nav>
-        <span
-          aria-hidden="true"
-          className="ml-auto flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-muted-foreground sm:ml-2"
-        >
-          <User className="h-3 w-3" />
-        </span>
-      </div>
-      <div className={cn("relative", bodyClassName)}>{children}</div>
-    </div>
   );
 }
 

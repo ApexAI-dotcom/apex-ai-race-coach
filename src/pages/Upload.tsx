@@ -3,6 +3,8 @@ import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { CSVUploader } from "@/components/upload/CSVUploader";
 import { PageMeta } from "@/components/seo/PageMeta";
+import CompatibleMarquee from "@/components/landing/CompatibleMarquee";
+import { useAuth } from "@/hooks/useAuth";
 import {
   FileSpreadsheet,
   Shield,
@@ -67,6 +69,7 @@ const features = [
 ];
 
 export default function Upload() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   return (
     <Layout>
       <Helmet>
@@ -99,31 +102,44 @@ export default function Upload() {
           <CSVUploader />
         </div>
 
-        {/* Supported Formats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="max-w-3xl mx-auto mb-12"
-        >
-          <h3 className="text-center text-sm font-medium text-muted-foreground mb-4">
-            Formats supportés
-          </h3>
-          <div className="flex flex-wrap justify-center gap-4">
-            {supportedFormats.map((format) => {
-              const Icon = format.icon;
-              return (
-                <div
-                  key={format.name}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border"
-                >
-                  <Icon className="w-5 h-5 text-primary" />
-                  <span className="text-sm text-foreground">{format.name}</span>
-                </div>
-              );
-            })}
-          </div>
-        </motion.div>
+        {/* Boîtiers compatibles : la barre logos + mention légale pour un visiteur
+            non connecté (même bloc que sur l'accueil), la liste simple sinon. */}
+        {!authLoading && !isAuthenticated && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-12"
+          >
+            <CompatibleMarquee />
+          </motion.div>
+        )}
+        {isAuthenticated && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="max-w-3xl mx-auto mb-12"
+          >
+            <h3 className="text-center text-sm font-medium text-muted-foreground mb-4">
+              Formats supportés
+            </h3>
+            <div className="flex flex-wrap justify-center gap-4">
+              {supportedFormats.map((format) => {
+                const Icon = format.icon;
+                return (
+                  <div
+                    key={format.name}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border"
+                  >
+                    <Icon className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-foreground">{format.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
 
         {/* Features */}
         <motion.div

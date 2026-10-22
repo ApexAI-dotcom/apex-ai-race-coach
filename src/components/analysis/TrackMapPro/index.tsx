@@ -17,6 +17,8 @@ import { TrackMapTooltip } from "./TrackMapTooltip";
 import { TrackMapCornerPanel } from "./TrackMapCornerPanel";
 import { TrackMapFullscreen } from "./TrackMapFullscreen";
 
+const noop = () => {};
+
 interface TrackMapProProps {
   corners: TrajectoryCorner[];
   laps?: TrajectoryLap[];
@@ -35,6 +37,10 @@ interface TrackMapProProps {
   idealLap?: IdealLap | null;
   /** Virage à mettre en avant (clic sur un conseil de coaching). */
   focusCorner?: { id: number; token: number } | null;
+  /** Vues proposées (aperçu de l'accueil) ; absent = toutes. */
+  profiles?: TrackMapProfile[];
+  /** Aperçu fixe (accueil) : pas de zoom, de plein écran ni de détail de virage. */
+  readOnly?: boolean;
 }
 
 export function TrackMapPro({
@@ -50,6 +56,8 @@ export function TrackMapPro({
   racingLineMeta = null,
   idealLap = null,
   focusCorner = null,
+  profiles,
+  readOnly = false,
 }: TrackMapProProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -198,6 +206,7 @@ export function TrackMapPro({
           onComparisonLapChange={onCompareChange}
           bestLapNumber={bestLapNumber}
           sectorsAvailable={!!data?.sectorSegments?.length}
+          only={profiles}
         />
       </div>
 
@@ -244,13 +253,14 @@ export function TrackMapPro({
             hoveredIndex={state.hoveredPoint?.index ?? null}
             hoveredCornerId={state.hoveredCornerId}
             onPointHover={handlers.handlePointHover}
-            onCornerClick={handlers.handleCornerClick}
+            onCornerClick={readOnly ? noop : handlers.handleCornerClick}
             onCornerHover={state.setHoveredCornerId}
             isFullscreen={state.isFullscreen}
             trackRibbonPath={data.trackRibbonPath}
             trackWidthM={racingLineMeta?.track_width_m}
             sectorSegments={data.sectorSegments}
             brakingZones={data.brakingZones}
+            readOnly={readOnly}
           />
         )}
 
@@ -271,10 +281,12 @@ export function TrackMapPro({
           onClose={() => state.setSelectedCornerId(null)}
         />
 
-        <TrackMapFullscreen
-          isFullscreen={state.isFullscreen}
-          toggle={() => state.setIsFullscreen(!state.isFullscreen)}
-        />
+        {!readOnly && (
+          <TrackMapFullscreen
+            isFullscreen={state.isFullscreen}
+            toggle={() => state.setIsFullscreen(!state.isFullscreen)}
+          />
+        )}
       </div>
 
       <div className="px-3 pb-2 shrink-0">
@@ -289,6 +301,7 @@ export function TrackMapPro({
           trackWidthSource={racingLineMeta?.track_width_source}
           hasRibbon={!!data?.trackRibbonPath}
           hasBrakingPoints={!!data?.brakingZones?.length}
+          compact={readOnly}
         />
       </div>
     </div>

@@ -77,12 +77,12 @@ const faqs = [
   {
     question: "ApexAI fonctionne avec quels boîtiers de télémétrie ?",
     answer:
-      "Il est compatible avec AiM MyChron 5 et MyChron 6 : dépose directement le fichier .xrk de Race Studio. D'autres enregistreurs sont en préparation. MyChron et Race Studio sont des marques d'AiM. ApexAI n'est pas affilié à AiM.",
+      "Il est compatible avec AiM MyChron 5 et MyChron 6 : dépose directement le fichier .xrk de Race Studio. D'autres boîtiers sont en préparation. AiM, MyChron et Race Studio sont des marques d'AiM. ApexAI n'est pas affilié à AiM.",
   },
   {
     question: "Comment lire les données d'une session de karting ?",
     answer:
-      "Pas besoin d'être ingénieur ! ApexAI lit directement le fichier de ton enregistreur et le traduit en graphiques simples : tracé de piste, zones de freinage et courbes de vitesse, avec un score de performance clair.",
+      "Pas besoin d'être ingénieur ! ApexAI lit directement le fichier de ton boîtier et le traduit en graphiques simples : tracé de piste, zones de freinage et courbes de vitesse, avec un score de performance clair.",
   },
   {
     question: "Combien de temps je peux gagner avec l'analyse IA ?",
@@ -291,7 +291,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Compatible avec… : la preuve la plus rapide qu'ApexAI lit ton enregistreur */}
+      {/* Compatible avec… : la preuve la plus rapide qu'ApexAI lit ton boîtier d'acquisition */}
       <CompatibleMarquee />
 
       {/* L'analyse : dépôt du fichier → analyse → résultat */}
@@ -343,11 +343,6 @@ export default function Index() {
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
-              {!isAuthenticated && (
-                <p className="mt-4 text-xs text-muted-foreground">
-                  Gratuit pour commencer · sans carte bancaire
-                </p>
-              )}
             </div>
           </motion.div>
         </div>

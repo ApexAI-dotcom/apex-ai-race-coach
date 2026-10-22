@@ -1,6 +1,7 @@
 /**
  * TrackMapPro — Dynamic legend
  */
+import { createContext, useContext } from "react";
 import type { TrackMapProfile } from "@/types/analysis";
 import {
   APEX_ORANGE,
@@ -22,7 +23,12 @@ interface TrackMapLegendProps {
   trackWidthSource?: string;
   hasRibbon?: boolean;
   hasBrakingPoints?: boolean;
+  /** Carte en lecture seule (aperçu) : repères seuls, sans les explications. */
+  compact?: boolean;
 }
+
+/** Aperçu en lecture seule : les repères restent, leurs explications disparaissent. */
+const CompactLegend = createContext(false);
 
 /** Un repère de la carte, expliqué. Sans légende, un point coloré ne veut rien dire. */
 function LegendItem({
@@ -34,12 +40,13 @@ function LegendItem({
   label: string;
   hint: string;
 }) {
+  const compact = useContext(CompactLegend);
   return (
-    <div className="flex items-start gap-1.5" title={hint}>
+    <div className="flex items-start gap-1.5" title={compact ? undefined : hint}>
       <span className="mt-[3px] shrink-0">{swatch}</span>
       <span>
         <span className="text-foreground/90 font-medium">{label}</span>
-        <span className="hidden md:inline"> — {hint}</span>
+        {!compact && <span className="hidden md:inline"> — {hint}</span>}
       </span>
     </div>
   );
@@ -49,7 +56,7 @@ const Dot = ({ color }: { color: string }) => (
   <span className="block w-2.5 h-2.5 rounded-full" style={{ background: color }} />
 );
 
-export function TrackMapLegend({
+function TrackMapLegendBody({
   profile,
   speedMin,
   speedMax,
@@ -220,5 +227,13 @@ export function TrackMapLegend({
         />
       )}
     </div>
+  );
+}
+
+export function TrackMapLegend(props: TrackMapLegendProps) {
+  return (
+    <CompactLegend.Provider value={!!props.compact}>
+      <TrackMapLegendBody {...props} />
+    </CompactLegend.Provider>
   );
 }

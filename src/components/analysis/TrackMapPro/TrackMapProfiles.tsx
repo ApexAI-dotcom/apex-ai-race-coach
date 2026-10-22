@@ -18,6 +18,12 @@ interface TrackMapProfilesProps {
   bestLapNumber: number;
   /** Les mini-secteurs exigent plusieurs tours exploitables. */
   sectorsAvailable?: boolean;
+  /**
+   * Restreint les vues proposées (aperçu de la page d'accueil, qui ne porte
+   * que la vue Vitesse). Absent = toutes les vues, comme dans l'analyse.
+   * Avec une seule vue, la barre d'onglets disparaît : seul le texte reste.
+   */
+  only?: TrackMapProfile[];
 }
 
 // Chaque vue répond à UNE question précise du pilote (l'info-bulle le dit).
@@ -44,16 +50,19 @@ export function TrackMapProfiles({
   onComparisonLapChange,
   bestLapNumber,
   sectorsAvailable = true,
+  only,
 }: TrackMapProfilesProps) {
   const realLaps = laps.filter((l) => !l.is_synthetic);
   // On masque une vue qui n'aurait rien à montrer plutôt que d'afficher une
   // carte vide : le pilote ne doit jamais tomber sur un écran mort.
-  const visibleProfiles = PROFILES.filter((p) => p.id !== "sectors" || sectorsAvailable);
+  const visibleProfiles = PROFILES.filter(
+    (p) => (p.id !== "sectors" || sectorsAvailable) && (!only || only.includes(p.id))
+  );
 
   return (
     <div className="space-y-2">
       {/* Profile pills */}
-      <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-1">
+      <div className={`flex items-center gap-1 bg-secondary/50 rounded-lg p-1 ${visibleProfiles.length < 2 ? "hidden" : ""}`}>
         {visibleProfiles.map((p) => {
           const Icon = p.icon;
           return (
