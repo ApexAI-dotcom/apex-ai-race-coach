@@ -70,7 +70,7 @@ def keep_lap(lap):
 
 def rnd(o, key=""):
     if isinstance(o, float):
-        return round(o, 6 if key in ("lat", "lon", "start_lat", "start_lon", "braking_lat", "braking_lon") else 3)
+        return round(o, 6 if isinstance(key, str) and key.endswith(("lat", "lon")) else 3)
     if isinstance(o, list):
         return [rnd(v, key) for v in o]
     if isinstance(o, dict):
@@ -96,6 +96,14 @@ out = {
     "ideal_lap": ideal_keep,
     "plot_data": {
         "speed_trace": {**pd["speed_trace"], "laps": [l for l in pd["speed_trace"]["laps"] if l["lap_number"] in shown]},
+        "time_delta_laps": {
+            **pd["time_delta_laps"],
+            # On garde le tour de référence du moteur même s'il n'est pas affiché.
+            "laps": [
+                l for l in pd["time_delta_laps"]["laps"]
+                if l["lap_number"] in shown or l.get("is_best")
+            ],
+        },
         "performance_radar": pd["performance_radar"],
         "apex_margin": pd["apex_margin"],
         "racing_line_meta": pd["racing_line_meta"],

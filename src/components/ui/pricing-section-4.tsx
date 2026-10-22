@@ -187,7 +187,6 @@ export default function PricingSection4({
       </TimelineContent>
 
       <article className="text-center mb-6 pt-8 max-w-3xl mx-auto space-y-4 relative z-10 px-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Tarifs</p>
         <h2 className="text-4xl md:text-5xl font-display font-bold text-white tracking-tight flex flex-wrap justify-center gap-x-2.5 gap-y-1">
           <VerticalCutReveal
             splitBy="words"
@@ -202,9 +201,9 @@ export default function PricingSection4({
               delay: 0,
             }}
           >
-            Commence gratuitement.
+            Le plan parfait pour une progression
           </VerticalCutReveal>
-          <span className="text-gradient-primary">Passe à Racer quand tu veux.</span>
+          <span className="text-gradient-primary">intelligente</span>
         </h2>
 
         <TimelineContent
@@ -214,7 +213,7 @@ export default function PricingSection4({
           customVariants={revealVariants}
           className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto leading-relaxed font-light"
         >
-          Ta première analyse est offerte, sans compte. Ensuite, le plan Rookie reste gratuit.
+          Optimise tes trajectoires grâce à la puissance de notre IA.
         </TimelineContent>
 
         <TimelineContent

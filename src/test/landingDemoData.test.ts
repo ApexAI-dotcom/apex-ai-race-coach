@@ -30,6 +30,12 @@ describe("analyse de démo de la page d'accueil", () => {
     for (const n of shown) expect(used).toContain(n);
     expect(traj.filter((l) => l.is_synthetic)).toHaveLength(1);
     expect(plot.speed_trace.laps.map((l) => l.lap_number)).toEqual(shown);
+    // Le delta est mesuré par rapport au meilleur tour, et finit à 0 pour lui.
+    const delta = plot.time_delta_laps!;
+    expect(delta.best_lap_number).toBe(DEMO_BEST_LAP);
+    const ref = delta.laps.find((l) => l.lap_number === DEMO_BEST_LAP)!;
+    expect(Math.max(...ref.delta_s.map(Math.abs))).toBe(0);
+    for (const n of shown) expect(delta.laps.map((l) => l.lap_number)).toContain(n);
     for (const l of plot.speed_trace.laps) expect(l.speed_kmh).toHaveLength(l.distance_m.length);
     for (const l of traj) expect(l.lat).toHaveLength(l.lon.length);
   });

@@ -3,6 +3,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SectionHeading, SpotlightCard } from "./atoms";
+import { TiltCard } from "./TiltCard";
 
 /**
  * Aperçu des offres — les mêmes que la page Tarifs (Rookie gratuit, Racer).
@@ -53,7 +54,7 @@ export default function PricingTeaser({ isAuthenticated = false }: PricingTeaser
           }
         />
 
-        <div className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-2 md:gap-5 lg:mt-14">
+        <TiltCard glare={false} rest={{ x: 1.5, y: 0 }} range={3} className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-2 md:gap-5 lg:mt-14">
           <SpotlightCard>
             <div className="flex h-full flex-col p-6 md:p-8">
               <p className="font-display text-lg font-bold text-foreground">Rookie</p>
@@ -104,7 +105,7 @@ export default function PricingTeaser({ isAuthenticated = false }: PricingTeaser
               </div>
             </div>
           </div>
-        </div>
+        </TiltCard>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           <Link to="/pricing" className="font-semibold text-primary hover:underline">

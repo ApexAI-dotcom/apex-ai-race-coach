@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrackMapPro } from "@/components/analysis/TrackMapPro";
 import { CoachingAdvice } from "@/components/analysis/CoachingAdvice";
 import { SpeedTraceChart } from "@/components/analysis/SpeedTraceChart";
-import { PerformanceRadar } from "@/components/analysis/PerformanceRadar";
+import { TimeDeltaLapsChart } from "@/components/analysis/TimeDeltaLapsChart";
 import { buildCornerOverlays } from "@/components/analysis/cornerOverlays";
 import { UnlockedChartsScope } from "@/hooks/useSubscription.tsx";
 import { DEMO_ANALYSIS, DEMO_BEST_LAP } from "../data/demoAnalysis";
@@ -25,11 +25,14 @@ const CONTENT = "mt-5 sm:min-h-[690px]";
 
 const SECTION_TITLE = "mb-3 text-base font-semibold text-foreground";
 
-// Les deux courbes affichées : le meilleur tour et un autre tour de la session.
-const CHART_LAPS = [
-  DEMO_BEST_LAP,
-  DEMO_ANALYSIS.plot_data!.speed_trace.laps.find((l) => l.lap_number !== DEMO_BEST_LAP)!.lap_number,
-];
+// Les deux courbes affichées : le meilleur tour et celui qui s'en écarte le plus
+// à l'arrivée (l'écart se lit mieux quand il est net).
+const CHART_LAPS = (() => {
+  const others = DEMO_ANALYSIS.plot_data!.time_delta_laps!.laps.filter((l) => l.lap_number !== DEMO_BEST_LAP);
+  const gap = (l: { delta_s: number[] }) => Math.abs(l.delta_s[l.delta_s.length - 1]);
+  const pick = others.reduce((best, l) => (gap(l) > gap(best) ? l : best), others[0]);
+  return [DEMO_BEST_LAP, pick.lap_number];
+})();
 
 // Le contexte de session + les deux conseils les plus coûteux : l'aperçu reste
 // de la taille de la carte, la page de résultat complète les liste tous.
@@ -107,8 +110,12 @@ export default function ResultScene(_props: { play?: boolean }) {
             />
           </section>
           <section>
-            <h3 className={SECTION_TITLE}>Radar de performance</h3>
-            <PerformanceRadar data={plot.performance_radar} />
+            <h3 className={SECTION_TITLE}>Delta temps</h3>
+            <TimeDeltaLapsChart
+              data={plot.time_delta_laps!}
+              selectedLaps={CHART_LAPS}
+              cornerOverlays={overlays}
+            />
           </section>
         </TabsContent>
       </Tabs>
