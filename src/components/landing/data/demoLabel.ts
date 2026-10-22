@@ -4,5 +4,8 @@
  * textes, et ne doivent surtout pas embarquer avec eux la trace GPS et les
  * courbes (`demoSession.ts`), qui ne se téléchargent que près des aperçus.
  */
-export const DEMO_CIRCUIT = "Adria Karting Raceway";
+export const DEMO_CIRCUIT = "Karting de Plessé";
 export const DEMO_LABEL = `Session de démo · ${DEMO_CIRCUIT}`;
+
+/** Nombre de virages détectés sur la session de démo (vérifié par un test). */
+export const DEMO_CORNERS = 11;

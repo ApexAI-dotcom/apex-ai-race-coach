@@ -1,6 +1,7 @@
 import { CSSProperties, useEffect, useState } from "react";
 import { Brain, Check, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DEMO_CORNERS } from "../data/demoLabel";
 
 /**
  * Étape 2 — « L'IA décortique chaque virage ». L'écran d'attente de l'app :
@@ -10,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const STEPS = [
   "Lecture du fichier de session…",
-  "Détection des 12 virages…",
+  `Détection des ${DEMO_CORNERS} virages…`,
   "L'IA analyse tes points de corde…",
   "Calcul du score de performance…",
   "Génération des graphiques…",

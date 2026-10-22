@@ -56,9 +56,16 @@ used = set(ideal.get("laps_used") or [])
 best = ideal.get("best_lap_number")
 
 
+# Pour garder le fichier léger, on n'embarque les courbes que de quelques tours :
+# le meilleur + au plus 3 autres répartis sur la session (les chiffres, le tour
+# idéal et les conseils restent ceux de TOUS les tours retenus).
+_others = sorted(n for n in used if n != best)
+shown = {best} | set(_others[:: max(1, len(_others) // 3)][:3])
+
+
 def keep_lap(lap):
     n = lap.get("lap_number")
-    return bool(lap.get("is_synthetic")) or n in used
+    return bool(lap.get("is_synthetic")) or n in shown
 
 
 def rnd(o, key=""):
@@ -88,7 +95,7 @@ out = {
     "corner_analysis": [{k: c[k] for k in corner_fields if k in c} for c in res["corner_analysis"]],
     "ideal_lap": ideal_keep,
     "plot_data": {
-        "speed_trace": {**pd["speed_trace"], "laps": [l for l in pd["speed_trace"]["laps"] if l["lap_number"] in used]},
+        "speed_trace": {**pd["speed_trace"], "laps": [l for l in pd["speed_trace"]["laps"] if l["lap_number"] in shown]},
         "performance_radar": pd["performance_radar"],
         "apex_margin": pd["apex_margin"],
         "racing_line_meta": pd["racing_line_meta"],

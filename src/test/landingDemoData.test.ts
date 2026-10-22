@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { DEMO_ANALYSIS, DEMO_BEST_LAP } from "@/components/landing/data/demoAnalysis";
+import { DEMO_CORNERS } from "@/components/landing/data/demoLabel";
 import raw from "@/components/landing/data/demoAnalysis.json";
 
 /**
@@ -22,16 +23,21 @@ describe("analyse de démo de la page d'accueil", () => {
   it("chaque tour retenu a sa trajectoire, sa trace de vitesse, plus le Tour Parfait IA", () => {
     const used = ideal.laps_used!;
     const traj = plot.trajectory_2d.laps!;
-    expect(traj.filter((l) => !l.is_synthetic).map((l) => l.lap_number)).toEqual(used);
+    const shown = traj.filter((l) => !l.is_synthetic).map((l) => l.lap_number);
+    // Quelques tours seulement sont embarqués (le meilleur y est toujours).
+    expect(shown.length).toBeGreaterThanOrEqual(2);
+    expect(shown).toContain(DEMO_BEST_LAP);
+    for (const n of shown) expect(used).toContain(n);
     expect(traj.filter((l) => l.is_synthetic)).toHaveLength(1);
-    expect(plot.speed_trace.laps.map((l) => l.lap_number)).toEqual(used);
+    expect(plot.speed_trace.laps.map((l) => l.lap_number)).toEqual(shown);
     for (const l of plot.speed_trace.laps) expect(l.speed_kmh).toHaveLength(l.distance_m.length);
     for (const l of traj) expect(l.lat).toHaveLength(l.lon.length);
   });
 
-  it("les 12 virages sont numérotés de 1 à 12 et chaque conseil cite un virage de la carte", () => {
+  it("les virages sont numérotés de 1 à N (N = DEMO_CORNERS) et chaque conseil cite un virage de la carte", () => {
     const onMap = plot.trajectory_2d.corners.map((c) => Number(c.label.replace("V", "")));
-    expect(onMap).toEqual(Array.from({ length: 12 }, (_, i) => i + 1));
+    expect(onMap).toEqual(Array.from({ length: DEMO_CORNERS }, (_, i) => i + 1));
+    expect(DEMO_ANALYSIS.corners_detected).toBe(DEMO_CORNERS);
     for (const a of DEMO_ANALYSIS.coaching_advice) {
       if (a.corner != null) expect(onMap).toContain(a.corner);
     }

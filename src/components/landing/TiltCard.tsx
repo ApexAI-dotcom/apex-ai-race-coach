@@ -38,7 +38,7 @@ interface TiltCardProps {
   glare?: boolean;
 }
 
-export function TiltCard({ children, className, rest = { x: 3, y: 5 }, range = 5, glare = true }: TiltCardProps) {
+export function TiltCard({ children, className, rest = { x: 2, y: 3 }, range = 3, glare = true }: TiltCardProps) {
   const can = useCanTilt();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -79,7 +79,7 @@ export function TiltCard({ children, className, rest = { x: 3, y: 5 }, range = 5
       ref={ref}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      style={{ rotateX, rotateY, rotateZ: -0.6, transformPerspective: 1600 }}
+      style={{ rotateX, rotateY, rotateZ: -0.3, transformPerspective: 1600 }}
       className={cn("relative will-change-transform", className)}
     >
       {children}

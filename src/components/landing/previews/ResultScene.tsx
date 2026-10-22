@@ -25,8 +25,11 @@ const CONTENT = "mt-5 sm:min-h-[690px]";
 
 const SECTION_TITLE = "mb-3 text-base font-semibold text-foreground";
 
-// Les deux courbes affichées : le meilleur tour et le suivant.
-const CHART_LAPS = [DEMO_BEST_LAP, 3];
+// Les deux courbes affichées : le meilleur tour et un autre tour de la session.
+const CHART_LAPS = [
+  DEMO_BEST_LAP,
+  DEMO_ANALYSIS.plot_data!.speed_trace.laps.find((l) => l.lap_number !== DEMO_BEST_LAP)!.lap_number,
+];
 
 // Le contexte de session + les deux conseils les plus coûteux : l'aperçu reste
 // de la taille de la carte, la page de résultat complète les liste tous.
@@ -63,10 +66,10 @@ export default function ResultScene(_props: { play?: boolean }) {
       <Tabs defaultValue="carte" className="p-3 sm:p-5">
         <TabsList className="flex h-auto w-full justify-start gap-5 rounded-none border-b border-white/10 bg-transparent p-0 sm:gap-8">
           <TabsTrigger value="carte" className={TAB}>
-            Carte<span className="hidden sm:inline"> du circuit</span>
+            Carte<span className="hidden sm:inline">&nbsp;du circuit</span>
           </TabsTrigger>
           <TabsTrigger value="coaching" className={TAB}>
-            Conseils<span className="hidden sm:inline"> de coaching</span>
+            Conseils<span className="hidden sm:inline">&nbsp;de coaching</span>
           </TabsTrigger>
           <TabsTrigger value="graphiques" className={TAB}>
             Graphiques

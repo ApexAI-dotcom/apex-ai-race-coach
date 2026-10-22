@@ -2,7 +2,7 @@ import type { AnalysisResponse } from "@/types/analysis";
 import raw from "./demoAnalysis.json";
 
 /**
- * La session de démo (Adria Karting Raceway) analysée par le VRAI moteur
+ * La session de démo (Karting de Plessé, fichier AiM récent) analysée par le VRAI moteur
  * d'ApexAI, réduite aux champs que l'accueil affiche : carte du circuit (vitesse,
  * freinage, mini-secteurs, comparaison), conseils de coaching, trace de vitesse,
  * radar. Rien n'est écrit à la main.

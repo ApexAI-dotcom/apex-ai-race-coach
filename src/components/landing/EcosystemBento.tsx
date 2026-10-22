@@ -62,7 +62,7 @@ function Panel({ value, tag, title, text, link, minHeight, note, children }: Pan
 
         <div>
           {/* Une carte légèrement inclinée, qui suit la souris (écran large seulement) */}
-          <TiltCard rest={{ x: 2, y: 3 }} range={3} glare={false}>
+          <TiltCard rest={{ x: 1, y: 2 }} range={2} glare={false}>
             <NearView minHeight={minHeight}>
               <Suspense fallback={<div style={{ minHeight }} />}>{children}</Suspense>
             </NearView>
