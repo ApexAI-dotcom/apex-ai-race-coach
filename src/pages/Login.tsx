@@ -62,8 +62,12 @@ export default function Login() {
     if (params.get("mode") === "register" || params.get("mode") === "signup") {
       setIsSignUp(true);
     }
+    // Lien « Réinitialiser mon mot de passe » des mails de sécurité : on ouvre
+    // directement le formulaire, même si le pilote est déjà connecté.
+    const wantsReset = params.get("mode") === "reset";
+    if (wantsReset) setView("forgot_password");
 
-    if (!authLoading && user) {
+    if (!authLoading && user && !wantsReset) {
       const from = (location.state as { from?: Location })?.from?.pathname || "/dashboard";
       navigate(from, { replace: true });
     }

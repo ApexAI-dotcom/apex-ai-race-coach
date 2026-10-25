@@ -36,7 +36,7 @@ const TABS: Tab[] = [
 ];
 
 /** Écrans plein cadre où une barre d'onglets n'a rien à faire. */
-const HIDDEN_ON = ["/login", "/reset-password"];
+const HIDDEN_ON = ["/login", "/reset-password", "/auth/confirm"];
 
 export function useTabBarVisible() {
   const { pathname } = useLocation();

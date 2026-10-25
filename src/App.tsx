@@ -27,6 +27,7 @@ const PricingPage = lazy(loaders.pricing);
 const Profile = lazy(loaders.profile);
 const Login = lazy(loaders.login);
 const ResetPassword = lazy(loaders.resetPassword);
+const AuthConfirm = lazy(loaders.authConfirm);
 const Success = lazy(loaders.success);
 const Legal = lazy(loaders.legal);
 const CGU = lazy(loaders.cgu);
@@ -116,6 +117,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/auth/confirm" element={<AuthConfirm />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/success" element={<Success />} />
                 <Route path="/legal" element={<Legal />} />

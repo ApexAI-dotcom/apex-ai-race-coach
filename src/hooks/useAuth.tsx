@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { User, Session, AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { ADMIN_EMAIL } from "@/constants";
+import { ARRIVED_FROM_AUTH_REDIRECT, notifySignIn } from "@/lib/accountEvents";
 
 const GUEST_KEY = "apex_guest_mode";
 const GUEST_USED_KEY = "apex_guest_used";
@@ -48,6 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(getStoredGuest);
   const [guestUsed, setIsGuestUsed] = useState(getStoredGuestUsed);
+  // Compte connu au dernier évènement (undefined : pas encore d'évènement).
+  const userIdRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     // Récupérer la session initiale
@@ -60,7 +63,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Écouter les changements d'authentification
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Vraie connexion = un compte apparaît alors qu'il n'y en avait pas
+      // (mot de passe, lien de mail), ou retour de Google. Une session
+      // simplement restaurée ou rafraîchie ne compte pas.
+      const prev = userIdRef.current;
+      const now = session?.user?.id ?? null;
+      if (
+        (event === "SIGNED_IN" && now && prev === null) ||
+        (event === "INITIAL_SESSION" && now && ARRIVED_FROM_AUTH_REDIRECT)
+      ) {
+        notifySignIn(session);
+      }
+      if (event !== "TOKEN_REFRESHED") userIdRef.current = now;
+
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);

@@ -31,6 +31,7 @@ export const loaders = {
   parametres: () => import("./Parametres"),
   login: () => import("./Login"),
   resetPassword: () => import("./ResetPassword"),
+  authConfirm: () => import("./AuthConfirm"),
   success: () => import("./Success"),
   redeem: () => import("./RedeemPage"),
   analysisResult: () => import("./AnalysisResultPage"),
