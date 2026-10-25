@@ -10,6 +10,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
+import { formatPassDuration } from "@/lib/paddockPass";
 
 export default function RedeemPage() {
   const [params] = useSearchParams();
@@ -56,7 +57,10 @@ export default function RedeemPage() {
     }
   };
 
-  const hours = done?.duration_hours || 24;
+  const duration = done?.duration_hours ? formatPassDuration(Number(done.duration_hours)) : null;
+  const until = done?.until
+    ? new Date(done.until).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+    : null;
 
   return (
     <Layout>
@@ -68,7 +72,9 @@ export default function RedeemPage() {
           </div>
           <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">Paddock Pass</h1>
           <p className="text-sm text-muted-foreground mt-2">
-            Débloque toute la puissance d'ApexAI Premium pendant {hours}h.
+            {/* La durée dépend du code (24 h à 3 mois) : on ne la connaît qu'à l'activation. */}
+            Débloque toute la puissance d'ApexAI Premium
+            {duration ? <> pendant {duration}</> : " pour une durée limitée"}.
           </p>
         </div>
 
@@ -80,7 +86,8 @@ export default function RedeemPage() {
                 <h2 className="text-xl font-bold text-foreground">Accès Premium activé !</h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   Ton offre <span className="text-primary font-semibold capitalize">{done.tier}</span> est active
-                  pendant {hours}h. Profites-en pour tester toutes les fonctionnalités en piste.
+                  {duration ? <> pendant {duration}</> : null}
+                  {until ? <>, jusqu'au {until}</> : null}. Profites-en pour tester toutes les fonctionnalités en piste.
                 </p>
               </div>
               <div className="flex flex-col gap-2 pt-2">

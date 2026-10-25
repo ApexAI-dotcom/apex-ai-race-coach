@@ -22,6 +22,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
 import { api } from "@/lib/api";
+import { PADDOCK_PASS_MAX_HOURS, PADDOCK_PASS_PRESETS, formatPassDuration } from "@/lib/paddockPass";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { FeedbackAdminPanel } from "@/components/feedback/FeedbackAdminPanel";
@@ -302,6 +303,8 @@ function PaddockPassPanel({ token }: { token: string }) {
   const [hours, setHours] = useState("24");
   const [maxRed, setMaxRed] = useState("");
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const hoursValid =
+    Number.isInteger(Number(hours)) && Number(hours) >= 1 && Number(hours) <= PADDOCK_PASS_MAX_HOURS;
 
   const load = async () => {
     setLoading(true);
@@ -322,7 +325,7 @@ function PaddockPassPanel({ token }: { token: string }) {
       const res = await api.createPromoCode(token, {
         label: label.trim() || undefined,
         tier: "racer",
-        durationHours: Number(hours) || 24,
+        durationHours: Number(hours),
         maxRedemptions: maxRed ? Number(maxRed) : undefined,
         expiresInDays: 90,
       });
@@ -360,13 +363,38 @@ function PaddockPassPanel({ token }: { token: string }) {
           </div>
           <div className="space-y-2">
             <Label>Durée (heures)</Label>
-            <Input type="number" min={1} max={720} value={hours} onChange={(e) => setHours(e.target.value)} />
+            <Input type="number" min={1} max={PADDOCK_PASS_MAX_HOURS} value={hours} onChange={(e) => setHours(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Utilisations max</Label>
             <Input type="number" min={1} value={maxRed} onChange={(e) => setMaxRed(e.target.value)} placeholder="illimité" />
           </div>
-          <Button onClick={create} disabled={creating} className="md:col-span-4 gap-2">
+          {/* Essais courts pour les circuits, longs pour les pilotes testeurs. */}
+          <div className="md:col-span-4 space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {PADDOCK_PASS_PRESETS.map((p) => {
+                const selected = Number(hours) === p.hours;
+                return (
+                  <Button
+                    key={p.hours}
+                    type="button"
+                    size="sm"
+                    variant={selected ? "default" : "outline"}
+                    className="rounded-full"
+                    onClick={() => setHours(String(p.hours))}
+                  >
+                    {p.label}
+                  </Button>
+                );
+              })}
+            </div>
+            <p className={`text-xs ${hoursValid ? "text-muted-foreground" : "text-destructive"}`}>
+              {hoursValid
+                ? `Durée de l'essai : ${formatPassDuration(Number(hours))}.`
+                : "Durée possible : de 1 heure à 3 mois."}
+            </p>
+          </div>
+          <Button onClick={create} disabled={creating || !hoursValid} className="md:col-span-4 gap-2">
             {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />}
             Générer le code
           </Button>
@@ -393,7 +421,7 @@ function PaddockPassPanel({ token }: { token: string }) {
                     </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1 truncate">
-                    {c.label || "Sans libellé"} · {c.duration_hours} h · {c.redemptions}
+                    {c.label || "Sans libellé"} · {formatPassDuration(Number(c.duration_hours))} · {c.redemptions}
                     {c.max_redemptions ? `/${c.max_redemptions}` : ""} activation(s)
                   </p>
                 </div>

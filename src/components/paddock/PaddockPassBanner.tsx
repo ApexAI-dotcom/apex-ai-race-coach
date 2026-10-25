@@ -3,20 +3,12 @@ import { Link } from "react-router-dom";
 import { Ticket, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { formatTimeLeft } from "@/lib/paddockPass";
 
 /**
  * Bandeau discret affiché quand un Paddock Pass est actif : compte à rebours
  * en temps réel pour que le pilote ressente son accès premium temporaire.
  */
-function fmt(seconds: number): string {
-  if (seconds <= 0) return "expiré";
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  if (h > 0) return `${h}h ${m.toString().padStart(2, "0")}m`;
-  if (m > 0) return `${m}m ${s.toString().padStart(2, "0")}s`;
-  return `${s}s`;
-}
 
 export function PaddockPassBanner() {
   const { session } = useAuth();
@@ -74,7 +66,7 @@ export function PaddockPassBanner() {
         ) : (
           <span className="text-foreground">
             <span className="font-semibold capitalize">{tier}</span> actif via Paddock Pass —
-            <span className="text-primary font-semibold"> expire dans {fmt(secondsLeft)}</span>
+            <span className="text-primary font-semibold"> expire dans {formatTimeLeft(secondsLeft)}</span>
           </span>
         )}
         <button
