@@ -309,7 +309,12 @@ export interface TrackFeatures {
   speed_ratio?: string | null; // "sinueux" | "mixte" | "rapide"
   rotation?: string | null; // "horaire" | "anti-horaire"
   hairpins_count?: number | null;
+  /** Virages ni épingle ni rapide (épingles + moyens + rapides = total). */
+  medium_corners_count?: number | null;
   fast_corners_count?: number | null;
+  /** Nature de chaque virage, relative à la vitesse de pointe de la session. */
+  corner_kinds?: { corner_number: number; kind: "epingle" | "moyen" | "rapide" }[];
+  top_speed_kmh?: number | null;
   elevation?: string | null;
   bumpiness?: string | null;
   corners_total?: number | null;
