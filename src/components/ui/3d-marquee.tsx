@@ -46,7 +46,9 @@ export const ThreeDMarquee = ({
       )}
     >
       <div className="flex size-full items-center justify-center">
-        <div className="size-[1720px] shrink-0 scale-50 sm:scale-75 lg:scale-100 relative -top-24 left-[420px]">
+        {/* Le mur a une taille fixe : il suit la largeur de l'écran, sinon il paraît
+            minuscule (« dézoomé ») sur un écran de bureau, bien plus large qu'un portable. */}
+        <div className="size-[1720px] shrink-0 scale-50 sm:scale-75 lg:scale-100 xl:scale-[1.12] 2xl:scale-[1.3] min-[1800px]:scale-[1.5] min-[2200px]:scale-[1.8] min-[2800px]:scale-[2.3] relative -top-24 left-[420px]">
           <div
             style={{
               transform: "perspective(1000px) rotateX(55deg) rotateY(0deg) rotateZ(-45deg)",
