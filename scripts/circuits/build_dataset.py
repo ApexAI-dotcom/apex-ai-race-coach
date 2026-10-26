@@ -178,7 +178,10 @@ def main(cand_path, tracks_path, depts_path, out_dir, links_path=None, measured_
     # structure à quelques km de son adresse : dans ces cas on complète la fiche
     # existante au lieu d'en créer une seconde.
     def same_site(fiche, c):
-        if slugify(fiche["name"]) != slugify(title(c["name"])):
+        a = slugify(fiche["name"]).replace("-", "")
+        b = slugify(title(c["name"])).replace("-", "")
+        # Même nom, ou l'un contient l'autre (« Solokart » / « Solo Kart Chateaubriand »)
+        if not (a == b or (min(len(a), len(b)) >= 6 and (a in b or b in a))):
             return False
         if fiche["city"] and slugify(fiche["city"]) == slugify(title(c["city"])):
             return True

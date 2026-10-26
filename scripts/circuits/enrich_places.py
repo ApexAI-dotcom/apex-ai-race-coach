@@ -55,6 +55,19 @@ def main(circ_path, depts_path, cache_path):
         c["department_code"], c["department"], c["region"] = (cp, d["nom"], d["region"]) if d else (cp, "", "")
     # Hors de France (pistes frontalières captées par une emprise) : retirées
     kept = [c for c in circuits if c.get("country", "FR") == "FR"]
+    # Identifiants lisibles et uniques, une fois la commune connue
+    import re, unicodedata
+    def slugify(x):
+        x = unicodedata.normalize("NFKD", x).encode("ascii", "ignore").decode()
+        return re.sub(r"[^a-z0-9]+", "-", x.lower()).strip("-")
+    seen = set()
+    for c in kept:
+        base = slugify(f"{c['name']}-{c['city']}") if c["city"] and slugify(c["city"]) not in slugify(c["name"]) else slugify(c["name"])
+        slug, k = base, 2
+        while slug in seen:
+            slug, k = f"{base}-{k}", k + 1
+        seen.add(slug)
+        c["slug"] = slug
     kept.sort(key=lambda c: (c["department_code"] or "zz", c["name"]))
     json.dump(kept, open(circ_path, "w"), ensure_ascii=False)
     print(len(kept), "fiches en France ;", sum(1 for c in kept if not c["department"]), "sans département")

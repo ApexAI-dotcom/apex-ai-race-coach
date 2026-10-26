@@ -6,6 +6,8 @@ celle de la société ou du club et pas celle de la piste.
 
 Politesse : 1 requête / 1,1 s, User-Agent du projet (règles Nominatim).
 Sortie : nominatim_hits.json
+
+Usage : python3 nominatim_search.py departements.json sortie.json ["karting,kart"]
 """
 import json, sys, time, urllib.parse, urllib.request
 
@@ -18,13 +20,13 @@ def search(q):
     with urllib.request.urlopen(req, timeout=60) as r:
         return json.load(r)
 
-def main(depts_path, out):
+def main(depts_path, out, terms="karting,kart"):
     depts = json.load(open(depts_path))
     hits = {}
     for code, d in depts.items():
         if code in ("20", "75"):
             continue
-        for term in ("karting", "kart"):
+        for term in terms.split(","):
             try:
                 res = search(f"{term} {d['nom']}")
             except Exception as e:
@@ -39,4 +41,4 @@ def main(depts_path, out):
     json.dump(list(hits.values()), open(out, "w"), ensure_ascii=False)
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(*sys.argv[1:4])
