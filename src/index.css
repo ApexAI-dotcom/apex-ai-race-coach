@@ -55,6 +55,10 @@
     --gold: 45 100% 60%;
     --gold-foreground: 0 0% 0%;
 
+    /* Couleurs de chrono : tour plus rapide / plus lent que la référence */
+    --gain: 152 62% 48%;
+    --loss: 36 92% 58%;
+
     --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 0 100% 63%;
@@ -93,6 +97,8 @@
     --sidebar-accent-foreground: 0 0% 9%;
     --sidebar-border: 0 0% 90%;
     --sidebar-ring: 0 100% 63%;
+    --gain: 152 72% 30%;
+    --loss: 28 90% 40%;
   }
 }
 

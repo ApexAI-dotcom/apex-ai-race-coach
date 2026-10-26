@@ -32,11 +32,11 @@ import PricingTeaser from "@/components/landing/PricingTeaser";
 // la page vitrine des visiteurs n'a pas à la télécharger. Pour un pilote déjà
 // connecté (session présente sur l'appareil), on lance son chargement dès
 // l'ouverture de l'app, en parallèle du reste.
-const loadSubscriberHome = () => import("@/components/home/SubscriberHome");
-const SubscriberHome = lazy(loadSubscriberHome);
+const loadPaddockHome = () => import("@/components/home/paddock/PaddockHome");
+const PaddockHome = lazy(loadPaddockHome);
 try {
   if (Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))) {
-    loadSubscriberHome();
+    loadPaddockHome();
   }
 } catch {
   /* stockage indisponible : chargement à la demande */
@@ -162,7 +162,7 @@ export default function Index() {
       <Layout>
         <div className="container mx-auto px-4 pt-6 pb-12 md:pt-24">
           <Suspense fallback={<div className="min-h-[70vh]" />}>
-            <SubscriberHome />
+            <PaddockHome />
           </Suspense>
         </div>
       </Layout>
