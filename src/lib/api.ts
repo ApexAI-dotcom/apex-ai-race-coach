@@ -1596,6 +1596,90 @@ export async function searchCatalogCircuits(q: string, dept?: string, limit = 12
   }
 }
 
+// ─── Base des composants 2026-2027 (table kart_components + fiches sourcées)
+export interface PartSource {
+  key: string;
+  label: string;
+  url?: string | null;
+  /** constructeur, règlement, homologation, retour pilotes, presse spécialisée, revendeur, base ApexAI */
+  type: string;
+}
+
+export interface PartMaintenance {
+  element: string;
+  action: string;
+  interval: number | string | null;
+  unit?: string | null;
+  usage?: string | null;
+  source: string;
+  ref?: string | null;
+  kind: string;
+}
+
+export interface CatalogPart {
+  id: string;
+  category: string;
+  category_label?: string;
+  brand: string;
+  name: string;
+  subcategory?: string | null;
+  specs?: Record<string, any>;
+  default_life?: number | null;
+  life_unit?: string | null;
+  in_db?: boolean;
+  uses?: string[];
+  aliases?: string[];
+  homologation?: string | null;
+  source_types?: string[];
+  has_maintenance?: boolean;
+  notes?: string | null;
+  maintenance?: PartMaintenance[];
+  sources?: PartSource[];
+}
+
+export interface PartsSearch {
+  parts: CatalogPart[];
+  categories: Record<string, string>;
+  counts: Record<string, number>;
+  total: number;
+}
+
+export async function searchParts(q: string, category?: string, limit = 40): Promise<PartsSearch> {
+  const params = new URLSearchParams({ q, limit: String(limit) });
+  if (category) params.set("category", category);
+  try {
+    const r = await fetch(`${API_BASE_URL}/api/catalog/parts?${params.toString()}`);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    return { parts: d.parts ?? [], categories: d.categories ?? {}, counts: d.counts ?? {}, total: d.total ?? 0 };
+  } catch {
+    return { parts: [], categories: {}, counts: {}, total: 0 };
+  }
+}
+
+export async function getPart(id: string): Promise<CatalogPart | null> {
+  try {
+    const r = await fetch(`${API_BASE_URL}/api/catalog/parts/${encodeURIComponent(id)}`);
+    if (!r.ok) return null;
+    return (await r.json())?.part ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function matchPart(label: string, category?: string): Promise<CatalogPart | null> {
+  if (!label?.trim()) return null;
+  const params = new URLSearchParams({ label });
+  if (category) params.set("category", category);
+  try {
+    const r = await fetch(`${API_BASE_URL}/api/catalog/parts/match?${params.toString()}`);
+    if (!r.ok) return null;
+    return (await r.json())?.part ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getCatalogCircuit(accessToken: string, slug: string): Promise<CatalogCircuit | null> {
   const r = await tireSetFetch(accessToken, `/api/catalog/circuits/${encodeURIComponent(slug)}`, "GET");
   return r?.circuit ?? null;

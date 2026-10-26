@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Disc3, Plus, Pencil, Trash2, CloudRain, Loader2, CircleCheck, CircleDot } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -42,6 +43,7 @@ export function TireStockCard({ token, tireSets, onRefresh }: TireStockCardProps
   const [form, setForm] = useState<any>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [mountingId, setMountingId] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(true);
 
   useEffect(() => {
     if (!token) return;
@@ -50,13 +52,31 @@ export function TireStockCard({ token, tireSets, onRefresh }: TireStockCardProps
       .catch(() => setCatalogTires([]));
   }, [token]);
 
+  // Pneus du catalogue groupés par marque, pour le sélecteur avec recherche
+  const tireBrands = useMemo(() => {
+    const m = new Map<string, any[]>();
+    catalogTires.forEach((c) => {
+      const rows = m.get(c.brand) || [];
+      rows.push(c);
+      m.set(c.brand, rows);
+    });
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [catalogTires]);
+  const selectedTire = catalogTires.find((c) => c.id === form.componentId) || null;
+  const tireMeta = (c: any) =>
+    [c.specs?.use === "rain" || c.subcategory === "Wet" ? "Pluie" : null, c.specs?.cik_type || null, ...(c.uses || []).slice(0, 2)]
+      .filter(Boolean)
+      .join(" · ");
+
   const openCreate = () => {
+    setPickerOpen(true);
     setEditingId(null);
     setForm({ ...emptyForm, label: `Train ${tireSets.length + 1}` });
     setDialogOpen(true);
   };
 
   const openEdit = (s: any) => {
+    setPickerOpen(!s.component_id);
     setEditingId(s.id);
     setForm({
       label: s.label || "",
@@ -238,17 +258,43 @@ export function TireStockCard({ token, tireSets, onRefresh }: TireStockCardProps
 
             <div className="space-y-2">
               <Label>Modèle (catalogue)</Label>
-              <Select value={form.componentId || "custom"} onValueChange={handleModelSelect}>
-                <SelectTrigger><SelectValue placeholder="Choisir un pneu..." /></SelectTrigger>
-                <SelectContent>
-                  {catalogTires.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.brand} {c.name} ({c.subcategory})
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="custom">Autre (saisie libre)…</SelectItem>
-                </SelectContent>
-              </Select>
+              {selectedTire && !pickerOpen ? (
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-sm">
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">{selectedTire.brand} {selectedTire.name}</span>
+                    {tireMeta(selectedTire) && <span className="block truncate text-xs text-muted-foreground">{tireMeta(selectedTire)}</span>}
+                  </span>
+                  <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={() => setPickerOpen(true)}>Changer</Button>
+                </div>
+              ) : (
+                <Command className="rounded-lg border border-border">
+                  <CommandInput placeholder="Marque, modèle ou catégorie (ex. XH4, KZ2, Rotax)" />
+                  <CommandList className="max-h-[220px]">
+                    <CommandEmpty>Aucun pneu trouvé : choisis « Autre » et saisis le modèle.</CommandEmpty>
+                    {tireBrands.map(([brand, rows]) => (
+                      <CommandGroup key={brand} heading={brand}>
+                        {rows.map((c) => (
+                          <CommandItem
+                            key={c.id}
+                            value={`${c.brand} ${c.name} ${(c.aliases || []).join(" ")} ${(c.uses || []).join(" ")} ${c.id}`}
+                            onSelect={() => { handleModelSelect(c.id); setPickerOpen(false); }}
+                          >
+                            <span className="min-w-0">
+                              <span className="block truncate">{c.name}</span>
+                              {tireMeta(c) && <span className="block truncate text-[11px] text-muted-foreground">{tireMeta(c)}</span>}
+                            </span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ))}
+                    <CommandGroup heading="Autre">
+                      <CommandItem value="autre saisie libre custom" onSelect={() => { handleModelSelect("custom"); setPickerOpen(false); }}>
+                        Autre (saisie libre)…
+                      </CommandItem>
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              )}
               {!form.componentId && (
                 <Input
                   value={form.customModel}

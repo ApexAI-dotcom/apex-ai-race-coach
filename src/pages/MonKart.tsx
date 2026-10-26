@@ -30,6 +30,8 @@ import { KartMaintenanceLog } from "@/components/kart/KartMaintenanceLog";
 import { GarageHeader } from "@/components/kart/GarageHeader";
 import { KartIdentityCard } from "@/components/kart/KartIdentityCard";
 import { TireStockCard } from "@/components/kart/TireStockCard";
+import { PartsCatalog } from "@/components/kart/parts/PartsCatalog";
+import { EngineMaintenanceCard } from "@/components/kart/parts/EngineMaintenanceCard";
 import { WeightCard } from "@/components/kart/WeightCard";
 import { WearGauge } from "@/components/kart/WearGauge";
 import { Layout } from "@/components/layout/Layout";
@@ -639,6 +641,14 @@ export default function MonKart() {
               />
             </div>
 
+            {prof && (
+              <EngineMaintenanceCard
+                engineLabel={prof.engine_model}
+                hoursLife={prof.engine_hours_life}
+                onApplyLife={(h) => handleUpdateCounter("engine_hours_life", h)}
+              />
+            )}
+
             {/* Journal d'Entretien */}
             <div className="mt-6">
               {prof && (
@@ -652,6 +662,8 @@ export default function MonKart() {
                 />
               )}
             </div>
+
+            <PartsCatalog />
 
             {/* Historique des Journées de Roulage - Déplacé dans la colonne de droite pour combler le vide */}
             <Card className="bg-card border-border shadow-sm">
