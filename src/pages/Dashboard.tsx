@@ -86,7 +86,7 @@ import { useSubscriptionLegacy } from "@/hooks/useSubscriptionLegacy";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
 import { useAuth } from "@/hooks/useAuth";
 import { mapApiResultToResponse } from "@/hooks/useAnalysis";
-import { SessionComparison } from "@/components/analysis/SessionComparison";
+import { CompareResults } from "@/components/compare/CompareResults";
 import { AnalysisDashboardContent } from "@/components/analysis/AnalysisDashboardContent";
 import { SessionSummary } from "@/components/analysis/SessionSummary";
 import { TrackMap } from "@/components/analysis/TrackMap";
@@ -597,13 +597,28 @@ export default function Dashboard() {
     featuredAnalysis?.session_conditions?.session_name || latestAnalysis?.session_name;
   const featuredPlotData = featuredAnalysis?.plot_data;
 
+  // Noms des deux séances comparées : leur date (et l'heure si c'est le même jour).
+  const compareNames = ((): [string, string] => {
+    const label = (id: string) => {
+      const a = analyses.find((x) => x.id === id);
+      return a ? new Date(a.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "Séance";
+    };
+    const withTime = (id: string) => {
+      const a = analyses.find((x) => x.id === id);
+      return a ? new Date(a.date).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Séance";
+    };
+    const n1 = label(compareSlot1);
+    const n2 = label(compareSlot2);
+    return n1 === n2 ? [withTime(compareSlot1), withTime(compareSlot2)] : [n1, n2];
+  })();
+
   return (
     <Layout>
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <PageMeta
-        title="Tableau de bord | ApexAI"
+        title="Sessions | ApexAI"
         description="Historique de tes analyses et comparaison de sessions."
         path="/dashboard"
       />
@@ -614,7 +629,7 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-                Tableau de bord
+                Sessions
               </h1>
               <p className="text-muted-foreground mt-1 text-sm md:text-base">
                 Gère et compare tes sessions
@@ -1307,11 +1322,8 @@ export default function Dashboard() {
                   deux tableaux de bord complets côte à côte — le pilote devait
                   tout confronter à l'œil, et sur téléphone ils s'empilaient. */}
               <div className="flex-1 overflow-y-auto overscroll-contain overflow-x-hidden p-4 md:p-8 custom-scrollbar bg-background">
-                <div className="max-w-5xl mx-auto">
-                  <SessionComparison
-                    a={mapApiResultToResponse(compareResult1)}
-                    b={mapApiResultToResponse(compareResult2)}
-                  />
+                <div className="max-w-6xl mx-auto">
+                  <CompareResults ra={compareResult1} rb={compareResult2} names={compareNames} />
                 </div>
               </div>
             </motion.div>

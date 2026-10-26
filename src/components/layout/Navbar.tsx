@@ -30,7 +30,7 @@ import {
 
 const guestNavItems = [
   { name: "Accueil", path: "/" },
-  { name: "Tableau de bord", path: "/dashboard" },
+  { name: "Sessions", path: "/dashboard" },
   { name: "Analyser", path: "/upload", isHero: true },
   { name: "Mon Kart", path: "/mon-kart" },
   { name: "Réglages", path: "/setup" },
@@ -40,8 +40,8 @@ const guestNavItems = [
 // Le calendrier n'apparaît que pour un pilote connecté : il n'a aucun sens
 // pour un visiteur, et la page est de toute façon protégée.
 const subscriberNavItems = [
-  { name: "Accueil", path: "/" },
-  { name: "Tableau de bord", path: "/dashboard" },
+  { name: "Tableau de bord", path: "/" },
+  { name: "Sessions", path: "/dashboard" },
   { name: "Analyser", path: "/upload", isHero: true },
   { name: "Mon Kart", path: "/mon-kart" },
   { name: "Réglages", path: "/setup" },

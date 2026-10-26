@@ -26,6 +26,7 @@ import { PADDOCK_PASS_MAX_HOURS, PADDOCK_PASS_PRESETS, formatPassDuration } from
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { FeedbackAdminPanel } from "@/components/feedback/FeedbackAdminPanel";
+import { LaunchPanel } from "@/components/admin/LaunchPanel";
 
 const CHART = ["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#a855f7", "#64748b"];
 const TIER_LABELS: Record<string, string> = {
@@ -134,13 +135,20 @@ export default function Admin() {
           </Badge>
         </div>
 
-        <Tabs defaultValue={can("stats") ? "overview" : "feedback"}>
+        <Tabs defaultValue={can("stats") ? "launch" : "feedback"}>
           <TabsList className="flex-wrap h-auto">
+            {can("stats") && <TabsTrigger value="launch" className="gap-2"><Users className="w-4 h-4" />Lancement</TabsTrigger>}
             {can("stats") && <TabsTrigger value="overview" className="gap-2"><BarChart3 className="w-4 h-4" />Vue d'ensemble</TabsTrigger>}
             {can("feedback") && <TabsTrigger value="feedback" className="gap-2"><Inbox className="w-4 h-4" />Retours pilotes</TabsTrigger>}
             {can("promo") && <TabsTrigger value="promo" className="gap-2"><Ticket className="w-4 h-4" />Paddock Pass</TabsTrigger>}
             {can("roles") && <TabsTrigger value="roles" className="gap-2"><UserCog className="w-4 h-4" />Collaborateurs</TabsTrigger>}
           </TabsList>
+
+          {can("stats") && (
+            <TabsContent value="launch" className="mt-6">
+              {token && <LaunchPanel token={token} />}
+            </TabsContent>
+          )}
 
           {can("stats") && (
             <TabsContent value="overview" className="mt-6 space-y-6">
