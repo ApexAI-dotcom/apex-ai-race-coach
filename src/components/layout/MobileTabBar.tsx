@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, LineChart, Zap, Gauge, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { Home, LayoutDashboard, LineChart, Zap, Gauge, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { prefetchRoute } from "@/pages/loaders";
 
@@ -19,6 +20,8 @@ interface Tab {
   label: string;
   icon: LucideIcon;
   hero?: boolean;
+  /** Libellé long tenu sur une ligne (« Tableau de bord »). */
+  tight?: boolean;
   match: (path: string) => boolean;
 }
 
@@ -77,6 +80,11 @@ function useKeyboardOpen() {
 export function MobileTabBar() {
   const { pathname } = useLocation();
   const keyboardOpen = useKeyboardOpen();
+  const { isAuthenticated } = useAuth();
+  // Connecté, la page d'accueil est son tableau de bord.
+  const tabs = isAuthenticated
+    ? TABS.map((t) => (t.to === "/" ? { ...t, label: "Tableau de bord", icon: LayoutDashboard, tight: true } : t))
+    : TABS;
 
   return (
     <nav
@@ -90,7 +98,7 @@ export function MobileTabBar() {
       )}
     >
       <ul className="grid grid-cols-5 h-[var(--tabbar-h)]">
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const active = tab.match(pathname);
           const Icon = tab.icon;
           return (
@@ -134,7 +142,7 @@ export function MobileTabBar() {
                     />
                   </span>
                 )}
-                <span className={cn("leading-none", tab.hero && active && "text-primary")}>{tab.label}</span>
+                <span className={cn("leading-none", tab.tight && "whitespace-nowrap tracking-[-0.035em]", tab.hero && active && "text-primary")}>{tab.label}</span>
               </Link>
             </li>
           );

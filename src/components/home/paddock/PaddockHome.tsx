@@ -8,8 +8,9 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { API_BASE_URL } from "@/lib/api";
 import { LapLadder } from "./LapLadder";
 import { TrackOutline } from "./TrackOutline";
-import { WeekStrip } from "./WeekStrip";
-import { usePaddockData, type PaddockData, type PaddockSession, type CircuitRecord, type Activity } from "./usePaddockData";
+import { KpiTile } from "./KpiTile";
+import { ProgressionChart } from "./ProgressionChart";
+import { usePaddockData, type PaddockData, type PaddockSession, type CircuitRecord } from "./usePaddockData";
 import {
   SESSION_TYPE,
   formatDay,
@@ -99,31 +100,87 @@ function LastSession({ s }: { s: PaddockSession }) {
   );
 }
 
-function ActivityBlock({ a, weeks }: { a: Activity; weeks: ReturnType<typeof usePaddockData>["weeks"] }) {
-  const stats = [
-    { label: "Séances", value: String(a.sessions) },
-    { label: "Tours", value: String(a.laps) },
-    { label: "Temps en piste", value: formatDuration(a.seconds) },
-    a.meters != null
-      ? { label: "Distance", value: `${formatKm(a.meters)} km` }
-      : { label: "Vitesse maxi", value: a.vmax ? `${Math.round(a.vmax)} km/h` : "—" },
-  ];
+function KpiRow({ data }: { data: PaddockData }) {
+  const a = data.activity;
+  const weekLabel = (t: number) => `Semaine du ${new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
+  const chrono = [...data.sessions].sort((x, y) => x.timestamp - y.timestamp).slice(-12);
+  const reg = chrono.filter((s) => s.regularity != null);
+  const lastReg = reg[reg.length - 1]?.regularity ?? null;
+  const prevRegs = reg.slice(0, -1).map((s) => s.regularity as number);
+  const avgPrevReg = prevRegs.length ? prevRegs.reduce((x, y) => x + y, 0) / prevRegs.length : null;
+  const scored = chrono.filter((s) => typeof s.score === "number");
+  const lastScore = scored[scored.length - 1]?.score ?? null;
+  const prevScore = scored[scored.length - 2]?.score ?? null;
+  const sec = (v: number) => `${v.toFixed(2).replace(".", ",")} s`;
+  const diff = (now: number, before: number) => (now - before > 0 ? `+${now - before}` : `${now - before}`);
+
   return (
-    <section aria-labelledby="activite" className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-end">
-      <div>
-        <h2 id="activite" className="font-display text-lg font-semibold text-foreground">
-          Tes 30 derniers jours
-        </h2>
-        <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((st) => (
-            <div key={st.label}>
-              <dd className="font-display text-2xl font-semibold tabular-nums text-foreground">{st.value}</dd>
-              <dt className="text-xs text-muted-foreground">{st.label}</dt>
-            </div>
-          ))}
-        </dl>
+    <section aria-label="Tes indicateurs" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <KpiTile
+        label="Séances, 30 jours"
+        value={String(a.sessions)}
+        caption={`${a.previous.sessions} les 30 jours d'avant`}
+        delta={a.sessions !== a.previous.sessions ? { text: diff(a.sessions, a.previous.sessions), good: a.sessions > a.previous.sessions } : undefined}
+        trend={data.weeks.map((w) => w.sessions)}
+        trendLabels={data.weeks.map((w) => `${weekLabel(w.start)} : ${w.sessions} séance${w.sessions > 1 ? "s" : ""}`)}
+        formatPoint={(v) => String(v)}
+        bars
+      />
+      <KpiTile
+        label="Tours, 30 jours"
+        value={String(a.laps)}
+        caption={[a.meters != null ? `${formatKm(a.meters)} km` : null, `${formatDuration(a.seconds)} en piste`].filter(Boolean).join(", ")}
+        delta={a.laps !== a.previous.laps ? { text: diff(a.laps, a.previous.laps), good: a.laps > a.previous.laps } : undefined}
+        trend={data.weeks.map((w) => w.laps)}
+        trendLabels={data.weeks.map((w) => `${weekLabel(w.start)} : ${w.laps} tours`)}
+        formatPoint={(v) => String(v)}
+        bars
+      />
+      <KpiTile
+        label="Régularité"
+        value={lastReg != null ? sec(lastReg) : "—"}
+        caption={lastReg != null ? "Écart moyen au meilleur tour" : "Il faut au moins 4 tours"}
+        delta={
+          lastReg != null && avgPrevReg != null
+            ? { text: formatDelta(lastReg - avgPrevReg), good: lastReg < avgPrevReg }
+            : undefined
+        }
+        trend={reg.map((s) => s.regularity as number)}
+        trendLabels={reg.map((s) => `${formatShortDay(s.date)}, ${s.circuit}`)}
+        formatPoint={sec}
+        lowerIsBetter
+      />
+      <KpiTile
+        label="Score d'analyse"
+        value={lastScore != null ? String(lastScore) : "—"}
+        caption="Dernière séance"
+        delta={lastScore != null && prevScore != null && lastScore !== prevScore ? { text: diff(lastScore, prevScore), good: lastScore > prevScore } : undefined}
+        trend={scored.map((s) => s.score)}
+        trendLabels={scored.map((s) => `${formatShortDay(s.date)}, ${s.circuit}`)}
+        formatPoint={(v) => String(Math.round(v))}
+      />
+    </section>
+  );
+}
+
+function EmptyDashboard({ onAnalyse }: { onAnalyse: () => void }) {
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6 md:p-10">
+      <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_200px]">
+        <div>
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground">Ton tableau de bord se remplit à chaque séance</h2>
+          <p className="mt-2 max-w-prose text-muted-foreground">
+            Dépose le fichier de session de ton boîtier d'acquisition : tu verras ici ton meilleur tour, le temps de chaque tour,
+            ta régularité, tes records par circuit et ta progression.
+          </p>
+          <Button size="lg" className="mt-6" onClick={onAnalyse}>
+            Analyser ma première séance
+          </Button>
+        </div>
+        <div className="hidden text-foreground/40 md:block">
+          <TrackOutline size={200} strokeWidth={2} />
+        </div>
       </div>
-      <WeekStrip weeks={weeks} />
     </section>
   );
 }
@@ -294,7 +351,7 @@ export default function PaddockHome({ preview }: { preview?: PaddockData } = {})
   const [last, ...previous] = data.sessions;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10 pb-12">
+    <div className="mx-auto max-w-6xl space-y-8 pb-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl">Salut {firstName}</h1>
@@ -309,6 +366,12 @@ export default function PaddockHome({ preview }: { preview?: PaddockData } = {})
         </Button>
       </header>
 
+      {!data.loading && !last ? (
+        <EmptyDashboard onAnalyse={() => navigate("/upload")} />
+      ) : (
+        <KpiRow data={data} />
+      )}
+
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-10">
           {data.loading && !last ? (
@@ -317,7 +380,7 @@ export default function PaddockHome({ preview }: { preview?: PaddockData } = {})
             <LastSession s={last} />
           ) : null}
 
-          {data.sessions.length > 0 && <ActivityBlock a={data.activity} weeks={data.weeks} />}
+          {last && <ProgressionChart sessions={data.sessions} records={data.records} />}
 
           {previous.length > 0 && (
             <section aria-labelledby="seances">

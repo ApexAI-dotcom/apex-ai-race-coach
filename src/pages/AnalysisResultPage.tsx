@@ -44,7 +44,7 @@ export default function AnalysisResultPage() {
           <p className="text-[#8b949e] mb-4">{error ?? "Analyse introuvable."}</p>
           <Button variant="outline" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Retour au tableau de bord
+            Retour aux sessions
           </Button>
         </div>
       </Layout>
@@ -69,7 +69,7 @@ export default function AnalysisResultPage() {
             onClick={() => navigate("/dashboard")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Tableau de bord
+            Sessions
           </Button>
 
           <AnalysisDashboardContent analysis={data} />

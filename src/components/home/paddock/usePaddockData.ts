@@ -32,6 +32,8 @@ export interface PaddockSession {
   lon?: number[];
   /** Meilleur tour sur ce circuit avant cette séance (null : première séance ici). */
   previousRecord: number | null;
+  /** Écart moyen des tours lancés au meilleur tour, en secondes (null : trop peu de tours). */
+  regularity: number | null;
 }
 
 export interface CircuitRecord {
@@ -48,6 +50,8 @@ export interface Activity {
   seconds: number;
   meters: number | null;
   vmax: number | null;
+  /** Les mêmes chiffres sur les 30 jours d'avant, pour l'évolution. */
+  previous: { sessions: number; laps: number };
 }
 
 export interface WeekBar {
@@ -60,6 +64,19 @@ const DAY = 86400000;
 
 function circuitKeyOf(name?: string) {
   return (name || "").trim().toLowerCase();
+}
+
+/**
+ * Régularité : écart moyen au meilleur tour des tours lancés. On écarte le
+ * tour de sortie des stands et les tours anormalement lents (au-delà de
+ * 107 % du meilleur : drapeau, trafic, retour aux stands).
+ */
+export function regularityOf(laps: number[]): number | null {
+  if (laps.length < 4) return null;
+  const best = Math.min(...laps);
+  const flying = laps.slice(1).filter((t) => t <= best * 1.07);
+  if (flying.length < 3) return null;
+  return flying.reduce((a, t) => a + (t - best), 0) / flying.length;
 }
 
 function mondayOf(t: number) {
@@ -151,6 +168,7 @@ export function usePaddockData(userId: string | undefined, accessToken: string |
         lat: d?.lat,
         lon: d?.lon,
         previousRecord,
+        regularity: regularityOf(laps),
       });
     }
     // Tracé emprunté à une autre séance du même circuit quand celle-ci n'en a pas.
@@ -190,6 +208,7 @@ export function usePaddockData(userId: string | undefined, accessToken: string |
   const now = Date.now();
   const activity = useMemo<Activity>(() => {
     const recent = sessions.filter((s) => now - s.timestamp <= 30 * DAY);
+    const before = sessions.filter((s) => now - s.timestamp > 30 * DAY && now - s.timestamp <= 60 * DAY);
     const withLen = recent.filter((s) => s.lengthM && s.lapsCount);
     const vmaxes = recent.map((s) => s.vmax).filter((v): v is number => v != null);
     return {
@@ -198,6 +217,7 @@ export function usePaddockData(userId: string | undefined, accessToken: string |
       seconds: recent.reduce((a, s) => a + s.laps.reduce((x, y) => x + y, 0), 0),
       meters: withLen.length ? withLen.reduce((a, s) => a + (s.lengthM ?? 0) * s.lapsCount, 0) : null,
       vmax: vmaxes.length ? Math.max(...vmaxes) : null,
+      previous: { sessions: before.length, laps: before.reduce((a, s) => a + s.lapsCount, 0) },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessions]);
