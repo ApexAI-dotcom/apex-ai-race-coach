@@ -84,3 +84,6 @@ dist/
 .env.local
 .env*.local
 
+
+__pycache__/
+*.pyc
