@@ -1,0 +1,171 @@
+<title>Circuits de karting de France</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : bandeau de chiffres, barre de filtres collante, grille de fiches à vignette (tracé dessiné). */
+:root {
+  --bg: #f3f4f6;
+  --panel: #ffffff;
+  --fg: #16181c;
+  --muted: #5d636e;
+  --line: #dde0e5;
+  --track: #2a2e35;
+  --accent: #d72f33;
+  --hair: #d72f33;
+  --mid: #c98a12;
+  --fast: #1f9a54;
+  --chip: #eceef2;
+  --font-ui: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1013; --panel: #17191d; --fg: #eceef1; --muted: #9aa0aa; --line: #2a2d33;
+    --track: #d9dce1; --accent: #ff4d50; --hair: #ff5a5d; --mid: #e3a83a; --fast: #36c174; --chip: #22252b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1013; --panel: #17191d; --fg: #eceef1; --muted: #9aa0aa; --line: #2a2d33;
+  --track: #d9dce1; --accent: #ff4d50; --hair: #ff5a5d; --mid: #e3a83a; --fast: #36c174; --chip: #22252b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 14px; line-height: 1.45; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 48px; }
+header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+header p { color: var(--muted); margin: 6px 0 0; max-width: 68ch; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 20px 0 6px; }
+.stat b { display: block; font-family: var(--font-data); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 12px; }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 12px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.bar input, .bar select { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; min-width: 0; }
+.bar input { flex: 1 1 220px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: 12.5px; border: 1px solid var(--line); background: var(--chip); color: var(--fg); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.chip:focus-visible, .bar input:focus-visible, .bar select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.count { color: var(--muted); font-size: 12.5px; margin-left: auto; font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 12px; margin: 12px 0 16px; }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.thumb { aspect-ratio: 1 / 1; max-width: 100%; border-radius: 6px; background: var(--bg); display: grid; place-items: center; }
+.thumb svg { width: 100%; height: 100%; }
+.thumb .none { color: var(--muted); font-size: 12px; text-align: center; padding: 12px; }
+.name { font-weight: 600; font-size: 14.5px; line-height: 1.25; overflow-wrap: anywhere; }
+.place { color: var(--muted); font-size: 12.5px; }
+.nums { font-family: var(--font-data); font-size: 12.5px; font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.nums .e { color: var(--hair); } .nums .m { color: var(--mid); } .nums .r { color: var(--fast); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: auto; }
+.pill { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.pill.complet { color: var(--fast); border-color: currentColor; }
+.pill.dessiner { color: var(--hair); border-color: currentColor; }
+.pill.pilot { color: var(--fg); border-color: var(--fg); }
+.meta a { font-size: 12px; color: var(--accent); text-decoration: none; }
+.meta a:hover { text-decoration: underline; }
+footer { color: var(--muted); font-size: 12px; margin-top: 28px; max-width: 80ch; }
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color .15s; } .card:hover { border-color: var(--muted); } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Circuits de karting de France</h1>
+    <p>Base de travail ApexAI à vérifier : circuits, clubs et écoles déclarés à la FFSA, tracés OpenStreetMap et tracés mesurés par les sessions des pilotes. Longueur et virages sont calculés sur le tracé.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="bar" role="search">
+    <input id="q" type="search" placeholder="Nom, commune ou département" aria-label="Rechercher un circuit">
+    <select id="region" aria-label="Région"><option value="">Toutes les régions</option></select>
+    <div class="chips" id="status">
+      <button class="chip" type="button" data-s="" aria-pressed="true">Tous</button>
+      <button class="chip" type="button" data-s="complet" aria-pressed="false">Tracé complet</button>
+      <button class="chip" type="button" data-s="partiel" aria-pressed="false">Partiel</button>
+      <button class="chip" type="button" data-s="à dessiner" aria-pressed="false">À dessiner</button>
+      <button class="chip" type="button" data-s="pilot" aria-pressed="false">Roulé par nos pilotes</button>
+    </div>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--hair)"></i>épingle (≥ 130°)</span>
+    <span><i style="background:var(--mid)"></i>virage moyen</span>
+    <span><i style="background:var(--fast)"></i>rapide (&lt; 60° ou courbe large)</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    Tracés : © les contributeurs OpenStreetMap (licence ODbL), sauf mention « mesuré » (session d'un pilote ApexAI). Liste des structures : annuaire public « Où pratiquer » de la FFSA. Les chiffres d'un tracé OSM sont des estimations, que les sessions des pilotes remplaceront par des mesures.
+  </footer>
+</div>
+
+<script>
+const RANK = { "complet": 0, "fermé hors gabarit": 1, "partiel": 2, "à dessiner": 3 };
+const DATA = __DATA__.sort((a, b) => (b.ps > 0) - (a.ps > 0) || (RANK[a.s] ?? 9) - (RANK[b.s] ?? 9) || String(a.dc).localeCompare(String(b.dc)) || a.n.localeCompare(b.n, "fr"));
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const nf = new Intl.NumberFormat("fr-FR");
+let status = "";
+
+function stats() {
+  const tot = DATA.length;
+  const comp = DATA.filter((d) => d.s === "complet").length;
+  const draw = DATA.filter((d) => d.s === "à dessiner").length;
+  const pil = DATA.filter((d) => d.ps > 0).length;
+  const regions = new Set(DATA.map((d) => d.r).filter(Boolean)).size;
+  $("#stats").innerHTML = [
+    [tot, "fiches"], [comp, "tracés complets"], [draw, "pistes à dessiner"], [pil, "roulées par nos pilotes"], [regions, "régions"],
+  ].map(([n, l]) => `<div class="stat"><b>${nf.format(n)}</b><span>${l}</span></div>`).join("");
+  [...new Set(DATA.map((d) => d.r).filter(Boolean))].sort((a, b) => a.localeCompare(b, "fr")).forEach((r) => {
+    const o = document.createElement("option"); o.value = r; o.textContent = r; $("#region").appendChild(o);
+  });
+}
+
+function svg(d) {
+  if (!d.p) return `<div class="none">Piste connue de la FFSA,<br>tracé absent d'OpenStreetMap</div>`;
+  const pts = d.p.map((p) => p.join(",")).join(" ");
+  const closed = d.s === "complet" || d.s === "fermé hors gabarit";
+  const shape = closed ? `<polygon points="${pts}" fill="none"` : `<polyline points="${pts}" fill="none"`;
+  const marks = (d.c || []).map(([x, y, k]) => `<circle cx="${x}" cy="${y}" r="2.6" fill="var(--${k === "e" ? "hair" : k === "m" ? "mid" : "fast"})"/>`).join("");
+  return `<svg viewBox="-8 -8 116 116" role="img" aria-label="Tracé de ${esc(d.n)}">${shape} stroke="var(--track)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>${marks}</svg>`;
+}
+
+function card(d) {
+  const nums = d.K != null
+    ? `<span>${nf.format(d.L)} m</span><span>${d.K} virages</span><span class="e">${d.E} ép.</span><span class="m">${d.M} moy.</span><span class="r">${d.R} rap.</span>`
+    : d.L ? `<span>${nf.format(d.L)} m</span>` : `<span>longueur inconnue</span>`;
+  const pill = d.s === "complet" ? "complet" : d.s === "à dessiner" ? "dessiner" : "";
+  const links = [d.o && `<a href="${esc(d.o)}" target="_blank" rel="noopener">Carte OSM</a>`, d.f[0] && `<a href="${esc(d.f[0])}" target="_blank" rel="noopener">Fiche FFSA</a>`].filter(Boolean).join("");
+  return `<article class="card">
+    <div class="thumb">${svg(d)}</div>
+    <div><div class="name">${esc(d.n)}</div><div class="place">${esc([d.v, d.d && `${d.d} (${d.dc})`].filter(Boolean).join(" · "))}</div></div>
+    <div class="nums">${nums}</div>
+    <div class="meta"><span class="pill ${pill}">${esc(d.s)}</span>${d.src.startsWith("Session") ? '<span class="pill pilot">mesuré</span>' : ""}${d.ps ? `<span class="pill pilot">${d.ps} session${d.ps > 1 ? "s" : ""}</span>` : ""}${d.ix ? '<span class="pill">couvert</span>' : ""}${links}</div>
+  </article>`;
+}
+
+function render() {
+  const q = $("#q").value.trim().toLowerCase();
+  const reg = $("#region").value;
+  const list = DATA.filter((d) =>
+    (!q || `${d.n} ${d.v} ${d.d} ${d.dc}`.toLowerCase().includes(q)) &&
+    (!reg || d.r === reg) &&
+    (!status || (status === "pilot" ? d.ps > 0 : d.s === status)));
+  $("#count").textContent = `${nf.format(list.length)} fiche${list.length > 1 ? "s" : ""}`;
+  $("#grid").innerHTML = list.map(card).join("");
+}
+
+$("#q").addEventListener("input", render);
+$("#region").addEventListener("change", render);
+$("#status").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  status = b.dataset.s;
+  document.querySelectorAll("#status .chip").forEach((c) => c.setAttribute("aria-pressed", String(c === b)));
+  render();
+});
+stats();
+render();
+</script>
