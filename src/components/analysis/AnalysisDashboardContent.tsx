@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { CircuitIdentity } from "./CircuitIdentity";
+import type { CatalogCircuit } from "@/lib/api";
 import { Check, Zap, Info, MapPin, Gauge, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
@@ -261,6 +263,13 @@ export function AnalysisDashboardContent({
     <div className={wrapperClass}>
       {hasPlotData ? (
         <>
+          <CircuitIdentity
+            circuit={
+              ((analysis as unknown as { circuit?: CatalogCircuit }).circuit ??
+                (analysis.session_conditions as unknown as { catalog?: CatalogCircuit } | undefined)?.catalog) ||
+              null
+            }
+          />
           {/* LAPS SELECTION */}
           <section className={sectionClass}>
             <div className="flex flex-col gap-3">

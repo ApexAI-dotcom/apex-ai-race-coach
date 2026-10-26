@@ -13,6 +13,7 @@ Scripts qui construisent la base de référence des circuits (fiches + tableur �
 | 4 | `build_dataset.py` | une fiche par site, structures FFSA rattachées, tracés mesurés par les pilotes, géométrie → `circuits.json`, `clubs.json` |
 | 4 bis | `enrich_places.py` | commune / département des fiches sans adresse (géocodage inverse) |
 | 5 | `build_xlsx.py` | tableur à vérifier (Synthèse, Circuits, Virages, Clubs FFSA, Sources) |
+| 5 bis | `export_backend.py` | fichier lu par l'API (`src/data/circuit_catalog.json` du dépôt backend) |
 | 6 | `build_gallery.py` | page de vérification visuelle (`gallery_template.html`) : une vignette par tracé, virages colorés |
 
 `track_geometry.py` calcule la longueur et les virages d'un tracé (épingle ≥ 130°, rapide < 60° ou courbe large, moyen sinon). Le calcul repose sur la géométrie, il est donc indépendant du kart.

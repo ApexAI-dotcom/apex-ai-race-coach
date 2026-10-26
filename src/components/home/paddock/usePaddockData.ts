@@ -10,6 +10,8 @@ import {
   fetchHomeInsights,
   getKartProfile,
   listUpcomingEvents,
+  matchCatalogNames,
+  type CatalogCircuit,
   type HomeInsightsResponse,
   type KartProfile,
   type PilotEvent,
@@ -97,6 +99,8 @@ export function usePaddockData(userId: string | undefined, accessToken: string |
   const [insights, setInsights] = useState<HomeInsightsResponse | null>(null);
   const [kart, setKart] = useState<KartProfile | null>(null);
   const [nextEvent, setNextEvent] = useState<PilotEvent | null | undefined>(undefined);
+  // Fiches de la base des circuits de France, par nom écrit par le boîtier.
+  const [catalog, setCatalog] = useState<Record<string, CatalogCircuit>>({});
 
   useEffect(() => {
     let alive = true;
@@ -135,6 +139,21 @@ export function usePaddockData(userId: string | undefined, accessToken: string |
     };
   }, [accessToken]);
 
+  const names = useMemo(
+    () => [...new Set(summaries.map((s) => s.circuit_name?.trim()).filter((n): n is string => !!n))].sort(),
+    [summaries]
+  );
+  useEffect(() => {
+    if (!accessToken || !names.length) return;
+    let alive = true;
+    matchCatalogNames(accessToken, names)
+      .then((m) => alive && setCatalog(m))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [accessToken, names]);
+
   const sessions = useMemo<PaddockSession[]>(() => {
     const byId = new Map((details ?? []).map((d) => [d.id, d]));
     const seen = new Set<string>();
@@ -145,7 +164,10 @@ export function usePaddockData(userId: string | undefined, accessToken: string |
     for (const s of chrono) {
       const d = byId.get(s.id);
       const laps = d?.lap_times ?? [];
-      const key = circuitKeyOf(s.circuit_name);
+      // Le même circuit peut être écrit « SoloKart » ou « Solokart » selon le
+      // boîtier : la fiche de la base des circuits les réunit.
+      const cat = s.circuit_name ? catalog[s.circuit_name.trim()] : undefined;
+      const key = cat ? `cat:${cat.slug}` : circuitKeyOf(s.circuit_name);
       const dup = `${key}|${s.lap_time}|${laps.length}|${new Date(s.date).toDateString()}`;
       if (seen.has(dup)) continue;
       seen.add(dup);
@@ -156,17 +178,18 @@ export function usePaddockData(userId: string | undefined, accessToken: string |
         id: s.id,
         date: s.date,
         timestamp: s.timestamp,
-        circuit: s.circuit_name?.trim() || "Circuit non renseigné",
+        circuit: cat?.name || s.circuit_name?.trim() || "Circuit non renseigné",
         circuitKey: key,
         type: s.session_type || "practice",
         best,
         laps,
         lapsCount: laps.length,
-        lengthM: d?.track_length_m ?? null,
+        lengthM: d?.track_length_m ?? cat?.length_m ?? null,
         vmax: d?.max_speed_kmh ?? null,
         score: s.score,
-        lat: d?.lat,
-        lon: d?.lon,
+        // Pas de tracé GPS dans l'analyse (anciennes séances) : celui de la fiche du circuit.
+        lat: d?.lat ?? cat?.centerline?.map((p) => p[0]),
+        lon: d?.lon ?? cat?.centerline?.map((p) => p[1]),
         previousRecord,
         regularity: regularityOf(laps),
       });
@@ -186,7 +209,7 @@ export function usePaddockData(userId: string | undefined, accessToken: string |
       }
     }
     return list.sort((a, b) => b.timestamp - a.timestamp);
-  }, [summaries, details]);
+  }, [summaries, details, catalog]);
 
   const records = useMemo<CircuitRecord[]>(() => {
     const m = new Map<string, CircuitRecord>();

@@ -49,8 +49,8 @@ def main(circ_path, depts_path, cache_path):
             cp = c["postal_code"][:3]
         if cp == "20":
             cp = "2A" if c["postal_code"] < "20200" else "2B"
-        if c["name"] in ("", "Piste de karting") and c["city"]:
-            c["name"] = f"Piste de karting de {c['city']}"
+        if (c["name"] or "").strip().lower() in ("", "piste de karting", "circuit de karting", "karting") and c["city"]:
+            c["name"] = ("Piste de karting d'" if c["city"][:1].lower() in "aeiouyhéèêâîôû" else "Piste de karting de ") + c["city"]
         d = depts.get(cp) if country == "fr" else None
         c["department_code"], c["department"], c["region"] = (cp, d["nom"], d["region"]) if d else (cp, "", "")
     # Hors de France (pistes frontalières captées par une emprise) : retirées

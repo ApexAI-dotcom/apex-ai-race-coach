@@ -348,6 +348,8 @@ export interface AnalysisResult {
   track_features?: TrackFeatures | null;
   ideal_lap?: IdealLap | null;
   racing_line?: (RacingLineMeta & { track_edges?: TrackEdges }) | null;
+  /** Circuit reconnu dans la base des circuits de France. */
+  circuit?: CatalogCircuit | null;
 }
 
 export interface LapInfo {
@@ -1549,6 +1551,63 @@ export async function getPaddockPassStatus(accessToken: string): Promise<any> {
 export async function getAnalyticsOverview(accessToken: string, days = 14): Promise<any> {
   return tireSetFetch(accessToken, `/api/analytics/overview?days=${days}`, "GET");
 }
+/* ───────────── Base des circuits de France ───────────── */
+
+export interface CatalogCircuit {
+  slug: string;
+  name: string;
+  city?: string | null;
+  postal_code?: string | null;
+  department_code?: string | null;
+  department?: string | null;
+  region?: string | null;
+  lat?: number | null;
+  lon?: number | null;
+  indoor?: boolean | null;
+  surface?: string | null;
+  width_m?: number | null;
+  length_m?: number | null;
+  trace_status: string;
+  corners_count?: number | null;
+  hairpins_count?: number | null;
+  medium_count?: number | null;
+  fast_corners_count?: number | null;
+  rotation?: string | null;
+  website?: string | null;
+  osm_url?: string | null;
+  ffsa?: string[];
+  has_trace?: boolean;
+  /** [[lat, lon], …] — © contributeurs OpenStreetMap */
+  centerline?: [number, number][];
+  distance_m?: number;
+  confident?: boolean;
+}
+
+export async function searchCatalogCircuits(q: string, dept?: string, limit = 12): Promise<CatalogCircuit[]> {
+  const params = new URLSearchParams({ q, limit: String(limit) });
+  if (dept) params.set("dept", dept);
+  try {
+    const r = await fetch(`${API_BASE_URL}/api/catalog/circuits?${params.toString()}`);
+    if (!r.ok) return [];
+    const data = await r.json().catch(() => ({}));
+    return data?.circuits ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getCatalogCircuit(accessToken: string, slug: string): Promise<CatalogCircuit | null> {
+  const r = await tireSetFetch(accessToken, `/api/catalog/circuits/${encodeURIComponent(slug)}`, "GET");
+  return r?.circuit ?? null;
+}
+
+/** Fiches (avec tracé) correspondant aux noms de circuit écrits par les boîtiers. */
+export async function matchCatalogNames(accessToken: string, names: string[]): Promise<Record<string, CatalogCircuit>> {
+  if (!names.length) return {};
+  const r = await tireSetFetch(accessToken, "/api/catalog/circuits/match-names", "POST", { names: names.slice(0, 60) });
+  return r?.matches ?? {};
+}
+
 export async function getLaunchReport(accessToken: string, days = 14): Promise<any> {
   return tireSetFetch(accessToken, `/api/analytics/launch?days=${days}`, "GET");
 }

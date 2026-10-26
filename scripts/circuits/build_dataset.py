@@ -142,7 +142,7 @@ def main(cand_path, tracks_path, depts_path, out_dir, links_path=None, measured_
         candidates_names = [ffsa_circuit and title(ffsa_circuit["name"]), t["site_name"], t["name"]] + [
             title(c["name"]) for c in linked if c["kind"] == "ecole"] + [title(c["name"]) for c in linked]
         name = next((n for n in candidates_names if usable(n)), "") or (
-            f"Piste de karting de {title(ref['city'])}" if ref else "Piste de karting")
+            ((("Piste de karting d'" if title(ref["city"])[:1].lower() in "aeiouyhéèêâîôû" else "Piste de karting de ") + title(ref["city"])) if ref else "Piste de karting"))
         geo = None
         if t["closed"] and 300 <= t["length_osm_m"] <= 2500:
             geo = analyze([tuple(p) for p in t["line"]], closed=True, step=1.0)

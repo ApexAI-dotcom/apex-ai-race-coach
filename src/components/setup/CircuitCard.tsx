@@ -9,6 +9,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CircuitPicker } from './CircuitPicker';
 import { TrackSignatureForm } from './TrackSignatureForm';
+import { CatalogCircuitSearch, catalogToSignature } from './CatalogCircuitSearch';
 import { SetupState } from '@/pages/SetupPage';
 import { api, uploadAndAnalyzeCSV, normalizeCircuit, isTelemetryFile, TELEMETRY_ACCEPT } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -318,6 +319,14 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
               onChange={handleSelect}
               circuits={circuits}
               loading={loading}
+            />
+
+            {/* Base des circuits de France : longueur et virages déjà mesurés */}
+            <CatalogCircuitSearch
+              onPick={(c) => {
+                setEditingCircuit(catalogToSignature(c));
+                setIsFormOpen(true);
+              }}
             />
             
             <div className="grid grid-cols-2 gap-4">
