@@ -301,6 +301,12 @@ export function normalizeCircuit(c: any): any {
     bumpiness,
     hairpinsCount: c.hairpinsCount ?? c.hairpins_count ?? undefined,
     fastCornersCount: c.fastCornersCount ?? c.fast_corners_count ?? undefined,
+    cornersCount: c.cornersCount ?? c.corners_count ?? undefined,
+    mediumCornersCount:
+      c.mediumCornersCount ??
+      (c.corners_count != null
+        ? Math.max(0, c.corners_count - (c.hairpins_count ?? 0) - (c.fast_corners_count ?? 0))
+        : undefined),
   };
 }
 

@@ -21,6 +21,7 @@ export function TrackSignatureForm({ open, onOpenChange, onSave, circuitName, in
   const [surface, setSurface] = useState<string>('lisse');
   const [hairpins, setHairpins] = useState<number>(2);
   const [fastCorners, setFastCorners] = useState<number>(3);
+  const [totalCorners, setTotalCorners] = useState<number>(10);
   const [customName, setCustomName] = useState<string>(circuitName || '');
 
   useEffect(() => {
@@ -32,6 +33,10 @@ export function TrackSignatureForm({ open, onOpenChange, onSave, circuitName, in
         setSurface(initialData.bumpiness || 'lisse');
         setHairpins(initialData.hairpinsCount ?? 2);
         setFastCorners(initialData.fastCornersCount ?? 3);
+        setTotalCorners(
+          initialData.cornersCount ??
+            (initialData.hairpinsCount ?? 2) + (initialData.mediumCornersCount ?? 0) + (initialData.fastCornersCount ?? 3)
+        );
         setCustomName(initialData.name || circuitName || '');
       } else {
         setSpeedRatio('mixte');
@@ -40,6 +45,7 @@ export function TrackSignatureForm({ open, onOpenChange, onSave, circuitName, in
         setSurface('lisse');
         setHairpins(2);
         setFastCorners(3);
+        setTotalCorners(10);
         setCustomName(circuitName || '');
       }
     }
@@ -53,6 +59,7 @@ export function TrackSignatureForm({ open, onOpenChange, onSave, circuitName, in
       bumpiness: surface,
       hairpinsCount: hairpins,
       fastCornersCount: fastCorners,
+      cornersCount: Math.max(totalCorners, hairpins + fastCorners),
       isCustom: true,
       name: customName || "Nouveau Circuit"
     });
@@ -161,18 +168,28 @@ export function TrackSignatureForm({ open, onOpenChange, onSave, circuitName, in
             <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5 text-primary" /> Technicité
             </Label>
-            <div className="grid grid-cols-2 gap-3">
-              <Stepper 
-                label="Épingles" 
-                value={hairpins} 
-                onChange={setHairpins} 
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Stepper
+                label="Virages au total"
+                value={Math.max(totalCorners, hairpins + fastCorners)}
+                onChange={(v: number) => setTotalCorners(Math.max(v, hairpins + fastCorners))}
+                min={hairpins + fastCorners}
+                max={30}
               />
-              <Stepper 
-                label="Courbes" 
-                value={fastCorners} 
-                onChange={setFastCorners} 
+              <Stepper
+                label="Épingles"
+                value={hairpins}
+                onChange={setHairpins}
+              />
+              <Stepper
+                label="Rapides"
+                value={fastCorners}
+                onChange={setFastCorners}
               />
             </div>
+            <p className="text-xs text-muted-foreground">
+              Virages moyens : {Math.max(totalCorners, hairpins + fastCorners) - hairpins - fastCorners}
+            </p>
           </div>
 
         </div>
