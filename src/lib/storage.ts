@@ -341,6 +341,56 @@ function invalidateSummaries() {
 }
 
 /**
+ * Données de séance pour l'accueil : temps de chaque tour, longueur du tracé,
+ * vitesse maxi, et le tracé GPS (quelques centaines de points). Quelques Ko
+ * par séance : on évite `plot_data` et le reste.
+ */
+export interface SessionDetail {
+  id: string;
+  lap_times: number[];
+  track_length_m: number | null;
+  max_speed_kmh: number | null;
+  lat?: number[];
+  lon?: number[];
+}
+
+export async function getSessionDetails(): Promise<SessionDetail[]> {
+  const supaUserId = await getSupabaseUserId();
+  if (!supaUserId) return [];
+  const { data, error } = await supabase
+    .from("analyses")
+    .select("id, lap_times, track_length_m:racing_line->track_length_m, max_speed:statistics->max_speed")
+    .eq("user_id", supaUserId);
+  if (error || !data) return [];
+  type DetailRow = { id: string; lap_times: unknown; track_length_m: unknown; max_speed: unknown };
+  type LineRow = { id: string; lat: unknown; lon: unknown };
+  const details: SessionDetail[] = (data as unknown as DetailRow[]).map((row) => ({
+    id: row.id,
+    lap_times: Array.isArray(row.lap_times) ? row.lap_times.filter((t): t is number => typeof t === "number") : [],
+    track_length_m: typeof row.track_length_m === "number" ? row.track_length_m : null,
+    max_speed_kmh: typeof row.max_speed === "number" ? row.max_speed : null,
+  }));
+  // Tracés GPS des 40 séances les plus récentes qui en ont un (les plus
+  // anciennes analyses n'en gardaient pas).
+  const { data: lines } = await supabase
+    .from("analyses")
+    .select("id, lat:racing_line->lat, lon:racing_line->lon")
+    .eq("user_id", supaUserId)
+    .not("racing_line->lat", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(40);
+  const byId = new Map(details.map((d) => [d.id, d]));
+  for (const l of (lines as unknown as LineRow[]) || []) {
+    const d = byId.get(l.id);
+    if (d && Array.isArray(l.lat) && Array.isArray(l.lon) && l.lat.length > 10) {
+      d.lat = l.lat as number[];
+      d.lon = l.lon as number[];
+    }
+  }
+  return details;
+}
+
+/**
  * Get all analysis summaries (lightweight list).
  */
 export function getAllAnalyses(userId?: string | null): Promise<AnalysisSummary[]> {

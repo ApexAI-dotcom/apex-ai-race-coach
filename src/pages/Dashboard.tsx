@@ -603,7 +603,7 @@ export default function Dashboard() {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <PageMeta
-        title="Tableau de bord | ApexAI"
+        title="Sessions | ApexAI"
         description="Historique de tes analyses et comparaison de sessions."
         path="/dashboard"
       />
@@ -614,7 +614,7 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-                Tableau de bord
+                Sessions
               </h1>
               <p className="text-muted-foreground mt-1 text-sm md:text-base">
                 Gère et compare tes sessions

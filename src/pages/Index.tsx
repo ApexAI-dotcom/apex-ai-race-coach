@@ -9,10 +9,9 @@ import {
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
-import { getAllAnalyses, peekCachedAnalyses } from "@/lib/storage";
 import {
   Accordion,
   AccordionContent,
@@ -32,11 +31,11 @@ import PricingTeaser from "@/components/landing/PricingTeaser";
 // la page vitrine des visiteurs n'a pas à la télécharger. Pour un pilote déjà
 // connecté (session présente sur l'appareil), on lance son chargement dès
 // l'ouverture de l'app, en parallèle du reste.
-const loadSubscriberHome = () => import("@/components/home/SubscriberHome");
-const SubscriberHome = lazy(loadSubscriberHome);
+const loadPaddockHome = () => import("@/components/home/paddock/PaddockHome");
+const PaddockHome = lazy(loadPaddockHome);
 try {
   if (Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))) {
-    loadSubscriberHome();
+    loadPaddockHome();
   }
 } catch {
   /* stockage indisponible : chargement à la demande */
@@ -116,27 +115,15 @@ export default function Index() {
   const success = searchParams.get("success");
   const canceled = searchParams.get("canceled");
   const sessionId = searchParams.get("session_id");
-  const { isAuthenticated, user, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { tier, isLoading: subLoading } = useSubscription();
-  const [hasAnalyses, setHasAnalyses] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      getAllAnalyses(user.id)
-        .then((data) => setHasAnalyses(data.length > 0))
-        .catch(() => setHasAnalyses(false));
-    } else {
-      setHasAnalyses(false);
-    }
-  }, [isAuthenticated, user]);
-
-  // Ce qu'on sait déjà sans attendre le réseau : la liste de la dernière visite.
-  const cachedHasAnalyses = user ? (peekCachedAnalyses(user.id)?.length ?? 0) > 0 : false;
-  const showHub = isAuthenticated && (hasAnalyses ?? cachedHasAnalyses);
+  // Un pilote connecté arrive toujours sur son tableau de bord (vide tant
+  // qu'il n'a pas analysé de séance) : la vitrine est pour les visiteurs.
+  const showHub = isAuthenticated;
   // Un pilote connecté ne doit jamais voir passer la page vitrine (et son
   // fond animé) avant son tableau de bord : tant qu'on ne sait pas encore
   // quel accueil lui servir, l'écran reste simplement vide.
-  const deciding = authLoading || (isAuthenticated && hasAnalyses === null && !cachedHasAnalyses);
+  const deciding = authLoading;
 
   // Nettoyer les paramètres après 5 secondes
   useEffect(() => {
@@ -161,8 +148,22 @@ export default function Index() {
     return (
       <Layout>
         <div className="container mx-auto px-4 pt-6 pb-12 md:pt-24">
+          {(success === "true" || canceled === "true") && (
+            <div
+              role="status"
+              className={`mx-auto mb-6 max-w-6xl rounded-xl border px-4 py-3 text-sm ${
+                success === "true"
+                  ? "border-[hsl(var(--gain)/0.4)] bg-[hsl(var(--gain)/0.08)] text-foreground"
+                  : "border-border bg-card text-muted-foreground"
+              }`}
+            >
+              {success === "true"
+                ? "Paiement validé : ton abonnement est actif. Les analyses illimitées, Mon Kart et les réglages sont débloqués."
+                : "Paiement annulé. Tu peux reprendre ton abonnement quand tu veux depuis la page Plans."}
+            </div>
+          )}
           <Suspense fallback={<div className="min-h-[70vh]" />}>
-            <SubscriberHome />
+            <PaddockHome />
           </Suspense>
         </div>
       </Layout>

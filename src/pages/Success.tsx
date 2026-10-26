@@ -49,9 +49,9 @@ export default function Success() {
             transition={{ delay: 0.4 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link to="/dashboard">
+            <Link to="/">
               <Button variant="hero" size="xl">
-                Accéder au tableau de bord Pro
+                Accéder à mon tableau de bord
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
