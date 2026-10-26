@@ -189,6 +189,8 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
         bumpiness: tf.bumpiness || s.bumpiness || 'lisse',
         hairpinsCount: tf.hairpins_count ?? s.hairpins_count ?? 2,
         fastCornersCount: tf.fast_corners_count ?? s.fast_corners_count ?? 3,
+        mediumCornersCount: tf.medium_corners_count ?? undefined,
+        cornersCount: tf.corners_total ?? undefined,
         imported: true,
         _sessionInfo: {
           weather: weather as any,
@@ -239,6 +241,8 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
       const bumpiness = result.track_features?.bumpiness || 'lisse';
       const hairpinsCount = result.track_features?.hairpins_count ?? 2;
       const fastCornersCount = result.track_features?.fast_corners_count ?? 3;
+      const mediumCornersCount = result.track_features?.medium_corners_count ?? undefined;
+      const cornersCount = result.track_features?.corners_total ?? undefined;
 
       const circuitData = {
         name: result.session_conditions?.circuit_name || 'Circuit Analysé',
@@ -248,6 +252,8 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
         bumpiness,
         hairpinsCount,
         fastCornersCount,
+        mediumCornersCount,
+        cornersCount,
         imported: true,
         _sessionInfo: {
           weather: (weather === 'dry' ? 'sec' : weather === 'wet' ? 'pluie' : 'humide') as any,
@@ -374,13 +380,27 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
                 <Navigation className="w-3.5 h-3.5 text-primary" />
                 Revêtement : {activeCircuit.bumpiness === 'bossele' ? 'Bosselé' : 'Lisse'}
               </Badge>
+              {/* Répartition des virages : épingles + moyens + rapides = total
+                  (signature mesurée sur la session ; anciens circuits : 2 valeurs). */}
+              {activeCircuit.cornersCount != null && (
+                <Badge variant="secondary" className="gap-1.5 py-1 px-3 bg-muted/60 text-foreground border border-border rounded-lg">
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                  {activeCircuit.cornersCount} virages
+                </Badge>
+              )}
               <Badge variant="secondary" className="gap-1.5 py-1 px-3 bg-muted/60 text-foreground border border-border rounded-lg">
                 <TrendingUp className="w-3.5 h-3.5 text-primary" />
-                {activeCircuit.hairpinsCount ?? 2} Épingles
+                {activeCircuit.hairpinsCount ?? 2} épingle{(activeCircuit.hairpinsCount ?? 2) > 1 ? "s" : ""}
               </Badge>
+              {activeCircuit.mediumCornersCount != null && (
+                <Badge variant="secondary" className="gap-1.5 py-1 px-3 bg-muted/60 text-foreground border border-border rounded-lg">
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                  {activeCircuit.mediumCornersCount} moyen{activeCircuit.mediumCornersCount > 1 ? "s" : ""}
+                </Badge>
+              )}
               <Badge variant="secondary" className="gap-1.5 py-1 px-3 bg-muted/60 text-foreground border border-border rounded-lg">
                 <TrendingUp className="w-3.5 h-3.5 text-primary" />
-                {activeCircuit.fastCornersCount ?? 3} Courbes Rapides
+                {activeCircuit.fastCornersCount ?? 3} rapide{(activeCircuit.fastCornersCount ?? 3) > 1 ? "s" : ""}
               </Badge>
             </div>
 

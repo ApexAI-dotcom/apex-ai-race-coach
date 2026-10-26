@@ -301,6 +301,12 @@ export function normalizeCircuit(c: any): any {
     bumpiness,
     hairpinsCount: c.hairpinsCount ?? c.hairpins_count ?? undefined,
     fastCornersCount: c.fastCornersCount ?? c.fast_corners_count ?? undefined,
+    cornersCount: c.cornersCount ?? c.corners_count ?? undefined,
+    mediumCornersCount:
+      c.mediumCornersCount ??
+      (c.corners_count != null
+        ? Math.max(0, c.corners_count - (c.hairpins_count ?? 0) - (c.fast_corners_count ?? 0))
+        : undefined),
   };
 }
 
@@ -309,7 +315,12 @@ export interface TrackFeatures {
   speed_ratio?: string | null; // "sinueux" | "mixte" | "rapide"
   rotation?: string | null; // "horaire" | "anti-horaire"
   hairpins_count?: number | null;
+  /** Virages ni épingle ni rapide (épingles + moyens + rapides = total). */
+  medium_corners_count?: number | null;
   fast_corners_count?: number | null;
+  /** Nature de chaque virage, relative à la vitesse de pointe de la session. */
+  corner_kinds?: { corner_number: number; kind: "epingle" | "moyen" | "rapide" }[];
+  top_speed_kmh?: number | null;
   elevation?: string | null;
   bumpiness?: string | null;
   corners_total?: number | null;

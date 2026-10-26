@@ -16,6 +16,12 @@ export interface Recommendation {
   suggestedValue?: any;
 }
 
+// Seuils « piste sinueuse » / « piste rapide ». La nature des virages est
+// relative à la vitesse de pointe de la session (analyse) : un circuit compte
+// en général 3 à 5 épingles ; 4 courbes rapides ou plus = piste rapide.
+const SINUOUS_HAIRPINS = 5;
+const FAST_TRACK_CORNERS = 4;
+
 export function generateRecommendations(input: AdvisorInput): Record<string, Recommendation> {
   const recs: Record<string, Recommendation> = {};
   
@@ -165,10 +171,10 @@ export function generateRecommendations(input: AdvisorInput): Record<string, Rec
         rearWidthMsg += " Faible grip : on rétrécit un peu (ex: 1390mm) pour générer du grip mécanique.";
     }
 
-    if (isSinueux || hairpins >= 4) {
+    if (isSinueux || hairpins >= SINUOUS_HAIRPINS) {
         frontWidthVal = 122; // Élargie
         frontWidthMsg = `Circuit très sinueux (${hairpins} épingles) : Élargir l'avant d'une bague (~122cm) pour engager le kart dans les virages serrés.`;
-    } else if (fastCorners >= 4) {
+    } else if (fastCorners >= FAST_TRACK_CORNERS) {
         frontWidthVal = 118; // Étroite
         frontWidthMsg = `Courbes rapides (${fastCorners}) : Rentrer légèrement l'avant (~118cm) pour limiter l'agressivité et stabiliser le kart à haute vitesse.`;
     }
@@ -214,9 +220,9 @@ export function generateRecommendations(input: AdvisorInput): Record<string, Rec
 
   if (isRain) {
       recs['trackWidthFront'].message += " ASTUCE : Desserrer ou enlever toutes les barres de torsion pour libérer le châssis au maximum.";
-  } else if (fastCorners >= 4) {
+  } else if (fastCorners >= FAST_TRACK_CORNERS) {
       recs['trackWidthFront'].message += " ASTUCE : Insérer la barre de torsion avant pour stabiliser les appuis à haute vitesse.";
-  } else if (isSinueux || hairpins >= 4) {
+  } else if (isSinueux || hairpins >= SINUOUS_HAIRPINS) {
       recs['trackWidthFront'].message += " ASTUCE : Retirer la barre de torsion avant pour aider le châssis à pivoter.";
   }
 
@@ -233,7 +239,7 @@ export function generateRecommendations(input: AdvisorInput): Record<string, Rec
       casterMsg = "PLUIE : Chasse maximale pour donner du poids sur le train avant et planter les pneus dans l'eau.";
       camberVal = "Neutre à Positif";
       camberMsg = "PLUIE : Éviter le carrossage négatif pour utiliser toute la bande de roulement.";
-  } else if (hairpins >= 4 && grip !== 'gommée') {
+  } else if (hairpins >= SINUOUS_HAIRPINS && grip !== 'gommée') {
       casterVal = "Positif";
       casterMsg = "Beaucoup d'épingles : Augmenter la chasse pour aider le châssis à soulever la roue arrière intérieure et pivoter.";
   } else if (grip === 'gommée') {
