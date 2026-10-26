@@ -2,6 +2,9 @@ import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { CSVUploader } from "@/components/upload/CSVUploader";
+import { CompareUploader } from "@/components/compare/CompareUploader";
+import { useSearchParams } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { PageMeta } from "@/components/seo/PageMeta";
 import CompatibleMarquee from "@/components/landing/CompatibleMarquee";
 import { useAuth } from "@/hooks/useAuth";
@@ -68,6 +71,8 @@ const features = [
 
 export default function Upload() {
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const [params, setParams] = useSearchParams();
+  const compare = params.get("mode") === "comparer";
   return (
     <Layout>
       <Helmet>
@@ -95,10 +100,42 @@ export default function Upload() {
           </p>
         </motion.div>
 
-        {/* Uploader */}
-        <div className="max-w-3xl mx-auto mb-12">
-          <CSVUploader />
+        {/* Analyse d'une séance, ou comparaison de deux fichiers */}
+        <div className="mb-8 flex justify-center">
+          <div className="inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Type d'analyse">
+            {[
+              { key: false, label: "Analyser une séance" },
+              { key: true, label: "Comparer deux pilotes" },
+            ].map((o) => (
+              <button
+                key={o.label}
+                role="tab"
+                aria-selected={compare === o.key}
+                onClick={() => setParams(o.key ? { mode: "comparer" } : {}, { replace: true })}
+                className={cn(
+                  "whitespace-nowrap rounded-full px-3 py-2 text-[13px] transition-colors sm:px-4 sm:text-sm",
+                  compare === o.key ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {compare ? (
+          <div className="mx-auto mb-12 max-w-6xl">
+            <p className="mx-auto mb-6 max-w-2xl text-center text-sm text-muted-foreground">
+              Dépose ton fichier et celui d'un coéquipier sur le même circuit : tours superposés, écart mètre par mètre,
+              et virage par virage, qui freine plus tard, qui garde plus de vitesse, qui sort plus fort.
+            </p>
+            <CompareUploader />
+          </div>
+        ) : (
+          <div className="max-w-3xl mx-auto mb-12">
+            <CSVUploader />
+          </div>
+        )}
 
         {/* Boîtiers compatibles : la barre logos + mention légale pour un visiteur
             non connecté (même bloc que sur l'accueil), la liste simple sinon. */}
