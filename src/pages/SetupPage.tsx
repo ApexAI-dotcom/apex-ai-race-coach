@@ -663,6 +663,7 @@ export default function SetupPage() {
                 state={setupState}
                 onChange={handleContextChange}
                 engineCategory={engineCategory}
+                engineModel={profile?.engine_model}
                 recommendations={recommendations}
               />
             </div>

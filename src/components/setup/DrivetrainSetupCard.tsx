@@ -5,15 +5,18 @@ import { Input } from '@/components/ui/input';
 import { Gauge } from 'lucide-react';
 import { SetupState } from '@/pages/SetupPage';
 import { FieldRecommendation } from './FieldRecommendation';
+import { EngineFactsHint } from './EngineFactsHint';
 
 interface DrivetrainSetupCardProps {
   state: SetupState;
   onChange: (updates: Partial<SetupState>) => void;
   engineCategory: string;
+  /** Moteur déclaré dans Mon Kart (libellé libre), pour les rappels constructeur et règlement */
+  engineModel?: string | null;
   recommendations?: Record<string, any>;
 }
 
-export function DrivetrainSetupCard({ state, onChange, engineCategory, recommendations }: DrivetrainSetupCardProps) {
+export function DrivetrainSetupCard({ state, onChange, engineCategory, engineModel, recommendations }: DrivetrainSetupCardProps) {
   const isX30OrMini = engineCategory.toLowerCase().includes('x30') || engineCategory.toLowerCase().includes('mini 60');
   const isRotaxOrKZ = engineCategory.toLowerCase().includes('rotax') || engineCategory.toLowerCase().includes('kz');
 
@@ -38,7 +41,9 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory, recommend
       </CardHeader>
       
       <CardContent className="p-6 space-y-6">
-        
+
+        <EngineFactsHint engineLabel={engineModel || engineCategory} />
+
         <div className="space-y-4">
           <h4 className="font-semibold text-sm">Transmission</h4>
           <div className="grid grid-cols-2 gap-6">
