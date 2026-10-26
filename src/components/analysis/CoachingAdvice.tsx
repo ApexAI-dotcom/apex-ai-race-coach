@@ -20,6 +20,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   apex: "Point de corde",
   speed: "Vitesse",
   braking: "Freinage",
+  exit: "Sortie et relance",
   consistency: "Régularité",
   tire: "Pneus",
   info: "Contexte",

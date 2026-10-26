@@ -212,7 +212,7 @@ export function mapCornerData(raw: Record<string, unknown>): CornerAnalysis {
 
 export interface CoachingAdvice {
   priority: number;
-  category: string; // "braking" | "apex" | "speed" | "trajectory" | "global"
+  category: string; // "braking" | "apex" | "speed" | "exit" | "trajectory" | "global"
   impact_seconds: number;
   corner?: number;
   message: string;
