@@ -12,6 +12,7 @@ import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { TrackMapPro } from "./TrackMapPro";
 import { BrakingPanel } from "./BrakingPanel";
 import { CoachingAdvice } from "./CoachingAdvice";
+import { LapReportPanel } from "./LapReportPanel";
 import { enrichCornersWithCornerAnalysis } from "./utils";
 import { buildCornerOverlays } from "./cornerOverlays";
 import type { AnalysisResponse as AnalysisResult, TrackMapProfile } from "@/types/analysis";
@@ -462,6 +463,29 @@ export function AnalysisDashboardContent({
                     hideCta={currentHideCta}
                     cornerOverlays={cornerOverlays}
                   />
+                </section>
+              );
+            })()}
+
+          {/* TOURS, SECTEURS, G-G, RÉGIME (vues Race Studio) */}
+          {plotData.lap_report?.available &&
+            (() => {
+              const isLocked = !isChartVisible("lap_report", circuitName);
+              return (
+                <section className={sectionClass} data-pdf-chart="lap_report" data-pdf-title="Tours et secteurs">
+                  <h2 className={titleClass}>Tours, secteurs et données moteur</h2>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Chaque tour avec ses valeurs max et mini, le découpage en secteurs avec ton tour
+                    théorique, ton diagramme G-G et le temps passé à chaque régime.
+                  </p>
+                  {isLocked ? (
+                    <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                      Disponible avec l'abonnement Racer.{" "}
+                      <a href="/pricing" className="font-medium text-primary hover:underline">Voir les offres</a>
+                    </div>
+                  ) : (
+                    <LapReportPanel report={plotData.lap_report} />
+                  )}
                 </section>
               );
             })()}

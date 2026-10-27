@@ -267,6 +267,8 @@ export interface PlotData {
       is_best: boolean;
     }[];
   };
+  /** Tableau par tour, secteurs, G-G et régime (vues Race Studio). */
+  lap_report?: import("@/components/analysis/LapReportPanel").LapReport;
 }
 
 export interface AnalysisPerformanceScore {
