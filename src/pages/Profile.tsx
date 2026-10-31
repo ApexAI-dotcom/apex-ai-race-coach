@@ -345,7 +345,7 @@ export default function Profile() {
                   Membre depuis {getMemberSince()}
                 </span>
                 {isPaidTier && (
-                  <span className="apex-badge-pro">{tier === "team" ? "Team" : "PRO"}</span>
+                  <span className="apex-badge-pro">{tier === "team" ? "Team" : "Racer"}</span>
                 )}
                 {isFreeTier && (
                   <span className="px-2 py-1 rounded-full text-xs bg-secondary/50 text-muted-foreground">
