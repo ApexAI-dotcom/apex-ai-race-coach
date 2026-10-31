@@ -1,4 +1,6 @@
+import { motion, useReducedMotion } from "framer-motion";
 import { formatLap } from "./format";
+import { EASE } from "./motion";
 
 interface Props {
   laps: number[];
@@ -8,6 +10,8 @@ interface Props {
   /** Barres élargies sur toute la largeur (grand format). */
   wide?: boolean;
   className?: string;
+  /** Les barres montent l'une après l'autre à l'arrivée à l'écran. */
+  animated?: boolean;
 }
 
 /**
@@ -16,8 +20,10 @@ interface Props {
  * lents (sortie des stands, drapeau) sont tassés en bas pour ne pas écraser
  * l'échelle des autres.
  */
-export function LapLadder({ laps, height = 44, showLabels = false, wide = false, className }: Props) {
+export function LapLadder({ laps, height = 44, showLabels = false, wide = false, className, animated = false }: Props) {
+  const reduce = useReducedMotion();
   if (!laps.length) return null;
+  const anim = animated && !reduce;
   const best = Math.min(...laps);
   const bestIdx = laps.indexOf(best);
   const sorted = [...laps].sort((a, b) => a - b);
@@ -40,11 +46,17 @@ export function LapLadder({ laps, height = 44, showLabels = false, wide = false,
           const h = Math.max(min, 1 - r * (1 - min));
           const isBest = i === bestIdx;
           return (
-            <div
+            <motion.div
               key={i}
               title={`Tour ${i + 1} : ${formatLap(t)}`}
-              className={`flex-1 ${wide ? "" : "max-w-[14px]"} rounded-[2px] ${isBest ? "bg-primary" : "bg-foreground/25"}`}
+              className={`flex-1 ${wide ? "" : "max-w-[14px]"} origin-bottom rounded-[2px] ${
+                isBest ? "bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.6)]" : "bg-foreground/25"
+              }`}
               style={{ height: `${h * 100}%` }}
+              initial={anim ? { scaleY: 0 } : false}
+              whileInView={anim ? { scaleY: 1 } : undefined}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 + i * Math.min(0.04, 0.8 / laps.length), ease: EASE }}
             />
           );
         })}

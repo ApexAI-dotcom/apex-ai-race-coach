@@ -58,6 +58,10 @@
     /* Couleurs de chrono : tour plus rapide / plus lent que la référence */
     --gain: 152 62% 48%;
     --loss: 36 92% 58%;
+    /* Couleurs d'écran de chronométrage, pour le tableau de bord :
+       violet = record, ambre = volume de roulage. */
+    --record: 270 90% 70%;
+    --amber: 38 95% 56%;
 
     --border: 0 0% 15%;
     --input: 0 0% 15%;
@@ -99,6 +103,8 @@
     --sidebar-ring: 0 100% 63%;
     --gain: 152 72% 30%;
     --loss: 28 90% 40%;
+    --record: 270 70% 48%;
+    --amber: 32 95% 40%;
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { CircuitIdentity } from "./CircuitIdentity";
 import type { CatalogCircuit } from "@/lib/api";
 import { Check, Zap, Info, MapPin, Gauge, Trophy } from "lucide-react";
@@ -148,6 +148,18 @@ export function AnalysisDashboardContent({
   const handleFocusCorner = useCallback((cornerId: number) => {
     setFocusCorner({ id: cornerId, token: Date.now() });
   }, []);
+
+  // Lien direct vers un virage (« À travailler » de l'accueil : ?virage=4) :
+  // la carte se centre dessus une fois la page affichée. Lu dans l'URL
+  // plutôt qu'avec le routeur, car ce composant sert aussi hors des pages.
+  useEffect(() => {
+    if (embedded || typeof window === "undefined") return;
+    const raw = new URLSearchParams(window.location.search).get("virage");
+    const id = raw ? Number(raw) : NaN;
+    if (!Number.isInteger(id) || id <= 0) return;
+    const t = window.setTimeout(() => setFocusCorner({ id, token: Date.now() }), 400);
+    return () => window.clearTimeout(t);
+  }, [embedded]);
 
   const referenceTrajectoryLap = useMemo(() => {
     const laps = plotData?.trajectory_2d?.laps ?? [];

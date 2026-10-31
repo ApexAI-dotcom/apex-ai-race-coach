@@ -891,10 +891,30 @@ export interface HomeWeakPoint {
   corners: number[];
 }
 
+/** Le point à travailler, sur une séance précise (conseil prioritaire de la dernière analyse). */
+export interface HomeFocus {
+  analysis_id: string;
+  created_at: string;
+  circuit_name: string | null;
+  session_type: string | null;
+  corner: number;
+  /** « Virage 4 à droite » */
+  corner_label: string;
+  /** La consigne : « Tu freines 4 m plus tôt que ton meilleur tour » */
+  headline: string;
+  category: string | null;
+  /** Temps à gagner par tour, en secondes. */
+  impact_seconds: number;
+  apex_lat: number | null;
+  apex_lon: number | null;
+}
+
 export interface HomeInsightsResponse {
   insufficient_data: boolean;
   time_gained: number | null;
   weak_point: HomeWeakPoint | null;
+  /** Absent tant que l'API n'est pas à jour. */
+  focus?: HomeFocus | null;
   best_score: number;
   best_lap_time: number;
   analyses_count: number;
