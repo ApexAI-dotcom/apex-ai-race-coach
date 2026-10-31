@@ -89,7 +89,7 @@ export function ProgressionChart({ sessions, records }: { sessions: PaddockSessi
                   tickCount={4}
                   tick={{ fill: "hsl(var(--foreground) / 0.6)", fontSize: 11 }}
                 />
-                <ReferenceLine y={current.best} stroke="hsl(var(--record))" strokeDasharray="4 4" strokeOpacity={0.9} />
+                <ReferenceLine y={current.best} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeOpacity={0.45} />
                 <Tooltip
                   cursor={{ stroke: "hsl(var(--primary))", strokeOpacity: 0.4 }}
                   contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12 }}
@@ -114,7 +114,7 @@ export function ProgressionChart({ sessions, records }: { sessions: PaddockSessi
           )}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Plus haut, c'est plus rapide. En violet : ton record ({formatLap(current.best)}).
+          Plus haut, c'est plus rapide. En pointillés : ton record ({formatLap(current.best)}).
         </p>
       </PitCard>
     </div>

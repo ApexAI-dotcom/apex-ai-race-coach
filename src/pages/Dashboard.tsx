@@ -95,6 +95,8 @@ import { Helmet } from "react-helmet-async";
 import { ADMIN_EMAIL } from "@/constants";
 import { exportAnalysisReportPDF, captureAnalysisCharts } from "@/lib/pdf/analysisReport";
 import { toast } from "sonner";
+import { PitCard, Slant } from "@/components/home/paddock/motion";
+import { formatLap } from "@/components/home/paddock/format";
 
 /**
  * Dernière analyse complète déjà téléchargée. Revenir sur le tableau de bord
@@ -462,15 +464,15 @@ export default function Dashboard() {
     switch (grade.toUpperCase()) {
       case "A+":
       case "A":
-        return "bg-green-500/20 text-green-200 border-green-500/50";
+        return "bg-[hsl(var(--gain)/0.14)] text-[hsl(var(--gain))] border-transparent";
       case "B":
-        return "bg-blue-500/20 text-blue-200 border-blue-500/50";
+        return "bg-foreground/10 text-foreground border-transparent";
       case "C":
-        return "bg-yellow-500/20 text-yellow-200 border-yellow-500/50";
+        return "bg-[hsl(var(--amber)/0.14)] text-[hsl(var(--amber))] border-transparent";
       case "D":
-        return "bg-red-500/20 text-red-200 border-red-500/50";
+        return "bg-primary/15 text-primary border-transparent";
       default:
-        return "bg-gray-500/20 text-gray-200 border-gray-500/50";
+        return "bg-muted text-muted-foreground border-transparent";
     }
   };
 
@@ -628,12 +630,12 @@ export default function Dashboard() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                Toutes tes séances
+              </p>
+              <h1 className="mt-1 font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
                 Sessions
               </h1>
-              <p className="text-muted-foreground mt-1 text-sm md:text-base">
-                Gère et compare tes sessions
-              </p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
               {/* "Bilan de Progression" PDF : concept validé mais retiré pour
@@ -660,7 +662,7 @@ export default function Dashboard() {
         {!featuredAnalysis && featuredLoading && !currentFolderId && (
           <div
             aria-hidden
-            className="mb-8 md:mb-12 h-[380px] md:h-[340px] rounded-2xl border-2 border-primary/20 bg-primary/5 animate-pulse"
+            className="mb-8 md:mb-12 h-[380px] md:h-[340px] rounded-2xl border border-border bg-card animate-pulse"
           />
         )}
         {featuredAnalysis && !currentFolderId && (
@@ -669,23 +671,31 @@ export default function Dashboard() {
             animate={{ opacity: 1, scale: 1 }}
             className="mb-8 md:mb-12"
           >
-            <div className="rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-primary/40 bg-primary/5 relative overflow-hidden group shadow-2xl shadow-primary/5">
+            <PitCard as="div" accent="red" glow className="group p-4 pt-6 sm:p-6 md:p-8">
+              {/* Même livrée que le tableau de bord : bande diagonale rouge. */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-10 top-0 -z-10 h-full w-40 -skew-x-[18deg] md:right-10 md:w-64"
+                style={{ background: "linear-gradient(180deg, hsl(var(--primary) / 0.14), hsl(var(--primary) / 0.02))" }}
+              />
               <div className="absolute top-4 right-4 md:top-8 md:right-8 text-5xl md:text-7xl font-display font-bold text-primary opacity-20 group-hover:opacity-30 transition-opacity z-10">
                 {featuredScore}
               </div>
 
-              <Badge className="bg-red-500/20 text-red-300 border-none mb-4 px-3 py-1">
-                SESSION LA PLUS RÉCENTE
-              </Badge>
-              {isBestScore && (
-                <Badge className="bg-yellow-500/20 text-yellow-500 border-none mb-4 px-3 py-1 ml-2">
-                  <Trophy className="w-3 h-3 mr-1" /> MEILLEUR SCORE
-                </Badge>
-              )}
+              <div className="mb-4 flex flex-wrap gap-2">
+                <Slant accent="red">Séance la plus récente</Slant>
+                {isBestScore && (
+                  <Slant accent="neutral">
+                    <span className="inline-flex items-center gap-1">
+                      <Trophy className="w-3 h-3" /> Meilleur score
+                    </span>
+                  </Slant>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-end">
                 <div>
-                  <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
+                  <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-1">
                     {featuredSessionName ||
                       featuredAnalysis?.session_conditions?.circuit_name ||
                       latestAnalysis?.circuit_name ||
@@ -705,15 +715,15 @@ export default function Dashboard() {
 
                   <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-6 md:mb-8 max-w-2xl">
                     <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
-                      <div className="text-sm sm:text-xl font-bold text-foreground">
-                        {(featuredAnalysis?.lap_time || latestAnalysis?.lap_time || 0).toFixed(2)}s
+                      <div className="font-display text-sm sm:text-xl font-bold tabular-nums text-foreground">
+                        {formatLap(featuredAnalysis?.lap_time || latestAnalysis?.lap_time || 0)}
                       </div>
                       <div className="text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
                         Meilleur tour
                       </div>
                     </div>
                     <div className="bg-secondary/40 p-3 sm:p-4 rounded-xl text-center sm:text-left">
-                      <div className="text-sm sm:text-xl font-bold text-foreground">
+                      <div className="font-display text-sm sm:text-xl font-bold tabular-nums text-foreground">
                         {featuredAnalysis?.corners_detected || latestAnalysis?.corner_count || 0}
                       </div>
                       <div className="text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
@@ -752,7 +762,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="h-40 sm:h-48 md:h-64 bg-secondary/10 rounded-2xl border border-white/5 p-2 relative overflow-hidden group-hover:border-primary/20 transition-colors">
+                <div className="h-40 sm:h-48 md:h-64 bg-background/40 rounded-2xl border border-border p-2 relative overflow-hidden group-hover:border-primary/30 transition-colors">
                   <TrackMap
                     corners={featuredAnalysis.plot_data?.trajectory_2d?.corners || []}
                     laps={
@@ -776,31 +786,31 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-            </div>
+            </PitCard>
           </motion.div>
         )}
 
         {/* ═══ STATS MINI CARDS ═══ */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12 opacity-70 group hover:opacity-100 transition-opacity">
-          <div className="bg-secondary/20 p-4 rounded-xl border border-white/5 text-center">
-            <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">
+        <div className="grid grid-cols-3 gap-3 mb-12">
+          <div className="rounded-2xl border border-border bg-card p-3 sm:p-4 text-center">
+            <div className="text-[10px] text-muted-foreground uppercase font-semibold tracking-[0.14em] mb-1">
               Analyses totales
             </div>
-            <div className="text-xl md:text-3xl font-bold text-foreground">{statistics.total}</div>
+            <div className="font-display text-xl md:text-3xl font-bold tabular-nums text-foreground">{statistics.total}</div>
           </div>
-          <div className="bg-secondary/20 p-4 rounded-xl border border-white/5 text-center">
-            <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">
+          <div className="rounded-2xl border border-border bg-card p-3 sm:p-4 text-center">
+            <div className="text-[10px] text-muted-foreground uppercase font-semibold tracking-[0.14em] mb-1">
               Score moyen
             </div>
-            <div className="text-xl md:text-3xl font-bold text-foreground">
+            <div className="font-display text-xl md:text-3xl font-bold tabular-nums text-foreground">
               {statistics.averageScore}/100
             </div>
           </div>
-          <div className="bg-secondary/20 p-4 rounded-xl border border-white/5 text-center">
-            <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">
+          <div className="rounded-2xl border border-border bg-card p-3 sm:p-4 text-center">
+            <div className="text-[10px] text-muted-foreground uppercase font-semibold tracking-[0.14em] mb-1">
               Meilleur score
             </div>
-            <div className="text-xl md:text-3xl font-bold text-foreground text-primary">
+            <div className="font-display text-xl md:text-3xl font-bold tabular-nums text-primary">
               {statistics.bestScore}/100
             </div>
           </div>
@@ -810,8 +820,8 @@ export default function Dashboard() {
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                Mes Dossiers
+              <h2 className="font-display text-lg font-semibold text-foreground">
+                Mes dossiers
               </h2>
               {currentFolderId && (
                 <div className="flex items-center gap-2 text-sm text-foreground">
@@ -886,7 +896,7 @@ export default function Dashboard() {
 
         {/* ═══ COMPARATOR SLOT-BASED ═══ */}
         <div className="mb-12">
-          <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground mb-6">
+          <h2 className="font-display text-lg font-semibold text-foreground mb-4">
             Comparateur
           </h2>
           <div className="flex flex-col md:flex-row items-center gap-2 md:gap-1">
@@ -965,7 +975,7 @@ export default function Dashboard() {
 
         {/* ═══ ALL ANALYSES TABLE ═══ */}
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground mb-6">
+          <h2 className="font-display text-lg font-semibold text-foreground mb-4">
             Toutes les analyses
           </h2>
 
@@ -1030,8 +1040,8 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                  <div className="font-mono text-foreground font-bold text-sm">
-                    Meilleur : {analysis.lap_time.toFixed(2)}s
+                  <div className="font-display tabular-nums text-foreground font-bold text-sm">
+                    Meilleur : {formatLap(analysis.lap_time)}
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -1120,9 +1130,9 @@ export default function Dashboard() {
                           <SelectTrigger
                             className={`h-7 px-3 text-[10px] uppercase border-white/10 w-[90px] ${
                               analysis.session_type === "race"
-                                ? "bg-red-500/20 text-red-300"
+                                ? "bg-primary/15 text-primary"
                                 : analysis.session_type === "qualifying"
-                                  ? "bg-blue-500/20 text-blue-300"
+                                  ? "bg-foreground/10 text-foreground"
                                   : "bg-white/5 text-muted-foreground"
                             }`}
                           >
@@ -1154,8 +1164,8 @@ export default function Dashboard() {
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-foreground font-bold">
-                        {analysis.lap_time.toFixed(2)}s
+                      <TableCell className="font-display tabular-nums text-foreground font-bold">
+                        {formatLap(analysis.lap_time)}
                       </TableCell>
                       <TableCell className="text-right pr-6">
                         <div className="flex items-center justify-end gap-2">

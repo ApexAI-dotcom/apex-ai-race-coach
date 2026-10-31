@@ -13,14 +13,17 @@ import { cn } from "@/lib/utils";
 
 export const EASE = [0.22, 1, 0.36, 1] as const;
 
-/** Couleurs d'accent, toutes tirées des variables du thème (clair et sombre). */
-export type Accent = "red" | "green" | "amber" | "record" | "neutral";
+/**
+ * Couleurs d'accent, tirées des variables du thème (clair et sombre).
+ * Base noir, gris et rouge ; le vert (progrès) et l'ambre (à surveiller)
+ * restent des touches ponctuelles, porteuses de sens.
+ */
+export type Accent = "red" | "green" | "amber" | "neutral";
 export const ACCENT: Record<Accent, string> = {
   red: "hsl(var(--primary))",
   green: "hsl(var(--gain))",
   amber: "hsl(var(--amber))",
-  record: "hsl(var(--record))",
-  neutral: "hsl(var(--muted-foreground))",
+  neutral: "hsl(var(--foreground) / 0.72)",
 };
 
 /** Vrai dès que l'élément est entré une fois dans l'écran. */
@@ -215,7 +218,7 @@ export function PitCard({
       {hatch && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-0 top-0 -z-10 h-24 w-40 opacity-[0.12]"
+          className={cn("pointer-events-none absolute right-0 top-0 -z-10 h-24 w-40", accent === "neutral" ? "opacity-[0.07]" : "opacity-[0.12]")}
           style={{
             backgroundImage: `repeating-linear-gradient(135deg, ${color} 0 1.5px, transparent 1.5px 9px)`,
             maskImage: "radial-gradient(120% 120% at 100% 0%, black 10%, transparent 70%)",

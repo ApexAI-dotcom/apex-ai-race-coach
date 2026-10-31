@@ -47,7 +47,7 @@ function capitalize(s: string) {
 const fmtInt = (v: number) => String(Math.round(v));
 const fmtSec = (v: number) => `${v.toFixed(2).replace(".", ",")} s`;
 
-/** Écart au record du circuit, avec les couleurs d'un écran de chronométrage (violet = record). */
+/** Écart au record du circuit : rouge quand on le bat, ambre quand on est derrière. */
 function RecordDelta({ s, compact = false }: { s: PaddockSession; compact?: boolean }) {
   if (s.previousRecord == null) {
     return <span className="text-xs text-muted-foreground">{compact ? "1re séance ici" : "Première séance sur ce circuit"}</span>;
@@ -55,9 +55,9 @@ function RecordDelta({ s, compact = false }: { s: PaddockSession; compact?: bool
   const d = s.best - s.previousRecord;
   if (d < 0) {
     return compact ? (
-      <span className="text-xs font-semibold tabular-nums text-[hsl(var(--record))]">Record {formatDelta(d)}</span>
+      <span className="text-xs font-semibold tabular-nums text-primary">Record {formatDelta(d)}</span>
     ) : (
-      <Slant accent="record">Nouveau record {formatDelta(d)}</Slant>
+      <Slant accent="red">Nouveau record {formatDelta(d)}</Slant>
     );
   }
   return (
@@ -126,9 +126,9 @@ function LastSession({ s }: { s: PaddockSession }) {
 
               <dl className="mt-5 grid grid-cols-3 gap-2">
                 {[
-                  { icon: <Repeat />, label: "Tours", value: s.lapsCount ? String(s.lapsCount) : "—", color: ACCENT.amber },
-                  { icon: <Zap />, label: "V. max", value: s.vmax ? `${Math.round(s.vmax)} km/h` : "—", color: ACCENT.red },
-                  { icon: <Gauge />, label: "Score", value: s.score != null ? String(s.score) : "—", color: ACCENT.green },
+                  { icon: <Repeat />, label: "Tours", value: s.lapsCount ? String(s.lapsCount) : "—", color: ACCENT.neutral },
+                  { icon: <Zap />, label: "V. max", value: s.vmax ? `${Math.round(s.vmax)} km/h` : "—", color: ACCENT.neutral },
+                  { icon: <Gauge />, label: "Score", value: s.score != null ? String(s.score) : "—", color: ACCENT.neutral },
                 ].map((m) => (
                   <div key={m.label} className="rounded-xl bg-secondary/60 px-3 py-2.5">
                     <dt className="flex items-center gap-1 text-[11px] text-muted-foreground">
@@ -262,7 +262,7 @@ function KpiRow({ data }: { data: PaddockData }) {
       <KpiTile
         label="Tours, 30 j"
         icon={<Flag />}
-        accent="amber"
+        accent="neutral"
         delay={0.08}
         value={String(a.laps)}
         num={a.laps}
@@ -277,7 +277,7 @@ function KpiRow({ data }: { data: PaddockData }) {
       <KpiTile
         label="Régularité"
         icon={<Activity />}
-        accent="green"
+        accent="neutral"
         delay={0.16}
         value={lastReg != null ? fmtSec(lastReg) : "—"}
         num={lastReg}
@@ -292,7 +292,7 @@ function KpiRow({ data }: { data: PaddockData }) {
       <KpiTile
         label="Score d'analyse"
         icon={<Gauge />}
-        accent="record"
+        accent="red"
         delay={0.24}
         value={lastScore != null ? String(lastScore) : "—"}
         num={lastScore}
@@ -350,14 +350,14 @@ function EmptyDashboard({ onAnalyse, firstName }: { onAnalyse: () => void; first
       <ol className="grid gap-3 md:grid-cols-3">
         {STEPS.map((step, i) => (
           <Reveal as="li" key={step.title} delay={0.1 + i * 0.08}>
-            <PitCard as="div" accent={i === 0 ? "red" : i === 1 ? "amber" : "green"} className="flex h-full gap-4 p-4 pt-5">
+            <PitCard as="div" accent={i === 0 ? "red" : "neutral"} className="flex h-full gap-4 p-4 pt-5">
               <span
                 aria-hidden="true"
                 className="relative inline-flex size-9 shrink-0 items-center justify-center font-display text-lg font-bold text-foreground"
               >
                 <span
                   className="absolute inset-0 -skew-x-[14deg] rounded-md"
-                  style={{ background: `color-mix(in oklab, ${ACCENT[i === 0 ? "red" : i === 1 ? "amber" : "green"]} 22%, transparent)` }}
+                  style={{ background: `color-mix(in oklab, ${ACCENT.red} ${i === 0 ? 30 : 14}%, transparent)` }}
                 />
                 <span className="relative">{i + 1}</span>
               </span>
@@ -384,9 +384,9 @@ function Records({ records, sessions }: { records: CircuitRecord[]; sessions: Pa
   if (!records.length) return null;
   return (
     <Reveal>
-      <PitCard accent="record" labelledBy="records" className="p-5 pt-6">
+      <PitCard accent="neutral" labelledBy="records" className="p-5 pt-6">
         <h2 id="records" className="flex items-center gap-2 font-display text-lg font-semibold text-foreground">
-          <Trophy aria-hidden="true" className="size-4 text-[hsl(var(--record))]" />
+          <Trophy aria-hidden="true" className="size-4 text-primary" />
           Tes records
         </h2>
         <ul className="mt-2 divide-y divide-border">
@@ -401,7 +401,7 @@ function Records({ records, sessions }: { records: CircuitRecord[]; sessions: Pa
                     {r.sessions} séance{r.sessions > 1 ? "s" : ""}, le {formatShortDay(r.date)}
                   </div>
                 </div>
-                <div className="font-display text-base font-bold tabular-nums text-[hsl(var(--record))]">{formatLap(r.best)}</div>
+                <div className="font-display text-base font-bold tabular-nums text-foreground">{formatLap(r.best)}</div>
               </li>
             );
           })}
@@ -445,10 +445,10 @@ function KartBlock({ kart }: { kart: ReturnType<typeof usePaddockData>["kart"] }
   if (!engineLife && !tiresLife && !brakesLife) return null;
   return (
     <Reveal>
-      <PitCard accent="amber" labelledBy="ton-kart" className="p-5 pt-6">
+      <PitCard accent="neutral" labelledBy="ton-kart" className="p-5 pt-6">
         <div className="flex items-baseline justify-between">
           <h2 id="ton-kart" className="flex items-center gap-2 font-display text-lg font-semibold text-foreground">
-            <Wrench aria-hidden="true" className="size-4 text-[hsl(var(--amber))]" />
+            <Wrench aria-hidden="true" className="size-4 text-primary" />
             Ton kart
           </h2>
           <Link to="/mon-kart" className="text-sm text-muted-foreground hover:text-foreground">
