@@ -650,7 +650,7 @@ export default function Dashboard() {
                 Toutes tes séances
               </p>
               <h1 className="mt-1 font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-                Sessions
+                Tes <span className="text-gradient-primary">séances</span>
               </h1>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">

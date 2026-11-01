@@ -72,6 +72,10 @@ export function ProgressionChart({ sessions, records }: { sessions: PaddockSessi
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 6, left: -6 }}>
                 <defs>
+                  <linearGradient id="prog-stroke" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" />
+                    <stop offset="100%" stopColor="hsl(22 100% 56%)" />
+                  </linearGradient>
                   <linearGradient id="prog-fill" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
                     <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
@@ -100,7 +104,7 @@ export function ProgressionChart({ sessions, records }: { sessions: PaddockSessi
                   type="monotone"
                   dataKey="best"
                   baseValue={hi + pad}
-                  stroke="hsl(var(--primary))"
+                  stroke="url(#prog-stroke)"
                   strokeWidth={2.5}
                   fill="url(#prog-fill)"
                   dot={{ r: 3, fill: "hsl(var(--card))", stroke: "hsl(var(--primary))", strokeWidth: 2 }}

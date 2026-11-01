@@ -386,7 +386,7 @@ export default function SetupPage() {
           
           <header className="space-y-1">
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Réglages</p>
-            <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight">Carnet d'ingénieur</h1>
+            <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight">Carnet d'<span className="text-gradient-primary">ingénieur</span></h1>
             <p className="text-sm text-muted-foreground">
               Configuration pour la catégorie <span className="font-semibold text-primary">{engineCategory}</span>
             </p>

@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div
       className={
-        "min-h-screen min-h-[100dvh] bg-background flex flex-col md:pb-0 " +
+        "app-ambient min-h-screen min-h-[100dvh] bg-background flex flex-col md:pb-0 " +
         // La barre d'onglets est fixe : on réserve sa hauteur pour que le bas
         // de chaque page reste atteignable au doigt.
         (showTabBar ? "pb-[calc(var(--tabbar-h)+var(--safe-bottom))]" : "pb-[var(--safe-bottom)]")

@@ -163,10 +163,12 @@ export function Slant({
     <span className={cn("relative inline-flex items-center px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em]", className)}>
       <span
         aria-hidden="true"
-        className="absolute inset-0 -skew-x-[14deg] rounded-[3px]"
+        className={cn("absolute inset-0 -skew-x-[14deg] rounded-[3px]", solid && accent === "red" && "bg-signature")}
         style={
           solid
-            ? { background: color }
+            ? accent === "red"
+              ? undefined
+              : { background: color }
             : { background: `color-mix(in oklab, ${color} 14%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${color} 30%, transparent)` }
         }
       />
@@ -227,7 +229,11 @@ export function PitCard({
         />
       )}
       {accent !== "neutral" && (
-        <span aria-hidden="true" className="absolute left-5 top-0 h-[3px] w-12 -skew-x-[30deg] rounded-b-sm" style={{ background: color }} />
+        <span
+          aria-hidden="true"
+          className={cn("absolute left-5 top-0 h-[3px] w-12 -skew-x-[30deg] rounded-b-sm", accent === "red" && "bg-signature")}
+          style={accent === "red" ? undefined : { background: color }}
+        />
       )}
       {children}
     </Tag>

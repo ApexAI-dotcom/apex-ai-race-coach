@@ -562,7 +562,9 @@ export default function PaddockHome({ preview }: { preview?: PaddockData } = {})
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">{today}</p>
           <h1 className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-            Salut {firstName}
+            <span>
+              Salut <span className="text-gradient-primary">{firstName}</span>
+            </span>
             {(tier === "racer" || tier === "team") && (
               <Slant accent="red" solid className="text-[10px]">
                 {tier === "team" ? "Team" : "Racer"}
