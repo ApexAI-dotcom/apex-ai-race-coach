@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { User, Session, AuthError } from "@supabase/supabase-js";
+import { getPendingPassCode } from "@/lib/paddockPass";
 import { supabase } from "@/lib/supabase";
 import { ADMIN_EMAIL } from "@/constants";
 import { ARRIVED_FROM_AUTH_REDIRECT, notifySignIn } from "@/lib/accountEvents";
@@ -152,9 +153,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUpEmail = async (email: string, password: string) => {
+    // Code Paddock Pass scanné avant l'inscription : gardé dans le compte, pour
+    // être activé même si le mail de confirmation s'ouvre dans un autre navigateur.
+    const pending = getPendingPassCode();
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: pending ? { data: { pending_pass_code: pending } } : undefined,
     });
     return { error };
   };

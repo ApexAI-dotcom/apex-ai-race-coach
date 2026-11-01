@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { SubscriptionProvider, useSubscription } from "@/hooks/useSubscription.tsx";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppShell } from "@/components/layout/AppShell";
+import { PendingPassRedeemer } from "@/components/paddock/PendingPassRedeemer";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { loaders, prefetchCoreRoutes } from "./pages/loaders";
@@ -110,6 +111,7 @@ const App = () => (
           <AuthProvider>
             <SubscriptionProvider>
               <PageTracker />
+              <PendingPassRedeemer />
               <AdminStatsWidget />
               <AppShell>
               <Suspense fallback={null}>

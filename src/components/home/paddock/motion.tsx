@@ -211,8 +211,8 @@ export function PitCard({
       {glow && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-16 -top-20 -z-10 size-56 rounded-full opacity-[0.16] blur-3xl"
-          style={{ background: color }}
+          className="pointer-events-none absolute -right-20 -top-24 -z-10 size-72"
+          style={{ background: `radial-gradient(closest-side, color-mix(in oklab, ${color} 16%, transparent), transparent)` }}
         />
       )}
       {hatch && (

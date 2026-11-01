@@ -42,3 +42,51 @@ export function formatTimeLeft(seconds: number): string {
   if (m > 0) return `${m}m ${s.toString().padStart(2, "0")}s`;
   return `${s}s`;
 }
+
+/* ── Code en attente (QR du flyer) ─────────────────────────────────────────
+ * Un pilote qui scanne le QR sans compte doit d'abord s'inscrire, confirmer
+ * son mail (souvent dans un autre navigateur : l'appli Gmail…), puis se
+ * connecter. Le code doit survivre à tout ce parcours :
+ *  - dans le navigateur (localStorage, 14 jours) ;
+ *  - dans le compte lui-même à l'inscription (métadonnées Supabase), pour le
+ *    cas où le lien de confirmation s'ouvre ailleurs.
+ * Il est ensuite activé automatiquement dès que le pilote est connecté.
+ */
+const PENDING_KEY = "apexai_pending_pass";
+const PENDING_TTL_MS = 14 * 24 * 3600 * 1000;
+
+export function setPendingPassCode(code: string) {
+  const c = code.trim().toUpperCase();
+  if (!c) return;
+  try {
+    localStorage.setItem(PENDING_KEY, JSON.stringify({ code: c, at: Date.now() }));
+  } catch {
+    /* stockage indisponible : le code reste au moins dans l'URL */
+  }
+}
+
+export function getPendingPassCode(): string | null {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+    if (raw) {
+      const { code, at } = JSON.parse(raw) as { code?: string; at?: number };
+      if (code && at && Date.now() - at < PENDING_TTL_MS) return code;
+      localStorage.removeItem(PENDING_KEY);
+    }
+    // Ancienne clé (sessionStorage) des versions précédentes.
+    const legacy = sessionStorage.getItem("apexai_pending_code");
+    if (legacy) return legacy.toUpperCase();
+  } catch {
+    /* noop */
+  }
+  return null;
+}
+
+export function clearPendingPassCode() {
+  try {
+    localStorage.removeItem(PENDING_KEY);
+    sessionStorage.removeItem("apexai_pending_code");
+  } catch {
+    /* noop */
+  }
+}

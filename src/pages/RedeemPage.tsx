@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { PageMeta } from "@/components/seo/PageMeta";
@@ -10,12 +10,13 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
-import { formatPassDuration } from "@/lib/paddockPass";
+import { clearPendingPassCode, formatPassDuration, getPendingPassCode, setPendingPassCode } from "@/lib/paddockPass";
+import { supabase } from "@/lib/supabase";
 
 export default function RedeemPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { session, isAuthenticated, loading } = useAuth();
+  const { session, user, isAuthenticated, loading } = useAuth();
   const { fetchSubscription } = useSubscription();
   const token = session?.access_token;
 
@@ -23,39 +24,51 @@ export default function RedeemPage() {
   const [redeeming, setRedeeming] = useState(false);
   const [done, setDone] = useState<any>(null);
 
-  // Si on arrive via QR sans être connecté, on garde le code pour après login
+  // Code du QR : gardé (14 jours, et dans le compte à l'inscription) pour être
+  // activé tout seul après la connexion, même si le pilote passe par
+  // l'inscription et la confirmation du mail.
   useEffect(() => {
     const c = params.get("code");
-    if (c && !isAuthenticated) {
-      try { sessionStorage.setItem("apexai_pending_code", c.toUpperCase()); } catch { /* noop */ }
-    }
-  }, [params, isAuthenticated]);
+    if (c) setPendingPassCode(c);
+  }, [params]);
 
-  // Reprise automatique du code après connexion
+  // Connecté sans code dans l'URL : on reprend le code en attente.
   useEffect(() => {
     if (isAuthenticated && !code) {
-      try {
-        const pending = sessionStorage.getItem("apexai_pending_code");
-        if (pending) setCode(pending);
-      } catch { /* noop */ }
+      const pending = getPendingPassCode() || (user?.user_metadata?.pending_pass_code as string | undefined) || null;
+      if (pending) setCode(pending);
     }
-  }, [isAuthenticated, code]);
+  }, [isAuthenticated, code, user]);
 
-  const redeem = async () => {
-    if (!token || !code.trim()) return;
+  const redeem = async (value = code) => {
+    if (!token || !value.trim()) return;
     setRedeeming(true);
     try {
-      const res = await api.redeemPaddockPass(token, code.trim().toUpperCase());
+      const res = await api.redeemPaddockPass(token, value.trim().toUpperCase());
       setDone(res);
-      try { sessionStorage.removeItem("apexai_pending_code"); } catch { /* noop */ }
+      clearPendingPassCode();
+      if (user?.user_metadata?.pending_pass_code) {
+        await supabase.auth.updateUser({ data: { pending_pass_code: null } }).catch(() => {});
+      }
       await fetchSubscription();
       toast.success("Paddock Pass activé !");
     } catch (e: any) {
+      if (/déjà/i.test(e?.message || "")) clearPendingPassCode();
       toast.error(e.message || "Code invalide.");
     } finally {
       setRedeeming(false);
     }
   };
+
+  // Connecté avec un code (QR scanné, ou retour après inscription) : activation
+  // automatique, une seule fois. Le bouton reste là si elle échoue.
+  const autoTried = useRef(false);
+  useEffect(() => {
+    if (!isAuthenticated || !token || !code || autoTried.current || done) return;
+    autoTried.current = true;
+    redeem(code);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, token, code]);
 
   const duration = done?.duration_hours ? formatPassDuration(Number(done.duration_hours)) : null;
   const until = done?.until
@@ -110,10 +123,10 @@ export default function RedeemPage() {
               </p>
               <div className="flex flex-col gap-2">
                 <Button asChild className="gap-2">
-                  <Link to="/login?mode=signup"><Sparkles className="w-4 h-4" /> Créer mon compte</Link>
+                  <Link to="/login?mode=signup" state={{ from: { pathname: "/redeem" } }}><Sparkles className="w-4 h-4" /> Créer mon compte</Link>
                 </Button>
                 <Button asChild variant="outline" className="gap-2">
-                  <Link to="/login"><LogIn className="w-4 h-4" /> Se connecter</Link>
+                  <Link to="/login" state={{ from: { pathname: "/redeem" } }}><LogIn className="w-4 h-4" /> Se connecter</Link>
                 </Button>
               </div>
             </CardContent>
@@ -131,7 +144,7 @@ export default function RedeemPage() {
                 className="font-mono text-center text-lg tracking-wider"
                 onKeyDown={(e) => e.key === "Enter" && redeem()}
               />
-              <Button onClick={redeem} disabled={redeeming || !code.trim()} className="w-full gap-2">
+              <Button onClick={() => redeem()} disabled={redeeming || !code.trim()} className="w-full gap-2">
                 {redeeming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />}
                 Activer mon Paddock Pass
               </Button>

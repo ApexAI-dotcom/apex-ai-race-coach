@@ -133,9 +133,6 @@ export function KpiTile({
               aria-hidden="true"
             >
               <defs>
-                <pattern id={`${uid}-dots`} width="3" height="3" patternUnits="userSpaceOnUse">
-                  <circle cx="1.5" cy="1.5" r="0.6" fill={color} />
-                </pattern>
                 <clipPath id={`${uid}-clip`}>
                   <motion.rect
                     x={-4}
@@ -169,8 +166,7 @@ export function KpiTile({
               ) : (
                 <>
                   <g clipPath={`url(#${uid}-clip)`}>
-                    <path d={area} fill={`url(#${uid}-dots)`} opacity={0.55} />
-                    <path d={area} fill={color} opacity={0.08} />
+                    <path d={area} fill={color} opacity={0.1} />
                     <path d={line} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
                   </g>
                   {active != null && (

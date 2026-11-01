@@ -72,7 +72,6 @@ function RecordDelta({ s, compact = false }: { s: PaddockSession; compact?: bool
 function LastSession({ s }: { s: PaddockSession }) {
   const [ref, seen] = useSeenOnce<HTMLDivElement>();
   // Le chrono « se pose » : il descend d'une seconde et demie vers le meilleur tour.
-  const runnerSeconds = Math.min(9, Math.max(5, s.best / 8));
   return (
     <TiltCard rest={{ x: 0.6, y: -1 }} range={2.5} className="rounded-2xl">
       <div ref={ref}>
@@ -101,7 +100,6 @@ function LastSession({ s }: { s: PaddockSession }) {
                   size={84}
                   strokeWidth={2.5}
                   draw
-                  runner={runnerSeconds}
                   className="h-auto w-20 shrink-0 text-foreground md:hidden"
                   title={`Tracé de ${s.circuit}`}
                 />
@@ -151,7 +149,7 @@ function LastSession({ s }: { s: PaddockSession }) {
             </div>
 
             <div className="hidden items-center justify-center text-foreground md:flex">
-              <TrackOutline lat={s.lat} lon={s.lon} size={220} strokeWidth={3} draw runner={runnerSeconds} className="h-auto w-full drop-shadow-[0_0_18px_hsl(var(--primary)/0.25)]" title={`Tracé de ${s.circuit}`} />
+              <TrackOutline lat={s.lat} lon={s.lon} size={220} strokeWidth={3} draw className="h-auto w-full" title={`Tracé de ${s.circuit}`} />
             </div>
           </div>
         </PitCard>
@@ -342,7 +340,7 @@ function EmptyDashboard({ onAnalyse, firstName }: { onAnalyse: () => void; first
             <p className="mt-3 text-xs text-muted-foreground">Fichier de session AiM MyChron (.xrk, .xrz) ou Alfano.</p>
           </div>
           <div className="order-first mx-auto w-32 text-foreground/85 md:order-none md:w-full">
-            <TrackOutline demo size={240} strokeWidth={3} draw runner={6} className="h-auto w-full drop-shadow-[0_0_18px_hsl(var(--primary)/0.3)]" title="Circuit" />
+            <TrackOutline demo size={240} strokeWidth={3} draw className="h-auto w-full" title="Circuit" />
           </div>
         </div>
       </PitCard>
@@ -414,7 +412,7 @@ function Records({ records, sessions }: { records: CircuitRecord[]; sessions: Pa
 function Meter({ label, current, life, unit }: { label: string; current: number; life: number; unit: string }) {
   const [ref, seen] = useSeenOnce<HTMLDivElement>();
   const pct = Math.min(100, Math.round((current / life) * 100));
-  const color = pct >= 90 ? ACCENT.red : pct >= 70 ? ACCENT.amber : ACCENT.green;
+  const color = pct >= 90 ? ACCENT.red : ACCENT.amber;
   const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1).replace(".", ","));
   return (
     <div ref={ref}>
@@ -424,12 +422,12 @@ function Meter({ label, current, life, unit }: { label: string; current: number;
           {fmt(current)} / {fmt(life)} {unit}
         </span>
       </div>
-      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-secondary" role="meter" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary" role="meter" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
         <div
           className="h-full rounded-full transition-[width] duration-1000 ease-out motion-reduce:transition-none"
           style={{
             width: seen ? `${pct}%` : "0%",
-            background: `repeating-linear-gradient(135deg, ${color} 0 6px, color-mix(in oklab, ${color} 80%, black) 6px 9px)`,
+            background: color,
           }}
         />
       </div>
