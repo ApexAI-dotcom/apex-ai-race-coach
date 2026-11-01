@@ -45,7 +45,6 @@ export function TrackMap({
 
   const { points, width, height, trackPolyline, refPolyline } = useMemo(() => {
     // 1. Diagnostics
-    console.log("TrackMap: Render Start. Corners:", corners.length, "Laps:", laps?.length);
     if (laps && laps.length > 0) {
       const lap = laps[0];
       const validPts = lap.lat?.filter((v: any) => v != null && v !== 0).length ?? 0;
@@ -114,7 +113,6 @@ export function TrackMap({
       return { points: [], width: W, height: H, trackPolyline: null, refPolyline: null };
     }
 
-    console.log("TrackMap: Raw Bounds:", { minLat, maxLat, minLon, maxLon });
 
     // 3. Centered Bounds Logic (Crucial for avoiding diagonal noise)
     const midLat = (minLat + maxLat) / 2;
@@ -148,7 +146,6 @@ export function TrackMap({
     const offsetX = PAD + (availableW - lonSpan * scale) / 2;
     const offsetY = PAD + (availableH - latSpan * scale) / 2;
 
-    console.log("TrackMap: Scale Applied:", scale, "Offsets:", { offsetX, offsetY });
 
     const projectPoint = (lt: number, ln: number) =>
       project(lt, ln, finalBounds, scale, offsetX, offsetY, initialLonScale);

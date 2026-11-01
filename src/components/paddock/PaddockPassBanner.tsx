@@ -36,11 +36,15 @@ export function PaddockPassBanner() {
 
   useEffect(() => {
     if (secondsLeft === null) return;
+    // À plus d'une heure de la fin, l'affichage est en jours ou en heures :
+    // une mise à jour par minute suffit (au lieu d'un rendu par seconde sur
+    // toutes les pages).
+    const step = secondsLeft > 3600 ? 60 : 1;
     const id = setInterval(() => {
-      setSecondsLeft((s) => (s === null ? null : Math.max(0, s - 1)));
-    }, 1000);
+      setSecondsLeft((s) => (s === null ? null : Math.max(0, s - step)));
+    }, step * 1000);
     return () => clearInterval(id);
-  }, [secondsLeft !== null]);
+  }, [secondsLeft !== null, secondsLeft !== null && secondsLeft > 3600]);
 
   if (secondsLeft === null || dismissed) return null;
 

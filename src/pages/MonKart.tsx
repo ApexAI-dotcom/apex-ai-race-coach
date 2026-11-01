@@ -352,7 +352,6 @@ export default function MonKart() {
     if (!silent && !confirm(`Es-tu sûr de vouloir réinitialiser l'usure pour : ${component} ?`)) return;
     if (!session?.access_token) return;
     try {
-      console.log(`Resetting ${component}...`);
       
       // Update profile counters to 0 to bypass potential backend issues with custom fields
       const updates: any = {};
@@ -388,7 +387,6 @@ export default function MonKart() {
     if (!confirm("Supprimer cette session et recalculer les temps ?")) return;
     if (!session?.access_token) return;
     try {
-      console.log(`[MonKart] Deleting session with ID: ${id}`);
       await api.deleteKartSession(session.access_token, id);
       toast.success("Session supprimée.");
       fetchProfile();
@@ -481,7 +479,6 @@ export default function MonKart() {
     if (!confirm("Supprimer cette entrée d'entretien ?")) return;
     if (!session?.access_token) return;
     try {
-      console.log(`[MonKart] Deleting history entry: ${entryId}`);
       await deleteKartHistoryEntry(session.access_token, entryId);
       toast.success("Entrée d'entretien supprimée.");
       fetchProfile();
@@ -500,7 +497,6 @@ export default function MonKart() {
       return;
     if (!session?.access_token) return;
     try {
-      console.log(`[MonKart] Deleting all sessions for day: ${date}`);
       await deleteKartSessionDay(session.access_token, date);
       toast.success("Journée supprimée.");
       fetchProfile();

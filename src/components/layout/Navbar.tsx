@@ -173,7 +173,7 @@ export const Navbar = () => {
                   dense ? "text-[13px]" : "text-sm"
                 } ${
                   (item as any).isHero
-                    ? `gradient-primary text-primary-foreground rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100 animate-pulse-neon animate-shimmer active-shimmer ${
+                    ? `gradient-primary text-primary-foreground rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-100 ${
                         dense ? "px-3 py-1" : "px-4 py-1.5"
                       }`
                     : location.pathname === item.path
@@ -339,7 +339,7 @@ export const Navbar = () => {
                         // py-3 : une cible tactile confortable fait au moins 44 px de haut.
                         className={`text-base font-medium py-2.5 transition-all ${
                           (item as any).isHero
-                            ? "gradient-primary text-primary-foreground px-4 py-2 rounded-full text-center shadow-lg shadow-primary/30 active:scale-95 animate-pulse-neon"
+                            ? "gradient-primary text-primary-foreground px-4 py-2 rounded-full text-center shadow-lg shadow-primary/30 active:scale-95"
                             : location.pathname === item.path
                               ? "text-primary"
                               : "text-muted-foreground hover:text-primary"

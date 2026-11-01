@@ -954,7 +954,6 @@ export async function migrateLocalStorageToSupabase(userId: string): Promise<num
     return 0;
   }
 
-  console.log(`[Migration] Starting migration of ${index.length} analyses to Supabase...`);
   let migrated = 0;
   const prefix = `${STORAGE_ITEM_PREFIX}${suffix}_`;
 
@@ -984,7 +983,6 @@ export async function migrateLocalStorageToSupabase(userId: string): Promise<num
       // Remove from localStorage
       localStorage.removeItem(prefix + id);
       migrated++;
-      console.log(`[Migration] Migrated analysis ${stored.id}`);
     } catch (err) {
       console.warn(`[Migration] Failed to migrate analysis ${id}:`, err);
     }
@@ -994,7 +992,6 @@ export async function migrateLocalStorageToSupabase(userId: string): Promise<num
   localStorage.removeItem(getIndexKey(suffix));
   localStorage.setItem(migrationKey, "done");
 
-  console.log(`[Migration] Done! Migrated ${migrated}/${index.length} analyses.`);
   return migrated;
 }
 
@@ -1007,7 +1004,6 @@ export async function migrateGuestAnalyses(): Promise<number> {
   const guestIndex = getAnalysesIndexLS(STORAGE_GUEST);
   if (guestIndex.length === 0) return 0;
 
-  console.log(`[Migration] Found ${guestIndex.length} guest analyses to migrate...`);
   let migrated = 0;
   const prefix = `${STORAGE_ITEM_PREFIX}${STORAGE_GUEST}_`;
 
@@ -1025,7 +1021,6 @@ export async function migrateGuestAnalyses(): Promise<number> {
   }
 
   localStorage.removeItem(getIndexKey(STORAGE_GUEST));
-  console.log(`[Migration] Migrated ${migrated} guest analyses.`);
   return migrated;
 }
 
