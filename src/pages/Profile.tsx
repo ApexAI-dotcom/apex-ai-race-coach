@@ -1,201 +1,133 @@
-import { motion } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Layout } from "@/components/layout/Layout";
-import { Button } from "@/components/ui/button";
-import { useUser, useAuth } from "@/hooks/useAuth";
-import { useSubscriptionLegacy } from "@/hooks/useSubscriptionLegacy";
-import { useSubscription } from "@/hooks/useSubscription.tsx";
-import { SubscriptionBadge } from "@/components/SubscriptionBadge";
-import { createPortalSession } from "@/lib/api";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import {
-  User,
-  Mail,
-  Calendar,
-  Trophy,
-  TrendingUp,
-  Settings,
-  ChevronRight,
-  CreditCard,
-  Loader2,
-  LogOut,
-  ExternalLink,
-  Zap,
-  Target,
-  Camera,
-} from "lucide-react";
-import { uploadAvatar } from "@/lib/supabase-storage";
-import { supabase } from "@/lib/supabase";
+import { ArrowRight, Camera, Disc3, Gauge, Loader2, LogOut, Settings, Wrench, Zap } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { Layout } from "@/components/layout/Layout";
+import { PageMeta } from "@/components/seo/PageMeta";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PageMeta } from "@/components/seo/PageMeta";
-import { Helmet } from "react-helmet-async";
-import { getAllAnalyses, type AnalysisSummary } from "@/lib/storage";
+import { useAuth, useUser } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription.tsx";
+import { api, createPortalSession } from "@/lib/api";
+import { uploadAvatar } from "@/lib/supabase-storage";
+import { formatTimeLeft } from "@/lib/paddockPass";
 import { ADMIN_EMAIL } from "@/constants";
+import { PitCard, Reveal, Slant } from "@/components/home/paddock/motion";
+import { TrackOutline } from "@/components/home/paddock/TrackOutline";
+import { usePaddockData } from "@/components/home/paddock/usePaddockData";
+import { SESSION_TYPE, formatLap, formatShortDay } from "@/components/home/paddock/format";
 
-const achievements = [
-  { icon: Trophy, title: "Pro de la corde", description: "10 analyses complétées" },
-  { icon: Zap, title: "Démon de la vitesse", description: "Score > 80 atteint" },
-  { icon: Target, title: "Précision", description: "5 points de corde parfaits consécutifs" },
-];
+/**
+ * Profil : qui je suis, mon offre, mon activité, mon matériel, mes dernières
+ * séances, mon compte. Tout ce qui est affiché vient des vraies données
+ * (plus de badges factices ni de graphique de score sans échelle).
+ */
+
+const TIER_LABEL: Record<string, string> = { visitor: "Visiteur", rookie: "Rookie", racer: "Racer", team: "Team" };
+
+function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <h2 className="font-display text-lg font-semibold text-foreground">{children}</h2>
+      {action}
+    </div>
+  );
+}
 
 export default function Profile() {
   const { user, loading } = useUser();
   const { signOut, session } = useAuth();
-  const { subscription, isPro, isActive } = useSubscriptionLegacy();
-  const {
-    tier,
-    status,
-    limits,
-    billingPeriod,
-    subscriptionEndDate,
-    isLoading: subscriptionLoading,
-  } = useSubscription();
-  const hasActivePaidSubscription = (tier === "racer" || tier === "team") && status === "active";
-  const isPaidTier = tier === "team" || tier === "racer" || (tier as string) === "pro";
-  const isFreeTier = !isPaidTier;
-  if (typeof window !== "undefined") {
-    console.log(
-      "[Profile] TIER:",
-      tier,
-      "STATUS:",
-      status,
-      "COUNT:",
-      limits?.analyses_used,
-      "/",
-      limits?.analyses_per_month,
-      "isFreeTier:",
-      isFreeTier
-    );
-  }
+  const { tier, status, limits, billingPeriod, subscriptionEndDate, isLoading: subLoading } = useSubscription();
   const navigate = useNavigate();
-  const [sessions, setSessions] = useState<AnalysisSummary[]>([]);
-  const [loadingSessions, setLoadingSessions] = useState(true);
-  const [stats, setStats] = useState({
-    totalSessions: 0,
-    averageScore: 0,
-    totalLaps: 0,
-  });
-  const [error, setError] = useState<string | null>(null);
-  const [loadingPortal, setLoadingPortal] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | undefined>(undefined);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const token = session?.access_token;
+  const data = usePaddockData(user?.id, token);
 
-  // Initialize avatar URL from user metadata
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+  const [uploading, setUploading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pass, setPass] = useState<{ active: boolean; tier?: string; until?: string; seconds_left?: number } | null>(null);
+  const avatarInput = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
-    if (user) {
-      setCurrentAvatarUrl(user.user_metadata?.avatar_url as string | undefined);
-    }
+    if (user) setAvatarUrl(user.user_metadata?.avatar_url as string | undefined);
   }, [user]);
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    if (!token) return;
+    api.getPaddockPassStatus(token).then(setPass).catch(() => setPass(null));
+  }, [token]);
+
+  // Abonnement Stripe en cours (et non un Paddock Pass ou une offre offerte).
+  const hasStripeSubscription = (tier === "racer" || tier === "team") && (status === "active" || status === "trialing" || status === "past_due");
+  const onPass = !!pass?.active;
+
+  const stats = useMemo(() => {
+    const laps = data.sessions.reduce((a, s) => a + s.lapsCount, 0);
+    const scores = data.sessions.map((s) => s.score).filter((v) => typeof v === "number" && v > 0);
+    return {
+      sessions: data.sessions.length,
+      laps,
+      circuits: data.records.length,
+      bestScore: scores.length ? Math.max(...scores) : null,
+    };
+  }, [data.sessions, data.records]);
+
+  const onAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     if (file.size > 2 * 1024 * 1024) {
-      setError("L'image doit faire moins de 2 MB");
+      setError("L'image doit faire moins de 2 Mo.");
       return;
     }
     try {
-      setUploadingAvatar(true);
+      setUploading(true);
       setError(null);
-      const publicUrl = await uploadAvatar(user.id, file);
-      setCurrentAvatarUrl(publicUrl);
-      toast.success("Photo mise à jour !");
+      setAvatarUrl(await uploadAvatar(user.id, file));
+      toast.success("Photo mise à jour");
     } catch (err) {
-      console.error("Avatar upload error:", err);
-      setError(err instanceof Error ? err.message : "Erreur lors de l'upload");
+      setError(err instanceof Error ? err.message : "Envoi de la photo impossible.");
     } finally {
-      setUploadingAvatar(false);
+      setUploading(false);
     }
   };
 
-  // Charger les sessions depuis le storage local
-  useEffect(() => {
-    const loadSessions = async () => {
-      if (!user) return;
-
-      try {
-        setLoadingSessions(true);
-        setError(null);
-        const analyses = await getAllAnalyses(user.id);
-        setSessions(analyses.slice(0, 10)); // Limiter à 10 dernières sessions
-
-        // Calculer les statistiques
-        if (analyses.length > 0) {
-          const totalScore = analyses.reduce((sum, a) => sum + a.score, 0);
-          const avgScore = Math.round(totalScore / analyses.length);
-          const totalLaps = analyses.reduce((sum, a) => sum + a.corner_count, 0);
-
-          setStats({
-            totalSessions: analyses.length,
-            averageScore: avgScore,
-            totalLaps,
-          });
-        } else {
-          setStats({
-            totalSessions: 0,
-            averageScore: 0,
-            totalLaps: 0,
-          });
-        }
-      } catch (err) {
-        console.error("Error loading sessions:", err);
-        setError("Erreur lors du chargement des sessions");
-      } finally {
-        setLoadingSessions(false);
-      }
-    };
-
-    if (!loading && user) {
-      loadSessions();
-    }
-  }, [user, loading]);
-
-  const handleLogout = async () => {
-    try {
-      const { error } = await signOut();
-      if (error) {
-        setError("Erreur lors de la déconnexion");
-      } else {
-        navigate("/");
-      }
-    } catch (err) {
-      console.error("Logout error:", err);
-      setError("Erreur lors de la déconnexion");
-    }
-  };
-
-  const handleCustomerPortal = async () => {
-    const token = session?.access_token;
-    if (!user?.id || !token) {
-      setError("Session invalide");
+  // « Gérer mon offre » : le portail Stripe pour un abonnement payé ; sinon
+  // (gratuit, Paddock Pass, offre offerte) ou si le portail échoue, la page
+  // des offres. Avant, le bouton ne faisait rien quand il n'y avait pas
+  // d'abonnement Stripe derrière.
+  const manageOffer = async () => {
+    if (!hasStripeSubscription || !token) {
+      navigate("/pricing");
       return;
     }
     try {
-      setLoadingPortal(true);
-      setError(null);
+      setPortalLoading(true);
       const { portal_url } = await createPortalSession(token);
       if (portal_url) window.location.href = portal_url;
-    } catch (err) {
-      console.error("Customer portal error:", err);
-      setError(err instanceof Error ? err.message : "Erreur lors de l'ouverture du portail client");
+      else navigate("/pricing");
+    } catch {
+      navigate("/pricing");
     } finally {
-      setLoadingPortal(false);
+      setPortalLoading(false);
     }
+  };
+
+  const logout = async () => {
+    const { error } = await signOut();
+    if (error) setError("Déconnexion impossible, réessaie.");
+    else navigate("/");
   };
 
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-muted-foreground">Chargement du profil...</p>
-          </div>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-7 w-7 animate-spin text-primary" />
         </div>
       </Layout>
     );
@@ -206,621 +138,270 @@ export default function Profile() {
       <Layout>
         <div className="container mx-auto px-4 py-8">
           <Alert variant="destructive">
-            <AlertDescription>Tu dois être connecté pour voir ton profil.</AlertDescription>
+            <AlertDescription>Connecte-toi pour voir ton profil.</AlertDescription>
           </Alert>
         </div>
       </Layout>
     );
   }
 
-  const displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Utilisateur";
-  const avatarUrl = currentAvatarUrl || (user.user_metadata?.avatar_url as string | undefined);
-
-  const getInitials = () => {
-    if (user.user_metadata?.full_name) {
-      return (user.user_metadata.full_name as string)
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (user.email) {
-      return user.email.split("@")[0].slice(0, 2).toUpperCase();
-    }
-    return "U";
-  };
-
-  // Formater la date de création
-  const getMemberSince = () => {
-    if (user.created_at) {
-      try {
-        return format(new Date(user.created_at), "d MMM yyyy", { locale: fr });
-      } catch {
-        return format(new Date(user.created_at), "MMM yyyy");
-      }
-    }
-    return "Récemment";
-  };
-
-  // Date complète pour l'affichage
-  const getFullCreationDate = () => {
-    if (user.created_at) {
-      try {
-        return format(new Date(user.created_at), "EEEE d MMMM yyyy", { locale: fr });
-      } catch {
-        return format(new Date(user.created_at), "d MMMM yyyy");
-      }
-    }
-    return "Date inconnue";
-  };
-
-  // Utiliser le hook useSubscription pour le statut
+  const displayName = (user.user_metadata?.full_name as string) || user.email?.split("@")[0] || "Pilote";
+  const initials =
+    displayName
+      .split(/\s+/)
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "P";
+  const memberSince = user.created_at ? format(new Date(user.created_at), "MMMM yyyy", { locale: fr }) : null;
+  const tierLabel = TIER_LABEL[tier] ?? "Rookie";
+  const kart = data.kart;
 
   return (
     <Layout>
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-      <PageMeta
-        title="Mon profil | ApexAI"
-        description="Statistiques, historique des sessions et gestion de l'abonnement."
-        path="/profile"
-      />
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 mb-8"
-        >
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            {/* Avatar */}
-            <div
-              className="relative group cursor-pointer"
-              onClick={() => avatarInputRef.current?.click()}
+      <PageMeta title="Mon profil | ApexAI" description="Ton offre, ton activité et ton matériel." path="/profile" />
+
+      <div className="container mx-auto max-w-5xl space-y-5 px-4 pb-12 pt-6 md:space-y-6 md:pt-24">
+        {/* Identité */}
+        <PitCard accent="red" glow className="p-5 pt-6 md:p-7">
+          <div className="flex items-center gap-4 md:gap-6">
+            <button
+              type="button"
+              onClick={() => avatarInput.current?.click()}
+              className="group relative shrink-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label="Changer ma photo"
             >
-              <Avatar className="w-20 h-20 rounded-2xl border-2 border-primary/20 group-hover:border-primary/50 transition-colors">
-                {avatarUrl ? (
-                  <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" />
-                ) : null}
-                <AvatarFallback className="rounded-2xl gradient-primary text-3xl font-bold text-primary-foreground">
-                  {getInitials()}
+              <Avatar className="h-16 w-16 rounded-2xl border border-border md:h-20 md:w-20">
+                {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" /> : null}
+                <AvatarFallback className="rounded-2xl bg-secondary font-display text-2xl font-bold text-foreground">
+                  {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                {uploadingAvatar ? (
-                  <Loader2 className="w-6 h-6 text-white animate-spin" />
-                ) : (
-                  <Camera className="w-6 h-6 text-white" />
-                )}
+              <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors group-hover:text-foreground">
+                {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+              </span>
+              <input ref={avatarInput} type="file" accept="image/*" className="hidden" onChange={onAvatar} />
+            </button>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="truncate font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">{displayName}</h1>
+                {user.email === ADMIN_EMAIL && <Slant accent="neutral">Admin</Slant>}
               </div>
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarUpload}
-              />
-            </div>
-
-            {/* Info */}
-            <div className="flex-1">
-              {(() => {
-                try {
-                  const userSettings = JSON.parse(
-                    localStorage.getItem("apexai_settings") || "{}"
-                  ) as { nomPilote?: string };
-                  const bonjourName =
-                    userSettings.nomPilote?.trim() ||
-                    (user.user_metadata?.full_name as string) ||
-                    user.email?.split("@")[0];
-                  if (bonjourName) {
-                    return (
-                      <p className="text-lg font-medium text-primary mb-1">
-                        Bonjour {bonjourName} !
-                      </p>
-                    );
-                  }
-                } catch {
-                  // ignore
-                }
-                return null;
-              })()}
-              <h1 className="font-display text-2xl font-bold text-foreground mb-2">
-                {displayName}
-              </h1>
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                {user.email === ADMIN_EMAIL && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-600 text-white border border-red-500 shadow-sm">
-                    Admin
-                  </span>
-                )}
-                <span className="flex items-center gap-1">
-                  <Mail className="w-4 h-4" />
-                  {user.email || "Email non disponible"}
-                </span>
-                <span className="flex items-center gap-1" title={getFullCreationDate()}>
-                  <Calendar className="w-4 h-4" />
-                  Membre depuis {getMemberSince()}
-                </span>
-                {isPaidTier && (
-                  <span className="apex-badge-pro">{tier === "team" ? "Team" : "Racer"}</span>
-                )}
-                {isFreeTier && (
-                  <span className="px-2 py-1 rounded-full text-xs bg-secondary/50 text-muted-foreground">
-                    Gratuit
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-wrap gap-3">
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/parametres" className="inline-flex items-center justify-center gap-2">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Paramètres
-                </Link>
-              </Button>
-              {hasActivePaidSubscription && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCustomerPortal}
-                  disabled={loadingPortal}
-                  className="gap-2"
-                >
-                  {loadingPortal ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <ExternalLink className="w-4 h-4" />
-                      Gérer les plans
-                    </>
-                  )}
-                </Button>
-              )}
-              {isFreeTier && (
-                <Button
-                  variant="hero"
-                  size="sm"
-                  onClick={() => navigate("/pricing")}
-                  className="gap-2"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Passer à PRO
-                </Button>
-              )}
-              <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
-                <LogOut className="w-4 h-4" />
-                Déconnexion
-              </Button>
+              <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+              {memberSince && <p className="text-xs text-muted-foreground">Pilote ApexAI depuis {memberSince}</p>}
             </div>
           </div>
-        </motion.div>
+        </PitCard>
 
         {error && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Stats Sidebar */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-4 space-y-6"
-          >
-            {/* Stats Overview */}
-            <div className="glass-card p-6">
-              <h3 className="font-display font-semibold text-lg text-foreground mb-4">
-                Statistiques
-              </h3>
-              <div className="space-y-4">
-                {[
-                  {
-                    label: "Sessions analysées",
-                    value: loadingSessions ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      stats.totalSessions.toString()
-                    ),
-                    icon: Trophy,
-                  },
-                  {
-                    label: "Score moyen",
-                    value: loadingSessions ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : stats.totalSessions > 0 ? (
-                      `${stats.averageScore}/100`
-                    ) : (
-                      "—"
-                    ),
-                    icon: TrendingUp,
-                  },
-                  {
-                    label: "Tours analysés",
-                    value: loadingSessions ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      stats.totalLaps.toString()
-                    ),
-                    icon: TrendingUp,
-                  },
-                ].map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="flex items-center justify-between p-3 rounded-xl bg-secondary/30"
-                  >
-                    <div className="flex items-center gap-3">
-                      <stat.icon className="w-5 h-5 text-primary" />
-                      <span className="text-sm text-muted-foreground">{stat.label}</span>
-                    </div>
-                    <span className="font-semibold text-foreground flex items-center gap-2">
-                      {stat.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Plans */}
-            <div className="glass-card p-6">
-              <h3 className="font-display font-semibold text-lg text-foreground mb-4">Plans</h3>
-              {subscriptionLoading ? (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Chargement…</span>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <SubscriptionBadge />
-                  </div>
-                  {billingPeriod && (
-                    <p className="text-sm text-muted-foreground">
-                      Facturation {billingPeriod === "annual" ? "annuelle" : "mensuelle"}
-                    </p>
-                  )}
-                  {subscriptionEndDate && (
-                    <p className="text-sm text-muted-foreground">
-                      Prochain renouvellement :{" "}
-                      {format(new Date(subscriptionEndDate), "d MMMM yyyy", { locale: fr })}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    Change de plan, mets à jour tes moyens de paiement ou annule depuis le
-                    portail Stripe.
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    {isFreeTier ? (
-                      <Button variant="hero" size="sm" asChild className="w-full gap-2">
-                        <Link to="/pricing">
-                          <Zap className="w-4 h-4" />
-                          Choisir un plan payant
-                        </Link>
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full gap-2"
-                        onClick={async () => {
-                          const token = session?.access_token;
-                          if (!user?.id || !token) return;
-                          try {
-                            setLoadingPortal(true);
-                            setError(null);
-                            const { portal_url } = await createPortalSession(token);
-                            if (portal_url) window.location.href = portal_url;
-                          } catch (err) {
-                            setError(
-                              err instanceof Error
-                                ? err.message
-                                : "Erreur lors de l'ouverture du portail"
-                            );
-                          } finally {
-                            setLoadingPortal(false);
-                          }
-                        }}
-                        disabled={loadingPortal}
-                      >
-                        {loadingPortal ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <ExternalLink className="w-4 h-4" />
-                        )}
-                        Gérer mes plans
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Achievements */}
-            <div className="glass-card p-6">
-              <h3 className="font-display font-semibold text-lg text-foreground mb-4">
-                Badges obtenus
-              </h3>
-              <div className="space-y-3">
-                {achievements.map((achievement, index) => (
-                  <motion.div
-                    key={achievement.title}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 + index * 0.1 }}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30"
-                  >
-                    <achievement.icon className="w-6 h-6 text-primary" />
-                    <div>
-                      <div className="font-medium text-foreground text-sm">{achievement.title}</div>
-                      <div className="text-xs text-muted-foreground">{achievement.description}</div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Evolution Chart */}
-            <div className="glass-card p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-display font-semibold text-lg text-foreground">
-                  Évolution du score
-                </h3>
-                <div className="text-[9px] font-bold text-muted-foreground bg-white/5 px-2 py-0.5 rounded border border-white/5 uppercase tracking-tighter">
-                  Chronologique
-                </div>
-              </div>
-              {loadingSessions || sessions.length === 0 ? (
-                <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
-                  {loadingSessions ? (
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  ) : (
-                    "Aucune donnée disponible"
-                  )}
-                </div>
+        <div className="grid gap-5 md:grid-cols-2 md:gap-6">
+          {/* Offre */}
+          <Reveal>
+            <PitCard accent={tier === "racer" || tier === "team" ? "red" : "neutral"} className="flex h-full flex-col p-5 pt-6">
+              <SectionTitle>Ton offre</SectionTitle>
+              {subLoading ? (
+                <div className="mt-4 h-16 animate-pulse rounded-xl bg-secondary" />
               ) : (
                 <>
-                  <div className="h-40 flex items-end justify-between gap-2">
-                    {sessions
-                      .slice(0, 8)
-                      .reverse()
-                      .map((session, index) => {
-                        const height = Math.min(100, Math.max(10, (session.score / 100) * 100));
-                        return (
-                          <motion.div
-                            key={session.id}
-                            initial={{ height: 0 }}
-                            animate={{ height: `${height}%` }}
-                            transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
-                            className="flex-1 rounded-t-sm bg-gradient-to-t from-primary/50 to-primary"
-                            title={`Session du ${new Date(session.date).toLocaleDateString()} — Score: ${session.score}/100`}
-                          />
-                        );
-                      })}
+                  <div className="mt-3 flex items-baseline gap-3">
+                    <span className="font-display text-3xl font-bold tracking-tight text-foreground">{tierLabel}</span>
+                    {onPass && <Slant accent="red">Paddock Pass</Slant>}
                   </div>
-                  <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                    <span>Ancien</span>
-                    <span>Récent</span>
+                  <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                    {onPass && pass?.until && (
+                      <p>
+                        Jusqu'au {format(new Date(pass.until), "d MMMM yyyy", { locale: fr })}
+                        {pass.seconds_left != null ? `, encore ${formatTimeLeft(pass.seconds_left)}` : ""}.
+                      </p>
+                    )}
+                    {hasStripeSubscription && (
+                      <p>
+                        Abonnement {billingPeriod === "annual" ? "annuel" : "mensuel"}
+                        {subscriptionEndDate ? `, renouvelé le ${format(new Date(subscriptionEndDate), "d MMMM yyyy", { locale: fr })}` : ""}.
+                      </p>
+                    )}
+                    {tier === "rookie" && !onPass && (
+                      <p>
+                        {limits?.analyses_used ?? 0} analyse{(limits?.analyses_used ?? 0) > 1 ? "s" : ""} ce mois
+                        {limits?.analyses_per_month ? ` sur ${limits.analyses_per_month}` : ""}. Racer : analyses illimitées, Mon Kart et les réglages.
+                      </p>
+                    )}
+                    {(tier === "racer" || tier === "team") && !onPass && !hasStripeSubscription && <p>Offre active sur ton compte.</p>}
+                  </div>
+                  <div className="mt-auto flex flex-col gap-2 pt-5 sm:flex-row">
+                    <Button onClick={manageOffer} disabled={portalLoading} className="h-11 flex-1 gap-2">
+                      {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                      {hasStripeSubscription ? "Gérer mon abonnement" : tier === "rookie" && !onPass ? "Passer à Racer" : "Voir les offres"}
+                    </Button>
+                    {hasStripeSubscription && (
+                      <Button variant="outline" asChild className="h-11 flex-1">
+                        <Link to="/pricing">Comparer les offres</Link>
+                      </Button>
+                    )}
                   </div>
                 </>
               )}
-            </div>
-          </motion.div>
+            </PitCard>
+          </Reveal>
 
-          {/* Sessions History */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="lg:col-span-8"
-          >
-            <div className="glass-card p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display font-semibold text-lg text-foreground">
-                  Historique des sessions
-                </h3>
-              </div>
-
-              {/* Desktop view: Table (Hidden on mobile) */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-white/5">
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                        Date
-                      </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                        Session / Circuit
-                      </th>
-                      <th className="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
-                        Tours
-                      </th>
-                      <th className="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
-                        Score
-                      </th>
-                      <th className="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
-                        Gain
-                      </th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loadingSessions ? (
-                      <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center">
-                          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
-                          <p className="text-sm text-muted-foreground">
-                            Chargement des sessions...
-                          </p>
-                        </td>
-                      </tr>
-                    ) : sessions.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                          Aucune session analysée pour le moment
-                        </td>
-                      </tr>
-                    ) : (
-                      sessions.map((session, index) => (
-                        <motion.tr
-                          key={session.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.3 + index * 0.05 }}
-                          className="border-b border-white/5 last:border-0 hover:bg-white/2 transition-colors"
-                        >
-                          <td className="px-4 py-4 text-sm text-muted-foreground">
-                            {format(new Date(session.date), "d MMM yyyy", { locale: fr })}
-                          </td>
-                          <td className="px-4 py-4">
-                            <div className="text-sm font-medium text-foreground">
-                              {session.session_name ||
-                                `Session du ${new Date(session.date).toLocaleDateString("fr-FR")}`}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <div className="text-[10px] text-muted-foreground uppercase tracking-tighter">
-                                {session.circuit_name || "Circuit inconnu"}
-                              </div>
-                              <span
-                                className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold ${
-                                  session.session_type === "race"
-                                    ? "bg-red-500/20 text-red-300"
-                                    : session.session_type === "qualifying"
-                                      ? "bg-blue-500/20 text-blue-300"
-                                      : "bg-white/5 text-muted-foreground"
-                                }`}
-                              >
-                                {session.session_type || "Practice"}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 text-sm text-center text-muted-foreground">
-                            {session.corner_count}
-                          </td>
-                          <td className="px-4 py-4 text-center">
-                            <span
-                              className={`inline-flex items-center justify-center w-12 h-6 rounded-full text-xs font-bold ${
-                                session.score >= 80
-                                  ? "bg-success/20 text-success"
-                                  : session.score >= 70
-                                    ? "bg-primary/20 text-primary"
-                                    : "bg-warning/20 text-warning"
-                              }`}
-                            >
-                              {session.score}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 text-sm text-center font-medium text-muted-foreground">
-                            {session.grade}
-                          </td>
-                          <td className="px-4 py-4 text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => navigate(`/dashboard?analysisId=${session.id}`)}
-                            >
-                              <span className="hidden sm:inline">Voir</span>
-                              <ChevronRight className="w-4 h-4 ml-1" />
-                            </Button>
-                          </td>
-                        </motion.tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile view: Cards (Hidden on desktop) */}
-              <div className="md:hidden space-y-4">
-                {loadingSessions ? (
-                  <div className="py-8 text-center">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
-                    <p className="text-sm text-muted-foreground">Chargement...</p>
+          {/* Activité */}
+          <Reveal delay={0.05}>
+            <PitCard className="h-full p-5 pt-6">
+              <SectionTitle
+                action={
+                  <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
+                    Tableau de bord
+                  </Link>
+                }
+              >
+                Ton activité
+              </SectionTitle>
+              <dl className="mt-4 grid grid-cols-2 gap-2">
+                {[
+                  { label: "Séances analysées", value: stats.sessions },
+                  { label: "Tours analysés", value: stats.laps },
+                  { label: "Circuits", value: stats.circuits },
+                  { label: "Meilleur score", value: stats.bestScore ?? "—" },
+                ].map((m) => (
+                  <div key={m.label} className="rounded-xl bg-secondary/60 px-3 py-3">
+                    <dt className="text-xs text-muted-foreground">{m.label}</dt>
+                    <dd className="mt-0.5 font-display text-2xl font-semibold tabular-nums text-foreground">
+                      {data.loading ? <span className="inline-block h-6 w-10 animate-pulse rounded bg-secondary" /> : m.value}
+                    </dd>
                   </div>
-                ) : sessions.length === 0 ? (
-                  <div className="py-8 text-center text-muted-foreground text-sm">
-                    Aucune session pour le moment
-                  </div>
-                ) : (
-                  sessions.map((session, index) => (
-                    <motion.div
-                      key={session.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 + index * 0.05 }}
-                      className="p-4 rounded-xl bg-secondary/20 border border-white/5 space-y-3"
-                      onClick={() => navigate(`/dashboard?analysisId=${session.id}`)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1">
-                            {format(new Date(session.date), "d MMM yyyy", { locale: fr })}
-                          </div>
-                          <div className="font-bold text-foreground line-clamp-1">
-                            {session.session_name ||
-                              `Session du ${new Date(session.date).toLocaleDateString("fr-FR")}`}
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] text-muted-foreground uppercase">
-                              {session.circuit_name || "Circuit"}
-                            </span>
-                            <span
-                              className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold ${
-                                session.session_type === "race"
-                                  ? "bg-red-500/20 text-red-300"
-                                  : session.session_type === "qualifying"
-                                    ? "bg-blue-500/20 text-blue-300"
-                                    : "bg-white/5 text-muted-foreground"
-                              }`}
-                            >
-                              {session.session_type || "Practice"}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <div
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              session.score >= 80
-                                ? "bg-success/20 text-success"
-                                : session.score >= 70
-                                  ? "bg-primary/20 text-primary"
-                                  : "bg-warning/20 text-warning"
-                            }`}
-                          >
-                            {session.score}/100
-                          </div>
-                          <div className="text-[10px] font-black text-muted-foreground opacity-50 uppercase">
-                            Grade {session.grade}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs pt-2 border-t border-white/5">
-                        <div className="flex gap-4">
-                          <span className="text-muted-foreground">
-                            Virages:{" "}
-                            <span className="text-foreground font-medium">
-                              {session.corner_count}
-                            </span>
-                          </span>
-                        </div>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1">
-                          Détails <ChevronRight className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-            </div>
-          </motion.div>
+                ))}
+              </dl>
+            </PitCard>
+          </Reveal>
         </div>
+
+        {/* Matériel */}
+        <Reveal>
+          <PitCard className="p-5 pt-6">
+            <SectionTitle
+              action={
+                <Link to="/mon-kart" className="text-sm text-muted-foreground hover:text-foreground">
+                  Mon Kart
+                </Link>
+              }
+            >
+              Ton matériel
+            </SectionTitle>
+            {kart ? (
+              <dl className="mt-4 grid gap-2 sm:grid-cols-3">
+                {[
+                  {
+                    icon: <Wrench />,
+                    label: "Châssis",
+                    value: [kart.setup_json?.chassis_brand, kart.setup_json?.chassis_model].filter(Boolean).join(" ") || "À renseigner",
+                  },
+                  { icon: <Zap />, label: "Moteur", value: kart.engine_model || "À renseigner" },
+                  { icon: <Disc3 />, label: "Pneus", value: kart.tires_model || "À renseigner" },
+                ].map((m) => (
+                  <div key={m.label} className="flex items-center gap-3 rounded-xl bg-secondary/60 px-3 py-3">
+                    <span aria-hidden="true" className="text-primary [&>svg]:size-4">
+                      {m.icon}
+                    </span>
+                    <div className="min-w-0">
+                      <dt className="text-xs text-muted-foreground">{m.label}</dt>
+                      <dd className="truncate text-sm font-medium text-foreground">{m.value}</dd>
+                    </div>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Déclare ton châssis, ton moteur et tes pneus : l'analyse et les réglages s'en servent.
+                </p>
+                <Button variant="outline" asChild className="h-11 shrink-0">
+                  <Link to="/mon-kart">Configurer mon kart</Link>
+                </Button>
+              </div>
+            )}
+          </PitCard>
+        </Reveal>
+
+        {/* Dernières séances */}
+        <Reveal>
+          <section aria-labelledby="dernieres">
+            <SectionTitle
+              action={
+                <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
+                  Toutes tes séances
+                </Link>
+              }
+            >
+              <span id="dernieres">Dernières séances</span>
+            </SectionTitle>
+            <PitCard as="div" hatch={false} className="mt-3">
+              {data.loading && !data.sessions.length ? (
+                <div className="h-40 animate-pulse" />
+              ) : data.sessions.length ? (
+                <ul className="divide-y divide-border">
+                  {data.sessions.slice(0, 5).map((s) => (
+                    <li key={s.id}>
+                      <Link
+                        to={`/analysis/${s.id}`}
+                        className="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 active:bg-secondary/80"
+                      >
+                        <TrackOutline lat={s.lat} lon={s.lon} size={40} strokeWidth={2} className="text-foreground/70" />
+                        <div className="min-w-0">
+                          <div className="truncate font-medium text-foreground">{s.circuit}</div>
+                          <div className="truncate text-sm text-muted-foreground">
+                            {formatShortDay(s.date)}, {SESSION_TYPE[s.type] ?? s.type}
+                            {s.lapsCount ? `, ${s.lapsCount} tours` : ""}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-display text-base font-semibold tabular-nums text-foreground">{formatLap(s.best)}</div>
+                          <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
+                            <Gauge className="h-3 w-3" />
+                            {s.score}
+                          </div>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex flex-col items-start gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-muted-foreground">Aucune séance pour l'instant.</p>
+                  <Button asChild className="h-11">
+                    <Link to="/upload">
+                      Analyser ma première séance <ArrowRight className="ml-1.5 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </PitCard>
+          </section>
+        </Reveal>
+
+        {/* Compte */}
+        <Reveal>
+          <PitCard hatch={false} className="p-5">
+            <SectionTitle>Compte</SectionTitle>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <Button variant="outline" asChild className="h-11 justify-start gap-2">
+                <Link to="/parametres">
+                  <Settings className="h-4 w-4" /> Paramètres
+                </Link>
+              </Button>
+              <Button variant="outline" onClick={logout} className="h-11 justify-start gap-2 text-muted-foreground hover:text-foreground">
+                <LogOut className="h-4 w-4" /> Se déconnecter
+              </Button>
+            </div>
+          </PitCard>
+        </Reveal>
       </div>
     </Layout>
   );
