@@ -663,12 +663,10 @@ export default function MonKart() {
               )}
             </div>
 
-            <PartsCatalog />
-
             {/* Historique des Journées de Roulage - Déplacé dans la colonne de droite pour combler le vide */}
             <Card className="bg-card border-border shadow-sm">
               <CardHeader>
-                <CardTitle>Historique des Journées de Roulage</CardTitle>
+                <CardTitle>Historique des journées de roulage</CardTitle>
                 <p className="text-xs text-muted-foreground mt-1">
                   Résumé agrégé de tes sorties en piste. Chaque ligne rassemble les sessions d'une même
                   journée.
@@ -740,6 +738,9 @@ export default function MonKart() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Catalogue des pièces : en bas, comme référence (fiches, entretien, sources). */}
+            <PartsCatalog />
           </div>
         </div>
       </div>

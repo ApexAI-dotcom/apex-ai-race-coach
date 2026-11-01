@@ -365,10 +365,18 @@ export default function Dashboard() {
   }, [analyses, folders, currentFolderId, circuitFilter]);
 
   // Load specific analysis from query param
+  // L'URL est la source de vérité de l'écran de détail : un retour arrière
+  // (geste iOS/Android, bouton du navigateur) retire ?analysisId et doit
+  // refermer l'écran. Avant, il restait affiché et le pilote se retrouvait
+  // bloqué dedans, obligé de fermer l'app.
   useEffect(() => {
     if (analysisIdParam) {
-      handleViewAnalysis(analysisIdParam);
+      if (selectedAnalysis?.analysis_id !== analysisIdParam) handleViewAnalysis(analysisIdParam);
+    } else if (showDetailOverlay) {
+      setShowDetailOverlay(false);
+      setSelectedAnalysis(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysisIdParam, user?.id]);
 
   // Close overlay on ESC
@@ -409,7 +417,8 @@ export default function Dashboard() {
   const handleCloseOverlay = () => {
     setShowDetailOverlay(false);
     setSelectedAnalysis(null);
-    setSearchParams({});
+    document.body.style.overflow = "";
+    setSearchParams({}, { replace: true });
   };
 
   const handleDeleteClick = (id: string) => {
@@ -1204,11 +1213,12 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2 md:gap-4">
                     <Button
                       variant="ghost"
-                      size="icon"
-                      className="hover:bg-white/5"
+                      className="h-11 gap-1.5 px-2 hover:bg-white/5"
                       onClick={handleCloseOverlay}
+                      aria-label="Retour aux séances"
                     >
                       <ArrowLeft className="w-6 h-6" />
+                      <span className="text-sm">Séances</span>
                     </Button>
                     <div>
                       <h2 className="text-xl md:text-2xl font-bold text-foreground">Détails</h2>

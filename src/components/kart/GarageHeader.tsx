@@ -10,8 +10,11 @@ export function GarageHeader({ profile, onUpdate }: GarageHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
       <div>
-        <h1 className="text-3xl font-display font-bold">Mon Garage</h1>
-        <p className="text-muted-foreground mt-2">Vue détaillée, usure et recommandations</p>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Ton garage</p>
+        <h1 className="mt-1 text-3xl md:text-4xl font-display font-bold tracking-tight">
+          Mon <span className="text-gradient-primary">Kart</span>
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">Usure, entretien et pièces de ton kart</p>
       </div>
       <div className="flex items-center gap-4">
         {profile?.race_number && (

@@ -365,9 +365,9 @@ export default function CalendarPage() {
       <div className="container max-w-3xl mx-auto px-4 py-8 md:py-12">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground flex items-center gap-2">
-              <CalendarDays className="w-6 h-6 text-primary" />
-              Calendrier
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Ta saison</p>
+            <h1 className="mt-1 text-3xl md:text-4xl font-display font-bold tracking-tight text-foreground">
+              <span className="text-gradient-primary">Calendrier</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Ta saison au même endroit : courses, entraînements, coaching et échéances
