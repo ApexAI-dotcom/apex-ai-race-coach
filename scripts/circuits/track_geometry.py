@@ -11,7 +11,12 @@ bas avec un kart à boîte ou un X30 : on obtient « 12 virages, 0 épingle », 
 les virages moyens ne sont comptés nulle part. Le rayon et l'angle d'un virage,
 eux, ne dépendent ni du kart ni du pilote.
 
-Classification (angle total A, rayon minimal R) :
+Ce qui compte comme virage (règle commune à tous les circuits) :
+    A >= 40°, ou A >= 25° si le virage est serré (R <= 15 m).
+    En dessous : « courbe » prise à fond, gardée dans la liste mais pas
+    comptée (Citykart Sautron : 15 inflexions, 10 virages, comme sur place).
+
+Classification des virages (angle total A, rayon minimal R) :
     épingle : A >= 130°
     rapide  : A < 60°, ou R >= 28 m et A <= 100° (courbe large)
     moyen   : le reste
@@ -70,6 +75,11 @@ def smooth(xy: List[Tuple[float, float]], half: int, closed: bool) -> List[Tuple
             c += 1
         out.append((sx / c, sy / c))
     return out
+
+
+def is_real_corner(angle_deg: float, min_radius_m: float) -> bool:
+    """Un vrai virage, et pas une courbe prise à fond."""
+    return angle_deg >= 40 or (angle_deg >= 25 and min_radius_m <= 15)
 
 
 def classify(angle_deg: float, min_radius_m: float) -> str:
@@ -166,7 +176,7 @@ def analyze(points: Sequence[Tuple[float, float]], closed: bool | None = None, s
             })
         j = k1 + 1
     for c in corners:
-        c["kind"] = classify(c["angle_deg"], c["min_radius_m"])
+        c["kind"] = classify(c["angle_deg"], c["min_radius_m"]) if is_real_corner(c["angle_deg"], c["min_radius_m"]) else "courbe"
     corners.sort(key=lambda c: c["apex_m"])
     # Sens de rotation de la ligne telle que fournie (aire signée)
     area = 0.0
@@ -176,7 +186,8 @@ def analyze(points: Sequence[Tuple[float, float]], closed: bool | None = None, s
         "length_m": round(length, 1),
         "closed": closed,
         "corners": corners,
-        "corners_count": len(corners),
+        "corners_count": sum(c["kind"] != "courbe" for c in corners),
+        "kinks_count": sum(c["kind"] == "courbe" for c in corners),
         "hairpins_count": sum(c["kind"] == "epingle" for c in corners),
         "medium_count": sum(c["kind"] == "moyen" for c in corners),
         "fast_corners_count": sum(c["kind"] == "rapide" for c in corners),
