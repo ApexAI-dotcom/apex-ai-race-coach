@@ -1,7 +1,6 @@
 import React from "react";
 import { Zap, Lock, MapPin } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { CoachingAdvice as CoachingAdviceType } from "@/types/analysis";
@@ -45,10 +44,10 @@ export function CoachingAdvice({
 
   return (
     <Card className="glass-card border-primary/20 mb-8 relative overflow-hidden">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="px-4 pb-3 sm:px-6">
+        <CardTitle className="flex items-center gap-2 font-display text-xl sm:text-2xl">
           <Zap className="w-5 h-5 text-primary" />
-          Conseils de Coaching
+          Conseils de coaching
         </CardTitle>
         <CardDescription className="space-y-1">
           <span className="block">
@@ -63,8 +62,8 @@ export function CoachingAdvice({
           ))}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="px-3 sm:px-6">
+        <div className="space-y-3">
           {actionable.map((item, index) => {
             const isItemLocked = isLocked && index >= 2;
             const canFocus = !!onFocusCorner && !!item.corner && !isItemLocked;
@@ -88,7 +87,7 @@ export function CoachingAdvice({
                       }
                     : undefined
                 }
-                className={`p-4 rounded-lg bg-secondary/50 border relative transition-all duration-200 ${
+                className={`p-3.5 sm:p-4 rounded-xl bg-secondary/40 border relative transition-colors duration-200 ${
                   isItemLocked ? "blur-[6px] select-none pointer-events-none opacity-50" : ""
                 } ${
                   canFocus
@@ -96,47 +95,52 @@ export function CoachingAdvice({
                     : "border-white/5"
                 }`}
               >
-                <div className="flex items-start justify-between mb-2 flex-wrap gap-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="text-xs border-white/10">
-                      Priorité {item.priority}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs border-white/10">
-                      {CATEGORY_LABEL[item.category] ?? item.category}
-                    </Badge>
-                    {item.corner && (
-                      <Badge
-                        variant="outline"
-                        className={`text-xs border-white/10 text-primary ${canFocus ? "gap-1" : ""}`}
-                      >
-                        Virage {item.corner}
-                        {canFocus && <MapPin className="w-3 h-3" />}
-                      </Badge>
-                    )}
-                  </div>
+                {/* En-tête court : rang, virage, temps à gagner — l'essentiel d'un coup d'œil. */}
+                <div className="flex items-center gap-2">
+                  <span className="relative inline-flex h-7 min-w-7 items-center justify-center px-1.5 font-display text-sm font-bold text-white">
+                    <span aria-hidden="true" className="absolute inset-0 -skew-x-[14deg] rounded-[4px] bg-signature" />
+                    <span className="relative">{item.priority}</span>
+                  </span>
+                  {item.corner ? (
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-foreground">
+                      Virage {item.corner}
+                      {canFocus && <MapPin className="h-3.5 w-3.5 text-primary" />}
+                    </span>
+                  ) : null}
+                  <span className="text-xs text-muted-foreground">{CATEGORY_LABEL[item.category] ?? item.category}</span>
                   {item.impact_seconds > 0 && (
                     <span
-                      className="text-xs text-muted-foreground font-medium"
-                      title="Temps perdu mesuré sur ce virage, par tour — écart entre ton meilleur tour et ton tour idéal"
+                      className="ml-auto shrink-0 rounded-full bg-[hsl(var(--amber)/0.12)] px-2 py-0.5 text-xs font-semibold tabular-nums text-[hsl(var(--amber))]"
+                      title="Temps à gagner sur ce virage, par tour"
                     >
-                      Temps perdu ici :{" "}
-                      <span className="text-green-500 tabular-nums">
-                        {item.impact_seconds.toFixed(2)}s
-                      </span>
-                      <span className="text-muted-foreground"> / tour</span>
+                      {item.impact_seconds.toFixed(2).replace(".", ",")} s/tour
                     </span>
                   )}
                 </div>
-                <p className="font-semibold text-foreground mb-1">{item.message}</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{item.explanation}</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
-                    Difficulté :
-                  </span>
-                  <Badge variant="secondary" className="text-[10px] font-bold px-1.5 py-0">
-                    {item.difficulty}
-                  </Badge>
-                </div>
+                {/* La consigne en titre ; l'explication, longue, se déplie au besoin. */}
+                <p className="mt-2 font-semibold leading-snug text-foreground">
+                  {item.message.includes(" — ") ? item.message.split(" — ").slice(1).join(" — ") : item.message}
+                </p>
+                {(() => {
+                  const text = (item.explanation || "").trim();
+                  const first = text.match(/^.*?[.!?](\s|$)/)?.[0]?.trim() ?? text;
+                  const rest = text.slice(first.length).trim();
+                  return (
+                    <>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{first}</p>
+                      {rest && (
+                        <details className="group mt-1" onClick={(e) => e.stopPropagation()}>
+                          <summary className="cursor-pointer list-none text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
+                            <span className="group-open:hidden">Comment faire</span>
+                            <span className="hidden group-open:inline">Masquer</span>
+                          </summary>
+                          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{rest}</p>
+                        </details>
+                      )}
+                    </>
+                  );
+                })()}
+                <p className="mt-2 text-[11px] text-muted-foreground">Difficulté : {item.difficulty}</p>
               </div>
             );
           })}

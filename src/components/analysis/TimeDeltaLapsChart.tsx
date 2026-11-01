@@ -40,7 +40,11 @@ interface TimeDeltaLapsChartProps {
   cornerOverlays?: CornerOverlay[];
 }
 
-const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
+const LAP_COLORS = ["#3b82f6", "#f97316", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
+const BEST_GREEN = "#22c55e";
+
+/** Longueur parcourue d'un tour (dernier point de distance). */
+const lapLength = (l?: TimeDeltaLap) => (l?.distance_m?.length ? l.distance_m[l.distance_m.length - 1] - l.distance_m[0] : 0);
 
 export function TimeDeltaLapsChart({
   data,
@@ -54,16 +58,25 @@ export function TimeDeltaLapsChart({
   const visible = isChartVisible("delta_time", circuitName);
   const cta = getCtaDetails(circuitName);
 
+  // Axe des distances : celui du meilleur tour, sauf s'il est tronqué (un tour
+  // partiel marqué « meilleur » donnait un axe de 84 m et des deltas de 40 s).
+  // On prend alors le tour sélectionné le plus long.
   const refDist = useMemo(() => {
-    const best = data.laps.find((l) => l.is_best);
     const sel = data.laps.filter((l) => selectedLaps.includes(l.lap_number));
-    return (best ?? sel[0])?.distance_m ?? [];
+    const longest = [...sel, ...data.laps].reduce<TimeDeltaLap | undefined>((a, l) => (lapLength(l) > lapLength(a) ? l : a), undefined);
+    const best = data.laps.find((l) => l.is_best);
+    const ref = best && lapLength(best) >= 0.8 * lapLength(longest) ? best : sel.sort((a, b) => lapLength(b) - lapLength(a))[0] ?? longest;
+    return ref?.distance_m ?? [];
   }, [data, selectedLaps]);
 
   const zoom = useChartZoom(refDist[0] ?? 0, refDist[refDist.length - 1] ?? 1);
 
   const { series, activeLaps } = useMemo(() => {
-    const selectedLapData = data.laps.filter((l) => selectedLaps.includes(l.lap_number));
+    // Les tours tronqués (moins de 80 % du tour de référence) faussent le delta : écartés.
+    const refLen = refDist.length ? refDist[refDist.length - 1] - refDist[0] : 0;
+    const selectedLapData = data.laps.filter(
+      (l) => selectedLaps.includes(l.lap_number) && (!refLen || lapLength(l) >= 0.8 * refLen)
+    );
     if (selectedLapData.length === 0 || refDist.length === 0) {
       return { series: [], activeLaps: [] };
     }
@@ -169,14 +182,12 @@ export function TimeDeltaLapsChart({
                 labelFormatter={(label) => `Position: ${label} m`}
               />
               <Legend />
-              <ReferenceLine
-                y={0}
-                stroke="hsl(var(--muted-foreground))"
-                strokeWidth={1.5}
-                strokeDasharray="4 4"
-              />
+              {/* Zéro = le meilleur tour : la référence, en vert. */}
+              <ReferenceLine y={0} stroke={BEST_GREEN} strokeWidth={2}>
+                <Label value={`Meilleur tour (T${data.best_lap_number})`} position="insideBottomRight" fill={BEST_GREEN} fontSize={11} />
+              </ReferenceLine>
               {activeLaps.map((lap, idx) => {
-                const color = lap.is_best ? "#22c55e" : LAP_COLORS[idx % LAP_COLORS.length];
+                const color = lap.is_best ? BEST_GREEN : LAP_COLORS[idx % LAP_COLORS.length];
                 return (
                   <Line
                     key={lap.lap_number}
