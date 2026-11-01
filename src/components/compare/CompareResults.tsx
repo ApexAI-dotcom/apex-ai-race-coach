@@ -14,9 +14,12 @@ import {
   type LapComparison,
 } from "@/lib/compare";
 import { cn } from "@/lib/utils";
+import { PitCard, Slant } from "@/components/home/paddock/motion";
 
+// Charte : premier pilote en rouge (la marque), second en blanc. Plus de bleu.
 export const COLOR_A = "hsl(var(--primary))";
-export const COLOR_B = "hsl(199 89% 60%)";
+export const COLOR_B = "hsl(var(--foreground) / 0.85)";
+const APEX_ORANGE = "#f97316";
 
 function lapLabel(t: number) {
   const m = Math.floor(t / 60);
@@ -70,16 +73,19 @@ function TrackOverlay({ cmp }: { cmp: LapComparison }) {
   }, [a, b]);
 
   return (
-    <svg viewBox="0 0 100 100" className="h-auto w-full" role="img" aria-label="Tracés superposés des deux tours">
-      <path d={geo.pb} fill="none" stroke={COLOR_B} strokeWidth={2} strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity={0.9} />
-      <path d={geo.pa} fill="none" stroke={COLOR_A} strokeWidth={2} strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity={0.9} />
+    <svg viewBox="0 0 100 100" className="h-auto w-full overflow-visible" role="img" aria-label="Tracés superposés des deux tours">
+      {/* Même rendu que la carte de l'analyse : bande de piste, tracés lumineux. */}
+      <path d={geo.pa} fill="none" stroke="hsl(var(--foreground) / 0.06)" strokeWidth={14} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <path d={geo.pb} fill="none" stroke={COLOR_B} strokeWidth={2.5} strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity={0.85} />
+      <path d={geo.pa} fill="none" stroke={COLOR_A} strokeWidth={6} strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity={0.25} />
+      <path d={geo.pa} fill="none" stroke={COLOR_A} strokeWidth={2.5} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
       {corners.map((c) => {
         const [x, y] = geo.proj(a.lat[c.apexIndex], a.lon[c.apexIndex]);
         const strong = Math.abs(c.gain) >= 0.03;
         return (
           <g key={c.number}>
-            <circle cx={x} cy={y} r={2.6} fill="hsl(var(--card))" stroke={strong ? (c.gain > 0 ? COLOR_A : COLOR_B) : "hsl(var(--muted-foreground))"} strokeWidth={0.6} />
-            <text x={x} y={y + 0.9} textAnchor="middle" fontSize={2.6} fill="hsl(var(--foreground))" fontWeight={600}>
+            <circle cx={x} cy={y} r={3} fill="#0a0a0a" stroke={strong ? (c.gain > 0 ? COLOR_A : COLOR_B) : APEX_ORANGE} strokeWidth={0.8} />
+            <text x={x} y={y + 1} textAnchor="middle" fontSize={2.8} fill="#ffffff" fontWeight={700} fontFamily="'Space Grotesk', sans-serif">
               {c.number}
             </text>
           </g>
@@ -108,7 +114,7 @@ function CornerTable({ corners, names }: { corners: CornerComparison[]; names: [
         <tbody className="divide-y divide-border tabular-nums">
           {corners.map((c) => (
             <tr key={c.number}>
-              <td className="px-5 py-2 font-medium text-foreground">V{c.number}</td>
+              <td className="px-5 py-2 font-medium text-foreground">Virage {c.number}</td>
               <td className="py-2">
                 {Math.abs(c.gain) < 0.01 ? (
                   <span className="text-muted-foreground">égalité</span>
@@ -172,10 +178,15 @@ export function CompareResults({ ra, rb, names }: { ra: AnalysisResult; rb: Anal
   }
 
   const gap = cmp.b.time - cmp.a.time;
-  const cornerTicks = cmp.corners.map((c) => c.apexDistance);
+  // Numéros de virage sous les courbes, espacés pour rester lisibles au téléphone.
+  const span = (cmp.a.d[cmp.a.d.length - 1] ?? 0) - (cmp.a.d[0] ?? 0);
+  const cornerTicks = cmp.corners
+    .map((c) => c.apexDistance)
+    .sort((x, y) => x - y)
+    .reduce<number[]>((acc, d) => (acc.length && d - acc[acc.length - 1] < span * 0.06 ? acc : [...acc, d]), []);
   const cornerLabel = (d: number) => {
     const c = cmp.corners.find((x) => x.apexDistance === d);
-    return c ? `V${c.number}` : "";
+    return c ? String(c.number) : "";
   };
   const keyCorners = [...cmp.corners].filter((c) => Math.abs(c.gain) >= 0.03).sort((x, y) => Math.abs(y.gain) - Math.abs(x.gain)).slice(0, 5);
   const tooltipStyle = { background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 };
@@ -183,20 +194,25 @@ export function CompareResults({ ra, rb, names }: { ra: AnalysisResult; rb: Anal
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-border bg-card p-5">
+      <PitCard as="section" className="p-5 pt-6">
         <div className="grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
           {lapA != null && <LapSelect result={ra} value={lapA} onChange={setLapA} color={COLOR_A} name={names[0]} />}
           <div className="text-center">
-            <div className="font-display text-3xl font-semibold tabular-nums text-foreground">{sec(gap)}</div>
-            <div className="text-xs text-muted-foreground">d'écart sur le tour</div>
+            <Slant accent="red" solid>
+              Écart
+            </Slant>
+            <div className="mt-2 font-display text-4xl font-bold tabular-nums text-gradient-primary">{sec(gap)}</div>
+            <div className="text-xs text-muted-foreground">
+              {lapLabel(cmp.a.time)} contre {lapLabel(cmp.b.time)}
+            </div>
           </div>
           {lapB != null && <LapSelect result={rb} value={lapB} onChange={setLapB} color={COLOR_B} name={names[1]} />}
         </div>
         <p className="mt-4 text-foreground">{summarize(cmp, names)}</p>
-      </section>
+      </PitCard>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <section className="space-y-5 rounded-2xl border border-border bg-card p-5">
+        <PitCard as="section" accent="red" className="space-y-5 p-5 pt-6">
           <div>
             <h3 className="font-display text-base font-semibold text-foreground">Écart cumulé</h3>
             <p className="text-xs text-muted-foreground">Au-dessus de zéro, {names[0]} est devant. La pente montre où le temps se gagne.</p>
@@ -211,7 +227,7 @@ export function CompareResults({ ra, rb, names }: { ra: AnalysisResult; rb: Anal
                     <ReferenceLine key={c.number} x={c.apexDistance} stroke="hsl(var(--border))" />
                   ))}
                   <Tooltip contentStyle={tooltipStyle} labelFormatter={(d: number) => `${d} m`} formatter={(v: number) => [`${v > 0 ? names[0] : names[1]} devant de ${sec(v)}`, ""]} />
-                  <Line dataKey="delta" stroke="hsl(var(--foreground))" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line dataKey="delta" stroke={COLOR_A} strokeWidth={2.5} dot={false} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -238,9 +254,9 @@ export function CompareResults({ ra, rb, names }: { ra: AnalysisResult; rb: Anal
               </ResponsiveContainer>
             </div>
           </div>
-        </section>
+        </PitCard>
 
-        <section className="rounded-2xl border border-border bg-card p-5">
+        <PitCard as="section" className="p-5 pt-6">
           <h3 className="font-display text-base font-semibold text-foreground">Les deux trajectoires</h3>
           <p className="text-xs text-muted-foreground">Numéro cerclé de la couleur du pilote qui gagne du temps dans le virage.</p>
           <div className="mx-auto mt-3 max-w-[420px]">
@@ -250,20 +266,20 @@ export function CompareResults({ ra, rb, names }: { ra: AnalysisResult; rb: Anal
             <span className="flex items-center gap-1.5"><span className="h-0.5 w-4" style={{ background: COLOR_A }} />{names[0]}</span>
             <span className="flex items-center gap-1.5"><span className="h-0.5 w-4" style={{ background: COLOR_B }} />{names[1]}</span>
           </div>
-        </section>
+        </PitCard>
       </div>
 
       {keyCorners.length > 0 && (
-        <section className="rounded-2xl border border-border bg-card p-5">
+        <PitCard as="section" className="p-5 pt-6">
           <h3 className="font-display text-lg font-semibold text-foreground">Où se fait la différence</h3>
           <ul className="mt-3 space-y-4">
             {keyCorners.map((c) => {
               const reasons = explainCorner(c, names);
               const who = c.gain > 0 ? names[0] : names[1];
               return (
-                <li key={c.number} className="grid gap-1 sm:grid-cols-[140px_minmax(0,1fr)]">
+                <li key={c.number} className="grid gap-1 rounded-xl border border-border bg-secondary/40 p-3.5 sm:grid-cols-[150px_minmax(0,1fr)] sm:p-4">
                   <div>
-                    <div className="font-medium text-foreground">Virage {c.number}</div>
+                    <div className="font-display font-semibold text-foreground">Virage {c.number}</div>
                     <div className={cn("text-sm tabular-nums")} style={{ color: c.gain > 0 ? COLOR_A : COLOR_B }}>
                       {who} +{sec(c.gain)}
                     </div>
@@ -275,13 +291,13 @@ export function CompareResults({ ra, rb, names }: { ra: AnalysisResult; rb: Anal
               );
             })}
           </ul>
-        </section>
+        </PitCard>
       )}
 
-      <section className="rounded-2xl border border-border bg-card p-5">
+      <PitCard as="section" className="p-5 pt-6">
         <h3 className="mb-3 font-display text-lg font-semibold text-foreground">Virage par virage</h3>
         <CornerTable corners={cmp.corners} names={names} />
-      </section>
+      </PitCard>
     </div>
   );
 }

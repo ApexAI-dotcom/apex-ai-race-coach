@@ -105,7 +105,7 @@ export default function Upload() {
           <div className="inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Type d'analyse">
             {[
               { key: false, label: "Analyser une séance" },
-              { key: true, label: "Comparer deux pilotes" },
+              { key: true, label: "Comparer deux séances" },
             ].map((o) => (
               <button
                 key={o.label}

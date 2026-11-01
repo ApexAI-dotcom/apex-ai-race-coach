@@ -551,11 +551,13 @@ export async function uploadAndAnalyzeCSV(
   }
 
   // Créer controller avec timeout adaptatif
-  let timeoutMs = 45000;
+  // Une séance de 3 Mo prend souvent plus de 45 s (ligne de course, météo,
+  // coaching) : l'ancien délai coupait des analyses qui allaient aboutir.
+  let timeoutMs = 120000;
   if (file.size > 20 * 1024 * 1024) {
+    timeoutMs = 240000;
+  } else if (file.size > 2 * 1024 * 1024) {
     timeoutMs = 180000;
-  } else if (file.size > 5 * 1024 * 1024) {
-    timeoutMs = 120000;
   }
   const controller = createTimeoutController(timeoutMs);
 

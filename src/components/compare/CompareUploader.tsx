@@ -172,8 +172,18 @@ export function CompareUploader() {
     }
     if (!slot.file) throw new Error(`Il manque le fichier de ${label}.`);
     if (!isTelemetryFile(slot.file.name)) throw new Error(TELEMETRY_FORMAT_ERROR);
-    setBusy(`Analyse du fichier de ${label}…`);
-    const r = await uploadAndAnalyzeCSV(slot.file, { accessToken: session?.access_token ?? null });
+    const file = slot.file;
+    const once = () => uploadAndAnalyzeCSV(file, { accessToken: session?.access_token ?? null, track_condition: "auto" } as any);
+    // Un nouvel essai automatique si le serveur a mis trop de temps : la
+    // seconde demande profite du travail déjà fait (cache) et aboutit.
+    let r: AnalysisResult;
+    try {
+      r = await once();
+    } catch (e) {
+      const code = (e as ApiError)?.error;
+      if (code !== "timeout" && code !== "network_error" && code !== "backend_unavailable") throw e;
+      r = await once();
+    }
     if (slot.mine) {
       try {
         await saveAnalysis(r, user?.id);
@@ -188,8 +198,11 @@ export function CompareUploader() {
     setError(null);
     setResults(null);
     try {
-      const ra = await load(a, a.name || "Toi");
-      const rb = sameFile ? ra : await load(b, b.name || "Coéquipier");
+      setBusy(sameFile ? "Analyse du fichier…" : "Analyse des deux fichiers en parallèle…");
+      // Les deux analyses tournent en même temps : deux fois moins d'attente.
+      const [ra, rb] = sameFile
+        ? await load(a, a.name || "Toi").then((x) => [x, x] as const)
+        : await Promise.all([load(a, a.name || "Toi"), load(b, b.name || "Coéquipier")]);
       const names: [string, string] = sameFile ? ["Tour A", "Tour B"] : [a.name || "Toi", b.name || "Coéquipier"];
       setResults({ ra, rb, names });
       window.setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
@@ -221,9 +234,22 @@ export function CompareUploader() {
             Comparer deux tours du premier fichier
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {busy ?? "Chaque nouveau fichier compte comme une analyse. Le fichier du coéquipier n'est pas ajouté à tes sessions."}
-        </p>
+        {busy ? (
+          <div className="mt-2 w-full max-w-md rounded-2xl border border-border bg-card p-5 text-center" role="status" aria-live="polite">
+            <Loader2 className="mx-auto h-7 w-7 animate-spin text-primary" />
+            <p className="mt-3 font-medium text-foreground">{busy}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              L'IA analyse chaque tour, chaque freinage et chaque virage : compte une à deux minutes. Garde cette page ouverte.
+            </p>
+            <div className="mt-4 h-1 overflow-hidden rounded-full bg-secondary">
+              <div className="h-full w-1/3 animate-[compare-progress_1.6s_ease-in-out_infinite] rounded-full bg-signature" />
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Chaque nouveau fichier compte comme une analyse. Le fichier du coéquipier n'est pas ajouté à tes sessions.
+          </p>
+        )}
         {error && <p className="text-sm text-[hsl(var(--loss))]">{error}</p>}
       </div>
 
