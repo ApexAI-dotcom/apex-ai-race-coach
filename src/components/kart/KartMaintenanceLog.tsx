@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { History, Wrench, Flame, Disc, Loader2, Plus, Calendar, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { KartProfile } from "@/lib/api";
+import { KartProfile, searchParts, type CatalogPart } from "@/lib/api";
+import { partLabel, wearComponentOf } from "./parts/partComponent";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,9 @@ export function KartMaintenanceLog({
   onDeleteEntry,
   onResetComponent,
   onIgnoreAlert,
+  prefillPart,
+  onPrefillConsumed,
+  onPartFitted,
 }: {
   history: any[];
   profile?: KartProfile;
@@ -36,17 +40,66 @@ export function KartMaintenanceLog({
   onDeleteEntry?: (entryId: string) => void;
   onResetComponent?: (component: "engine" | "tires" | "brakes" | "chain") => void;
   onIgnoreAlert?: (alertId: string) => void;
+  /** Pièce choisie dans le catalogue (« Je monte cette pièce ») : ouvre le formulaire pré-rempli. */
+  prefillPart?: CatalogPart | null;
+  onPrefillConsumed?: () => void;
+  /** Pièce montée : remise à zéro du compteur et durée de vie du catalogue. */
+  onPartFitted?: (component: "engine" | "tires" | "brakes" | "chain", part: CatalogPart) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState("general");
   const [notes, setNotes] = useState("");
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  // Boucle mécano : la pièce montée vient du catalogue.
+  const [part, setPart] = useState<CatalogPart | null>(null);
+  const [partQ, setPartQ] = useState("");
+  const [partResults, setPartResults] = useState<CatalogPart[]>([]);
+  const [resetCounter, setResetCounter] = useState(true);
+
+  const choosePart = (p: CatalogPart) => {
+    setPart(p);
+    setPartQ("");
+    setPartResults([]);
+    const c = wearComponentOf(p.category);
+    setType(c === "chain" ? "general" : c);
+    setNotes((n) => n || `Montage : ${partLabel(p)}`);
+  };
+
+  useEffect(() => {
+    if (!prefillPart) return;
+    choosePart(prefillPart);
+    setOpen(true);
+    onPrefillConsumed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefillPart]);
+
+  useEffect(() => {
+    const q = partQ.trim();
+    if (q.length < 2) {
+      setPartResults([]);
+      return;
+    }
+    let alive = true;
+    const t = window.setTimeout(() => {
+      searchParts(q, undefined, 6)
+        .then((r) => alive && setPartResults(r.parts))
+        .catch(() => alive && setPartResults([]));
+    }, 220);
+    return () => {
+      alive = false;
+      window.clearTimeout(t);
+    };
+  }, [partQ]);
 
   const handleSubmit = () => {
     if (onAddEntry && notes) {
       onAddEntry(type, notes, new Date(date).toISOString());
+      const c = part ? wearComponentOf(part.category) : "general";
+      if (part && resetCounter && c !== "general") onPartFitted?.(c, part);
       setOpen(false);
       setNotes("");
+      setPart(null);
+      setResetCounter(true);
     }
   };
 
@@ -166,6 +219,42 @@ export function KartMaintenanceLog({
               <DialogTitle>Nouvelle intervention</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Pièce montée (optionnel)</label>
+                {part ? (
+                  <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm">
+                    <span className="min-w-0 truncate font-medium">{partLabel(part)}</span>
+                    <button type="button" className="shrink-0 text-xs text-muted-foreground hover:text-foreground" onClick={() => setPart(null)}>
+                      Changer
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <Input placeholder="Chercher dans le catalogue (ex. bougie, Mojo, IAME)" value={partQ} onChange={(e) => setPartQ(e.target.value)} />
+                    {partResults.length > 0 && (
+                      <ul className="max-h-48 divide-y divide-border overflow-y-auto rounded-lg border border-border">
+                        {partResults.map((p) => (
+                          <li key={p.id}>
+                            <button type="button" onClick={() => choosePart(p)} className="w-full px-3 py-2 text-left text-sm hover:bg-secondary/60">
+                              <span className="font-medium">{partLabel(p)}</span>
+                              <span className="ml-2 text-xs text-muted-foreground">{p.category_label ?? p.category}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+                {part && wearComponentOf(part.category) !== "general" && (
+                  <label className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <input type="checkbox" className="mt-0.5" checked={resetCounter} onChange={(e) => setResetCounter(e.target.checked)} />
+                    <span>
+                      Remettre le compteur d'usure à zéro
+                      {part.default_life ? ` (durée de vie du catalogue : ${part.default_life} ${part.life_unit === "laps" ? "tours" : part.life_unit === "hours" ? "h" : part.life_unit ?? ""})` : ""}
+                    </span>
+                  </label>
+                )}
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Type de composant</label>
                 <Select value={type} onValueChange={setType}>

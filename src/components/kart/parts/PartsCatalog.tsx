@@ -13,7 +13,7 @@ const MAIN = ["engine", "tire", "chassis", "brake", "carburetor", "axle", "spark
  * cherche par marque, modèle, catégorie ou championnat et ouvre la fiche
  * (entretien constructeur, retours de pilotes, sources).
  */
-export function PartsCatalog() {
+export function PartsCatalog({ onFit }: { onFit?: (part: CatalogPart) => void } = {}) {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [parts, setParts] = useState<CatalogPart[]>([]);
@@ -131,7 +131,7 @@ export function PartsCatalog() {
           <p className="text-[11px] text-muted-foreground">Tape un nom ou choisis une catégorie pour parcourir toute la base.</p>
         )}
       </CardContent>
-      <PartDetailDialog partId={openId} onClose={() => setOpenId(null)} />
+      <PartDetailDialog partId={openId} onClose={() => setOpenId(null)} onFit={onFit} />
     </Card>
   );
 }

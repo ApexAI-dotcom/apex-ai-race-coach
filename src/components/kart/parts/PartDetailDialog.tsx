@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,7 +14,16 @@ export function KindBadge({ kind }: { kind: string }) {
 }
 
 /** Fiche complète d'une pièce : caractéristiques, usages, entretien et sources. */
-export function PartDetailDialog({ partId, onClose }: { partId: string | null; onClose: () => void }) {
+export function PartDetailDialog({
+  partId,
+  onClose,
+  onFit,
+}: {
+  partId: string | null;
+  onClose: () => void;
+  /** « Je monte cette pièce » : ouvre le journal d'entretien pré-rempli. */
+  onFit?: (part: CatalogPart) => void;
+}) {
   const [part, setPart] = useState<CatalogPart | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -127,6 +137,17 @@ export function PartDetailDialog({ partId, onClose }: { partId: string | null; o
               </section>
             )}
           </>
+        )}
+      {onFit && part && (
+          <Button
+            className="mt-2 h-11 w-full"
+            onClick={() => {
+              onFit(part);
+              onClose();
+            }}
+          >
+            Je monte cette pièce
+          </Button>
         )}
       </DialogContent>
     </Dialog>

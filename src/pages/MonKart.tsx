@@ -31,6 +31,7 @@ import { GarageHeader } from "@/components/kart/GarageHeader";
 import { KartIdentityCard } from "@/components/kart/KartIdentityCard";
 import { TireStockCard } from "@/components/kart/TireStockCard";
 import { PartsCatalog } from "@/components/kart/parts/PartsCatalog";
+import type { CatalogPart } from "@/lib/api";
 import { EngineMaintenanceCard } from "@/components/kart/parts/EngineMaintenanceCard";
 import { WeightCard } from "@/components/kart/WeightCard";
 import { WearGauge } from "@/components/kart/WearGauge";
@@ -324,8 +325,31 @@ export default function MonKart() {
     }
   };
 
-  const handleReset = async (component: "engine" | "tires" | "brakes" | "chain") => {
-    if (!confirm(`Es-tu sûr de vouloir réinitialiser l'usure pour : ${component} ?`)) return;
+  // Boucle mécano : pièce choisie dans le catalogue -> journal pré-rempli.
+  const [fitPart, setFitPart] = useState<CatalogPart | null>(null);
+
+  // Pièce montée depuis le journal : compteur à zéro et, si le catalogue la
+  // donne, sa durée de vie devient la jauge de Mon Kart.
+  const handlePartFitted = async (component: "engine" | "tires" | "brakes" | "chain", part: CatalogPart) => {
+    const life = part.default_life ?? null;
+    const lifeField: Partial<Record<string, string>> = {
+      "engine|hours": "engine_hours_life",
+      "tires|laps": "tires_laps_life",
+      "brakes|hours": "brakes_hours_life",
+    };
+    const field = life ? lifeField[`${component}|${part.life_unit}`] : undefined;
+    if (field && session?.access_token) {
+      try {
+        await api.updateKartProfile(session.access_token, { [field]: life } as any);
+      } catch {
+        /* la jauge garde sa durée actuelle */
+      }
+    }
+    await handleReset(component, true);
+  };
+
+  const handleReset = async (component: "engine" | "tires" | "brakes" | "chain", silent = false) => {
+    if (!silent && !confirm(`Es-tu sûr de vouloir réinitialiser l'usure pour : ${component} ?`)) return;
     if (!session?.access_token) return;
     try {
       console.log(`Resetting ${component}...`);
@@ -650,7 +674,7 @@ export default function MonKart() {
             )}
 
             {/* Journal d'Entretien */}
-            <div className="mt-6">
+            <div className="mt-6" id="journal-entretien">
               {prof && (
                 <KartMaintenanceLog
                   history={history}
@@ -659,6 +683,9 @@ export default function MonKart() {
                   onDeleteEntry={handleDeleteHistoryEntry}
                   onResetComponent={handleReset}
                   onIgnoreAlert={handleIgnoreAlert}
+                  prefillPart={fitPart}
+                  onPrefillConsumed={() => setFitPart(null)}
+                  onPartFitted={handlePartFitted}
                 />
               )}
             </div>
@@ -740,7 +767,12 @@ export default function MonKart() {
             </Card>
 
             {/* Catalogue des pièces : en bas, comme référence (fiches, entretien, sources). */}
-            <PartsCatalog />
+            <PartsCatalog
+              onFit={(p) => {
+                setFitPart(p);
+                document.getElementById("journal-entretien")?.scrollIntoView({ behavior: "smooth", block: "center" });
+              }}
+            />
           </div>
         </div>
       </div>

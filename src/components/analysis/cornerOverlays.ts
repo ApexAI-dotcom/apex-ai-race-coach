@@ -114,7 +114,27 @@ function buildZonesFromApexes(
   return overlays;
 }
 
-export function buildCornerOverlays(params: {
+/**
+ * Étiquettes lisibles : « 3 » plutôt que « V3 », et une étiquette masquée
+ * quand elle tomberait sur la précédente (virages rapprochés sur un écran de
+ * téléphone : « V1V2 V3 V4V5… » devenait illisible). La zone reste colorée.
+ */
+export function thinCornerLabels(overlays: CornerOverlay[], minGapRatio = 0.06): CornerOverlay[] {
+  if (overlays.length < 2) return overlays.map((o) => ({ ...o, label: o.label.replace(/^V/i, "") }));
+  const lo = Math.min(...overlays.map((o) => o.x1));
+  const hi = Math.max(...overlays.map((o) => o.x2));
+  const gap = (hi - lo) * minGapRatio;
+  let last = -Infinity;
+  return [...overlays]
+    .sort((a, b) => a.apexX - b.apexX)
+    .map((o) => {
+      const show = o.apexX - last >= gap;
+      if (show) last = o.apexX;
+      return { ...o, label: show ? o.label.replace(/^V/i, "") : "" };
+    });
+}
+
+function buildCornerOverlaysRaw(params: {
   trajectoryCorners?: TrajectoryCorner[];
   trajectoryLaps?: TrajectoryLap[];
   referenceTrajectoryLap?: TrajectoryLap | null;
@@ -283,4 +303,9 @@ export function buildCornerOverlays(params: {
     lapMin,
     lapMax
   );
+}
+
+/** Zones de virage pour les courbes, étiquettes espacées pour rester lisibles. */
+export function buildCornerOverlays(params: Parameters<typeof buildCornerOverlaysRaw>[0]): CornerOverlay[] {
+  return thinCornerLabels(buildCornerOverlaysRaw(params));
 }
