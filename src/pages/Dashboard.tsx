@@ -253,6 +253,15 @@ export default function Dashboard() {
     }
   };
 
+  const handleFolderRename = (id: string, current: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const name = prompt("Nouveau nom du dossier ?", current)?.trim();
+    if (name && name !== current) {
+      renameFolder(id, name, user?.id);
+      loadData();
+    }
+  };
+
   const handleFolderDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("Veux-tu supprimer ce dossier et tout son contenu ?")) {
@@ -470,11 +479,8 @@ export default function Dashboard() {
 
   // Titre d'une séance : le nom donné par le pilote, sinon le circuit.
   // « Session du 31/10/2026 » (nom automatique) répétait la date, déjà affichée.
-  const sessionTitle = (a: { session_name?: string; circuit_name?: string }) => {
-    const custom = (a.session_name || "").trim();
-    if (custom && !/^session du \d/i.test(custom)) return custom;
-    return (a.circuit_name || "").trim() || "Circuit non renseigné";
-  };
+  const sessionTitle = (a: { session_name?: string; circuit_name?: string }) =>
+    (a.session_name || "").trim() || (a.circuit_name || "").trim() || "Séance";
 
   const getGradeColor = (grade: string) => {
     switch (grade.toUpperCase()) {
@@ -882,14 +888,26 @@ export default function Dashboard() {
                   <div className="p-2 rounded-lg bg-primary/10 text-primary">
                     <FolderInput className="w-5 h-5" />
                   </div>
+                  <div className="flex">
                   <Button
                     variant="ghost"
                     size="icon"
+                    aria-label="Renommer le dossier"
+                    className="text-muted-foreground opacity-100 can-hover:opacity-0 can-hover:group-hover:opacity-100 transition-opacity h-8 w-8"
+                    onClick={(e) => handleFolderRename(folder.id, folder.name, e)}
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Supprimer le dossier"
                     className="text-muted-foreground opacity-100 can-hover:opacity-0 can-hover:group-hover:opacity-100 transition-opacity h-8 w-8"
                     onClick={(e) => handleFolderDelete(folder.id, e)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
+                  </div>
                 </div>
                 <h3 className="font-semibold text-base text-foreground mb-0.5 truncate">
                   {folder.name}
@@ -909,7 +927,7 @@ export default function Dashboard() {
             {circuitFilter ? `Séances à ${circuitFilter}` : currentFolderId ? `Séances du dossier` : "Toutes les séances"}
           </h2>
 
-          {circuitChips.length > 1 && (
+          {circuitChips.length > 1 && !currentFolderId && (
             <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="tablist" aria-label="Filtrer par circuit">
               {[{ name: null as string | null, n: analyses.length }, ...circuitChips.map(([name, n]) => ({ name, n }))].map((c) => (
                 <button
@@ -944,7 +962,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <div className="text-xs text-muted-foreground">
-                        {formatDate(analysis.date).split(" à")[0]}
+                        {[analysis.circuit_name, formatDate(analysis.date).split(" à")[0]].filter(Boolean).join(" · ")}
                       </div>
                       <Button
                         variant="ghost"
@@ -1060,7 +1078,7 @@ export default function Dashboard() {
                         <div className="font-semibold text-foreground">{sessionTitle(analysis)}</div>
                         <div className="flex items-center gap-2 group/name">
                           <div className="text-xs text-muted-foreground">
-                            {formatDate(analysis.date)}
+                            {[analysis.circuit_name, formatDate(analysis.date)].filter(Boolean).join(" · ")}
                           </div>
                           <Button
                             variant="ghost"

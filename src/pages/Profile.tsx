@@ -101,7 +101,7 @@ export default function Profile() {
   // des offres. Avant, le bouton ne faisait rien quand il n'y avait pas
   // d'abonnement Stripe derrière.
   const manageOffer = async () => {
-    if (!hasStripeSubscription || !token) {
+    if (!token) {
       navigate("/pricing");
       return;
     }
@@ -111,6 +111,7 @@ export default function Profile() {
       if (portal_url) window.location.href = portal_url;
       else navigate("/pricing");
     } catch {
+      toast.info("Aucun abonnement Stripe sur ce compte (offre gratuite, pass ou offerte) : voici les offres.");
       navigate("/pricing");
     } finally {
       setPortalLoading(false);
@@ -212,7 +213,7 @@ export default function Profile() {
               ) : (
                 <>
                   <div className="mt-3 flex items-baseline gap-3">
-                    <span className="font-display text-3xl font-bold tracking-tight text-foreground">{tierLabel}</span>
+                    <span className="font-display text-3xl font-bold tracking-tight text-gradient-primary">{tierLabel}</span>
                     {onPass && <Slant accent="red">Paddock Pass</Slant>}
                   </div>
                   <div className="mt-2 space-y-1 text-sm text-muted-foreground">
@@ -237,15 +238,20 @@ export default function Profile() {
                     {(tier === "racer" || tier === "team") && !onPass && !hasStripeSubscription && <p>Offre active sur ton compte.</p>}
                   </div>
                   <div className="mt-auto flex flex-col gap-2 pt-5 sm:flex-row">
-                    <Button onClick={manageOffer} disabled={portalLoading} className="h-11 flex-1 gap-2">
-                      {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                      {hasStripeSubscription ? "Gérer mon abonnement" : tier === "rookie" && !onPass ? "Passer à Racer" : "Voir les offres"}
-                    </Button>
-                    {hasStripeSubscription && (
-                      <Button variant="outline" asChild className="h-11 flex-1">
-                        <Link to="/pricing">Comparer les offres</Link>
+                    {tier === "rookie" && !onPass ? (
+                      <Button asChild className="h-11 flex-1">
+                        <Link to="/pricing">Passer à Racer</Link>
+                      </Button>
+                    ) : (
+                      // Portail Stripe : changer d'offre, moyen de paiement, factures, résiliation.
+                      <Button onClick={manageOffer} disabled={portalLoading} className="h-11 flex-1 gap-2">
+                        {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        Gérer mon abonnement
                       </Button>
                     )}
+                    <Button variant="outline" asChild className="h-11 flex-1">
+                      <Link to="/pricing">Voir les offres</Link>
+                    </Button>
                   </div>
                 </>
               )}

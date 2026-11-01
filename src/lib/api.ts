@@ -539,7 +539,7 @@ export async function uploadAndAnalyzeCSV(
     formData.append("lap_filter", JSON.stringify(options.lapFilter));
   }
   const cond =
-    options?.track_condition && ["dry", "damp", "wet", "rain"].includes(options.track_condition)
+    options?.track_condition && ["dry", "damp", "wet", "rain", "auto"].includes(options.track_condition)
       ? options.track_condition
       : "dry";
   formData.append("track_condition", cond);

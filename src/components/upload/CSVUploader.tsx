@@ -22,6 +22,7 @@ import {
   Brain,
   BarChart3,
   Sun,
+  CloudSun,
   CloudRain,
   Droplets,
   CloudDrizzle,
@@ -140,7 +141,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     return `Session du ${today.toLocaleDateString("fr-FR")}`;
   });
 
-  const [trackCondition, setTrackCondition] = useState<"dry" | "damp" | "wet" | "rain">("dry");
+  const [trackCondition, setTrackCondition] = useState<"auto" | "dry" | "damp" | "wet" | "rain">("auto");
   const [sessionType, setSessionType] = useState<string>("practice");
   const [trackTemperature, setTrackTemperature] = useState<number | "">("");
 
@@ -647,8 +648,13 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     {result.session_conditions.track_condition === "rain" && "Pluie"}
                     {result.session_conditions.track_temperature != null &&
                     Number.isFinite(result.session_conditions.track_temperature)
-                      ? ` — ${result.session_conditions.track_temperature}°C`
+                      ? ` — piste ${Math.round(result.session_conditions.track_temperature)} °C${(result.session_conditions as any).track_temperature_estimated ? " (estimée)" : ""}`
                       : ""}
+                    {(result.session_conditions as any).weather?.summary && (
+                      <span className="block text-xs text-muted-foreground">
+                        Météo de la séance : {(result.session_conditions as any).weather.summary}
+                      </span>
+                    )}
                   </span>
                 </div>
               )}
@@ -861,7 +867,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">ou clique pour sélectionner</p>
                   <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground mb-3">
-                    {["MyChron 5", "MyChron 6", "AiM"].map((label) => (
+                    {["AiM MyChron (.xrk, .xrz)", "Export Race Studio", "Alfano"].map((label) => (
                       <span key={label} className="px-2 py-1 rounded bg-secondary">
                         {label}
                       </span>
@@ -904,6 +910,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     <div className="flex flex-wrap gap-2 mb-4">
                       {(
                         [
+                          { value: "auto" as const, label: "Auto (météo)", Icon: CloudSun },
                           { value: "dry" as const, label: "Sec", Icon: Sun },
                           { value: "damp" as const, label: "Humide", Icon: CloudDrizzle },
                           { value: "wet" as const, label: "Mouillée", Icon: Droplets },
@@ -916,7 +923,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                           onClick={() => setTrackCondition(value)}
                           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
                             trackCondition === value
-                              ? "bg-[#ff6b35] text-white border-[#ff6b35]"
+                              ? "bg-signature text-white border-transparent"
                               : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
                           }`}
                         >
@@ -926,7 +933,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                     </div>
                     <div>
                       <label className="text-sm text-muted-foreground block mb-1">
-                        Température piste (°C) (Optionnel)
+                        Température piste (°C) (optionnel : estimée d'après la météo si vide)
                       </label>
                       <input
                         type="number"
@@ -957,7 +964,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                             onClick={() => setSessionType(value)}
                             className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
                               sessionType === value
-                                ? "bg-[#ff6b35] text-white border-[#ff6b35]"
+                                ? "bg-signature text-white border-transparent"
                                 : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
                             }`}
                           >
