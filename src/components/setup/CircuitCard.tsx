@@ -7,9 +7,10 @@ import {
   RotateCw, RotateCcw, Mountain, Navigation, TrendingUp, Loader2, Upload, Trash2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { CircuitPicker } from './CircuitPicker';
 import { TrackSignatureForm } from './TrackSignatureForm';
-import { CatalogCircuitSearch, catalogToSignature } from './CatalogCircuitSearch';
+import { catalogToSignature } from './CatalogCircuitSearch';
+import { CircuitSearchField } from './CircuitSearchField';
+import type { CatalogCircuit } from '@/lib/api';
 import { SetupState } from '@/pages/SetupPage';
 import { api, uploadAndAnalyzeCSV, normalizeCircuit, isTelemetryFile, TELEMETRY_ACCEPT } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -100,9 +101,28 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
     }
   };
 
-  const handleCreateNew = () => {
-    setEditingCircuit(null);
+  const handleCreateNew = (name = "") => {
+    setEditingCircuit(name ? { name } : null);
     setIsFormOpen(true);
+  };
+
+  // Circuit de la base de France : enregistré directement avec ses
+  // caractéristiques mesurées, sans formulaire. « Modifier » reste possible.
+  const handlePickCatalog = async (c: CatalogCircuit) => {
+    if (!session?.access_token) return;
+    setIsMagicLoading(true);
+    try {
+      const res = await api.createCircuit(session.access_token, { ...catalogToSignature(c), isCustom: true });
+      onChange({ circuit: normalizeCircuit(res.circuit) });
+      fetchData();
+      toast({ title: "Circuit ajouté", description: `${c.name} est maintenant dans tes circuits.` });
+    } catch (err: any) {
+      // Repli : le formulaire pré-rempli, comme avant.
+      setEditingCircuit(catalogToSignature(c));
+      setIsFormOpen(true);
+    } finally {
+      setIsMagicLoading(false);
+    }
   };
 
   const handleEditActive = () => {
@@ -177,7 +197,8 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
       const trackTemp = s.track_temperature || '';
       const airTemp = s.air_temp || '';
       const weather = s.weather || 'sec';
-      const mode = s.session_type || 'course';
+      // Type de séance de l'analyse → type de séance du réglage.
+      const mode = ({ practice: 'roulage', qualifying: 'qualif', race: 'course' } as Record<string, string>)[s.session_type] || s.session_type || 'roulage';
       // Signature de piste stockée au moment de l'analyse (kart_session_logs.track_features)
       const tf = s.track_features || {};
 
@@ -260,7 +281,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
           weather: (weather === 'dry' ? 'sec' : weather === 'wet' ? 'pluie' : 'humide') as any,
           trackTemp: trackTemp ? Number(trackTemp) : '',
           airTemp: airTemp ? Number(airTemp) : '',
-          mode: 'course' as any
+          mode: 'roulage' as any
         }
       };
 
@@ -286,12 +307,12 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
   const getSourceBadge = (c: any) => {
     if (!c) return null;
     if (c.imported || c.created_by === 'telemetry') {
-      return <Badge className="bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full">Importé</Badge>;
+      return <Badge className="rounded-full border border-border bg-muted/60 text-muted-foreground">Depuis un fichier</Badge>;
     }
     if (c.created_by) {
-      return <Badge className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full">Perso</Badge>;
+      return <Badge className="rounded-full border border-border bg-muted/60 text-muted-foreground">Mon circuit</Badge>;
     }
-    return <Badge className="bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-full">Officiel</Badge>;
+    return <Badge className="rounded-full border border-primary/25 bg-primary/10 text-primary">Officiel</Badge>;
   };
 
   const activeCircuit = state.circuit;
@@ -305,7 +326,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         {isMagicLoading ? (
           <div className="flex flex-col items-center justify-center py-8 gap-3 text-muted-foreground text-sm">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -314,39 +335,30 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
         ) : !activeCircuit ? (
           /* STATE 1: SELECTION */
           <div className="space-y-6">
-            <CircuitPicker 
-              value={null}
-              onChange={handleSelect}
-              circuits={circuits}
-              loading={loading}
+            <CircuitSearchField
+              saved={circuits}
+              loadingSaved={loading}
+              onPickSaved={handleSelect}
+              onPickCatalog={handlePickCatalog}
+              onOther={(name) => handleCreateNew(name)}
             />
 
-            {/* Base des circuits de France : longueur et virages déjà mesurés */}
-            <CatalogCircuitSearch
-              onPick={(c) => {
-                setEditingCircuit(catalogToSignature(c));
-                setIsFormOpen(true);
-              }}
-            />
-            
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Button
                 variant="outline"
-                // Deux boutons sur une demi-largeur d'écran : à la taille de
-                // texte par défaut, le libellé débordait de son cadre.
-                className="gap-1.5 sm:gap-2 h-12 px-3 text-[13px] sm:text-sm bg-background/50 border-primary/20 text-primary hover:bg-primary/5 rounded-xl"
+                className="h-12 gap-2 rounded-xl border-primary/25 bg-background/50 px-3 text-sm text-primary hover:bg-primary/5"
                 onClick={() => setIsMagicOpen(true)}
               >
-                <Sparkles className="w-4 h-4 shrink-0 text-primary" />
-                <span className="truncate">Depuis la Télémétrie</span>
+                <Sparkles className="h-4 w-4 shrink-0" />
+                <span className="truncate">Depuis un fichier de session</span>
               </Button>
               <Button
                 variant="outline"
-                className="gap-1.5 sm:gap-2 h-12 px-3 text-[13px] sm:text-sm bg-background/50 border-border hover:bg-muted/50 rounded-xl"
-                onClick={handleCreateNew}
+                className="h-12 gap-2 rounded-xl border-border bg-background/50 px-3 text-sm hover:bg-muted/50"
+                onClick={() => handleCreateNew()}
               >
-                <Plus className="w-4 h-4 shrink-0" />
-                <span className="truncate">Nouveau Circuit</span>
+                <Plus className="h-4 w-4 shrink-0" />
+                <span className="truncate">Autre circuit, à la main</span>
               </Button>
             </div>
           </div>
@@ -414,11 +426,11 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
             </div>
 
             {/* Card Actions Panel */}
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
+            <div className="grid grid-cols-1 gap-3 border-t border-border/50 pt-4 sm:grid-cols-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 h-10 border-border hover:bg-muted/50 rounded-xl"
+                className="h-11 gap-2 rounded-xl border-border hover:bg-muted/50"
                 onClick={handleEditActive}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
@@ -427,7 +439,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 h-10 border-primary/20 text-primary hover:bg-primary/5 rounded-xl"
+                className="h-11 gap-2 rounded-xl border-primary/20 text-primary hover:bg-primary/5"
                 onClick={handleReset}
               >
                 <RefreshCw className="w-4 h-4 text-primary" />
@@ -437,7 +449,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="col-span-2 gap-2 h-10 border-destructive/20 text-destructive hover:bg-destructive/10 rounded-xl"
+                  className="h-11 gap-2 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10 sm:col-span-2"
                   onClick={handleDeleteActive}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -463,7 +475,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl font-bold">
               <Sparkles className="w-5 h-5 text-primary" />
-              Charger depuis la Télémétrie
+              Depuis un fichier de session
             </DialogTitle>
             <DialogDescription className="text-xs">
               Sélectionne une session existante ou importe directement un fichier de session pour en extraire les caractéristiques de la piste.
@@ -473,7 +485,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
           <div className="space-y-4 py-2">
             <div>
               <label className="block text-xs font-semibold text-muted-foreground mb-2">
-                Sessions de télémétrie récentes
+                Tes dernières séances
               </label>
               <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar">
                 {recentSessions.length > 0 ? (
@@ -484,7 +496,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
                       onClick={() => handleMagicSessionSelect(s)}
                     >
                       <span className="font-semibold text-foreground group-hover:text-primary transition-colors text-xs">
-                        Session sur {s.track_name || 'Circuit Inconnu'}
+                        {s.track_name || 'Circuit non renseigné'}
                       </span>
                       <span className="text-[10px] text-muted-foreground">
                         Date : {s.session_date ? new Date(s.session_date).toLocaleDateString() : 'Inconnue'}
@@ -504,7 +516,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
 
             <div className="border-t border-border/50 pt-3">
               <label className="block text-xs font-semibold text-muted-foreground mb-2">
-                Ou analyser un nouveau fichier de session (.xrk)
+                Ou un nouveau fichier de session
               </label>
               <div className="relative border border-dashed border-border rounded-xl p-4 hover:border-primary/55 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer group text-center">
                 <input 
@@ -515,7 +527,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
                 />
                 <Upload className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 <span className="text-xs font-bold text-foreground">Importer et analyser une session</span>
-                <span className="text-[9px] text-muted-foreground">MyChron5, AiM</span>
+                <span className="text-[11px] text-muted-foreground">AiM MyChron (.xrk, .xrz) ou Alfano</span>
               </div>
             </div>
           </div>

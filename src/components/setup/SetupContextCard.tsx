@@ -4,7 +4,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { CloudRain, Sun, Cloud, Thermometer, MapPin } from 'lucide-react';
-import { CircuitPicker } from './CircuitPicker';
 import { cn } from '@/lib/utils';
 import { SetupState } from '@/pages/SetupPage';
 
@@ -22,11 +21,11 @@ export function SetupContextCard({ state, onChange, className }: SetupContextCar
       <CardHeader className="bg-muted/30 border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <MapPin className="w-5 h-5 text-primary" />
-          Contexte & Piste
+          Contexte et piste
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="p-6 space-y-8 flex-1 flex flex-col justify-between">
+      <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8 flex-1 flex flex-col justify-between">
         
         <div className="space-y-3">
           <Label className="text-sm text-muted-foreground">Nom du réglage</Label>
@@ -41,40 +40,40 @@ export function SetupContextCard({ state, onChange, className }: SetupContextCar
         
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <Label className="text-sm text-muted-foreground">Conditions Météo</Label>
+            <Label className="text-sm text-muted-foreground">Météo</Label>
             <ToggleGroup 
               type="single" 
               value={state.weather} 
               onValueChange={(val) => val && onChange({ weather: val as any })}
-              className="justify-start flex-wrap"
+              className="justify-start gap-2 flex-wrap"
             >
-              <ToggleGroupItem value="sec" aria-label="Sec" className="flex-1 gap-2 min-w-[80px]">
+              <ToggleGroupItem value="sec" aria-label="Sec" className="h-10 flex-1 gap-1.5 min-w-0 px-2">
                 <Sun className="w-4 h-4" /> Sec
               </ToggleGroupItem>
-              <ToggleGroupItem value="humide" aria-label="Humide" className="flex-1 gap-2 min-w-[90px]">
+              <ToggleGroupItem value="humide" aria-label="Humide" className="h-10 flex-1 gap-1.5 min-w-0 px-2">
                 <Cloud className="w-4 h-4" /> Humide
               </ToggleGroupItem>
-              <ToggleGroupItem value="pluie" aria-label="Pluie" className="flex-1 gap-2 min-w-[80px]">
+              <ToggleGroupItem value="pluie" aria-label="Pluie" className="h-10 flex-1 gap-1.5 min-w-0 px-2">
                 <CloudRain className="w-4 h-4" /> Pluie
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
 
           <div className="space-y-3">
-            <Label className="text-sm text-muted-foreground">Grip de la Piste</Label>
+            <Label className="text-sm text-muted-foreground">Grip de la piste</Label>
             <ToggleGroup 
               type="single" 
               value={state.grip} 
               onValueChange={(val) => val && onChange({ grip: val as any })}
-              className="justify-start flex-wrap"
+              className="justify-start gap-2 flex-wrap"
             >
-              <ToggleGroupItem value="faible" aria-label="Faible" className="flex-1 min-w-[80px]">
+              <ToggleGroupItem value="faible" aria-label="Faible" className="h-10 flex-1 min-w-0 px-2">
                 Faible
               </ToggleGroupItem>
-              <ToggleGroupItem value="normal" aria-label="Normal" className="flex-1 min-w-[80px]">
+              <ToggleGroupItem value="normal" aria-label="Normal" className="h-10 flex-1 min-w-0 px-2">
                 Normal
               </ToggleGroupItem>
-              <ToggleGroupItem value="gommée" aria-label="Gommée" className="flex-1 min-w-[80px]">
+              <ToggleGroupItem value="gommée" aria-label="Gommée" className="h-10 flex-1 min-w-0 px-2">
                 Gommée
               </ToggleGroupItem>
             </ToggleGroup>
@@ -83,30 +82,31 @@ export function SetupContextCard({ state, onChange, className }: SetupContextCar
 
         <div className="grid grid-cols-1 gap-6">
           <div className="space-y-3">
-            <Label className="text-sm text-muted-foreground">Mode de Session</Label>
+            <Label className="text-sm text-muted-foreground">Type de séance</Label>
             <ToggleGroup 
               type="single" 
               value={state.mode} 
               onValueChange={(val) => val && onChange({ mode: val as any })}
-              className="justify-start flex-wrap"
+              className="justify-start gap-2 flex-wrap"
             >
-              <ToggleGroupItem value="warmup" aria-label="Warmup" className="flex-1 min-w-[80px]">
-                Warm-up
-              </ToggleGroupItem>
-              <ToggleGroupItem value="qualif" aria-label="Qualif" className="flex-1 min-w-[80px]">
-                Qualif
-              </ToggleGroupItem>
-              <ToggleGroupItem value="course" aria-label="Course" className="flex-1 min-w-[80px]">
-                Course
-              </ToggleGroupItem>
+              {[
+                { v: "roulage", l: "Roulage" },
+                { v: "warmup", l: "Warm-up" },
+                { v: "qualif", l: "Qualif" },
+                { v: "course", l: "Course" },
+              ].map((m) => (
+                <ToggleGroupItem key={m.v} value={m.v} aria-label={m.l} className="h-10 min-w-0 flex-1 basis-[calc(50%-0.25rem)] px-2 sm:basis-0">
+                  {m.l}
+                </ToggleGroupItem>
+              ))}
             </ToggleGroup>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6">
           <div className="space-y-3">
             <Label className="text-sm text-muted-foreground flex items-center gap-2">
-              <Thermometer className="w-4 h-4" /> Temp. Air (°C)
+              <Thermometer className="w-4 h-4" /> Air (°C)
             </Label>
             <Input 
               type="number" 
@@ -118,7 +118,7 @@ export function SetupContextCard({ state, onChange, className }: SetupContextCar
           </div>
           <div className="space-y-3">
             <Label className="text-sm text-muted-foreground flex items-center gap-2">
-              <Thermometer className="w-4 h-4 text-orange-500" /> Temp. Piste (°C)
+              <Thermometer className="w-4 h-4 text-primary" /> Piste (°C)
             </Label>
             <Input 
               type="number" 

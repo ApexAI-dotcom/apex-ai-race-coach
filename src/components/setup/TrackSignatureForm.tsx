@@ -98,7 +98,7 @@ export function TrackSignatureForm({ open, onOpenChange, onSave, circuitName, in
         <DialogHeader className="pb-2 border-b border-border/50">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold">
             <Settings2 className="w-5 h-5 text-primary" />
-            Caractéristiques de la Piste
+            Caractéristiques du circuit
           </DialogTitle>
           <DialogDescription className="text-xs">
             {circuitName ? `Ajuste les spécificités de la piste pour "${circuitName}"` : "Définis les caractéristiques du nouveau circuit."}
@@ -119,7 +119,7 @@ export function TrackSignatureForm({ open, onOpenChange, onSave, circuitName, in
 
           <div className="space-y-2">
             <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-primary" /> Ratio de Vitesse
+              <Zap className="w-3.5 h-3.5 text-primary" /> Profil du tracé
             </Label>
             <ToggleGroup type="single" value={speedRatio} onValueChange={(v) => v && setSpeedRatio(v)} className="justify-start w-full gap-2">
               <ToggleGroupItem value="sinueux" className="flex-1 h-9 text-xs">Sinueux</ToggleGroupItem>
@@ -128,17 +128,17 @@ export function TrackSignatureForm({ open, onOpenChange, onSave, circuitName, in
             </ToggleGroup>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                <RotateCw className="w-3.5 h-3.5 text-primary" /> Rotation
+                <RotateCw className="w-3.5 h-3.5 text-primary" /> Sens
               </Label>
               <ToggleGroup type="single" value={rotation} onValueChange={(v) => v && setRotation(v)} className="w-full gap-2">
                 <ToggleGroupItem value="horaire" className="flex-1 h-9 text-xs" aria-label="Horaire">
-                  <RotateCw className="w-3.5 h-3.5 mr-1" /> HD
+                  <RotateCw className="w-3.5 h-3.5 mr-1 shrink-0" /> Horaire
                 </ToggleGroupItem>
                 <ToggleGroupItem value="anti-horaire" className="flex-1 h-9 text-xs" aria-label="Anti-horaire">
-                  <RotateCcw className="w-3.5 h-3.5 mr-1" /> AH
+                  <RotateCcw className="w-3.5 h-3.5 mr-1 shrink-0" /> Anti-horaire
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
@@ -166,7 +166,7 @@ export function TrackSignatureForm({ open, onOpenChange, onSave, circuitName, in
 
           <div className="space-y-2">
             <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-primary" /> Technicité
+              <TrendingUp className="w-3.5 h-3.5 text-primary" /> Virages
             </Label>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Stepper

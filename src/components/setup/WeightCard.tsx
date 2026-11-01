@@ -144,7 +144,7 @@ export function WeightCard({
         <CardTitle className="text-lg flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Scale className="w-5 h-5 text-primary" />
-            Bilan Poids
+            Bilan poids
           </span>
           {!isSaving ? (
             <span className="flex items-center gap-1">
@@ -354,7 +354,7 @@ export function WeightCard({
                 onClick={applyEstimate}
                 disabled={estimate.kart_weight_kg == null && !Number(pilotWeight)}
               >
-                Appliquer au Bilan Poids
+                Appliquer au Bilan poids
                 {estimate.kart_weight_kg != null && Number(pilotWeight) > 0 && (
                   <span className="ml-2 font-mono">
                     ({(estimate.kart_weight_kg + Number(pilotWeight)).toFixed(1)} kg)

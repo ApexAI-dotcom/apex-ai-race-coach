@@ -22,7 +22,7 @@ export function ChassisSetupCard({ state, onChange, recommendations }: ChassisSe
       <CardHeader className="bg-muted/30 border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Wrench className="w-5 h-5 text-primary" />
-          Châssis & Géométrie
+          Châssis et géométrie
         </CardTitle>
       </CardHeader>
       
@@ -89,7 +89,7 @@ export function ChassisSetupCard({ state, onChange, recommendations }: ChassisSe
         </div>
 
         <div className="space-y-4">
-          <h4 className="font-semibold text-sm">Géométrie & Arbre</h4>
+          <h4 className="font-semibold text-sm">Géométrie et arbre</h4>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Carrossage (Camber)</Label>

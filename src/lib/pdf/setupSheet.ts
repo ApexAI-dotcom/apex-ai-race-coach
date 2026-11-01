@@ -6,7 +6,7 @@
 import { createApexDoc, sectionTitle, kvGrid, noteBox, finalizeAndSave } from "./apexPdf";
 
 const WEATHER_LABELS: Record<string, string> = { sec: "Sec", humide: "Humide", pluie: "Pluie" };
-const MODE_LABELS: Record<string, string> = { warmup: "Warm-up", qualif: "Qualifications", course: "Course" };
+const MODE_LABELS: Record<string, string> = { roulage: "Roulage", warmup: "Warm-up", qualif: "Qualifications", course: "Course" };
 
 function fmt(v: unknown, unit = ""): string {
   if (v === null || v === undefined || v === "") return "—";

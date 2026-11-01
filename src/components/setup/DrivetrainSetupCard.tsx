@@ -36,7 +36,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory, engineMod
       <CardHeader className="bg-muted/30 border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Gauge className="w-5 h-5 text-primary" />
-          Moteur & Carburation
+          Moteur et carburation
         </CardTitle>
       </CardHeader>
       
@@ -48,7 +48,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory, engineMod
           <h4 className="font-semibold text-sm">Transmission</h4>
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-3">
-              <Label className="text-xs text-muted-foreground">Pignon (Dents)</Label>
+              <Label className="text-xs text-muted-foreground">Pignon (dents)</Label>
               <Input 
                 type="number" 
                 placeholder="Ex: 11" 
@@ -59,7 +59,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory, engineMod
               <FieldRecommendation recommendation={recommendations?.sprocketFront} />
             </div>
             <div className="space-y-3">
-              <Label className="text-xs text-muted-foreground">Couronne (Dents)</Label>
+              <Label className="text-xs text-muted-foreground">Couronne (dents)</Label>
               <Input 
                 type="number" 
                 placeholder={engineCategory.includes('KZ') ? 'Ex: 24' : 'Ex: 78'} 
@@ -105,7 +105,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory, engineMod
             {isRotaxOrKZ && (
               <>
                 <div className="space-y-3">
-                  <Label className="text-xs text-muted-foreground">Gicleur Principal</Label>
+                  <Label className="text-xs text-muted-foreground">Gicleur principal</Label>
                   <Input 
                     type="number" 
                     placeholder="Ex: 125" 
@@ -115,7 +115,7 @@ export function DrivetrainSetupCard({ state, onChange, engineCategory, engineMod
                   />
                 </div>
                 <div className="space-y-3">
-                  <Label className="text-xs text-muted-foreground">Gicleur de Ralenti</Label>
+                  <Label className="text-xs text-muted-foreground">Gicleur de ralenti</Label>
                   <Input 
                     type="number" 
                     placeholder="Ex: 60" 

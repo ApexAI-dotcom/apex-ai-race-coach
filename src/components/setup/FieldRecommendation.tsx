@@ -56,9 +56,9 @@ function getFieldName(field: string): string {
 }
 
 export function FieldRecommendation({ recommendation }: { recommendation?: Recommendation }) {
-  if (!recommendation) return null;
-
+  // Le hook avant tout retour anticipé (règle des hooks React).
   const [isOpen, setIsOpen] = useState(false);
+  if (!recommendation) return null;
   const isHigh = recommendation.priority === 'high';
   const fieldName = getFieldName(recommendation.field);
   const impact = getMechanicalImpact(recommendation.field);
@@ -71,19 +71,22 @@ export function FieldRecommendation({ recommendation }: { recommendation?: Recom
             <button
               type="button"
               onClick={() => setIsOpen(true)}
-              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border cursor-pointer transition-all duration-300 ${
-                isHigh 
-                  ? 'bg-orange-500/10 text-orange-400 border-orange-500/20 hover:bg-orange-500/20' 
+              // Une seule ligne, même dans une demi-colonne de téléphone :
+              // « Recommandation : 0.7 » se cassait sur deux lignes.
+              className={`inline-flex max-w-full items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded-full text-[11px] font-medium border cursor-pointer transition-colors ${
+                isHigh
+                  ? 'bg-[hsl(var(--amber)/0.1)] text-[hsl(var(--amber))] border-[hsl(var(--amber)/0.25)] hover:bg-[hsl(var(--amber)/0.18)]'
                   : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'
               }`}
+              aria-label={`Conseil ApexAI : ${recommendation.value}. Voir l'explication`}
             >
-              {isHigh ? <AlertCircle className="w-3 h-3 text-orange-400" /> : <Brain className="w-3 h-3 text-primary animate-pulse" />}
-              <span>Recommandation : {recommendation.value}</span>
+              {isHigh ? <AlertCircle className="w-3 h-3 shrink-0" /> : <Brain className="w-3 h-3 shrink-0" />}
+              <span className="truncate">ApexAI · {recommendation.value}</span>
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-xs p-3 space-y-1 bg-card/95 border border-border backdrop-blur-md shadow-lg rounded-xl z-[9999]">
             <p className="font-semibold text-xs text-primary flex items-center gap-1.5">
-              <Brain className="w-3.5 h-3.5" /> Conseil ApexAI (Clic pour détails)
+              <Brain className="w-3.5 h-3.5" /> Conseil ApexAI (touche pour le détail)
             </p>
             <p className="text-[11px] leading-relaxed text-muted-foreground whitespace-pre-line">{recommendation.message}</p>
           </TooltipContent>
@@ -96,10 +99,10 @@ export function FieldRecommendation({ recommendation }: { recommendation?: Recom
           <DialogHeader className="border-b border-border/80 pb-4">
             <DialogTitle className="flex items-center gap-2 text-lg">
               <Wrench className="w-5 h-5 text-primary" />
-              <span>Analyse d'Ingénierie ApexAI</span>
+              <span>Le conseil ApexAI</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Explication physique approfondie du comportement du châssis.
+              Pourquoi cette valeur, et ce qu'elle change en piste.
             </DialogDescription>
           </DialogHeader>
 
@@ -119,7 +122,7 @@ export function FieldRecommendation({ recommendation }: { recommendation?: Recom
             {/* Explication mécanique détaillée */}
             <div className="space-y-1.5">
               <h5 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1">
-                <Brain className="w-3.5 h-3.5" /> Explication de l'Ingénieur
+                <Brain className="w-3.5 h-3.5" /> Pourquoi
               </h5>
               <p className="text-xs text-foreground leading-relaxed bg-muted/20 border border-border/40 rounded-xl p-3.5 whitespace-pre-line">
                 {recommendation.message}
@@ -129,7 +132,7 @@ export function FieldRecommendation({ recommendation }: { recommendation?: Recom
             {/* Impact physique */}
             <div className="space-y-1.5">
               <h5 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1">
-                <Cpu className="w-3.5 h-3.5 text-muted-foreground" /> Impact Physique & Dynamique
+                <Cpu className="w-3.5 h-3.5 text-muted-foreground" /> Ce que ça change
               </h5>
               <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/10 border border-border/30 rounded-xl p-3.5">
                 {impact}

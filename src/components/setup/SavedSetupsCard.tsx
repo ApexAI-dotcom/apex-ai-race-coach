@@ -76,7 +76,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
       <CardHeader className="bg-muted/30 border-b border-border pb-4 flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-lg">
           <History className="w-5 h-5 text-primary" />
-          Mes Réglages
+          Mes réglages
         </CardTitle>
         <Button size="sm" variant="outline" className="gap-2 rounded-full border-primary/20 text-primary hover:bg-primary/10" onClick={onNewSetup}>
           <Plus className="w-4 h-4" /> Nouveau
@@ -96,7 +96,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
             <p className="text-sm">Aucun réglage sauvegardé</p>
           </div>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="max-h-[220px] divide-y divide-border overflow-y-auto overscroll-contain custom-scrollbar">
               {setups.map((s) => (
                 <div 
                   key={s.id} 
@@ -109,7 +109,7 @@ export function SavedSetupsCard({ refreshKey, onSelectSetup, onNewSetup, onSaveS
                       grip: s.grip || 'normal',
                       airTemp: s.air_temp || '',
                       trackTemp: s.track_temp || '',
-                      mode: s.mode || 'course',
+                      mode: s.mode || 'roulage',
                       circuit: s.circuits ? normalizeCircuit({ ...s.circuits, id: s.circuit_id }) : (s.circuit || null),
                       recommendations: s.recommendations || null,
                       tireModel: s.tire_model || '',

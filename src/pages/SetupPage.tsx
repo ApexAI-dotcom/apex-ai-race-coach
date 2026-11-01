@@ -26,7 +26,7 @@ export interface SetupState {
   grip: 'faible' | 'normal' | 'gommée';
   airTemp: number | '';
   trackTemp: number | '';
-  mode: 'course' | 'qualif' | 'warmup';
+  mode: 'roulage' | 'course' | 'qualif' | 'warmup';
   circuit: any | null;
   tireModel: string;
   coldPressureFront: number | '';
@@ -57,7 +57,7 @@ const defaultSetupState: SetupState = {
   grip: 'normal',
   airTemp: '',
   trackTemp: '',
-  mode: 'course',
+  mode: 'roulage',
   circuit: null,
   tireModel: '',
   coldPressureFront: '',
@@ -112,7 +112,7 @@ export default function SetupPage() {
         if (profRes && profRes.profile) {
           setProfile(profRes.profile);
           // Le modèle de pneus affiché suit le PNEU MONTÉ (Stock de Pneus),
-          // avec repli sur le profil. Le Bilan Poids reste vide (pas de
+          // avec repli sur le profil. Le Bilan poids reste vide (pas de
           // pré-remplissage fantôme).
           const mounted = (tireRes.tire_sets || []).find((t: any) => t.is_mounted);
           const mountedModel = mounted?.custom_model || mounted?.component_label || profRes.profile.tires_model;
@@ -382,22 +382,23 @@ export default function SetupPage() {
       />
       
       <div className="min-h-screen bg-background text-foreground pb-20">
-        <div className="container max-w-7xl mx-auto pt-8 px-4 space-y-8">
+        <div className="container max-w-7xl mx-auto pt-6 md:pt-8 px-4 space-y-6 md:space-y-8">
           
-          <header className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">Carnet d'Ingénieur Digital</h1>
-            <p className="text-muted-foreground">
+          <header className="space-y-1">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Réglages</p>
+            <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight">Carnet d'ingénieur</h1>
+            <p className="text-sm text-muted-foreground">
               Configuration pour la catégorie <span className="font-semibold text-primary">{engineCategory}</span>
             </p>
           </header>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
             
             {/* Colonne Gauche (6 colonnes) : Mes réglages, Poids et Mon Kart */}
-            <div className="lg:col-span-6 flex flex-col justify-between space-y-8">
-              {/* Hauteur figée à 300px : la carte défile en interne, sa hauteur
-                  ne change jamais -> pas de déformation de la colonne droite. */}
-              <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="lg:col-span-6 flex flex-col justify-between space-y-6 lg:space-y-8">
+              {/* La liste des réglages défile dans la carte (hauteur bornée) ;
+                  la carte elle-même n'est plus coupée net en bas. */}
+              <div>
                 <SavedSetupsCard
                   refreshKey={refreshKey}
                   onSelectSetup={(setup) => {
@@ -572,7 +573,7 @@ export default function SetupPage() {
             </div>
 
             {/* Colonne Droite (6 colonnes) : Circuit et Contexte & Piste */}
-            <div className="lg:col-span-6 flex flex-col h-full justify-between space-y-8">
+            <div className="lg:col-span-6 flex flex-col h-full justify-between space-y-6 lg:space-y-8">
               <CircuitCard state={setupState} onChange={handleContextChange} />
               
               <SetupContextCard 
@@ -586,7 +587,7 @@ export default function SetupPage() {
 
           {/* Section Milieu : L'ingénieur ApexAI (Pleine Largeur) */}
           <Card className="bg-primary/5 border-primary/20 shadow-lg overflow-hidden relative max-w-4xl mx-auto">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-500"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-orange-500"></div>
             <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
               <div className="bg-primary/10 p-3 rounded-full mb-1">
                 <Brain className={`w-8 h-8 text-primary ${isAnalyzing ? 'animate-pulse scale-110' : ''}`} />
@@ -610,12 +611,12 @@ export default function SetupPage() {
                 ) : hasGeneratedRecs ? (
                   <>
                     <Brain className="w-5 h-5 shrink-0 text-primary" />
-                    Configuration Active
+                    Recommandations appliquées
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5 shrink-0" />
-                    Générer les recommandations ApexAI
+                    Générer mon réglage
                   </>
                 )}
               </Button>
@@ -628,7 +629,7 @@ export default function SetupPage() {
               )}
 
               {!isFormReadyToRecommend && !isAnalyzing && !hasGeneratedRecs && (
-                <div className="text-xs text-amber-500/80 bg-amber-500/5 border border-amber-500/10 rounded-lg p-3 max-w-sm mt-1 text-left space-y-1">
+                <div className="text-xs text-[hsl(var(--amber))] bg-[hsl(var(--amber)/0.06)] border border-[hsl(var(--amber)/0.2)] rounded-lg p-3 max-w-sm mt-1 text-left space-y-1">
                   <p className="font-semibold flex items-center gap-1.5"><Brain className="w-3.5 h-3.5" /> Informations requises :</p>
                   <ul className="list-disc list-inside text-muted-foreground text-[11px] space-y-0.5">
                     {setupState.circuit === null && <li>Sélectionner un circuit</li>}
@@ -641,12 +642,16 @@ export default function SetupPage() {
           </Card>
 
           {/* Section Bas : Cartes techniques côte-à-côte (3 colonnes) */}
-          <div ref={recsRef} className={`space-y-8 transition-all duration-700 transform ${
-            !hasGeneratedRecs || isAnalyzing
-              ? 'opacity-0 translate-y-8 pointer-events-none' 
-              : 'opacity-100 translate-y-0'
+          {/* Cachée (sans réserver sa place) tant que rien n'est généré : sinon
+              un grand vide s'ouvrait sous le bouton, surtout au téléphone. */}
+          <div ref={recsRef} className={`space-y-6 lg:space-y-8 transition-all duration-700 transform ${
+            !hasGeneratedRecs
+              ? 'hidden'
+              : isAnalyzing
+                ? 'opacity-0 translate-y-8 pointer-events-none'
+                : 'opacity-100 translate-y-0'
           }`}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
               <TireSetupCard
                 state={setupState}
                 onChange={handleContextChange}
@@ -669,17 +674,17 @@ export default function SetupPage() {
             </div>
 
             {hasGeneratedRecs && !isAnalyzing && (
-              <div className="flex justify-end gap-3 pt-4 pb-8">
+              <div className="grid grid-cols-1 gap-3 pt-4 pb-8 sm:flex sm:justify-end">
                 <Button
                   size="lg"
                   variant="outline"
                   onClick={handleExportPdf}
-                  className="gap-2 px-6 border-border hover:border-primary/40 hover:text-primary"
+                  className="h-12 w-full gap-2 border-border px-6 hover:border-primary/40 hover:text-primary sm:w-auto"
                 >
                   <FileDown className="w-5 h-5" />
                   Fiche PDF
                 </Button>
-                <Button size="lg" onClick={handleSave} disabled={isSaving} className="gap-2 px-8">
+                <Button size="lg" onClick={handleSave} disabled={isSaving} className="h-12 w-full gap-2 px-6 sm:w-auto sm:px-8">
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                   {setupState.id ? "Mettre à jour le réglage" : "Enregistrer le réglage"}
                 </Button>

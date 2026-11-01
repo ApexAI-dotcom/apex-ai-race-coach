@@ -38,7 +38,7 @@ export function TireSetupCard({ state, onChange, recommendations, tireSetAdvice,
       <CardHeader className="bg-muted/30 border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Disc3 className="w-5 h-5 text-primary" />
-          Pneumatiques
+          Pneus
         </CardTitle>
       </CardHeader>
       
@@ -110,7 +110,7 @@ export function TireSetupCard({ state, onChange, recommendations, tireSetAdvice,
 
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
-            <h4 className="font-semibold text-sm">Pressions à Froid</h4>
+            <h4 className="font-semibold text-sm">Pressions à froid</h4>
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Avant (bar)</Label>
               <Input 
@@ -138,7 +138,7 @@ export function TireSetupCard({ state, onChange, recommendations, tireSetAdvice,
           </div>
 
           <div className="space-y-4">
-            <h4 className="font-semibold text-sm">Pressions à Chaud (Cible)</h4>
+            <h4 className="font-semibold text-sm">Pressions à chaud (cible)</h4>
             <div className="space-y-3">
               <Label className="text-xs text-muted-foreground">Avant (bar)</Label>
               <Input 
