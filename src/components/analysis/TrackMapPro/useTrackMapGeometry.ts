@@ -135,17 +135,27 @@ export function useTrackMapGeometry(
     const L = trackEdges?.left;
     const R = trackEdges?.right;
     if (L?.lat?.length && R?.lat?.length && L.lat.length === R.lat.length) {
-      const fwd: string[] = [];
-      for (let i = 0; i < L.lat.length; i++) {
-        const [x, y] = project(L.lat[i], L.lon[i]);
-        fwd.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`);
+      const loop = (lat: number[], lon: number[]) =>
+        lat.map((la, i) => {
+          const [x, y] = project(la, lon[i]);
+          return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+        });
+      const [lx0, ly0] = project(L.lat[0], L.lon[0]);
+      const [lx1, ly1] = project(L.lat[L.lat.length - 1], L.lon[L.lon.length - 1]);
+      const closedCircuit = Math.hypot(lx1 - lx0, ly1 - ly0) < 40;
+      if (closedCircuit) {
+        // Circuit fermé : chaque bord est une boucle, la piste est l'anneau
+        // entre les deux (remplissage pair-impair). Plus de couture en travers
+        // de la piste à la ligne de départ (l'« encoche » du Mans).
+        trackRibbonPath = `${loop(L.lat, L.lon).join("")}Z${loop(R.lat, R.lon).join("")}Z`;
+      } else {
+        const back: string[] = [];
+        for (let i = R.lat.length - 1; i >= 0; i--) {
+          const [x, y] = project(R.lat[i], R.lon[i]);
+          back.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
+        }
+        trackRibbonPath = `${loop(L.lat, L.lon).join("")}${back.join("")}Z`;
       }
-      const back: string[] = [];
-      for (let i = R.lat.length - 1; i >= 0; i--) {
-        const [x, y] = project(R.lat[i], R.lon[i]);
-        back.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
-      }
-      trackRibbonPath = `${fwd.join("")}${back.join("")}Z`;
     }
 
     return { bounds, project, projectedCorners, trackRibbonPath };

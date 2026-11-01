@@ -382,7 +382,7 @@ function TrackMapCanvasComponent({
     if (!trackRibbonPath) return null;
     return (
       <g className="track-ribbon pointer-events-none">
-        <path d={trackRibbonPath} fill="rgba(255,255,255,0.055)" stroke="none" />
+        <path d={trackRibbonPath} fill="rgba(255,255,255,0.055)" fillRule="evenodd" stroke="none" />
         <path
           d={trackRibbonPath}
           fill="none"
