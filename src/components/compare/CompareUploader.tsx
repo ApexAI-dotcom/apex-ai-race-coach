@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { FileUp, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -142,6 +143,14 @@ export function CompareUploader() {
   useEffect(() => {
     if (user?.id) getAllAnalyses(user.id).then(setSessions).catch(() => setSessions([]));
   }, [user?.id]);
+
+  // Ouvert depuis Sessions (« Comparer ») : la séance choisie est déjà dans
+  // la première case, il ne reste qu'à choisir l'autre.
+  const [params] = useSearchParams();
+  const preset = params.get("seance");
+  useEffect(() => {
+    if (preset) setA((x) => (x.sessionId || x.file ? x : { ...x, sessionId: preset }));
+  }, [preset]);
 
   if (!isAuthenticated) {
     return (

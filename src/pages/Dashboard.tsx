@@ -331,7 +331,21 @@ export default function Dashboard() {
     () => folders.filter((f) => f.parentId === currentFolderId),
     [folders, currentFolderId]
   );
+  // Rangement automatique par circuit : un filtre en un geste, sans avoir à
+  // créer de dossier. Il prime sur les dossiers tant qu'il est actif.
+  const [circuitFilter, setCircuitFilter] = useState<string | null>(null);
+  const circuitChips = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const a of analyses) {
+      const c = (a.circuit_name || "").trim();
+      if (c) m.set(c, (m.get(c) ?? 0) + 1);
+    }
+    return [...m.entries()].sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]));
+  }, [analyses]);
   const visibleAnalyses = useMemo(() => {
+    if (circuitFilter) {
+      return analyses.filter((a) => (a.circuit_name || "").trim() === circuitFilter);
+    }
     if (currentFolderId) {
       const folder = folders.find((f) => f.id === currentFolderId);
       return analyses.filter((a) => folder?.analysisIds.includes(a.id));
@@ -339,7 +353,7 @@ export default function Dashboard() {
     // At root, show analyses that ARE NOT in any folder
     const inFolders = new Set(folders.flatMap((f) => f.analysisIds));
     return analyses.filter((a) => !inFolders.has(a.id));
-  }, [analyses, folders, currentFolderId]);
+  }, [analyses, folders, currentFolderId, circuitFilter]);
 
   // Load specific analysis from query param
   useEffect(() => {
@@ -419,16 +433,10 @@ export default function Dashboard() {
     }
   };
 
+  // La comparaison vit dans Analyser > Comparer : on y ouvre la séance
+  // choisie, déjà placée dans la première case.
   const handleCompareAdd = (id: string) => {
-    if (!compareSlot1) {
-      setCompareSlot1(id);
-      toast.info("Analyse ajoutée au slot 1. Sélectionne une 2e analyse.");
-    } else if (!compareSlot2 && id !== compareSlot1) {
-      setCompareSlot2(id);
-      toast.success("2 analyses sélectionnées ! Clique sur 'Comparer' pour voir la comparaison.");
-    } else {
-      toast.info("Les 2 slots sont déjà remplis. Vide un slot d'abord.");
-    }
+    navigate(`/upload?mode=comparer&seance=${encodeURIComponent(id)}`);
   };
 
   // Load compare results when both slots are filled
@@ -459,6 +467,14 @@ export default function Dashboard() {
     }),
     [analyses]
   );
+
+  // Titre d'une séance : le nom donné par le pilote, sinon le circuit.
+  // « Session du 31/10/2026 » (nom automatique) répétait la date, déjà affichée.
+  const sessionTitle = (a: { session_name?: string; circuit_name?: string }) => {
+    const custom = (a.session_name || "").trim();
+    if (custom && !/^session du \d/i.test(custom)) return custom;
+    return (a.circuit_name || "").trim() || "Circuit non renseigné";
+  };
 
   const getGradeColor = (grade: string) => {
     switch (grade.toUpperCase()) {
@@ -696,10 +712,11 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-end">
                 <div>
                   <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-1">
-                    {featuredSessionName ||
-                      featuredAnalysis?.session_conditions?.circuit_name ||
-                      latestAnalysis?.circuit_name ||
-                      "Session"}
+                    {sessionTitle({
+                      session_name: featuredSessionName || undefined,
+                      circuit_name:
+                        featuredAnalysis?.session_conditions?.circuit_name || latestAnalysis?.circuit_name || undefined,
+                    })}
                   </h3>
                   <p className="text-muted-foreground text-sm md:text-lg mb-6 uppercase tracking-widest flex items-center gap-2">
                     {formatDate(featuredAnalysis.timestamp)}{" "}
@@ -840,25 +857,30 @@ export default function Dashboard() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {!currentFolderId && visibleFolders.length === 0 && (
+            <p className="mb-2 text-sm text-muted-foreground">
+              Range tes séances comme tu veux (une saison, un championnat, un kart). Le tri par circuit, lui, est automatique ci-dessous.
+            </p>
+          )}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {currentFolderId && (
               <Card
-                className="glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/10 hover:border-primary/50 transition-all hover:bg-white/5 active:scale-95"
+                className="glass-card p-4 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/10 hover:border-primary/50 transition-colors hover:bg-white/5"
                 onClick={() => setCurrentFolderId(null)}
               >
-                <ArrowLeft className="w-8 h-8 text-muted-foreground mb-2" />
+                <ArrowLeft className="w-5 h-5 text-muted-foreground mb-1" />
                 <span className="font-bold text-foreground text-sm uppercase">Retour</span>
               </Card>
             )}
             {visibleFolders.map((folder) => (
               <Card
                 key={folder.id}
-                className="glass-card p-6 cursor-pointer hover:border-primary/50 transition-all group relative hover:translate-y-[-4px]"
+                className="glass-card p-4 cursor-pointer hover:border-primary/50 transition-colors group relative"
                 onClick={() => setCurrentFolderId(folder.id)}
               >
-                <div className="flex justify-between items-start mb-6">
-                  <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-lg shadow-primary/0 group-hover:shadow-primary/20">
-                    <FolderInput className="w-6 h-6" />
+                <div className="flex justify-between items-start mb-3">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                    <FolderInput className="w-5 h-5" />
                   </div>
                   <Button
                     variant="ghost"
@@ -869,115 +891,43 @@ export default function Dashboard() {
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-                <h3 className="font-bold text-xl text-foreground mb-1 group-hover:text-primary transition-colors">
+                <h3 className="font-semibold text-base text-foreground mb-0.5 truncate">
                   {folder.name}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {folder.analysisIds.length} analyses
+                  {folder.analysisIds.length} séance{folder.analysisIds.length > 1 ? "s" : ""}
                 </p>
-                <div className="flex gap-2 mt-4">
-                  <Badge
-                    variant="secondary"
-                    className="bg-white/5 text-[9px] py-0 px-2 uppercase border-none"
-                  >
-                    Practice
-                  </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="bg-white/5 text-[9px] py-0 px-2 uppercase border-none"
-                  >
-                    2026
-                  </Badge>
-                </div>
+
               </Card>
             ))}
-          </div>
-        </div>
-
-        {/* ═══ COMPARATOR SLOT-BASED ═══ */}
-        <div className="mb-12">
-          <h2 className="font-display text-lg font-semibold text-foreground mb-4">
-            Comparateur
-          </h2>
-          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-1">
-            <div
-              className={`flex-1 w-full h-14 md:h-16 rounded-2xl border-2 flex items-center justify-between px-4 md:px-6 transition-all ${compareSlot1 ? "border-primary bg-primary/5 shadow-inner" : "border-dashed border-white/10 bg-secondary/10"}`}
-            >
-              <span
-                className={
-                  compareSlot1
-                    ? "font-bold text-foreground text-sm md:text-base truncate pr-2"
-                    : "text-muted-foreground italic text-xs md:text-sm"
-                }
-              >
-                {compareSlot1
-                  ? (() => {
-                      const a = analyses.find((x) => x.id === compareSlot1);
-                      return `${a?.score}/100 — ${a?.session_name || a?.circuit_name || "Session"}`;
-                    })()
-                  : "Choisir une analyse (clique sur ⇆)"}
-              </span>
-              {compareSlot1 && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={() => setCompareSlot1("")}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-
-            <div className="flex items-center justify-center py-1 md:px-4">
-              <span className="text-lg md:text-xl font-black text-primary italic">VS</span>
-            </div>
-
-            <div
-              className={`flex-1 w-full h-14 md:h-16 rounded-2xl border-2 flex items-center justify-between px-4 md:px-6 transition-all ${compareSlot2 ? "border-primary bg-primary/5 shadow-inner" : "border-dashed border-white/10 bg-secondary/10"}`}
-            >
-              <span
-                className={
-                  compareSlot2
-                    ? "font-bold text-foreground text-sm md:text-base truncate pr-2"
-                    : "text-muted-foreground italic text-xs md:text-sm"
-                }
-              >
-                {compareSlot2
-                  ? (() => {
-                      const a = analyses.find((x) => x.id === compareSlot2);
-                      return `${a?.score}/100 — ${a?.session_name || a?.circuit_name || "Session"}`;
-                    })()
-                  : "Deuxième analyse..."}
-              </span>
-              {compareSlot2 && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={() => setCompareSlot2("")}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-
-            <Button
-              variant="hero"
-              className="w-full md:w-40 h-14 md:h-16 md:ml-4 rounded-2xl font-bold shadow-xl shadow-primary/10 mt-2 md:mt-0"
-              disabled={!compareSlot1 || !compareSlot2}
-              onClick={() => setShowCompare(true)}
-            >
-              COMPARER
-            </Button>
           </div>
         </div>
 
         {/* ═══ ALL ANALYSES TABLE ═══ */}
         <div>
           <h2 className="font-display text-lg font-semibold text-foreground mb-4">
-            Toutes les analyses
+            {circuitFilter ? `Séances à ${circuitFilter}` : currentFolderId ? `Séances du dossier` : "Toutes les séances"}
           </h2>
+
+          {circuitChips.length > 1 && (
+            <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="tablist" aria-label="Filtrer par circuit">
+              {[{ name: null as string | null, n: analyses.length }, ...circuitChips.map(([name, n]) => ({ name, n }))].map((c) => (
+                <button
+                  key={c.name ?? "__all"}
+                  role="tab"
+                  aria-selected={circuitFilter === c.name}
+                  onClick={() => setCircuitFilter(c.name)}
+                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm transition-colors ${
+                    circuitFilter === c.name
+                      ? "border-primary/50 bg-primary/10 text-foreground"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {c.name ?? "Tous les circuits"} <span className="ml-1 tabular-nums text-muted-foreground">{c.n}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Mobile view: Cards (Hidden on desktop) */}
           <div className="grid grid-cols-1 gap-4 md:hidden">
@@ -989,12 +939,12 @@ export default function Dashboard() {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="font-bold text-foreground text-lg">
-                      {formatDate(analysis.date).split(" à")[0]}
+                    <div className="font-display font-bold text-foreground text-lg leading-tight">
+                      {sessionTitle(analysis)}
                     </div>
                     <div className="flex items-center gap-1.5">
                       <div className="text-xs text-muted-foreground">
-                        {analysis.session_name || analysis.circuit_name || "Session"}
+                        {formatDate(analysis.date).split(" à")[0]}
                       </div>
                       <Button
                         variant="ghost"
@@ -1021,17 +971,20 @@ export default function Dashboard() {
                               ? "Course"
                               : analysis.session_type || "Essais"}
                       </Badge>
-                      <Badge
-                        variant="outline"
-                        className="text-[8px] uppercase border-white/10 bg-white/5 py-0 px-1.5"
-                      >
-                        {folders.find((f) => f.analysisIds.includes(analysis.id))?.name || "Racine"}
-                      </Badge>
+                      {folders.find((f) => f.analysisIds.includes(analysis.id)) && (
+                        <Badge
+                          variant="outline"
+                          className="text-[9px] uppercase border-white/10 bg-white/5 py-0 px-1.5"
+                        >
+                          {folders.find((f) => f.analysisIds.includes(analysis.id))?.name}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-black text-primary leading-none mb-1">
-                      {analysis.score}/100
+                    <div className="font-display text-2xl font-bold tabular-nums text-foreground leading-none mb-1">
+                      {analysis.score}
+                      <span className="text-sm font-medium text-muted-foreground">/100</span>
                     </div>
                     <Badge className={`${getGradeColor(analysis.grade)} border-none text-[10px]`}>
                       {analysis.grade}
@@ -1104,10 +1057,10 @@ export default function Dashboard() {
                       className="hover:bg-white/5 border-white/5 transition-colors group"
                     >
                       <TableCell className="py-5">
-                        <div className="font-bold text-foreground">{formatDate(analysis.date)}</div>
+                        <div className="font-semibold text-foreground">{sessionTitle(analysis)}</div>
                         <div className="flex items-center gap-2 group/name">
-                          <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                            {analysis.session_name || analysis.circuit_name || "Session"}
+                          <div className="text-xs text-muted-foreground">
+                            {formatDate(analysis.date)}
                           </div>
                           <Button
                             variant="ghost"
@@ -1150,13 +1103,12 @@ export default function Dashboard() {
                           variant="outline"
                           className="text-[10px] uppercase border-white/10 bg-white/5"
                         >
-                          {folders.find((f) => f.analysisIds.includes(analysis.id))?.name ||
-                            "Racine"}
+                          {folders.find((f) => f.analysisIds.includes(analysis.id))?.name || "—"}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <span className="font-black text-lg text-primary">{analysis.score}</span>
+                          <span className="font-display font-bold text-lg tabular-nums text-foreground">{analysis.score}</span>
                           <Badge
                             className={`${getGradeColor(analysis.grade)} border-none text-[10px]`}
                           >
@@ -1353,7 +1305,7 @@ export default function Dashboard() {
                   <SelectValue placeholder="Choisir un dossier..." />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a0a0a] border-white/10">
-                  <SelectItem value="root">Racine (Aucun dossier)</SelectItem>
+                  <SelectItem value="root">Aucun dossier</SelectItem>
                   {folders.map((f) => (
                     <SelectItem key={f.id} value={f.id}>
                       {f.name}
