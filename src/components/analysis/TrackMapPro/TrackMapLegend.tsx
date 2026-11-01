@@ -206,8 +206,16 @@ function TrackMapLegendBody({
         label="Numéros de virage"
         hint="cliquables ; ce sont les mêmes numéros que dans les conseils de coaching et les graphiques"
       />
-      <LegendItem swatch={<Dot color="#22c55e" />} label="Départ" hint="début du tour affiché" />
-      <LegendItem swatch={<Dot color="#ef4444" />} label="Arrivée" hint="fin du tour affiché" />
+      <LegendItem
+        swatch={
+          <span
+            className="block h-1.5 w-4 rounded-[1px]"
+            style={{ background: "repeating-linear-gradient(90deg, #fff 0 3px, #111 3px 6px)" }}
+          />
+        }
+        label="Ligne de départ"
+        hint="début et fin du tour affiché"
+      />
 
       {/* Ruban de piste : l'échelle réelle */}
       {hasRibbon && (

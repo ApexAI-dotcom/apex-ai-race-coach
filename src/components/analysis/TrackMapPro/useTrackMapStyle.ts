@@ -127,6 +127,28 @@ export function buildLapProjection(
     });
   }
 
+  // Refermer le tour à la ligne d'arrivée. Le GPS (10 à 25 Hz) ne retombe
+  // jamais pile sur le point de départ : la trace s'arrêtait à quelques
+  // mètres, et la carte montrait un circuit « ouvert » sur la ligne droite.
+  // On relie la fin au début quand l'écart est petit devant la longueur du
+  // tour (un tour complet), jamais pour un bout de séance (sortie des stands).
+  if (pts.length > 20 && segments.length) {
+    const first = pts[0];
+    const last = pts[pts.length - 1];
+    const meters = (a: ProjectedPoint, b: ProjectedPoint) => {
+      const k = Math.cos((a.lat * Math.PI) / 180);
+      return Math.hypot((a.lat - b.lat) * 111320, (a.lon - b.lon) * 111320 * k);
+    };
+    let length = 0;
+    for (let i = 1; i < pts.length; i++) length += meters(pts[i - 1], pts[i]);
+    const gap = meters(last, first);
+    if (gap > 0.5 && gap < Math.max(15, length * 0.04)) {
+      const tail = segments[segments.length - 1];
+      segments.push({ ...tail, x1: last.x, y1: last.y, x2: first.x, y2: first.y, index: pts.length - 1 });
+      polyParts.push(`${first.x.toFixed(1)},${first.y.toFixed(1)}`);
+    }
+  }
+
   return {
     lap,
     points: pts,

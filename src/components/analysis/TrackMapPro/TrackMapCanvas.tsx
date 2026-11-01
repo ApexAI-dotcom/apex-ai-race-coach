@@ -572,26 +572,25 @@ function TrackMapCanvasComponent({
     );
   }, [profile, sectorSegments]);
 
+  // Ligne de départ / arrivée : un trait en damier en travers de la piste,
+  // au premier point du tour (le tour est refermé, départ = arrivée).
   const startFinishMarkers = useMemo(() => {
-    if (!primary || primary.points.length <= 2) return null;
+    if (!primary || primary.points.length <= 3) return null;
+    const p0 = primary.points[0];
+    const p1 = primary.points[Math.min(3, primary.points.length - 1)];
+    const dx = p1.x - p0.x;
+    const dy = p1.y - p0.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len;
+    const ny = dx / len;
+    const half = 11;
+    const x1 = p0.x - nx * half, y1 = p0.y - ny * half;
+    const x2 = p0.x + nx * half, y2 = p0.y + ny * half;
     return (
       <g className="pointer-events-none">
-        <circle
-          cx={primary.points[0].x}
-          cy={primary.points[0].y}
-          r={5}
-          fill="#22c55e"
-          stroke={TRACK_BG_DARK}
-          strokeWidth={2}
-        />
-        <circle
-          cx={primary.points[primary.points.length - 1].x}
-          cy={primary.points[primary.points.length - 1].y}
-          r={5}
-          fill="#ef4444"
-          stroke={TRACK_BG_DARK}
-          strokeWidth={2}
-        />
+        <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={TRACK_BG_DARK} strokeWidth={7} strokeLinecap="round" />
+        <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#ffffff" strokeWidth={4} />
+        <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#111111" strokeWidth={4} strokeDasharray="2.75 2.75" />
       </g>
     );
   }, [primary]);
