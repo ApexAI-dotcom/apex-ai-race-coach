@@ -50,6 +50,10 @@ export default function MonKart() {
   const [importing, setImporting] = useState(false);
   const [files, setFiles] = useState<FileList | null>(null);
   const [tireSets, setTireSets] = useState<any[]>([]);
+  // Boucle mécano : pièce choisie dans le catalogue -> journal pré-rempli.
+  // (Déclaré ici, avant tout retour anticipé : un hook placé après un `return`
+  // conditionnel fait planter la page au premier chargement.)
+  const [fitPart, setFitPart] = useState<CatalogPart | null>(null);
 
   const fetchProfile = async () => {
     if (!session?.access_token) return;
@@ -325,8 +329,6 @@ export default function MonKart() {
     }
   };
 
-  // Boucle mécano : pièce choisie dans le catalogue -> journal pré-rempli.
-  const [fitPart, setFitPart] = useState<CatalogPart | null>(null);
 
   // Pièce montée depuis le journal : compteur à zéro et, si le catalogue la
   // donne, sa durée de vie devient la jauge de Mon Kart.
