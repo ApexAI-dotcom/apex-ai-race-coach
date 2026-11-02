@@ -33,6 +33,7 @@ export function KartMaintenanceLog({
   prefillPart,
   onPrefillConsumed,
   onPartFitted,
+  onPartMounted,
 }: {
   history: any[];
   profile?: KartProfile;
@@ -45,6 +46,8 @@ export function KartMaintenanceLog({
   onPrefillConsumed?: () => void;
   /** Pièce montée : remise à zéro du compteur et durée de vie du catalogue. */
   onPartFitted?: (component: "engine" | "tires" | "brakes" | "chain", part: CatalogPart) => void;
+  /** Toute pièce du catalogue montée : historique « Pièces montées ». */
+  onPartMounted?: (part: CatalogPart, date: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState("general");
@@ -96,6 +99,7 @@ export function KartMaintenanceLog({
       onAddEntry(type, notes, new Date(date).toISOString());
       const c = part ? wearComponentOf(part.category) : "general";
       if (part && resetCounter && c !== "general") onPartFitted?.(c, part);
+      if (part) onPartMounted?.(part, new Date(date).toISOString());
       setOpen(false);
       setNotes("");
       setPart(null);

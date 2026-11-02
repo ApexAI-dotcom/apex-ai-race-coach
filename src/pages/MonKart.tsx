@@ -33,6 +33,7 @@ import { TireStockCard } from "@/components/kart/TireStockCard";
 import { PartsCatalog } from "@/components/kart/parts/PartsCatalog";
 import type { CatalogPart } from "@/lib/api";
 import { EngineMaintenanceCard } from "@/components/kart/parts/EngineMaintenanceCard";
+import { MountedPartsCard, toMountedPart, type MountedParts } from "@/components/kart/parts/MountedPartsCard";
 import { WeightCard } from "@/components/kart/WeightCard";
 import { WearGauge } from "@/components/kart/WearGauge";
 import { Layout } from "@/components/layout/Layout";
@@ -350,6 +351,23 @@ export default function MonKart() {
     await handleReset(component, true);
   };
 
+  // Historique des pièces montées, par famille (setup_json.mounted_parts).
+  const handlePartMounted = async (part: CatalogPart, date: string) => {
+    if (!prof || !session?.access_token) return;
+    const current: MountedParts = prof.setup_json?.mounted_parts || {};
+    const list = [toMountedPart(part, date), ...(current[part.category] || [])]
+      .sort((a, b) => new Date(b.fitted_at).getTime() - new Date(a.fitted_at).getTime())
+      .slice(0, 12);
+    try {
+      await api.updateKartProfile(session.access_token, {
+        setup_json: { ...(prof.setup_json || {}), mounted_parts: { ...current, [part.category]: list } },
+      });
+      fetchProfile();
+    } catch {
+      /* le journal garde la trace du montage */
+    }
+  };
+
   const handleReset = async (component: "engine" | "tires" | "brakes" | "chain", silent = false) => {
     if (!silent && !confirm(`Es-tu sûr de vouloir réinitialiser l'usure pour : ${component} ?`)) return;
     if (!session?.access_token) return;
@@ -449,7 +467,11 @@ export default function MonKart() {
   const handleUpdateSetup = async (setup: any, saved_setups?: any[]) => {
     if (!session?.access_token) return;
     try {
-      const updates: any = { setup_json: setup };
+      // Les alertes ignorées et les pièces montées vivent aussi dans setup_json : on les garde.
+      const keep = prof?.setup_json || {};
+      const updates: any = {
+        setup_json: { ignored_alerts: keep.ignored_alerts, mounted_parts: keep.mounted_parts, ...setup },
+      };
       if (saved_setups) updates.saved_setups = saved_setups;
 
       await api.updateKartProfile(session.access_token, updates);
@@ -670,6 +692,15 @@ export default function MonKart() {
                 onApplyLife={(h) => handleUpdateCounter("engine_hours_life", h)}
               />
             )}
+            {prof && (
+              <MountedPartsCard
+                parts={prof.setup_json?.mounted_parts || {}}
+                onFit={(p) => {
+                  setFitPart(p);
+                  document.getElementById("journal-entretien")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }}
+              />
+            )}
 
             {/* Journal d'Entretien */}
             <div className="mt-6" id="journal-entretien">
@@ -681,6 +712,7 @@ export default function MonKart() {
                   onDeleteEntry={handleDeleteHistoryEntry}
                   onResetComponent={handleReset}
                   onIgnoreAlert={handleIgnoreAlert}
+                  onPartMounted={handlePartMounted}
                   prefillPart={fitPart}
                   onPrefillConsumed={() => setFitPart(null)}
                   onPartFitted={handlePartFitted}

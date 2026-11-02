@@ -13,7 +13,7 @@ export const KIND_LABELS: Record<string, string> = {
 
 export const KIND_STYLES: Record<string, string> = {
   constructeur: "border-primary/30 bg-primary/10 text-primary",
-  "retour pilotes": "border-sky-500/30 bg-sky-500/10 text-sky-500",
+  "retour pilotes": "border-white/15 bg-white/5 text-foreground",
   règlement: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
   homologation: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
   "presse spécialisée": "border-border bg-muted text-muted-foreground",
