@@ -12,67 +12,17 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  ShieldCheck, Users, BarChart3, Ticket, UserCog, Loader2, Plus,
-  Copy, Power, TrendingUp, Inbox, Wrench, Clock, MousePointerClick, QrCode,
+  ShieldCheck, Users, Ticket, UserCog, Loader2, Plus,
+  Copy, Power, Inbox, QrCode,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
-import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-} from "recharts";
 import { api } from "@/lib/api";
 import { PADDOCK_PASS_MAX_HOURS, PADDOCK_PASS_PRESETS, formatPassDuration } from "@/lib/paddockPass";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { FeedbackAdminPanel } from "@/components/feedback/FeedbackAdminPanel";
 import { LaunchPanel } from "@/components/admin/LaunchPanel";
-
-const CHART = ["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#a855f7", "#64748b"];
-const TIER_LABELS: Record<string, string> = {
-  rookie: "Gratuit", racer: "Racer", team: "Team", visiteur: "Visiteur", visitor: "Visiteur",
-};
-
-function ChartCard({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
-  return (
-    <Card className="bg-card border-border rounded-2xl">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-          <Icon className="w-4 h-4 text-primary" /> {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
-  );
-}
-
-const chartTooltip = {
-  contentStyle: {
-    background: "hsl(var(--card))", border: "1px solid hsl(var(--border))",
-    borderRadius: 12, fontSize: 12, color: "hsl(var(--foreground))",
-  },
-  itemStyle: { color: "hsl(var(--foreground))" },
-  labelStyle: { color: "hsl(var(--muted-foreground))" },
-};
-
-function StatTile({ label, value, hint, icon: Icon, accent }: {
-  label: string; value: string | number; hint?: string; icon?: any; accent?: boolean;
-}) {
-  return (
-    <div className={`p-4 rounded-2xl border bg-card flex items-start gap-3 ${accent ? "border-primary/30 bg-primary/5" : "border-border"}`}>
-      {Icon && (
-        <div className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center ${accent ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
-          <Icon className="w-4 h-4" />
-        </div>
-      )}
-      <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className={`text-2xl font-bold mt-0.5 ${accent ? "text-primary" : "text-foreground"}`}>{value}</p>
-        {hint && <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p>}
-      </div>
-    </div>
-  );
-}
 
 export default function Admin() {
   const { session, loading: authLoading } = useAuth();
@@ -81,7 +31,6 @@ export default function Admin() {
   const [me, setMe] = useState<any>(null);
   const [checking, setChecking] = useState(true);
   const [stats, setStats] = useState<any>(null);
-  const [analytics, setAnalytics] = useState<any>(null);
 
   useEffect(() => {
     const check = async () => {
@@ -91,7 +40,6 @@ export default function Admin() {
         setMe(res);
         if (res.permissions?.includes("stats")) {
           api.getAdminStats(token).then(setStats).catch(() => {});
-          api.getAnalyticsOverview(token, 14).then(setAnalytics).catch(() => {});
         }
       } catch {
         setMe({ is_admin: false });
@@ -137,8 +85,7 @@ export default function Admin() {
 
         <Tabs defaultValue={can("stats") ? "launch" : "feedback"}>
           <TabsList className="flex-wrap h-auto">
-            {can("stats") && <TabsTrigger value="launch" className="gap-2"><Users className="w-4 h-4" />Lancement</TabsTrigger>}
-            {can("stats") && <TabsTrigger value="overview" className="gap-2"><BarChart3 className="w-4 h-4" />Vue d'ensemble</TabsTrigger>}
+            {can("stats") && <TabsTrigger value="launch" className="gap-2"><Users className="w-4 h-4" />Pilotage</TabsTrigger>}
             {can("feedback") && <TabsTrigger value="feedback" className="gap-2"><Inbox className="w-4 h-4" />Retours pilotes</TabsTrigger>}
             {can("promo") && <TabsTrigger value="promo" className="gap-2"><Ticket className="w-4 h-4" />Paddock Pass</TabsTrigger>}
             {can("roles") && <TabsTrigger value="roles" className="gap-2"><UserCog className="w-4 h-4" />Collaborateurs</TabsTrigger>}
@@ -146,136 +93,7 @@ export default function Admin() {
 
           {can("stats") && (
             <TabsContent value="launch" className="mt-6">
-              {token && <LaunchPanel token={token} />}
-            </TabsContent>
-          )}
-
-          {can("stats") && (
-            <TabsContent value="overview" className="mt-6 space-y-6">
-              {!stats ? (
-                <div className="flex justify-center p-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-              ) : (
-                <>
-                  {/* KPI phares */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <StatTile icon={Users} accent label="Pilotes inscrits" value={stats.users?.total ?? 0} />
-                    <StatTile icon={Ticket} label="Abonnés payants" value={stats.users?.paying ?? 0} hint="Racer + Team" />
-                    <StatTile icon={TrendingUp} label="Analyses ce mois" value={stats.analyses?.this_month ?? 0} hint={`${stats.analyses?.last_7_days ?? 0} sur 7 jours`} />
-                    <StatTile icon={Inbox} label="Retours à traiter" value={stats.feedback?.new ?? 0} hint={`${stats.feedback?.total ?? 0} au total`} />
-                  </div>
-
-                  {/* Graphiques */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <div className="lg:col-span-2">
-                      <ChartCard title="Fréquentation (14 derniers jours)" icon={TrendingUp}>
-                        {analytics?.timeline?.length ? (
-                          <ResponsiveContainer width="100%" height={220}>
-                            <AreaChart data={analytics.timeline}>
-                              <defs>
-                                <linearGradient id="v" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="0%" stopColor="#ef4444" stopOpacity={0.4} />
-                                  <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
-                                </linearGradient>
-                              </defs>
-                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                              <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(d) => d.slice(5)} stroke="hsl(var(--muted-foreground))" />
-                              <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
-                              <Tooltip {...chartTooltip} />
-                              <Area type="monotone" dataKey="views" name="Vues" stroke="#ef4444" strokeWidth={2} fill="url(#v)" />
-                            </AreaChart>
-                          </ResponsiveContainer>
-                        ) : (
-                          <p className="text-sm text-muted-foreground text-center py-16">
-                            Les données de navigation apparaîtront ici après quelques visites.
-                          </p>
-                        )}
-                      </ChartCard>
-                    </div>
-
-                    <ChartCard title="Répartition des pilotes" icon={Users}>
-                      {stats.users?.by_tier && Object.keys(stats.users.by_tier).length ? (
-                        <ResponsiveContainer width="100%" height={220}>
-                          <PieChart>
-                            <Pie
-                              data={Object.entries(stats.users.by_tier).map(([k, v]) => ({ name: TIER_LABELS[k] || k, value: v }))}
-                              dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={80} paddingAngle={2}
-                            >
-                              {Object.keys(stats.users.by_tier).map((_, i) => (
-                                <Cell key={i} fill={CHART[i % CHART.length]} />
-                              ))}
-                            </Pie>
-                            <Tooltip {...chartTooltip} />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      ) : (
-                        <p className="text-sm text-muted-foreground text-center py-16">Aucune donnée.</p>
-                      )}
-                    </ChartCard>
-                  </div>
-
-                  {/* Analytics de navigation */}
-                  <section className="space-y-3">
-                    <h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
-                      <MousePointerClick className="w-4 h-4" /> Parcours utilisateurs
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <StatTile label="Vues totales" value={analytics?.totals?.views ?? 0} hint="14 derniers jours" />
-                      <StatTile label="Visiteurs connectés" value={analytics?.totals?.unique_signed_in ?? 0} />
-                      <StatTile label="Vues anonymes" value={analytics?.totals?.anonymous_views ?? 0} />
-                      <StatTile
-                        label="Temps moyen / page"
-                        value={analytics?.totals?.avg_time_on_page_s != null ? `${analytics.totals.avg_time_on_page_s}s` : "—"}
-                      />
-                    </div>
-                    <ChartCard title="Pages les plus consultées" icon={Clock}>
-                      {analytics?.top_pages?.length ? (
-                        <ResponsiveContainer width="100%" height={Math.max(180, analytics.top_pages.length * 32)}>
-                          <BarChart data={analytics.top_pages.slice(0, 8)} layout="vertical" margin={{ left: 20 }}>
-                            <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
-                            <YAxis type="category" dataKey="path" width={120} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" />
-                            <Tooltip {...chartTooltip} formatter={(v: any, n: any, p: any) => [
-                              `${v} vues${p.payload.avg_seconds ? ` · ${p.payload.avg_seconds}s en moy.` : ""}`, "",
-                            ]} />
-                            <Bar dataKey="views" fill="#ef4444" radius={[0, 4, 4, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      ) : (
-                        <p className="text-sm text-muted-foreground text-center py-10">
-                          Les pages consultées apparaîtront ici bientôt.
-                        </p>
-                      )}
-                    </ChartCard>
-                  </section>
-
-                  {/* Engagement produit — compact */}
-                  <section className="space-y-3">
-                    <h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
-                      <Wrench className="w-4 h-4" /> Engagement produit
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                      <StatTile label="Garages" value={stats.engagement?.kart_profiles ?? 0} />
-                      <StatTile label="Réglages" value={stats.engagement?.setups ?? 0} />
-                      <StatTile label="Trains pneus" value={stats.engagement?.tire_sets ?? 0} />
-                      <StatTile label="Circuits" value={stats.engagement?.circuits ?? 0} />
-                      <StatTile label="Sessions" value={stats.engagement?.sessions_logged ?? 0} />
-                      <StatTile label="Analyses" value={stats.analyses?.total ?? 0} />
-                    </div>
-                  </section>
-
-                  {/* Paddock Pass — compact */}
-                  <section className="space-y-3">
-                    <h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
-                      <Ticket className="w-4 h-4" /> Paddock Pass & essais
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <StatTile label="Codes émis" value={stats.paddock_pass?.codes ?? 0} />
-                      <StatTile label="Activations" value={stats.paddock_pass?.redemptions ?? 0} />
-                      <StatTile label="Essais actifs" value={stats.paddock_pass?.active_trials ?? 0} accent />
-                      <StatTile label="Retours résolus" value={(stats.feedback?.total ?? 0) - (stats.feedback?.new ?? 0)} />
-                    </div>
-                  </section>
-                </>
-              )}
+              {token && <LaunchPanel token={token} stats={stats} />}
             </TabsContent>
           )}
 

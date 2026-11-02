@@ -60,6 +60,25 @@ interface Report {
   visits: Visit[];
   users: Pilot[];
   tracking_identified_since: string | null;
+  /** Revenus réels lus dans Stripe ; null si Stripe est injoignable. */
+  revenue?: {
+    currency: string;
+    active: number;
+    trialing: number;
+    mrr: number;
+    collected: number;
+    new: number;
+    cancellations: number;
+    by_plan: { plan: string; count: number }[];
+  } | null;
+}
+
+/** Compteurs produit et Paddock Pass (/api/admin/stats). */
+export interface AdminStats {
+  engagement?: { kart_profiles?: number; setups?: number; tire_sets?: number; circuits?: number; sessions_logged?: number };
+  analyses?: { total?: number };
+  paddock_pass?: { codes?: number; redemptions?: number; active_trials?: number };
+  feedback?: { total?: number; new?: number };
 }
 
 /* ───────────── Mise en forme ───────────── */
@@ -108,11 +127,10 @@ function dur(s: number | null | undefined): string {
 const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)} %` : "—");
 
 const PERIODS = [
-  { days: 1, label: "Aujourd'hui" },
   { days: 7, label: "7 jours" },
-  { days: 14, label: "14 jours" },
   { days: 30, label: "30 jours" },
 ];
+const euro = (v: number) => v.toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: v % 1 ? 2 : 0 });
 
 function Kpi({ label, value, prev, hint }: { label: string; value: number | string; prev?: number; hint?: string }) {
   const n = typeof value === "number" ? value : NaN;
@@ -150,7 +168,7 @@ function Section({ title, aside, children }: { title: string; aside?: React.Reac
   );
 }
 
-export function LaunchPanel({ token }: { token: string }) {
+export function LaunchPanel({ token, stats }: { token: string; stats?: AdminStats | null }) {
   const [days, setDays] = useState(7);
   const [data, setData] = useState<Report | null>(null);
   const [loading, setLoading] = useState(false);
@@ -287,6 +305,48 @@ export function LaunchPanel({ token }: { token: string }) {
           <p className="mt-4 text-xs text-muted-foreground">Pourcentage : part de l'étape précédente.</p>
         </Section>
       </div>
+
+      <Section
+        title="Revenus"
+        aside={<span className="text-xs text-muted-foreground">Stripe, {periodLabel} · MRR hors remises</span>}
+      >
+        {data.revenue ? (
+          <>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <Kpi label="Abonnés actifs" value={data.revenue.active} hint={data.revenue.trialing ? `${data.revenue.trialing} en essai Stripe` : undefined} />
+              <Kpi label="Revenu mensuel récurrent" value={euro(data.revenue.mrr)} />
+              <Kpi label={`Encaissé ${periodLabel}`} value={euro(data.revenue.collected)} />
+              <Kpi
+                label="Nouveaux abonnements"
+                value={data.revenue.new}
+                hint={`${data.revenue.cancellations} résiliation${data.revenue.cancellations > 1 ? "s" : ""}`}
+              />
+            </div>
+            {data.revenue.by_plan.length > 0 && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Par offre : {data.revenue.by_plan.map((p) => `${p.plan} ${p.count}`).join(", ")}
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">Stripe ne répond pas pour l'instant : les revenus reviendront au prochain rafraîchissement.</p>
+        )}
+      </Section>
+
+      {stats && (
+        <Section title="Produit et Paddock Pass" aside={<span className="text-xs text-muted-foreground">depuis le lancement</span>}>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
+            <Kpi label="Analyses" value={stats.analyses?.total ?? 0} />
+            <Kpi label="Garages" value={stats.engagement?.kart_profiles ?? 0} />
+            <Kpi label="Réglages" value={stats.engagement?.setups ?? 0} />
+            <Kpi label="Trains de pneus" value={stats.engagement?.tire_sets ?? 0} />
+            <Kpi label="Circuits" value={stats.engagement?.circuits ?? 0} />
+            <Kpi label="Pass émis" value={stats.paddock_pass?.codes ?? 0} />
+            <Kpi label="Pass activés" value={stats.paddock_pass?.redemptions ?? 0} />
+            <Kpi label="Retours à traiter" value={stats.feedback?.new ?? 0} hint={`${stats.feedback?.total ?? 0} au total`} />
+          </div>
+        </Section>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Section title="D'où ils viennent">
