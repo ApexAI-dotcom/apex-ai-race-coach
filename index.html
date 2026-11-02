@@ -35,6 +35,22 @@
     </style>
     <script>
       /*
+       * Google Consent Mode v2 : tout est refusé par défaut, AVANT le moindre
+       * chargement. Le bandeau de consentement met à jour ces valeurs ; aucun
+       * pixel publicitaire n'est chargé sans accord (src/lib/consent.ts).
+       */
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      gtag("consent", "default", {
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        analytics_storage: "denied",
+        wait_for_update: 500
+      });
+    </script>
+    <script>
+      /*
        * iOS agrandit toute la page dès qu'on touche un champ dont le texte fait
        * moins de 16 px, et ne la remet jamais à l'échelle : l'écran reste zoomé
        * et décalé après la saisie. `maximum-scale=1` supprime ce zoom

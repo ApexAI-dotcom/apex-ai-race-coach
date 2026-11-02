@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { openConsentPanel } from "@/lib/consent";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowRight,
@@ -443,6 +444,9 @@ export default function Index() {
               <Link to="/legal/confidentialite" className="inline-flex items-center min-h-[36px] hover:text-primary transition-colors duration-200">
                 Confidentialité
               </Link>
+              <button type="button" onClick={openConsentPanel} className="inline-flex items-center min-h-[36px] hover:text-primary transition-colors duration-200">
+                Gérer les cookies
+              </button>
             </div>
 
             <Link

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { openConsentPanel } from "@/lib/consent";
 
 export const LegalFooter = () => (
   <footer className="border-t border-white/5 bg-card/30 py-6 mt-auto">
@@ -28,6 +29,12 @@ export const LegalFooter = () => (
           <Link to="/legal/confidentialite" className="inline-flex items-center min-h-[32px] py-1 hover:text-foreground hover:underline transition-colors">
             Confidentialité
           </Link>
+          <span className="text-muted-foreground/60" aria-hidden>
+            ·
+          </span>
+          <button type="button" onClick={openConsentPanel} className="inline-flex items-center min-h-[32px] py-1 hover:text-foreground hover:underline transition-colors">
+            Cookies
+          </button>
           <span className="text-muted-foreground/60" aria-hidden>
             ·
           </span>

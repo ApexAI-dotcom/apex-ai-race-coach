@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { CONSENT_EVENT, hasMeasureConsent, trackAdPageView } from "@/lib/consent";
 
 /**
  * Suivi de navigation pour le back-office : une vue par page, le temps passé
@@ -12,7 +13,13 @@ import { useAuth } from "@/hooks/useAuth";
  * - Visite : identifiant renouvelé après 30 minutes sans activité.
  * - Provenance : site d'origine et paramètres utm_* du premier écran de la visite.
  * Non bloquant : sendBeacon au départ, fetch keepalive sinon.
+ *
+ * Consentement : sans accord « mesure », la mesure reste anonyme (aucun lien
+ * avec le compte, identifiant de navigateur renouvelé au bout de 13 mois) —
+ * mesure d'audience exemptée au sens de la CNIL. Le compte n'est rattaché
+ * qu'après accord explicite dans le bandeau cookies.
  */
+const SID_MAX_AGE_MS = 395 * 24 * 3600 * 1000; // 13 mois
 const VISIT_GAP_MS = 30 * 60 * 1000;
 
 function store(kind: "local" | "session") {
@@ -26,9 +33,12 @@ function store(kind: "local" | "session") {
 function getVisitorId(): string {
   const ls = store("local");
   let sid = ls?.getItem("apexai_sid") ?? null;
-  if (!sid) {
+  const born = Number(ls?.getItem("apexai_sid_at") || 0);
+  if (sid && !born) ls?.setItem("apexai_sid_at", String(Date.now()));
+  if (!sid || (born && Date.now() - born > SID_MAX_AGE_MS)) {
     sid = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
     ls?.setItem("apexai_sid", sid);
+    ls?.setItem("apexai_sid_at", String(Date.now()));
   }
   return sid ?? "anon";
 }
@@ -84,9 +94,18 @@ export function usePageTracking() {
   const tokenRef = useRef<string | undefined>(undefined);
   const userRef = useRef<string | undefined>(undefined);
   const current = useRef<{ path: string; start: number } | null>(null);
+  const [measure, setMeasure] = useState(hasMeasureConsent);
+  const firstView = useRef(true);
 
-  tokenRef.current = session?.access_token;
-  userRef.current = session?.user?.id;
+  useEffect(() => {
+    const on = () => setMeasure(hasMeasureConsent());
+    window.addEventListener(CONSENT_EVENT, on);
+    return () => window.removeEventListener(CONSENT_EVENT, on);
+  }, []);
+
+  // Le compte n'accompagne la mesure qu'avec l'accord du pilote.
+  tokenRef.current = measure ? session?.access_token : undefined;
+  userRef.current = measure ? session?.user?.id : undefined;
 
   useEffect(() => {
     const path = location.pathname;
@@ -148,6 +167,9 @@ export function usePageTracking() {
         : {}),
     });
     current.current = { path, start: Date.now() };
+    // Pixels publicitaires (si accord) : la première vue est envoyée au chargement du pixel.
+    if (!firstView.current) trackAdPageView();
+    firstView.current = false;
 
     // Départ du site (fermeture de l'onglet) : temps passé sur la page courante
     const onHide = () => {

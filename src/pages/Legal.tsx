@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/Layout";
+import { openConsentPanel } from "@/lib/consent";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { motion } from "framer-motion";
 
@@ -93,13 +94,30 @@ export default function Legal() {
 
           <section className="mb-8" id="cookies">
             <h2 className="text-xl font-semibold text-foreground mb-4">Cookies</h2>
-            <p className="text-muted-foreground">
-              Ce site utilise <strong className="text-foreground">Vercel Analytics</strong> pour
-              mesurer l'audience.
-              <br />
-              Vous pouvez vous opposer (opt-out) via les paramètres de votre navigateur ou en nous
-              contactant.
-            </p>
+            <div className="space-y-3 text-muted-foreground">
+              <p>
+                <strong className="text-foreground">Nécessaires</strong> (toujours actifs, sans consentement) :
+                connexion à ton compte, préférences d'affichage, sécurité et paiement via Stripe.
+              </p>
+              <p>
+                <strong className="text-foreground">Mesure d'audience</strong> : par défaut, une mesure anonyme
+                hébergée chez nous (pages vues, durée, provenance), sans lien avec ton compte, avec un identifiant de
+                navigateur renouvelé au plus tard après 13 mois. Avec ton accord, ces statistiques sont rattachées à
+                ton compte pour améliorer l'app.
+              </p>
+              <p>
+                <strong className="text-foreground">Publicité</strong> (avec ton accord uniquement) : pixels Meta
+                et Google Ads, pour savoir si nos annonces t'ont amené ici. Rien n'est chargé avant ton accord
+                (Google Consent Mode v2 réglé sur « refusé » par défaut).
+              </p>
+              <p>
+                Ton choix est conservé 6 mois. Tu peux le modifier à tout moment :{" "}
+                <button type="button" onClick={openConsentPanel} className="text-primary hover:underline">
+                  gérer les cookies
+                </button>
+                .
+              </p>
+            </div>
           </section>
 
           <section className="mb-8" id="droit">
