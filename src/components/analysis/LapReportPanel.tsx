@@ -124,8 +124,18 @@ export function LapReportPanel({ report }: { report: LapReport }) {
   );
 }
 
+type SortKey = "lap" | "time_s" | keyof LapReport["laps"][number];
+const FILTERS = [
+  { id: "all", label: "Tous", maxGap: Infinity },
+  { id: "1", label: "À moins d'1 s", maxGap: 1 },
+  { id: "05", label: "À moins de 0,5 s", maxGap: 0.5 },
+] as const;
+
 function LapsTable({ report }: { report: LapReport }) {
   const cols = COLS.filter((c) => report.columns?.[c.key as string]);
+  // Tri et filtre, comme le « Laps report » de Race Studio.
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "lap", dir: 1 });
+  const [filter, setFilter] = useState<(typeof FILTERS)[number]["id"]>("all");
   const extremes = useMemo(() => {
     const out: Record<string, number> = {};
     cols.forEach((c) => {
@@ -135,47 +145,93 @@ function LapsTable({ report }: { report: LapReport }) {
     return out;
   }, [report.laps, cols]);
 
+  const rows = useMemo(() => {
+    const maxGap = FILTERS.find((f) => f.id === filter)?.maxGap ?? Infinity;
+    const kept = report.laps.filter((l) => l.is_best || (l.gap_s ?? Infinity) <= maxGap);
+    const val = (l: LapReport["laps"][number]) => (l[sort.key as keyof typeof l] as number | null | undefined) ?? null;
+    return [...kept].sort((a, b) => {
+      const va = val(a);
+      const vb = val(b);
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1; // valeurs absentes toujours en bas
+      if (vb == null) return -1;
+      return (va - vb) * sort.dir;
+    });
+  }, [report.laps, filter, sort]);
+
+  const toggleSort = (key: SortKey) =>
+    setSort((s) => (s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: key === "lap" || key === "time_s" ? 1 : -1 }));
+  const arrow = (key: SortKey) => (sort.key === key ? (sort.dir === 1 ? " ↑" : " ↓") : "");
+  const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
+    <th className={`px-3 py-2 font-medium ${right ? "text-right" : ""}`} aria-sort={sort.key === k ? (sort.dir === 1 ? "ascending" : "descending") : "none"}>
+      <button type="button" onClick={() => toggleSort(k)} className={`hover:text-foreground ${sort.key === k ? "text-foreground" : ""}`}>
+        {children}
+        {arrow(k)}
+      </button>
+    </th>
+  );
+
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
-      <table className="w-full min-w-[560px] text-sm tabular-nums">
-        <thead>
-          <tr className="border-b border-border text-left text-xs text-muted-foreground">
-            <th className="px-3 py-2 font-medium">Tour</th>
-            <th className="px-3 py-2 font-medium">Temps</th>
-            <th className="px-3 py-2 font-medium">Écart</th>
-            {cols.map((c) => (
-              <th key={c.key as string} className="px-3 py-2 text-right font-medium">
-                {c.label}
-                <span className="block text-[10px] font-normal opacity-70">{c.unit}</span>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {report.laps.map((l) => (
-            <tr key={l.lap} className={`border-b border-border last:border-0 ${l.is_best ? "bg-primary/5" : ""}`}>
-              <td className="px-3 py-2">
-                {l.lap}
-                {l.is_best && <span className="ml-1.5 rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">Meilleur</span>}
-              </td>
-              <td className={`px-3 py-2 ${l.is_best ? "font-semibold" : ""}`}>{lapTime(l.time_s)}</td>
-              <td className="px-3 py-2 text-muted-foreground">{l.is_best ? "—" : `+${fr(l.gap_s, 3)}`}</td>
-              {cols.map((c) => {
-                const v = l[c.key] as number | null | undefined;
-                const top = v != null && extremes[c.key as string] === v;
-                return (
-                  <td key={c.key as string} className={`px-3 py-2 text-right ${top ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
-                    {fr(v, c.d)}
-                  </td>
-                );
-              })}
+    <div>
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Afficher</span>
+        {FILTERS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => setFilter(f.id)}
+            className={`rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${
+              filter === f.id ? "border-primary/50 bg-primary/15 text-foreground" : "border-white/10 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+        <span className="ml-auto text-[11px] text-muted-foreground">
+          {rows.length} tour{rows.length > 1 ? "s" : ""} sur {report.laps.length}
+        </span>
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <table className="w-full min-w-[560px] text-sm tabular-nums">
+          <thead>
+            <tr className="border-b border-border text-left text-xs text-muted-foreground">
+              <Th k="lap">Tour</Th>
+              <Th k="time_s">Temps</Th>
+              <th className="px-3 py-2 font-medium">Écart</th>
+              {cols.map((c) => (
+                <Th key={c.key as string} k={c.key} right>
+                  {c.label}
+                  <span className="block text-[10px] font-normal opacity-70">{c.unit}</span>
+                </Th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <p className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
-        En gras : le pic de la séance pour chaque colonne. Seuls les canaux présents dans le fichier sont affichés.
-      </p>
+          </thead>
+          <tbody>
+            {rows.map((l) => (
+              <tr key={l.lap} className={`border-b border-border last:border-0 ${l.is_best ? "bg-primary/5" : ""}`}>
+                <td className="px-3 py-2">
+                  {l.lap}
+                  {l.is_best && <span className="ml-1.5 rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">Meilleur</span>}
+                </td>
+                <td className={`px-3 py-2 ${l.is_best ? "font-semibold" : ""}`}>{lapTime(l.time_s)}</td>
+                <td className="px-3 py-2 text-muted-foreground">{l.is_best ? "—" : `+${fr(l.gap_s, 3)}`}</td>
+                {cols.map((c) => {
+                  const v = l[c.key] as number | null | undefined;
+                  const top = v != null && extremes[c.key as string] === v;
+                  return (
+                    <td key={c.key as string} className={`px-3 py-2 text-right ${top ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                      {fr(v, c.d)}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+          Clique un en-tête pour trier. En gras : le pic de la séance pour chaque colonne. Seuls les canaux présents dans le fichier sont affichés.
+        </p>
+      </div>
     </div>
   );
 }
