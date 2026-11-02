@@ -8,6 +8,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { TELEMETRY_ACCEPT, TELEMETRY_FORMAT_ERROR, isTelemetryFile, uploadAndAnalyzeCSV, type AnalysisResult, type ApiError } from "@/lib/api";
 import { getAllAnalyses, getAnalysisById, saveAnalysis, type AnalysisSummary } from "@/lib/storage";
 import { CompareResults, COLOR_A, COLOR_B } from "./CompareResults";
+import { AnalysisProgress, type AnalysisStep } from "@/components/upload/AnalysisProgress";
+import { BarChart3, Brain, GitCompareArrows, Upload as UploadIcon, Wifi } from "lucide-react";
+
+const COMPARE_STEPS: AnalysisStep[] = [
+  { icon: Wifi, message: "Connexion au serveur…", duration: 1500 },
+  { icon: UploadIcon, message: "Envoi des deux fichiers…", duration: 4000 },
+  { icon: Brain, message: "L'IA analyse les points de corde et les freinages…", duration: 15000 },
+  { icon: BarChart3, message: "Calcul des chronos tour par tour…", duration: 15000 },
+  { icon: GitCompareArrows, message: "Mise en face des deux tours, virage par virage…", duration: 20000 },
+];
 import { cn } from "@/lib/utils";
 
 interface Slot {
@@ -133,7 +143,10 @@ function SlotCard({
 export function CompareUploader() {
   const { user, session, isAuthenticated } = useAuth();
   const [sessions, setSessions] = useState<AnalysisSummary[]>([]);
-  const [a, setA] = useState<Slot>({ name: "Toi", file: null, sessionId: "", mine: true });
+  // Prénom du pilote plutôt que « Toi » : les phrases du résultat sont à la
+  // 3e personne (« Léo est devant »), « Toi est devant » ne voulait rien dire.
+  const myName = ((user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] || "").trim() || "Pilote 1";
+  const [a, setA] = useState<Slot>({ name: myName, file: null, sessionId: "", mine: true });
   const [b, setB] = useState<Slot>({ name: "Coéquipier", file: null, sessionId: "", mine: false });
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -198,12 +211,15 @@ export function CompareUploader() {
     setError(null);
     setResults(null);
     try {
-      setBusy(sameFile ? "Analyse du fichier…" : "Analyse des deux fichiers en parallèle…");
+      setBusy(sameFile ? "Analyse du fichier…" : "Analyse des deux séances…");
       // Les deux analyses tournent en même temps : deux fois moins d'attente.
       const [ra, rb] = sameFile
-        ? await load(a, a.name || "Toi").then((x) => [x, x] as const)
-        : await Promise.all([load(a, a.name || "Toi"), load(b, b.name || "Coéquipier")]);
-      const names: [string, string] = sameFile ? ["Tour A", "Tour B"] : [a.name || "Toi", b.name || "Coéquipier"];
+        ? await load(a, a.name || myName).then((x) => [x, x] as const)
+        : await Promise.all([load(a, a.name || myName), load(b, b.name || "Coéquipier")]);
+      const nameA = (a.name || myName).trim();
+      let nameB = (b.name || "Coéquipier").trim();
+      if (nameB.toLowerCase() === nameA.toLowerCase()) nameB = `${nameB} (2)`;
+      const names: [string, string] = sameFile ? ["Tour A", "Tour B"] : [nameA, nameB];
       setResults({ ra, rb, names });
       window.setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
     } catch (e) {
@@ -219,6 +235,22 @@ export function CompareUploader() {
 
   return (
     <div className="space-y-6">
+      {busy ? (
+        <div className="rounded-2xl border border-border bg-card">
+          <AnalysisProgress
+            steps={COMPARE_STEPS}
+            title={busy}
+            subtitle="L'IA analyse chaque tour, chaque freinage et chaque virage des deux séances. Compte une à deux minutes."
+          />
+        </div>
+      ) : results ? (
+        <div className="flex justify-center">
+          <Button variant="outline" className="h-11" onClick={() => setResults(null)}>
+            Nouvelle comparaison
+          </Button>
+        </div>
+      ) : (
+        <>
       <div className="grid gap-4 md:grid-cols-2">
         <SlotCard slot={a} onChange={setA} sessions={sessions} color={COLOR_A} title="Premier fichier" />
         <SlotCard slot={b} onChange={setB} sessions={sessions} color={COLOR_B} title="Fichier à comparer" mineLabel="C'est aussi une de mes séances (l'ajouter à mes sessions)" />
@@ -234,24 +266,13 @@ export function CompareUploader() {
             Comparer deux tours du premier fichier
           </Button>
         </div>
-        {busy ? (
-          <div className="mt-2 w-full max-w-md rounded-2xl border border-border bg-card p-5 text-center" role="status" aria-live="polite">
-            <Loader2 className="mx-auto h-7 w-7 animate-spin text-primary" />
-            <p className="mt-3 font-medium text-foreground">{busy}</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              L'IA analyse chaque tour, chaque freinage et chaque virage : compte une à deux minutes. Garde cette page ouverte.
-            </p>
-            <div className="mt-4 h-1 overflow-hidden rounded-full bg-secondary">
-              <div className="h-full w-1/3 animate-[compare-progress_1.6s_ease-in-out_infinite] rounded-full bg-signature" />
-            </div>
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            Chaque nouveau fichier compte comme une analyse. Le fichier du coéquipier n'est pas ajouté à tes sessions.
-          </p>
-        )}
+        <p className="text-xs text-muted-foreground">
+          Chaque nouveau fichier compte comme une analyse. Le fichier du coéquipier n'est pas ajouté à tes sessions.
+        </p>
         {error && <p className="text-sm text-[hsl(var(--loss))]">{error}</p>}
       </div>
+        </>
+      )}
 
       <div ref={resultsRef}>{results && <CompareResults key={`${results.names.join()}-${results.ra.analysis_id}-${results.rb.analysis_id}`} {...results} />}</div>
     </div>

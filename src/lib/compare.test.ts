@@ -53,7 +53,7 @@ describe("comparaison de deux tours", () => {
     expect(total).toBeCloseTo(b.time - a.time, 1);
     expect(cmp.corners.every((c) => c.gain > 0)).toBe(true);
     expect(cmp.corners[0].minSpeed[0]).toBeGreaterThan(cmp.corners[0].minSpeed[1]);
-    expect(summarize(cmp, ["Toi", "Lucas"])).toMatch(/^Toi est devant/);
+    expect(summarize(cmp, ["Léo", "Lucas"])).toMatch(/^Léo est devant/);
     expect(explainCorner(cmp.corners[0], ["Toi", "Lucas"]).join(" ")).toMatch(/Toi garde \d+ km\/h de plus/);
   });
 });

@@ -41,6 +41,10 @@ interface TrackMapProProps {
   profiles?: TrackMapProfile[];
   /** Aperçu fixe (accueil) : pas de zoom, de plein écran ni de détail de virage. */
   readOnly?: boolean;
+  /** Vue d'ouverture (comparaison de deux séances : « compare »). */
+  initialProfile?: TrackMapProfile;
+  /** Tour de référence affiché d'emblée en vue « compare ». */
+  initialComparisonLap?: number | null;
 }
 
 export function TrackMapPro({
@@ -58,6 +62,8 @@ export function TrackMapPro({
   focusCorner = null,
   profiles,
   readOnly = false,
+  initialProfile,
+  initialComparisonLap = null,
 }: TrackMapProProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -69,7 +75,9 @@ export function TrackMapPro({
     cornerAnalysis,
     selectedLapNumbers[0] ?? bestLapNumber,
     trackEdges,
-    idealLap
+    idealLap,
+    initialProfile,
+    initialComparisonLap
   );
 
   // Proxy the `onReferenceChange` for the UI Profiles
@@ -118,7 +126,7 @@ export function TrackMapPro({
     if (!data?.reference) return undefined;
     if (data.reference.isSynthetic) return "Modèle ApexAI — ligne calculée";
     const rLap = data.reference.lap;
-    return `Tour ${rLap.lap_number}${rLap.is_best ? " (meilleur)" : ""}`;
+    return rLap.label ?? `Tour ${rLap.lap_number}${rLap.is_best ? " (meilleur)" : ""}`;
   })();
 
   // Apply Fullscreen correctly using a strict Portal-ready structure (handled in a parent div wrapping this or strictly by CSS)
@@ -296,6 +304,7 @@ export function TrackMapPro({
           speedMax={data?.globalSpeedMax ?? 100}
           hasModel={data?.reference?.isSynthetic ?? false}
           comparisonLabel={comparisonLabel}
+          primaryLabel={data?.primary?.lap?.label}
           showSynthetic={state.showSynthetic}
           trackWidthM={racingLineMeta?.track_width_m}
           trackWidthSource={racingLineMeta?.track_width_source}

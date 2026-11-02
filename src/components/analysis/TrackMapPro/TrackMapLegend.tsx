@@ -18,6 +18,8 @@ interface TrackMapLegendProps {
   speedMax: number;
   hasModel: boolean;
   comparisonLabel?: string;
+  /** Nom du tour affiché en orange (comparaison de deux séances : le pilote). */
+  primaryLabel?: string;
   showSynthetic?: boolean;
   trackWidthM?: number;
   trackWidthSource?: string;
@@ -62,6 +64,7 @@ function TrackMapLegendBody({
   speedMax,
   hasModel,
   comparisonLabel,
+  primaryLabel,
   showSynthetic,
   trackWidthM,
   trackWidthSource,
@@ -153,7 +156,7 @@ function TrackMapLegendBody({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: APEX_ORANGE }} />
-            <span>Ton tour</span>
+            <span>{primaryLabel ?? "Ton tour"}</span>
           </div>
           {hasModel && comparisonLabel ? (
             <div className="flex items-center gap-1">

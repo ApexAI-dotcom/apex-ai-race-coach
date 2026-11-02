@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
-import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Label, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { AnalysisResult } from "@/lib/api";
+import type { TrajectoryLap } from "@/types/analysis";
 import {
   at,
   bestLap,
+  cap,
   compareLaps,
   cornerRefs,
   explainCorner,
@@ -11,15 +13,24 @@ import {
   lapTrace,
   summarize,
   type CornerComparison,
-  type LapComparison,
 } from "@/lib/compare";
-import { cn } from "@/lib/utils";
-import { PitCard, Slant } from "@/components/home/paddock/motion";
+import { TrackMapPro } from "@/components/analysis/TrackMapPro";
+import { ChartZoomFrame } from "@/components/analysis/ChartZoomFrame";
+import { useChartZoom, sliceToDomain } from "@/components/analysis/useChartZoom";
+import { downsample } from "@/components/analysis/utils";
 
-// Charte : premier pilote en rouge (la marque), second en blanc. Plus de bleu.
-export const COLOR_A = "hsl(var(--primary))";
-export const COLOR_B = "hsl(var(--foreground) / 0.85)";
-const APEX_ORANGE = "#f97316";
+/*
+ * Mêmes couleurs que la carte de l'analyse en vue « Comparaison » : le premier
+ * pilote en orange (trait plein), le second en blanc (pointillé sur la carte).
+ * La carte et les courbes se lisent donc avec la même légende.
+ */
+export const COLOR_A = "#f97316";
+export const COLOR_B = "rgba(255,255,255,0.8)";
+const CORNER_ORANGE = "#f97316";
+
+// Mêmes cadres et titres que la page d'analyse.
+const sectionClass = "glass-card p-4 md:p-6";
+const titleClass = "text-xl font-bold text-foreground";
 
 function lapLabel(t: number) {
   const m = Math.floor(t / 60);
@@ -28,14 +39,14 @@ function lapLabel(t: number) {
 }
 const sec = (x: number) => `${Math.abs(x).toFixed(2).replace(".", ",")} s`;
 
-function LapSelect({ result, value, onChange, color, name }: { result: AnalysisResult; value: number; onChange: (n: number) => void; color: string; name: string }) {
+function LapSelect({ result, value, onChange, color, title }: { result: AnalysisResult; value: number; onChange: (n: number) => void; color: string; title: string }) {
   const choices = lapChoices(result);
   const best = bestLap(result);
   return (
     <label className="flex flex-col gap-1">
       <span className="flex items-center gap-2 text-sm font-medium text-foreground">
         <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
-        {name}
+        {title}
       </span>
       <select
         value={value}
@@ -53,93 +64,55 @@ function LapSelect({ result, value, onChange, color, name }: { result: AnalysisR
   );
 }
 
-/** Les deux tracés superposés ; chaque virage porte l'écart qui s'y joue. */
-function TrackOverlay({ cmp }: { cmp: LapComparison }) {
-  const { a, b, corners } = cmp;
-  const geo = useMemo(() => {
-    const all = [...a.lat.map((la, i) => [la, a.lon[i]]), ...b.lat.map((la, i) => [la, b.lon[i]])];
-    const lat0 = all.reduce((s, p) => s + p[0], 0) / all.length;
-    const k = Math.cos((lat0 * Math.PI) / 180);
-    const xs = all.map((p) => p[1] * k);
-    const ys = all.map((p) => -p[0]);
-    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-    const span = Math.max(maxX - minX, maxY - minY) || 1;
-    const W = 100, pad = 6, inner = W - pad * 2;
-    const offX = pad + (inner - ((maxX - minX) / span) * inner) / 2;
-    const offY = pad + (inner - ((maxY - minY) / span) * inner) / 2;
-    const proj = (la: number, lo: number) => [offX + ((lo * k - minX) / span) * inner, offY + ((-la - minY) / span) * inner];
-    const path = (lat: number[], lon: number[]) => "M" + lat.map((la, i) => proj(la, lon[i]).map((v) => v.toFixed(2)).join(",")).join("L");
-    return { pa: path(a.lat, a.lon), pb: path(b.lat, b.lon), proj };
-  }, [a, b]);
-
-  return (
-    <svg viewBox="0 0 100 100" className="h-auto w-full overflow-visible" role="img" aria-label="Tracés superposés des deux tours">
-      {/* Même rendu que la carte de l'analyse : bande de piste, tracés lumineux. */}
-      <path d={geo.pa} fill="none" stroke="hsl(var(--foreground) / 0.06)" strokeWidth={14} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <path d={geo.pb} fill="none" stroke={COLOR_B} strokeWidth={2.5} strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity={0.85} />
-      <path d={geo.pa} fill="none" stroke={COLOR_A} strokeWidth={6} strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity={0.25} />
-      <path d={geo.pa} fill="none" stroke={COLOR_A} strokeWidth={2.5} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-      {corners.map((c) => {
-        const [x, y] = geo.proj(a.lat[c.apexIndex], a.lon[c.apexIndex]);
-        const strong = Math.abs(c.gain) >= 0.03;
-        return (
-          <g key={c.number}>
-            <circle cx={x} cy={y} r={3} fill="#0a0a0a" stroke={strong ? (c.gain > 0 ? COLOR_A : COLOR_B) : APEX_ORANGE} strokeWidth={0.8} />
-            <text x={x} y={y + 1} textAnchor="middle" fontSize={2.8} fill="#ffffff" fontWeight={700} fontFamily="'Space Grotesk', sans-serif">
-              {c.number}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
 function CornerTable({ corners, names }: { corners: CornerComparison[]; names: [string, string] }) {
   const pair = (x: [number | null, number | null], unit: string) =>
     x[0] == null && x[1] == null ? "—" : `${x[0] ?? "—"} / ${x[1] ?? "—"} ${unit}`;
   return (
-    <div className="-mx-5 overflow-x-auto">
+    <div className="-mx-4 overflow-x-auto md:-mx-6">
       <table className="w-full min-w-[720px] text-sm">
         <thead>
           <tr className="border-b border-border text-left text-xs text-muted-foreground">
-            <th className="px-5 pb-2 font-normal">Virage</th>
+            <th className="px-4 pb-2 font-normal md:px-6">Virage</th>
             <th className="pb-2 font-normal">Écart</th>
             <th className="pb-2 font-normal">Freinage avant la corde</th>
             <th className="pb-2 font-normal">Vitesse mini</th>
             <th className="pb-2 font-normal">Gaz après la corde</th>
-            <th className="px-5 pb-2 font-normal">Vitesse en sortie</th>
+            <th className="px-4 pb-2 font-normal md:px-6">Vitesse en sortie</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border tabular-nums">
           {corners.map((c) => (
             <tr key={c.number}>
-              <td className="px-5 py-2 font-medium text-foreground">Virage {c.number}</td>
+              <td className="px-4 py-2 font-medium text-foreground md:px-6">Virage {c.number}</td>
               <td className="py-2">
                 {Math.abs(c.gain) < 0.01 ? (
                   <span className="text-muted-foreground">égalité</span>
                 ) : (
                   <span style={{ color: c.gain > 0 ? COLOR_A : COLOR_B }}>
-                    {c.gain > 0 ? names[0] : names[1]} +{sec(c.gain)}
+                    {cap(c.gain > 0 ? names[0] : names[1])} +{sec(c.gain)}
                   </span>
                 )}
               </td>
               <td className="py-2 text-muted-foreground">{pair(c.brakeDistance, "m")}</td>
               <td className="py-2 text-muted-foreground">{pair(c.minSpeed, "km/h")}</td>
               <td className="py-2 text-muted-foreground">{pair(c.throttleDistance, "m")}</td>
-              <td className="px-5 py-2 text-muted-foreground">{pair(c.exitSpeed, "km/h")}</td>
+              <td className="px-4 py-2 text-muted-foreground md:px-6">{pair(c.exitSpeed, "km/h")}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="mt-2 px-5 text-xs text-muted-foreground">
+      <p className="mt-2 px-4 text-xs text-muted-foreground md:px-6">
         Chaque case : {names[0]} / {names[1]}. Freinage : distance entre le début du freinage et le point le plus lent du virage.
       </p>
     </div>
   );
 }
 
-export function CompareResults({ ra, rb, names }: { ra: AnalysisResult; rb: AnalysisResult; names: [string, string] }) {
+function trajectoryOf(r: AnalysisResult, lap: number): TrajectoryLap | undefined {
+  return r.plot_data?.trajectory_2d?.laps?.find((l) => l.lap_number === lap);
+}
+
+export function CompareResults({ ra, rb, names: givenNames }: { ra: AnalysisResult; rb: AnalysisResult; names: [string, string] }) {
   const sameFile = ra === rb;
   const choicesA = lapChoices(ra);
   // Même fichier : le meilleur tour face à un tour typique (le tour médian),
@@ -151,6 +124,12 @@ export function CompareResults({ ra, rb, names }: { ra: AnalysisResult; rb: Anal
   const [lapA, setLapA] = useState<number | null>(bestLap(ra));
   const [lapB, setLapB] = useState<number | null>(defaultB);
 
+  // Deux tours d'une même séance : on parle des tours, pas d'un pilote.
+  const names = useMemo<[string, string]>(
+    () => (sameFile ? [`le tour ${lapA}`, `le tour ${lapB}`] : givenNames),
+    [sameFile, lapA, lapB, givenNames]
+  );
+
   const cmp = useMemo(() => {
     if (lapA == null || lapB == null) return null;
     const a = lapTrace(ra, lapA);
@@ -159,15 +138,52 @@ export function CompareResults({ ra, rb, names }: { ra: AnalysisResult; rb: Anal
     return compareLaps(a, b, cornerRefs(ra));
   }, [ra, rb, lapA, lapB]);
 
+  const span: [number, number] = cmp ? [cmp.a.d[0] ?? 0, cmp.a.d[cmp.a.d.length - 1] ?? 1] : [0, 1];
+  // Un seul zoom pour les deux courbes : elles restent alignées virage par virage.
+  const zoom = useChartZoom(span[0], span[1]);
+
   const chart = useMemo(() => {
     if (!cmp) return [];
-    return cmp.a.d.map((d, i) => ({
-      d: Math.round(d),
+    // Fenêtre d'abord, sous-échantillonnage ensuite : zoomer sur un virage
+    // révèle du détail au lieu d'agrandir les mêmes points.
+    const [i0, i1] = sliceToDomain(cmp.a.d, zoom.domain);
+    const idx = Array.from({ length: i1 - i0 + 1 }, (_, k) => i0 + k);
+    const keep = downsample(idx, zoom.isZoomed ? 300 : 160);
+    return keep.map((i) => ({
+      d: Math.round(cmp.a.d[i] * 10) / 10,
       vA: Math.round(cmp.a.v[i]),
       vB: Math.round(at(cmp.b.v, cmp.pos[i])),
       delta: Math.round(cmp.delta[i] * 1000) / 1000,
     }));
-  }, [cmp]);
+  }, [cmp, zoom.domain, zoom.isZoomed]);
+
+  // Zones de virage comme sur les graphiques de l'analyse ; une étiquette
+  // masquée quand elle tomberait sur la précédente (téléphone).
+  const overlays = useMemo(() => {
+    if (!cmp) return [];
+    const [lo, hi] = zoom.domain;
+    const gap = (hi - lo) * 0.06;
+    let last = -Infinity;
+    return [...cmp.corners]
+      .sort((x, y) => x.apexDistance - y.apexDistance)
+      .filter((c) => c.apexDistance >= lo && c.apexDistance <= hi)
+      .map((c) => {
+        const show = c.apexDistance - last >= gap;
+        if (show) last = c.apexDistance;
+        return { id: c.number, x1: Math.max(lo, c.apexDistance - 12), x2: Math.min(hi, c.apexDistance + 12), label: show ? String(c.number) : "" };
+      });
+  }, [cmp, zoom.domain]);
+
+  const mapLaps = useMemo<TrajectoryLap[]>(() => {
+    if (lapA == null || lapB == null) return [];
+    const ta = trajectoryOf(ra, lapA);
+    const tb = trajectoryOf(rb, lapB);
+    if (!ta || !tb) return [];
+    return [
+      { ...ta, lap_number: 1, is_best: true, label: `${cap(names[0])}${sameFile ? "" : `, tour ${lapA}`}` },
+      { ...tb, lap_number: 2, is_best: false, label: `${cap(names[1])}${sameFile ? "" : `, tour ${lapB}`}` },
+    ];
+  }, [ra, rb, lapA, lapB, names, sameFile]);
 
   if (!cmp) {
     return (
@@ -178,126 +194,147 @@ export function CompareResults({ ra, rb, names }: { ra: AnalysisResult; rb: Anal
   }
 
   const gap = cmp.b.time - cmp.a.time;
-  // Numéros de virage sous les courbes, espacés pour rester lisibles au téléphone.
-  const span = (cmp.a.d[cmp.a.d.length - 1] ?? 0) - (cmp.a.d[0] ?? 0);
-  const cornerTicks = cmp.corners
-    .map((c) => c.apexDistance)
-    .sort((x, y) => x - y)
-    .reduce<number[]>((acc, d) => (acc.length && d - acc[acc.length - 1] < span * 0.06 ? acc : [...acc, d]), []);
-  const cornerLabel = (d: number) => {
-    const c = cmp.corners.find((x) => x.apexDistance === d);
-    return c ? String(c.number) : "";
-  };
   const keyCorners = [...cmp.corners].filter((c) => Math.abs(c.gain) >= 0.03).sort((x, y) => Math.abs(y.gain) - Math.abs(x.gain)).slice(0, 5);
-  const tooltipStyle = { background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 };
+  const tooltipStyle = { backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))", fontSize: 12 };
   const axisTick = { fill: "hsl(var(--muted-foreground))", fontSize: 11 };
+  const corners = (dy: number) =>
+    overlays.map((o) => (
+      <ReferenceArea key={o.id} x1={o.x1} x2={o.x2} fill={CORNER_ORANGE} fillOpacity={0.12} ifOverflow="hidden">
+        {dy === 0 && o.label && <Label value={o.label} position="insideTop" fill={CORNER_ORANGE} fontSize={11} fontWeight="bold" />}
+      </ReferenceArea>
+    ));
+  const xAxis = (
+    <XAxis
+      type="number"
+      dataKey="d"
+      domain={zoom.domain}
+      allowDataOverflow
+      stroke="hsl(var(--border))"
+      tick={axisTick}
+      tickFormatter={(v: number) => `${Math.round(v)}m`}
+    />
+  );
+  const ahead = cap(names[0]);
 
   return (
-    <div className="space-y-6">
-      <PitCard as="section" className="p-5 pt-6">
+    <div className="space-y-6 md:space-y-8">
+      <section className={sectionClass}>
         <div className="grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
-          {lapA != null && <LapSelect result={ra} value={lapA} onChange={setLapA} color={COLOR_A} name={names[0]} />}
+          {lapA != null && <LapSelect result={ra} value={lapA} onChange={setLapA} color={COLOR_A} title={sameFile ? "Premier tour" : givenNames[0]} />}
           <div className="text-center">
-            <Slant accent="red" solid>
-              Écart
-            </Slant>
-            <div className="mt-2 font-display text-4xl font-bold tabular-nums text-gradient-primary">{sec(gap)}</div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Écart</div>
+            <div className="mt-1 font-display text-4xl font-bold tabular-nums text-gradient-primary">{sec(gap)}</div>
+            <div className="text-xs text-muted-foreground tabular-nums">
               {lapLabel(cmp.a.time)} contre {lapLabel(cmp.b.time)}
             </div>
           </div>
-          {lapB != null && <LapSelect result={rb} value={lapB} onChange={setLapB} color={COLOR_B} name={names[1]} />}
+          {lapB != null && <LapSelect result={rb} value={lapB} onChange={setLapB} color={COLOR_B} title={sameFile ? "Second tour" : givenNames[1]} />}
         </div>
         <p className="mt-4 text-foreground">{summarize(cmp, names)}</p>
-      </PitCard>
+      </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <PitCard as="section" accent="red" className="space-y-5 p-5 pt-6">
-          <div>
-            <h3 className="font-display text-base font-semibold text-foreground">Écart cumulé</h3>
-            <p className="text-xs text-muted-foreground">Au-dessus de zéro, {names[0]} est devant. La pente montre où le temps se gagne.</p>
-            <div className="mt-2 h-48">
+      {mapLaps.length === 2 && (
+        <section className={sectionClass}>
+          <h2 className={`${titleClass} mb-1`}>Carte du Circuit</h2>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Les deux trajectoires superposées : {cap(names[0])} en orange, {names[1]} en pointillé blanc. Zoome sur un virage pour voir qui passe où.
+          </p>
+          <TrackMapPro
+            key={`${lapA}-${lapB}`}
+            corners={ra.plot_data?.trajectory_2d?.corners ?? []}
+            laps={mapLaps}
+            bestLapNumber={1}
+            selectedLapNumbers={[1]}
+            trackEdges={ra.plot_data?.track_edges ?? null}
+            profiles={["compare", "speed", "braking"]}
+            initialProfile="compare"
+            initialComparisonLap={2}
+          />
+        </section>
+      )}
+
+      <section className={sectionClass}>
+        <h2 className={`${titleClass} mb-1`}>Écart et vitesse</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          En haut, l'écart cumulé : au-dessus de zéro, {ahead} est devant, et la pente montre où le temps se gagne. En bas, les vitesses superposées. Les zones orange sont les virages.
+        </p>
+        <div className="mb-2 flex flex-wrap gap-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5"><span className="h-0.5 w-4" style={{ background: COLOR_A }} />{cap(names[0])}</span>
+          <span className="flex items-center gap-1.5"><span className="h-0.5 w-4" style={{ background: COLOR_B }} />{cap(names[1])}</span>
+        </div>
+        <ChartZoomFrame zoom={zoom} heightClass="h-[440px] sm:h-[480px]">
+          <div className="flex h-full flex-col">
+            <div className="h-[42%]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chart} syncId="cmp" margin={{ top: 6, right: 8, bottom: 0, left: -8 }}>
-                  <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
-                  <XAxis dataKey="d" type="number" domain={["dataMin", "dataMax"]} ticks={cornerTicks} tickFormatter={cornerLabel} interval={0} tick={axisTick} tickLine={false} axisLine={false} />
-                  <YAxis tick={axisTick} tickLine={false} axisLine={false} tickFormatter={(v: number) => v.toFixed(1).replace(".", ",")} width={44} />
+                <LineChart data={chart} syncId="cmp" margin={{ top: 18, right: 8, bottom: 0, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  {corners(0)}
+                  {xAxis}
+                  <YAxis stroke="hsl(var(--border))" tick={axisTick} tickFormatter={(v: number) => `${v.toFixed(1).replace(".", ",")}s`} width={44} />
                   <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" />
-                  {cmp.corners.map((c) => (
-                    <ReferenceLine key={c.number} x={c.apexDistance} stroke="hsl(var(--border))" />
-                  ))}
-                  <Tooltip contentStyle={tooltipStyle} labelFormatter={(d: number) => `${d} m`} formatter={(v: number) => [`${v > 0 ? names[0] : names[1]} devant de ${sec(v)}`, ""]} />
-                  <Line dataKey="delta" stroke={COLOR_A} strokeWidth={2.5} dot={false} isAnimationActive={false} />
+                  <Tooltip
+                    isAnimationActive={false}
+                    contentStyle={tooltipStyle}
+                    labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                    labelFormatter={(d: number) => `Position : ${Math.round(d)} m`}
+                    formatter={(v: number) => [Math.abs(v) < 0.005 ? "à égalité" : `${cap(v > 0 ? names[0] : names[1])} devant de ${sec(v)}`, ""]}
+                  />
+                  <Line dataKey="delta" stroke={COLOR_A} strokeWidth={2} dot={false} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </div>
-          <div>
-            <h3 className="font-display text-base font-semibold text-foreground">Vitesse</h3>
-            <div className="mt-2 h-56">
+            <div className="h-[58%]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chart} syncId="cmp" margin={{ top: 6, right: 8, bottom: 0, left: -8 }}>
-                  <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
-                  <XAxis dataKey="d" type="number" domain={["dataMin", "dataMax"]} ticks={cornerTicks} tickFormatter={cornerLabel} interval={0} tick={axisTick} tickLine={false} axisLine={false} />
-                  <YAxis tick={axisTick} tickLine={false} axisLine={false} width={44} domain={["dataMin - 5", "dataMax + 5"]} />
-                  {cmp.corners.map((c) => (
-                    <ReferenceLine key={c.number} x={c.apexDistance} stroke="hsl(var(--border))" />
-                  ))}
+                <LineChart data={chart} syncId="cmp" margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  {corners(1)}
+                  {xAxis}
+                  <YAxis stroke="hsl(var(--border))" tick={axisTick} width={44} domain={["dataMin - 5", "dataMax + 5"]} tickFormatter={(v: number) => `${Math.round(v)}`} />
                   <Tooltip
+                    isAnimationActive={false}
                     contentStyle={tooltipStyle}
-                    labelFormatter={(d: number) => `${d} m`}
-                    formatter={(v: number, key: string) => [`${v} km/h`, key === "vA" ? names[0] : names[1]]}
+                    labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                    labelFormatter={(d: number) => `Position : ${Math.round(d)} m`}
+                    formatter={(v: number, key: string) => [`${v} km/h`, cap(key === "vA" ? names[0] : names[1])]}
                   />
                   <Line dataKey="vA" stroke={COLOR_A} strokeWidth={2} dot={false} isAnimationActive={false} />
-                  <Line dataKey="vB" stroke={COLOR_B} strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line dataKey="vB" stroke={COLOR_B} strokeWidth={1.5} dot={false} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
-        </PitCard>
-
-        <PitCard as="section" className="p-5 pt-6">
-          <h3 className="font-display text-base font-semibold text-foreground">Les deux trajectoires</h3>
-          <p className="text-xs text-muted-foreground">Numéro cerclé de la couleur du pilote qui gagne du temps dans le virage.</p>
-          <div className="mx-auto mt-3 max-w-[420px]">
-            <TrackOverlay cmp={cmp} />
-          </div>
-          <div className="mt-3 flex justify-center gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5"><span className="h-0.5 w-4" style={{ background: COLOR_A }} />{names[0]}</span>
-            <span className="flex items-center gap-1.5"><span className="h-0.5 w-4" style={{ background: COLOR_B }} />{names[1]}</span>
-          </div>
-        </PitCard>
-      </div>
+        </ChartZoomFrame>
+      </section>
 
       {keyCorners.length > 0 && (
-        <PitCard as="section" className="p-5 pt-6">
-          <h3 className="font-display text-lg font-semibold text-foreground">Où se fait la différence</h3>
-          <ul className="mt-3 space-y-4">
+        <section className={sectionClass}>
+          <h2 className={`${titleClass} mb-4`}>Où se fait la différence</h2>
+          <ul className="space-y-3">
             {keyCorners.map((c) => {
               const reasons = explainCorner(c, names);
-              const who = c.gain > 0 ? names[0] : names[1];
+              const who = cap(c.gain > 0 ? names[0] : names[1]);
               return (
-                <li key={c.number} className="grid gap-1 rounded-xl border border-border bg-secondary/40 p-3.5 sm:grid-cols-[150px_minmax(0,1fr)] sm:p-4">
+                <li key={c.number} className="grid gap-1 rounded-lg border border-white/5 bg-secondary/50 p-3.5 sm:grid-cols-[150px_minmax(0,1fr)] sm:p-4">
                   <div>
                     <div className="font-display font-semibold text-foreground">Virage {c.number}</div>
-                    <div className={cn("text-sm tabular-nums")} style={{ color: c.gain > 0 ? COLOR_A : COLOR_B }}>
+                    <div className="text-sm tabular-nums" style={{ color: c.gain > 0 ? COLOR_A : COLOR_B }}>
                       {who} +{sec(c.gain)}
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {reasons.length ? reasons.map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(". ") + "." : "L'écart vient de la vitesse sur tout le virage, sans point net à isoler."}
+                    {reasons.length ? reasons.map(cap).join(". ") + "." : "L'écart vient de la vitesse sur tout le virage, sans point net à isoler."}
                   </p>
                 </li>
               );
             })}
           </ul>
-        </PitCard>
+        </section>
       )}
 
-      <PitCard as="section" className="p-5 pt-6">
-        <h3 className="mb-3 font-display text-lg font-semibold text-foreground">Virage par virage</h3>
+      <section className={sectionClass}>
+        <h2 className={`${titleClass} mb-4`}>Virage par virage</h2>
         <CornerTable corners={cmp.corners} names={names} />
-      </PitCard>
+      </section>
     </div>
   );
 }

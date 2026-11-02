@@ -48,12 +48,14 @@ export function useTrackMap(
   cornerAnalysis: unknown[],
   initialSelectedLapNumber: number,
   trackEdges?: TrackEdges | null,
-  idealLap?: IdealLap | null
+  idealLap?: IdealLap | null,
+  initialProfile: TrackMapProfile = "speed",
+  initialComparisonLap: number | null = null
 ) {
   // --- UI State ---
-  const [profile, setProfile] = useState<TrackMapProfile>("speed");
+  const [profile, setProfile] = useState<TrackMapProfile>(initialProfile);
   const [selectedLap, setSelectedLap] = useState<number>(initialSelectedLapNumber);
-  const [comparisonLap, setComparisonLap] = useState<number | null>(null);
+  const [comparisonLap, setComparisonLap] = useState<number | null>(initialComparisonLap);
   // Le Tour Parfait IA est la fonctionnalité phare de la carte : on l'affiche
   // d'emblée plutôt que de le cacher derrière un bouton que peu de pilotes
   // pensent à activer.

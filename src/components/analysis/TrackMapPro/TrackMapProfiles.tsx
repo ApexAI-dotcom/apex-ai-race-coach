@@ -103,8 +103,8 @@ export function TrackMapProfiles({
             >
               {realLaps.map((l) => (
                 <option key={l.lap_number} value={l.lap_number ?? 1}>
-                  T{l.lap_number}
-                  {l.lap_number === bestLapNumber ? " ★" : ""}
+                  {l.label ?? `T${l.lap_number}`}
+                  {!l.label && l.lap_number === bestLapNumber ? " ★" : ""}
                 </option>
               ))}
             </select>
@@ -134,8 +134,8 @@ export function TrackMapProfiles({
                 .filter((l) => l.lap_number !== selectedLapNumber)
                 .map((l) => (
                   <option key={l.lap_number} value={l.lap_number ?? 1}>
-                    T{l.lap_number}
-                    {l.lap_number === bestLapNumber ? " ★ Meilleur" : ""}
+                    {l.label ?? `T${l.lap_number}`}
+                    {!l.label && l.lap_number === bestLapNumber ? " ★ Meilleur" : ""}
                   </option>
                 ))}
             </select>

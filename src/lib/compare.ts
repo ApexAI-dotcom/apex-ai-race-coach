@@ -333,6 +333,8 @@ export function compareLaps(a: LapTrace, b: LapTrace, corners: CornerRef[]): Lap
 /* ───────────── Lecture en clair ───────────── */
 
 const sec = (x: number) => `${Math.abs(x).toFixed(2).replace(".", ",")} s`;
+/** Majuscule en tête de phrase (« le tour 5 » → « Le tour 5 »). */
+export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /**
  * Ce qui explique l'écart dans un virage, en phrases courtes, du point de vue
@@ -385,7 +387,7 @@ export function explainCorner(c: CornerComparison, names: [string, string]): str
 
 export function summarize(cmp: LapComparison, names: [string, string]): string {
   const gap = cmp.b.time - cmp.a.time;
-  if (Math.abs(gap) < 0.0005) return `${names[0]} et ${names[1]} signent le même temps.`;
+  if (Math.abs(gap) < 0.0005) return cap(`${names[0]} et ${names[1]} signent le même temps.`);
   const [fast, slow] = gap > 0 ? names : [names[1], names[0]];
   const key = [...cmp.corners]
     .filter((c) => (gap > 0 ? c.gain > 0.02 : c.gain < -0.02))
@@ -393,5 +395,5 @@ export function summarize(cmp: LapComparison, names: [string, string]): string {
     .slice(0, 3)
     .map((c) => c.number);
   const where = key.length ? ` L'écart se fait surtout ${key.length > 1 ? "aux virages" : "au virage"} ${key.join(", ").replace(/, (\d+)$/, " et $1")}.` : "";
-  return `${fast} est devant de ${sec(gap)} sur ce tour, ${slow} derrière.${where}`;
+  return cap(`${fast} est devant de ${sec(gap)}, ${slow} derrière.${where}`);
 }
