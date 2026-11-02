@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import type {
   TrajectoryCorner,
@@ -12,6 +12,13 @@ import type {
 import { useTrackMap } from "./useTrackMapData";
 import { TrackMapProfiles } from "./TrackMapProfiles";
 import { TrackMapCanvas } from "./TrackMapCanvas";
+import {
+  cumulativeFractions,
+  getAnalysisCursor,
+  indexAtFraction,
+  setAnalysisCursor,
+  useAnalysisCursor,
+} from "../analysisCursor";
 import { TrackMapLegend } from "./TrackMapLegend";
 import { TrackMapTooltip } from "./TrackMapTooltip";
 import { TrackMapCornerPanel } from "./TrackMapCornerPanel";
@@ -47,6 +54,13 @@ interface TrackMapProProps {
   initialComparisonLap?: number | null;
 }
 
+type MapChannel = "speed" | "rpm" | "lateral_g";
+const CHANNELS: { id: MapChannel; label: string; unit: string }[] = [
+  { id: "speed", label: "Vitesse", unit: "km/h" },
+  { id: "rpm", label: "Régime", unit: "tr/min" },
+  { id: "lateral_g", label: "G latéral", unit: "g" },
+];
+
 export function TrackMapPro({
   corners,
   laps = [],
@@ -67,10 +81,31 @@ export function TrackMapPro({
 }: TrackMapProProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  /*
+   * Vue Vitesse : la trace peut aussi être colorée par le régime ou par
+   * l'accélération latérale, comme la carte de Race Studio. On remplace
+   * simplement la série qui sert à colorer ; le reste (phases, virages,
+   * infobulle, qui relit le tour d'origine) ne change pas.
+   */
+  const [channel, setChannel] = useState<MapChannel>("speed");
+  const channels = useMemo(() => {
+    const has = (k: "rpm" | "lateral_g") => laps.some((l) => !l.is_synthetic && (l[k]?.some((v) => Number.isFinite(v) && v !== 0) ?? false));
+    return CHANNELS.filter((c) => c.id === "speed" || has(c.id));
+  }, [laps]);
+  const colorLaps = useMemo(() => {
+    if (channel === "speed") return laps;
+    return laps.map((l) => {
+      const src = l[channel];
+      if (!src?.length) return l;
+      // G latéral en centièmes : l'échelle de couleur écarte les valeurs sous 10.
+      return { ...l, speed_kmh: channel === "lateral_g" ? src.map((v) => Math.abs(v) * 100) : src };
+    });
+  }, [laps, channel]);
+
   // Use the new custom hook acting as a controller
   const { state, handlers, data } = useTrackMap(
     corners,
-    laps,
+    colorLaps,
     margins,
     cornerAnalysis,
     selectedLapNumbers[0] ?? bestLapNumber,
@@ -83,6 +118,7 @@ export function TrackMapPro({
   // Proxy the `onReferenceChange` for the UI Profiles
   const onProfileChange = (p: any) => {
     handlers.handleProfileChange(p, onReferenceChange);
+    if (p !== "speed") setChannel("speed");
     // Le parent en a besoin pour n'afficher le détail des freinages que sur la
     // vue concernée : ce panneau est long, il encombrerait les autres vues.
     onProfileSelect?.(p);
@@ -92,11 +128,34 @@ export function TrackMapPro({
     if (onReferenceChange) onReferenceChange(lap, lap === -1);
   };
 
+  // ── Curseur commun avec les graphiques ──
+  const cursor = useAnalysisCursor();
+  const primaryPoints = data?.primary?.points;
+  const fracs = useMemo(() => (primaryPoints ? cumulativeFractions(primaryPoints) : []), [primaryPoints]);
+  const chartIndex =
+    cursor?.source === "chart" && fracs.length > 1 && state.profile !== "sectors" ? indexAtFraction(fracs, cursor.frac) : null;
+  const handleMapHover = (index: number | null, clientX: number, clientY: number) => {
+    handlers.handlePointHover(index, clientX, clientY);
+    if (index !== null && fracs.length > 1) setAnalysisCursor({ frac: fracs[Math.min(index, fracs.length - 1)], source: "map" });
+    else if (getAnalysisCursor()?.source === "map") setAnalysisCursor(null);
+  };
+  // Valeurs lues au curseur venu des graphiques : vitesse, régime, eau.
+  const readout = (() => {
+    if (chartIndex === null || !data?.primary) return null;
+    const lap = laps.find((l) => l.lap_number === data.primary!.lap.lap_number && !l.is_synthetic) ?? data.primary.lap;
+    const v = (arr?: (number | null)[]) => {
+      const x = arr?.[chartIndex];
+      return typeof x === "number" && Number.isFinite(x) ? x : null;
+    };
+    return { speed: v(lap.speed_kmh), rpm: v(lap.rpm), water: v(lap.water_temp) };
+  })();
+
   // ── Tooltip data ──
   const tooltipData = (() => {
     if (!state.hoveredPoint || !data || !data.primary) return null;
     const { index } = state.hoveredPoint;
-    const lap = data.primary.lap;
+    // Tour d'origine : la série de couleur a pu remplacer la vitesse.
+    const lap = laps.find((l) => l.lap_number === data.primary!.lap.lap_number && !l.is_synthetic) ?? data.primary.lap;
     return {
       speed: lap.speed_kmh?.[index],
       throttle: lap.throttle_pct?.[index],
@@ -216,6 +275,27 @@ export function TrackMapPro({
           sectorsAvailable={!!data?.sectorSegments?.length}
           only={profiles}
         />
+        {state.profile === "speed" && channels.length > 1 && (
+          <div className="mt-2 flex items-center gap-1.5 px-1" role="radiogroup" aria-label="Colorer la trace par">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Couleur</span>
+            {channels.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                role="radio"
+                aria-checked={channel === c.id}
+                onClick={() => setChannel(c.id)}
+                className={`rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${
+                  channel === c.id
+                    ? "border-primary/50 bg-primary/15 text-foreground"
+                    : "border-white/10 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div
@@ -258,9 +338,9 @@ export function TrackMapPro({
             showSynthetic={state.showSynthetic}
             corners={data.corners}
             profile={state.profile}
-            hoveredIndex={state.hoveredPoint?.index ?? null}
+            hoveredIndex={state.hoveredPoint?.index ?? chartIndex}
             hoveredCornerId={state.hoveredCornerId}
-            onPointHover={handlers.handlePointHover}
+            onPointHover={handleMapHover}
             onCornerClick={readOnly ? noop : handlers.handleCornerClick}
             onCornerHover={state.setHoveredCornerId}
             isFullscreen={state.isFullscreen}
@@ -270,6 +350,14 @@ export function TrackMapPro({
             brakingZones={data.brakingZones}
             readOnly={readOnly}
           />
+        )}
+
+        {readout && !state.hoveredPoint && (
+          <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex gap-3 rounded-lg border border-white/10 bg-black/70 px-2.5 py-1.5 text-[11px] tabular-nums text-foreground backdrop-blur">
+            {readout.speed !== null && <span>{Math.round(readout.speed)} km/h</span>}
+            {readout.rpm !== null && <span>{Math.round(readout.rpm).toLocaleString("fr-FR")} tr/min</span>}
+            {readout.water !== null && <span>Eau {readout.water.toFixed(1).replace(".", ",")} °C</span>}
+          </div>
         )}
 
         <TrackMapTooltip
@@ -300,8 +388,10 @@ export function TrackMapPro({
       <div className="px-3 pb-2 shrink-0">
         <TrackMapLegend
           profile={state.profile}
-          speedMin={data?.globalSpeedMin ?? 0}
-          speedMax={data?.globalSpeedMax ?? 100}
+          unit={state.profile === "speed" ? CHANNELS.find((c) => c.id === channel)?.unit : undefined}
+          decimals={state.profile === "speed" && channel === "lateral_g" ? 1 : 0}
+          speedMin={(data?.globalSpeedMin ?? 0) / (state.profile === "speed" && channel === "lateral_g" ? 100 : 1)}
+          speedMax={(data?.globalSpeedMax ?? 100) / (state.profile === "speed" && channel === "lateral_g" ? 100 : 1)}
           hasModel={data?.reference?.isSynthetic ?? false}
           comparisonLabel={comparisonLabel}
           primaryLabel={data?.primary?.lap?.label}

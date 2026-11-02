@@ -717,14 +717,7 @@ function TrackMapCanvasComponent({
                   stroke="#ffffff"
                   strokeWidth={2}
                   className="pointer-events-none"
-                >
-                  <animate
-                    attributeName="r"
-                    values="5;7;5"
-                    dur="1.5s"
-                    repeatCount="indefinite"
-                  />
-                </circle>
+                />
               )}
 
               {/* Repères de freinage réels */}

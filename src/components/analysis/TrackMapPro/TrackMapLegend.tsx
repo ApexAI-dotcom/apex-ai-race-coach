@@ -16,6 +16,9 @@ interface TrackMapLegendProps {
   profile: TrackMapProfile;
   speedMin: number;
   speedMax: number;
+  /** Unité de l'échelle de couleur (vue Vitesse colorée par un autre canal). */
+  unit?: string;
+  decimals?: number;
   hasModel: boolean;
   comparisonLabel?: string;
   /** Nom du tour affiché en orange (comparaison de deux séances : le pilote). */
@@ -62,6 +65,8 @@ function TrackMapLegendBody({
   profile,
   speedMin,
   speedMax,
+  unit = "km/h",
+  decimals = 0,
   hasModel,
   comparisonLabel,
   primaryLabel,
@@ -76,14 +81,14 @@ function TrackMapLegendBody({
       {/* Speed legend */}
       {(profile === "speed" || profile === "complete") && (
         <div className="flex items-center gap-2">
-          <span>{Math.round(speedMin)} km/h</span>
+          <span className="tabular-nums">{speedMin.toFixed(decimals).replace(".", ",")} {unit}</span>
           <div
             className="h-2 w-20 rounded-full"
             style={{
               background: `linear-gradient(to right, ${APEX_RED}, ${TRACK_YELLOW}, ${TRACK_GREEN})`,
             }}
           />
-          <span>{Math.round(speedMax)} km/h</span>
+          <span className="tabular-nums">{speedMax.toFixed(decimals).replace(".", ",")} {unit}</span>
         </div>
       )}
 

@@ -10,7 +10,9 @@ import {
   ReferenceArea,
   Legend,
   Label,
+  ReferenceLine,
 } from "recharts";
+import { getAnalysisCursor, setAnalysisCursor, useAnalysisCursor } from "./analysisCursor";
 import type { SpeedTraceData } from "@/types/analysis";
 import { downsample } from "./utils";
 import { useChartZoom, sliceToDomain } from "./useChartZoom";
@@ -91,6 +93,10 @@ function SpeedTraceChartComponent({
   }, [data.laps, selectedLaps]);
 
   const zoom = useChartZoom(bounds.min, bounds.max);
+  // Curseur commun avec la carte : survol ici -> point sur la carte, et inversement.
+  const cursor = useAnalysisCursor();
+  const span = Math.max(1e-6, bounds.max - bounds.min);
+  const cursorX = cursor?.source === "map" ? bounds.min + cursor.frac * span : null;
 
   // 100 points sur tout le tour, 220 dès qu'on zoome : la fenêtre est plus
   // courte, on peut donc y mettre plus de détail sans alourdir le rendu.
@@ -116,7 +122,18 @@ function SpeedTraceChartComponent({
       <div className="w-full" aria-label="Speed trace by distance">
         <ChartZoomFrame zoom={zoom}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
+            <LineChart
+              data={series}
+              margin={{ top: 20, right: 8, left: 0, bottom: 0 }}
+              onMouseMove={(st: { activeLabel?: string | number }) => {
+                if (st?.activeLabel == null) return;
+                setAnalysisCursor({ frac: (Number(st.activeLabel) - bounds.min) / span, source: "chart" });
+              }}
+              onMouseLeave={() => {
+                if (getAnalysisCursor()?.source === "chart") setAnalysisCursor(null);
+              }}
+            >
+              {cursorX !== null && <ReferenceLine x={cursorX} stroke="#ffffff" strokeOpacity={0.6} strokeDasharray="3 3" ifOverflow="hidden" />}
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               {cornerOverlays.map((corner) => {
                 return (

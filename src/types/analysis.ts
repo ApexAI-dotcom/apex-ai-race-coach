@@ -112,6 +112,8 @@ export interface TrajectoryLap {
   distance_m?: number[];
   rpm?: number[];
   lateral_g?: number[];
+  /** Température d'eau (°C), quand le boîtier la mesure. */
+  water_temp?: number[];
   /** Phase de pilotage par point, calculée côté serveur en unités physiques. */
   phase?: ("braking" | "acceleration" | "coasting")[];
   /** Zones de freinage de CE tour, prêtes à tracer. */
