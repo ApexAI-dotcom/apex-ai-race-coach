@@ -288,6 +288,32 @@ export interface CoachingAdvice {
   corner?: number;
   impact_seconds: number;
   difficulty: string;
+  /** Principe de la base de pilotage qui a produit le conseil. */
+  principle?: string;
+  family?: string;
+  /** Constat chiffré, consigne du jour et repère de vérification. */
+  fact?: string;
+  action?: string;
+  check?: string;
+  /** Niveau qui débloque le conseil (« rookie » = compte gratuit, « racer »). */
+  tier_required?: "visitor" | "rookie" | "racer";
+  /** Aperçu d'un conseil d'un niveau supérieur : constat sans la consigne. */
+  locked?: boolean;
+  teaser?: string;
+  /** Plan de séance (Racer) : un objectif par relais. */
+  steps?: string[];
+}
+
+/** Niveau d'analyse du coaching et données réellement utilisées. */
+export interface CoachingMeta {
+  engine?: string;
+  tier?: "visitor" | "rookie" | "racer";
+  tier_label?: string;
+  quota?: number;
+  shown?: number;
+  locked?: number;
+  uses?: { circuit?: boolean; engine_curve?: boolean; water?: boolean; kart?: boolean; setup?: boolean };
+  found?: string[];
 }
 
 export interface AnalysisResponse {
@@ -301,6 +327,7 @@ export interface AnalysisResponse {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   corner_analysis: Record<string, any>[];
   coaching_advice: CoachingAdvice[];
+  coaching?: CoachingMeta | null;
   plots: Record<string, string>;
   plot_data?: PlotData;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

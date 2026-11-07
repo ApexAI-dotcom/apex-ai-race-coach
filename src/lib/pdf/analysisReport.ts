@@ -127,7 +127,8 @@ export function exportAnalysisReportPDF(analysis: any, opts?: { charts?: PdfChar
   const tf = analysis.track_features || {};
   const diag = analysis.import_diagnostics || {};
   const corners: any[] = analysis.corner_analysis || [];
-  const advice: any[] = analysis.coaching_advice || [];
+  // Les aperçus verrouillés (niveau supérieur) n'ont pas leur place dans le PDF.
+  const advice: any[] = (analysis.coaching_advice || []).filter((a: any) => !a?.locked);
 
   const circuitName = sc.circuit_name || "Circuit non identifié";
   const dateStr = analysis.timestamp
@@ -317,7 +318,7 @@ export function exportAnalysisReportPDF(analysis: any, opts?: { charts?: PdfChar
   if (advice.length) {
     y = addApexPage(doc, header);
     y = sectionTitle(doc, y, "Plan de Travail — Conseils Priorisés");
-    advice.slice(0, 6).forEach((a, i) => {
+    advice.slice(0, 9).forEach((a, i) => {
       const gain = Number(a.impact_seconds) || 0;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9.5);

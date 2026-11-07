@@ -335,6 +335,7 @@ export function AnalysisDashboardContent({
             return (
               <CoachingAdvice
                 advice={analysis.coaching_advice}
+                meta={analysis.coaching}
                 fastestLapNumber={bestLapNumber}
                 isLocked={isLocked}
                 hideCta={currentHideCta}

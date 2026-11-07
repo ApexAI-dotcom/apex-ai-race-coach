@@ -14,11 +14,11 @@ interface PricingTeaserProps {
   isAuthenticated?: boolean;
 }
 
-const ROOKIE = ["3 analyses par mois", "Score global /100", "2 conseils de coaching", "1 circuit mémorisé", "Comparaison de sessions"];
+const ROOKIE = ["3 analyses par mois", "Score global /100", "5 conseils de coaching par séance", "1 circuit mémorisé", "Comparaison de sessions"];
 const RACER = [
   "Analyses illimitées",
   "Tous les graphiques IA et score par virage",
-  "4 conseils personnalisés",
+  "6 conseils reliés à ton kart, plan de séance",
   "Mon Kart et suivi d'entretien",
   "Recommandations de réglages IA",
 ];

@@ -52,7 +52,7 @@ const deliverables = [
     icon: MessageSquare,
     title: "Conseils de coaching",
     description:
-      "Hiérarchisés par gain réel, adaptés aux conditions de piste et au potentiel de ton kart, avec le tour de référence cité.",
+      "Chiffrés et applicables dès le prochain relais : freinage, corde, sortie, moteur, pneus. 3 sans compte, 5 avec un compte gratuit, 6 en Racer, reliés à ton kart et à tes réglages, avec un plan de séance.",
   },
 ];
 

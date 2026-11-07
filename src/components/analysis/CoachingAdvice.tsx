@@ -1,15 +1,17 @@
 import React from "react";
-import { Zap, Lock, MapPin } from "lucide-react";
+import { Zap, Lock, MapPin, ListChecks } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import type { CoachingAdvice as CoachingAdviceType } from "@/types/analysis";
+import type { CoachingAdvice as CoachingAdviceType, CoachingMeta } from "@/types/analysis";
 
 interface CoachingAdviceProps {
   advice: CoachingAdviceType[];
   fastestLapNumber?: number;
   isLocked?: boolean;
   hideCta?: boolean;
+  /** Niveau d'analyse et données utilisées (renvoyé par l'analyse). */
+  meta?: CoachingMeta | null;
   /** Ouvre le virage concerné sur la carte du circuit. */
   onFocusCorner?: (cornerId: number) => void;
 }
@@ -20,16 +22,76 @@ const CATEGORY_LABEL: Record<string, string> = {
   speed: "Vitesse",
   braking: "Freinage",
   exit: "Sortie et relance",
+  line: "Trajectoire",
   consistency: "Régularité",
+  engine: "Moteur",
   tire: "Pneus",
+  setup: "Réglage",
+  style: "Style de pilotage",
+  plan: "Plan de séance",
   info: "Contexte",
 };
+
+const TIER_LINE: Record<string, string> = {
+  visitor: "Analyse de base, tirée de ta séance.",
+  rookie: "Analyse reliée au circuit, au moteur et aux pneus.",
+  racer: "Analyse Racer : reliée à ton kart, à ton réglage et au circuit.",
+};
+
+function LockedCard({ item, onCta }: { item: CoachingAdviceType; onCta: (tier: string) => void }) {
+  const tier = item.tier_required === "rookie" ? "rookie" : "racer";
+  const headline = item.message.includes(" — ") ? item.message.split(" — ").slice(1).join(" — ") : item.message;
+  return (
+    <div className="relative min-h-[168px] overflow-hidden rounded-xl border border-primary/25 bg-secondary/30 p-3.5 sm:p-4">
+      <div aria-hidden="true" className="select-none blur-[5px] opacity-60">
+        <div className="flex items-center gap-2">
+          {item.corner ? <span className="text-sm font-semibold">Virage {item.corner}</span> : null}
+          <span className="text-xs text-muted-foreground">{CATEGORY_LABEL[item.category] ?? item.category}</span>
+        </div>
+        <p className="mt-2 font-semibold leading-snug">{headline}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Le détail chiffré et la consigne à appliquer au prochain relais.
+        </p>
+      </div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/40 px-4 text-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/80 px-2.5 py-1 text-xs font-semibold text-primary">
+          <Lock className="h-3.5 w-3.5" />
+          {tier === "rookie" ? "Compte gratuit" : "Racer"}
+        </span>
+        <p className="text-sm font-medium text-foreground">{item.teaser}</p>
+        <Button size="sm" className="rounded-full bg-signature text-white" onClick={() => onCta(tier)}>
+          {tier === "rookie" ? "Créer un compte gratuit" : "Débloquer avec Racer"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function PlanCard({ item }: { item: CoachingAdviceType }) {
+  const steps = item.steps?.length ? item.steps : item.explanation.split(/(?=Relais \d|Dernier relais)/);
+  return (
+    <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-3.5 sm:p-4">
+      <div className="flex items-center gap-2">
+        <ListChecks className="h-4 w-4 text-primary" />
+        <span className="font-display font-semibold text-foreground">{item.message}</span>
+      </div>
+      <ol className="mt-2 space-y-1.5">
+        {steps.map((s, i) => (
+          <li key={i} className="text-sm leading-relaxed text-muted-foreground">
+            {s.trim()}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 
 export function CoachingAdvice({
   advice,
   fastestLapNumber,
   isLocked,
   hideCta = false,
+  meta,
   onFocusCorner,
 }: CoachingAdviceProps) {
   const navigate = useNavigate();
@@ -39,8 +101,19 @@ export function CoachingAdvice({
   // il décrit sur quoi les conseils s'appuient. Il a donc sa place en
   // sous-titre, pas dans une carte numérotée « Priorité 0 ».
   const sessionInfo = advice.filter((a) => a.category === "info" && !a.corner);
-  const actionable = advice.filter((a) => !(a.category === "info" && !a.corner));
-  if (actionable.length === 0) return null;
+  const lockedItems = advice.filter((a) => a.locked);
+  const plan = advice.find((a) => a.category === "plan" && !a.locked);
+  const actionable = advice.filter(
+    (a) => !(a.category === "info" && !a.corner) && !a.locked && a.category !== "plan",
+  );
+  if (actionable.length === 0 && lockedItems.length === 0) return null;
+
+  // Nouveau moteur : le niveau est appliqué par l'analyse (quota + aperçu
+  // verrouillé). Les anciennes analyses gardent l'ancien floutage.
+  const tiered = advice.some((a) => a.tier_required !== undefined) || !!meta;
+  const legacyLocked = !tiered && isLocked;
+
+  const goCta = (tier: string) => navigate(tier === "rookie" ? "/login?mode=register" : "/pricing");
 
   return (
     <Card className="glass-card border-primary/20 mb-8 relative overflow-hidden">
@@ -55,6 +128,7 @@ export function CoachingAdvice({
             {fastestLapNumber ? ` — référence : ton meilleur tour (tour ${fastestLapNumber})` : ""}.
             Les numéros de virage sont ceux de la carte du circuit.
           </span>
+          {meta?.tier && <span className="block text-[11px] text-primary/90">{TIER_LINE[meta.tier]}</span>}
           {sessionInfo.map((info, i) => (
             <span key={`info-${i}`} className="block text-[11px] opacity-80">
               {info.message}
@@ -65,7 +139,7 @@ export function CoachingAdvice({
       <CardContent className="px-3 sm:px-6">
         <div className="space-y-3">
           {actionable.map((item, index) => {
-            const isItemLocked = isLocked && index >= 2;
+            const isItemLocked = legacyLocked && index >= 2;
             const canFocus = !!onFocusCorner && !!item.corner && !isItemLocked;
             return (
               <div
@@ -99,7 +173,7 @@ export function CoachingAdvice({
                 <div className="flex items-center gap-2">
                   <span className="relative inline-flex h-7 min-w-7 items-center justify-center px-1.5 font-display text-sm font-bold text-white">
                     <span aria-hidden="true" className="absolute inset-0 -skew-x-[14deg] rounded-[4px] bg-signature" />
-                    <span className="relative">{item.priority}</span>
+                    <span className="relative">{item.priority || index + 1}</span>
                   </span>
                   {item.corner ? (
                     <span className="inline-flex items-center gap-1 text-sm font-semibold text-foreground">
@@ -108,10 +182,15 @@ export function CoachingAdvice({
                     </span>
                   ) : null}
                   <span className="text-xs text-muted-foreground">{CATEGORY_LABEL[item.category] ?? item.category}</span>
+                  {item.tier_required === "racer" && (
+                    <span className="rounded-full border border-primary/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                      Racer
+                    </span>
+                  )}
                   {item.impact_seconds > 0 && (
                     <span
                       className="ml-auto shrink-0 rounded-full bg-[hsl(var(--amber)/0.12)] px-2 py-0.5 text-xs font-semibold tabular-nums text-[hsl(var(--amber))]"
-                      title="Temps à gagner sur ce virage, par tour"
+                      title="Temps à gagner, mesuré sur tes tours"
                     >
                       {item.impact_seconds.toFixed(2).replace(".", ",")} s/tour
                     </span>
@@ -121,32 +200,50 @@ export function CoachingAdvice({
                 <p className="mt-2 font-semibold leading-snug text-foreground">
                   {item.message.includes(" — ") ? item.message.split(" — ").slice(1).join(" — ") : item.message}
                 </p>
-                {(() => {
-                  const text = (item.explanation || "").trim();
-                  const first = text.match(/^.*?[.!?](\s|$)/)?.[0]?.trim() ?? text;
-                  const rest = text.slice(first.length).trim();
-                  return (
-                    <>
-                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{first}</p>
-                      {rest && (
-                        <details className="group mt-1" onClick={(e) => e.stopPropagation()}>
-                          <summary className="cursor-pointer list-none text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
-                            <span className="group-open:hidden">Comment faire</span>
-                            <span className="hidden group-open:inline">Masquer</span>
-                          </summary>
-                          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{rest}</p>
-                        </details>
+                {item.fact && item.action ? (
+                  <>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.fact}</p>
+                    <details className="group mt-1" onClick={(e) => e.stopPropagation()}>
+                      <summary className="cursor-pointer list-none text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
+                        <span className="group-open:hidden">Comment faire</span>
+                        <span className="hidden group-open:inline">Masquer</span>
+                      </summary>
+                      <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">{item.action}</p>
+                      {item.check && (
+                        <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{item.check}</p>
                       )}
-                    </>
-                  );
-                })()}
+                    </details>
+                  </>
+                ) : (
+                  (() => {
+                    const text = (item.explanation || "").trim();
+                    const first = text.match(/^.*?[.!?](\s|$)/)?.[0]?.trim() ?? text;
+                    const rest = text.slice(first.length).trim();
+                    return (
+                      <>
+                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{first}</p>
+                        {rest && (
+                          <details className="group mt-1" onClick={(e) => e.stopPropagation()}>
+                            <summary className="cursor-pointer list-none text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
+                              <span className="group-open:hidden">Comment faire</span>
+                              <span className="hidden group-open:inline">Masquer</span>
+                            </summary>
+                            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{rest}</p>
+                          </details>
+                        )}
+                      </>
+                    );
+                  })()
+                )}
                 <p className="mt-2 text-[11px] text-muted-foreground">Difficulté : {item.difficulty}</p>
               </div>
             );
           })}
+          {plan && <PlanCard item={plan} />}
+          {lockedItems.map((item, i) => <LockedCard key={`locked-${i}`} item={item} onCta={goCta} />)}
         </div>
 
-        {isLocked && actionable.length > 2 && (
+        {legacyLocked && actionable.length > 2 && (
           <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 z-10 bg-gradient-to-t from-background/90 via-background/50 to-transparent">
             {!hideCta && (
               <div className="flex flex-col items-center max-w-sm text-center">

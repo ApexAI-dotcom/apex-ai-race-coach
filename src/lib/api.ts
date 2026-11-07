@@ -218,6 +218,20 @@ export interface CoachingAdvice {
   message: string;
   explanation: string;
   difficulty: string; // "facile" | "moyen" | "difficile"
+  /** Principe de la base de pilotage qui a produit le conseil. */
+  principle?: string;
+  family?: string;
+  /** Constat chiffré, consigne du jour et repère de vérification. */
+  fact?: string;
+  action?: string;
+  check?: string;
+  /** Niveau qui débloque le conseil (« rookie » = compte gratuit, « racer »). */
+  tier_required?: "visitor" | "rookie" | "racer";
+  /** Aperçu d'un conseil d'un niveau supérieur : constat sans la consigne. */
+  locked?: boolean;
+  teaser?: string;
+  /** Plan de séance (Racer) : un objectif par relais. */
+  steps?: string[];
 }
 
 /**
@@ -340,6 +354,8 @@ export interface AnalysisResult {
   performance_score: PerformanceScore;
   corner_analysis: CornerAnalysis[];
   coaching_advice: CoachingAdvice[];
+  /** Niveau d'analyse du coaching et données utilisées. */
+  coaching?: import("@/types/analysis").CoachingMeta | null;
   plots: PlotUrls;
   statistics: Statistics;
   session_conditions?: SessionConditions | null;

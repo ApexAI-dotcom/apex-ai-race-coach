@@ -158,6 +158,7 @@ async function rowToAnalysisResult(row: any, userId: string): Promise<AnalysisRe
     performance_score: row.performance_score ?? { overall_score: 0, grade: "C", breakdown: {} },
     corner_analysis: row.corner_analysis ?? [],
     coaching_advice: row.coaching_advice ?? [],
+    coaching: row.session_conditions?.coaching ?? null,
     plots,
     statistics: row.statistics ?? {},
     session_conditions: row.session_conditions || {
@@ -222,6 +223,8 @@ export async function saveAnalysis(
       statistics: result.statistics,
       session_conditions: {
         ...result.session_conditions,
+        // Niveau d'analyse du coaching (pas de colonne dédiée : il voyage avec les conditions).
+        ...(result.coaching ? { coaching: result.coaching } : {}),
         session_name: result.session_conditions?.session_name || defaultName,
       },
       lap_times: result.lap_times,
