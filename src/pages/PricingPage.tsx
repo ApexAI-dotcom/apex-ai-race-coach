@@ -41,7 +41,7 @@ const PLANS = [
       { text: "Tous les graphiques IA", included: true },
       { text: "Score par virage", included: true },
       { text: "6 conseils reliés à ton kart et tes réglages", included: true },
-      { text: "Plan pour ta prochaine séance", included: true },
+      { text: "Objectif pour ta prochaine séance", included: true },
       { text: "Cockpit 'Mon Kart'", included: true },
       { text: "Recommandations Réglages IA", included: true },
       { text: "Suivi Entretien Mécanique", included: true },

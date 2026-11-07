@@ -53,7 +53,7 @@ const plans = [
       "Tous les graphiques IA avancés",
       "Score de performance par virage",
       "6 conseils reliés à ton kart et tes réglages",
-      "Plan pour ta prochaine séance",
+      "Objectif pour ta prochaine séance",
       "Cockpit virtuel 'Mon Kart'",
       "Recommandations de réglages IA",
       "Suivi d'entretien mécanique",

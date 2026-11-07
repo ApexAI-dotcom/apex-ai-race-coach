@@ -230,7 +230,7 @@ export interface CoachingAdvice {
   /** Aperçu d'un conseil d'un niveau supérieur : constat sans la consigne. */
   locked?: boolean;
   teaser?: string;
-  /** Plan de séance (Racer) : un objectif par relais. */
+  /** Objectif pour la prochaine séance (Racer) : une ligne par point. */
   steps?: string[];
 }
 

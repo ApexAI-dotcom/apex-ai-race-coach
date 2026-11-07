@@ -18,7 +18,7 @@ const ROOKIE = ["3 analyses par mois", "Score global /100", "5 conseils de coach
 const RACER = [
   "Analyses illimitées",
   "Tous les graphiques IA et score par virage",
-  "6 conseils reliés à ton kart, plan de séance",
+  "6 conseils reliés à ton kart + objectif de séance",
   "Mon Kart et suivi d'entretien",
   "Recommandations de réglages IA",
 ];

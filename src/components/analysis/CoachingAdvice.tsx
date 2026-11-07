@@ -28,7 +28,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   tire: "Pneus",
   setup: "Réglage",
   style: "Style de pilotage",
-  plan: "Plan de séance",
+  plan: "Prochaine séance",
   info: "Contexte",
 };
 
@@ -50,7 +50,7 @@ function LockedCard({ item, onCta }: { item: CoachingAdviceType; onCta: (tier: s
         </div>
         <p className="mt-2 font-semibold leading-snug">{headline}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Le détail chiffré et la consigne à appliquer au prochain relais.
+          Le détail chiffré et la consigne pour ta prochaine séance.
         </p>
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/40 px-4 text-center">
@@ -68,20 +68,33 @@ function LockedCard({ item, onCta }: { item: CoachingAdviceType; onCta: (tier: s
 }
 
 function PlanCard({ item }: { item: CoachingAdviceType }) {
-  const steps = item.steps?.length ? item.steps : item.explanation.split(/(?=Relais \d|Dernier relais)/);
+  const steps = item.steps?.length ? item.steps : item.explanation.split(/(?<=\.)\s+(?=[A-ZÀ-Ý])/);
   return (
     <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-3.5 sm:p-4">
       <div className="flex items-center gap-2">
         <ListChecks className="h-4 w-4 text-primary" />
         <span className="font-display font-semibold text-foreground">{item.message}</span>
       </div>
-      <ol className="mt-2 space-y-1.5">
-        {steps.map((s, i) => (
-          <li key={i} className="text-sm leading-relaxed text-muted-foreground">
-            {s.trim()}
-          </li>
-        ))}
-      </ol>
+      <ul className="mt-2 space-y-1">
+        {steps.map((s, i) => {
+          // « Objectif : … » en avant, le reste en retrait.
+          const [label, ...rest] = s.split(" : ");
+          return (
+            <li key={i} className="text-sm leading-relaxed text-muted-foreground">
+              {rest.length ? (
+                <>
+                  <span className={label === "Objectif" ? "font-semibold text-foreground" : "text-foreground/80"}>
+                    {label} :
+                  </span>{" "}
+                  {rest.join(" : ")}
+                </>
+              ) : (
+                s
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -124,9 +137,8 @@ export function CoachingAdvice({
         </CardTitle>
         <CardDescription className="space-y-1">
           <span className="block">
-            Classés par temps réellement perdu, mesuré sur tes chronos
-            {fastestLapNumber ? ` — référence : ton meilleur tour (tour ${fastestLapNumber})` : ""}.
-            Les numéros de virage sont ceux de la carte du circuit.
+            Classés par temps perdu, mesuré sur tes tours
+            {fastestLapNumber ? ` (référence : tour ${fastestLapNumber})` : ""}.
           </span>
           {meta?.tier && <span className="block text-[11px] text-primary/90">{TIER_LINE[meta.tier]}</span>}
           {sessionInfo.map((info, i) => (
@@ -201,19 +213,29 @@ export function CoachingAdvice({
                   {item.message.includes(" — ") ? item.message.split(" — ").slice(1).join(" — ") : item.message}
                 </p>
                 {item.fact && item.action ? (
+                  (() => {
+                    // Une seule phrase visible : le constat. Le détail chiffré,
+                    // la consigne et le repère se déplient au besoin.
+                    const fact = item.fact.trim();
+                    const first = fact.match(/^.*?[.!?](\s|$)/)?.[0]?.trim() ?? fact;
+                    const more = fact.slice(first.length).trim();
+                    return (
                   <>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.fact}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{first}</p>
                     <details className="group mt-1" onClick={(e) => e.stopPropagation()}>
                       <summary className="cursor-pointer list-none text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
                         <span className="group-open:hidden">Comment faire</span>
                         <span className="hidden group-open:inline">Masquer</span>
                       </summary>
+                      {more && <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{more}</p>}
                       <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">{item.action}</p>
                       {item.check && (
                         <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{item.check}</p>
                       )}
                     </details>
                   </>
+                    );
+                  })()
                 ) : (
                   (() => {
                     const text = (item.explanation || "").trim();
@@ -235,7 +257,6 @@ export function CoachingAdvice({
                     );
                   })()
                 )}
-                <p className="mt-2 text-[11px] text-muted-foreground">Difficulté : {item.difficulty}</p>
               </div>
             );
           })}
