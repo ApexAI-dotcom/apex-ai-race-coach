@@ -54,3 +54,23 @@ export function indexAtFraction(fracs: number[], f: number): number {
   }
   return Math.abs(fracs[lo] - f) <= Math.abs(fracs[hi] - f) ? lo : hi;
 }
+
+/**
+ * Branche une courbe en distance sur le curseur commun : survol -> point sur
+ * la carte (et la mini-carte) ; survol de la carte -> trait sur la courbe.
+ */
+export function useChartCursor(min: number, max: number) {
+  const cursor = useAnalysisCursor();
+  const span = Math.max(1e-6, max - min);
+  return {
+    cursorX: cursor?.source === "map" ? min + cursor.frac * span : null,
+    onMouseMove: (st: { activeLabel?: string | number } | null) => {
+      if (st?.activeLabel == null) return;
+      const f = (Number(st.activeLabel) - min) / span;
+      if (Number.isFinite(f)) setAnalysisCursor({ frac: Math.min(1, Math.max(0, f)), source: "chart" });
+    },
+    onMouseLeave: () => {
+      if (getAnalysisCursor()?.source === "chart") setAnalysisCursor(null);
+    },
+  };
+}

@@ -12,9 +12,11 @@ import {
   ResponsiveContainer,
   ReferenceArea,
   Label,
+  ReferenceLine,
 } from "recharts";
 import type { ThrottleBrakeLap } from "@/types/analysis";
 import { downsample } from "./utils";
+import { useChartCursor } from "./analysisCursor";
 import { useChartZoom, sliceToDomain } from "./useChartZoom";
 import { ChartZoomFrame } from "./ChartZoomFrame";
 import { BlurOverlay } from "../ui/BlurOverlay";
@@ -52,6 +54,8 @@ export function ThrottleBrakeChart({
   }, [data, selectedLaps]);
 
   const zoom = useChartZoom(refDist[0] ?? 0, refDist[refDist.length - 1] ?? 1);
+  // Curseur commun avec la carte et la mini-carte.
+  const cur = useChartCursor(refDist[0] ?? 0, refDist[refDist.length - 1] ?? 1);
   // Origine du tour : l'axe est recalé dessus à l'affichage seulement.
   const lapStart = refDist[0] ?? 0;
 
@@ -101,7 +105,13 @@ export function ThrottleBrakeChart({
         <div className="w-full" aria-label="Throttle and brake by distance">
           <ChartZoomFrame zoom={zoom} heightClass="h-[300px] sm:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
+              <AreaChart
+              data={series}
+              margin={{ top: 20, right: 8, left: 0, bottom: 0 }}
+              onMouseMove={cur.onMouseMove}
+              onMouseLeave={cur.onMouseLeave}
+            >
+              {cur.cursorX !== null && <ReferenceLine x={cur.cursorX} stroke="#ffffff" strokeOpacity={0.6} strokeDasharray="3 3" ifOverflow="hidden" />}
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 {cornerOverlays.map((corner) => {
                   return (

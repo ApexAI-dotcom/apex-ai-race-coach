@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { CircuitIdentity } from "./CircuitIdentity";
 import type { CatalogCircuit } from "@/lib/api";
 import { Check, Zap, Info, MapPin, Gauge, Trophy } from "lucide-react";
@@ -10,6 +10,7 @@ import { ThrottleBrakeChart } from "./ThrottleBrakeChart";
 import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { TrackMapPro } from "./TrackMapPro";
+import { FloatingMiniMap } from "./FloatingMiniMap";
 import { BrakingPanel } from "./BrakingPanel";
 import { CoachingAdvice } from "./CoachingAdvice";
 import { LapReportPanel } from "./LapReportPanel";
@@ -95,6 +96,13 @@ export function AnalysisDashboardContent({
   };
 
   const selectedLapNumbers = providedSelectedLaps || localSelectedLaps;
+  // Mini-carte flottante : la grande carte est observée, le tour suivi est le
+  // premier tour sélectionné (celui que la carte dessine).
+  const mapSectionRef = useRef<HTMLElement>(null);
+  const miniMapLap = useMemo(() => {
+    const laps = analysis.plot_data?.trajectory_2d?.laps ?? [];
+    return laps.find((l) => !l.is_synthetic && l.lap_number === selectedLapNumbers[0]) ?? laps.find((l) => !l.is_synthetic && l.is_best);
+  }, [analysis.plot_data, selectedLapNumbers]);
   const selectedLapNumber = selectedLapNumbers[0] ?? bestLapNumber;
 
   // Cliquer un conseil emmène le pilote sur la carte, au virage concerné.
@@ -337,7 +345,7 @@ export function AnalysisDashboardContent({
 
           {/* TRACK MAP */}
           {plotData.trajectory_2d?.corners?.length > 0 && (
-            <section className={sectionClass} data-pdf-chart="track_map" data-pdf-title="Carte du Circuit">
+            <section ref={mapSectionRef} className={sectionClass} data-pdf-chart="track_map" data-pdf-title="Carte du Circuit">
               <h2 className={titleClass}>Carte du Circuit</h2>
               <p className="text-xs text-muted-foreground mb-3">
                 Vue aérienne de ta trajectoire réelle sur le circuit. Sélectionne un profil de
@@ -373,6 +381,8 @@ export function AnalysisDashboardContent({
               )}
             </section>
           )}
+
+          <FloatingMiniMap lap={miniMapLap} mapRef={mapSectionRef} />
 
           {/* SPEED TRACE */}
           {plotData.speed_trace &&
