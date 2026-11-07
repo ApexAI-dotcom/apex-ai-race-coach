@@ -13,7 +13,7 @@ const MAIN = ["engine", "tire", "chassis", "brake", "carburetor", "axle", "spark
  * cherche par marque, modèle, catégorie ou championnat et ouvre la fiche
  * (entretien constructeur, retours de pilotes, sources).
  */
-export function PartsCatalog({ onFit }: { onFit?: (part: CatalogPart) => void } = {}) {
+export function PartsCatalog({ onFit, embedded = false }: { onFit?: (part: CatalogPart) => void; embedded?: boolean } = {}) {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [parts, setParts] = useState<CatalogPart[]>([]);
@@ -50,8 +50,8 @@ export function PartsCatalog({ onFit }: { onFit?: (part: CatalogPart) => void } 
     .sort((a, b) => (MAIN.indexOf(a) === -1 ? 99 : MAIN.indexOf(a)) - (MAIN.indexOf(b) === -1 ? 99 : MAIN.indexOf(b)));
 
   return (
-    <Card className="rounded-2xl border border-border bg-card shadow-sm">
-      <CardHeader className="pb-3">
+    <Card className={embedded ? "border-0 bg-transparent shadow-none" : "rounded-2xl border border-border bg-card shadow-sm"}>
+      <CardHeader className={embedded ? "px-0 pb-3 pt-0" : "pb-3"}>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Package className="h-5 w-5 text-primary" />
           Catalogue des pièces
@@ -60,7 +60,7 @@ export function PartsCatalog({ onFit }: { onFit?: (part: CatalogPart) => void } 
           {total ? `${total.toLocaleString("fr-FR")} fiches 2026-2027` : "Fiches 2026-2027"}, du pignon au châssis : entretien constructeur, retours de pilotes et règlements, avec leurs sources.
         </p>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className={embedded ? "space-y-3 px-0 pb-0" : "space-y-3"}>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input

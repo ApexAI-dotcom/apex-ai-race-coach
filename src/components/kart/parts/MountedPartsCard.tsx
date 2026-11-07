@@ -40,7 +40,7 @@ const day = (iso: string) => {
  * pièces qui l'ont précédée. Alimentée par « Je monte cette pièce » et par le
  * journal d'entretien.
  */
-export function MountedPartsCard({ parts, onFit }: { parts: MountedParts; onFit?: (part: CatalogPart) => void }) {
+export function MountedPartsCard({ parts, onFit, embedded = false }: { parts: MountedParts; onFit?: (part: CatalogPart) => void; embedded?: boolean }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const families = Object.entries(parts)
@@ -48,8 +48,8 @@ export function MountedPartsCard({ parts, onFit }: { parts: MountedParts; onFit?
     .sort(([, a], [, b]) => new Date(b[0].fitted_at).getTime() - new Date(a[0].fitted_at).getTime());
 
   return (
-    <Card className="rounded-2xl border border-border bg-card shadow-sm">
-      <CardHeader className="pb-3">
+    <Card className={embedded ? "border-0 bg-transparent shadow-none" : "rounded-2xl border border-border bg-card shadow-sm"}>
+      <CardHeader className={embedded ? "px-0 pb-3 pt-0" : "pb-3"}>
         <CardTitle className="text-lg">Pièces montées</CardTitle>
         <p className="text-xs text-muted-foreground">
           {families.length
@@ -58,7 +58,7 @@ export function MountedPartsCard({ parts, onFit }: { parts: MountedParts; onFit?
         </p>
       </CardHeader>
       {families.length > 0 && (
-        <CardContent className="space-y-2">
+        <CardContent className={embedded ? "space-y-2 px-0 pb-0" : "space-y-2"}>
           {families.map(([cat, list]) => {
             const current = list[0];
             const previous = list.slice(1);

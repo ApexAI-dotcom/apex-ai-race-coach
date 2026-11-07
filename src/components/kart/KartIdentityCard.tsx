@@ -68,7 +68,7 @@ export function KartIdentityCard({ profile, mountedTire, onRelaunchConfig }: Kar
             <div className="text-sm font-semibold text-right flex items-center gap-1.5 justify-end">
               {tireLabel ? (
                 <>
-                  {mountedTire?.is_rain && <CloudRain className="w-3.5 h-3.5 text-sky-400" />}
+                  {mountedTire?.is_rain && <CloudRain className="w-3.5 h-3.5 text-muted-foreground" />}
                   <span>{mountedTire?.label ? `${mountedTire.label} · ${tireLabel}` : tireLabel}</span>
                 </>
               ) : (

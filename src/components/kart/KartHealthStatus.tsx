@@ -75,7 +75,7 @@ export function KartHealthStatus({ profile }: { profile: KartProfile }) {
             )}
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
-            <Disc className="w-4 h-4 text-purple-500 mb-1" />
+            <Disc className="w-4 h-4 text-primary mb-1" />
             <span className="text-xs sm:text-[11px] font-semibold">{Math.round(tiresHealth)}%</span>
             <span className="text-[10px] sm:text-[9px] text-muted-foreground uppercase mt-0.5">Pneus</span>
             {tiresIgnored && (
@@ -91,7 +91,7 @@ export function KartHealthStatus({ profile }: { profile: KartProfile }) {
             )}
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
-            <Wrench className="w-4 h-4 text-blue-500 mb-1" />
+            <Wrench className="w-4 h-4 text-primary mb-1" />
             <span className="text-xs sm:text-[11px] font-semibold">{Math.round(chainHealth)}%</span>
             <span className="text-[10px] sm:text-[9px] text-muted-foreground uppercase mt-0.5">Chaîne</span>
             {chainIgnored && (

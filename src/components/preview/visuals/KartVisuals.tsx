@@ -16,9 +16,9 @@ const GREEN = "#22C55E";
 
 const WEAR = [
   { icon: Flame, color: "#FF4242", label: "Moteur", value: 99 },
-  { icon: CircleDot, color: "#A855F7", label: "Pneus", value: 93 },
+  { icon: CircleDot, color: "#FF5A36", label: "Pneus", value: 93 },
   { icon: LoaderCircle, color: "#F97316", label: "Freins", value: 99 },
-  { icon: Wrench, color: "#3B82F6", label: "Chaîne", value: 99 },
+  { icon: Wrench, color: "#FB923C", label: "Chaîne", value: 99 },
 ] as const;
 
 export function WearVisual() {
@@ -105,7 +105,7 @@ export function TireStockVisual() {
       >
         <Disc3 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <span className="text-[12px] font-semibold text-foreground">Train pluie</span>
-        <span className="rounded-full border border-sky-500/25 bg-sky-500/10 px-1.5 py-0.5 text-[9px] font-bold text-sky-400">
+        <span className="rounded-full border border-white/15 bg-white/5 px-1.5 py-0.5 text-[9px] font-bold text-foreground">
           Pluie
         </span>
       </li>

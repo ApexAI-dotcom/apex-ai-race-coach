@@ -10,6 +10,8 @@ interface Props {
   engineLabel?: string | null;
   hoursLife?: number | null;
   onApplyLife?: (hours: number) => void;
+  /** Dans le carnet d'entretien : sans cadre. */
+  embedded?: boolean;
 }
 
 /**
@@ -17,7 +19,7 @@ interface Props {
  * ce que dit le constructeur et ce que font les pilotes (ex. DD2 révisé vers
  * 25 h), avec la possibilité d'aligner la jauge moteur.
  */
-export function EngineMaintenanceCard({ engineLabel, hoursLife, onApplyLife }: Props) {
+export function EngineMaintenanceCard({ engineLabel, hoursLife, onApplyLife, embedded = false }: Props) {
   const [part, setPart] = useState<CatalogPart | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -41,18 +43,18 @@ export function EngineMaintenanceCard({ engineLabel, hoursLife, onApplyLife }: P
   const gap = recommended != null && hoursLife != null && Math.abs(Number(hoursLife) - recommended) >= 0.5;
 
   return (
-    <Card className="rounded-2xl border border-border bg-card shadow-sm">
-      <CardHeader className="pb-3">
+    <Card className={embedded ? "border-0 bg-transparent shadow-none" : "rounded-2xl border border-border bg-card shadow-sm"}>
+      <CardHeader className={embedded ? "px-0 pb-3 pt-0" : "pb-3"}>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Wrench className="h-5 w-5 text-primary" />
-          Entretien conseillé
+          {embedded ? "Programme d'entretien du moteur" : "Entretien conseillé"}
         </CardTitle>
         <p className="text-xs text-muted-foreground">
           {part.brand} {part.name}
           {recommended != null ? ` · révision conseillée toutes les ${String(recommended).replace(".", ",")} h` : ""}
         </p>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className={embedded ? "space-y-3 px-0 pb-0" : "space-y-3"}>
         {gap && onApplyLife && (
           <div className="flex flex-col gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
             <span>

@@ -16,6 +16,15 @@ interface WearGaugeProps {
   onUpdate: (field: string, value: number) => void;
   onAction: () => void;
   actionLabel: string;
+  /** Pièce ou train suivi par la jauge (ex. « Train « Slicks B » »). */
+  sublabel?: string | null;
+  /** Ce qui reste avant l'entretien, dans l'unité du composant. */
+  hint?: string | null;
+  /** Aperçu (compte sans abonnement) : jauge visible, actions verrouillées. */
+  readOnly?: boolean;
+  /** Seuils (0-1) du profil de pilotage : mêmes couleurs que la liste « À faire ». */
+  warnAt?: number;
+  critAt?: number;
 }
 
 export const WearGauge = ({
@@ -28,6 +37,11 @@ export const WearGauge = ({
   onUpdate,
   onAction,
   actionLabel,
+  sublabel,
+  hint,
+  readOnly = false,
+  warnAt = 0.8,
+  critAt = 0.95,
 }: WearGaugeProps) => {
   const safeCurrent = current ?? 0;
   const safeMax = max ?? 100;
@@ -58,14 +72,14 @@ export const WearGauge = ({
   };
 
   const getColor = () => {
-    if (percentage > 90) return "text-red-500 stroke-red-500";
-    if (percentage > 75) return "text-orange-500 stroke-orange-500";
+    if (percentage >= critAt * 100) return "text-red-500 stroke-red-500";
+    if (percentage >= warnAt * 100) return "text-orange-500 stroke-orange-500";
     return "text-green-500 stroke-green-500";
   };
 
   const getGradient = () => {
-    if (percentage > 90) return "from-red-500/20 to-transparent";
-    if (percentage > 75) return "from-orange-500/20 to-transparent";
+    if (percentage >= critAt * 100) return "from-red-500/20 to-transparent";
+    if (percentage >= warnAt * 100) return "from-orange-500/20 to-transparent";
     return "from-green-500/20 to-transparent";
   };
 
@@ -77,9 +91,12 @@ export const WearGauge = ({
     <Card className="bg-card border border-border shadow-sm rounded-2xl relative overflow-hidden flex flex-col">
       <div className={cn("absolute inset-0 bg-gradient-to-t -z-10", getGradient())} />
       <CardContent className="p-6 flex flex-col items-center justify-between h-full space-y-4">
-        <div className="flex items-center gap-2 w-full text-muted-foreground font-medium">
-          {icon}
-          <span>{label}</span>
+        <div className="flex w-full items-start justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2 font-medium text-muted-foreground">
+            {icon}
+            <span>{label}</span>
+          </div>
+          {sublabel && <span className="min-w-0 truncate pt-0.5 text-right text-[11px] text-muted-foreground/80">{sublabel}</span>}
         </div>
 
         <div className="relative flex items-center justify-center">
@@ -114,11 +131,11 @@ export const WearGauge = ({
                 className="w-16 h-8 text-center px-1 font-bold bg-background/50 border-white/20"
               />
             ) : (
-              <div className="group flex items-center gap-1 cursor-pointer" onClick={() => setIsEditing(true)}>
+              <div className={cn("group flex items-center gap-1", !readOnly && "cursor-pointer")} onClick={() => !readOnly && setIsEditing(true)}>
                 <span className="text-2xl font-bold font-display leading-none">
-                  {safeCurrent % 1 !== 0 ? safeCurrent.toFixed(1) : safeCurrent}
+                  {safeCurrent % 1 !== 0 ? safeCurrent.toFixed(1).replace(".", ",") : safeCurrent}
                 </span>
-                <Pencil className="w-3 h-3 text-muted-foreground opacity-100 can-hover:opacity-0 can-hover:group-hover:opacity-100 transition-opacity" />
+                {!readOnly && <Pencil className="w-3 h-3 text-muted-foreground opacity-100 can-hover:opacity-0 can-hover:group-hover:opacity-100 transition-opacity" />}
               </div>
             )}
             <span className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap">
@@ -126,6 +143,12 @@ export const WearGauge = ({
             </span>
           </div>
         </div>
+
+        {hint && (
+          <p className={cn("-mt-1 text-xs font-medium tabular-nums", percentage >= critAt * 100 ? "text-red-500" : percentage >= warnAt * 100 ? "text-orange-500" : "text-muted-foreground")}>
+            {hint}
+          </p>
+        )}
 
         <div className="flex gap-2 w-full mt-auto pt-2">
           <Button
@@ -137,8 +160,10 @@ export const WearGauge = ({
           </Button>
           <Button
             variant="outline"
-            onClick={() => setIsEditing(true)}
+            onClick={() => !readOnly && setIsEditing(true)}
+            disabled={readOnly}
             title="Ajuster manuellement"
+            aria-label={`Ajuster le compteur ${label}`}
             className="w-10 shrink-0 px-0 bg-white/5 hover:bg-white/10 border-white/10"
           >
             <Pencil className="w-4 h-4 text-muted-foreground" />

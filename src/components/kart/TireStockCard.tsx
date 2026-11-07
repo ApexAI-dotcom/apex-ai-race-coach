@@ -206,7 +206,7 @@ export function TireStockCard({ token, tireSets, onRefresh }: TireStockCardProps
                       {STATE_LABELS[s.state] || s.state}
                     </Badge>
                     {s.is_rain && (
-                      <Badge className="bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full text-xs gap-1">
+                      <Badge className="bg-white/5 text-foreground border border-white/15 rounded-full text-xs gap-1">
                         <CloudRain className="w-3 h-3" /> Pluie
                       </Badge>
                     )}

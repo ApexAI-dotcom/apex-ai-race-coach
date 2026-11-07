@@ -1,3 +1,4 @@
+import { getAlertThresholds } from "@/lib/kart-recommendations";
 import { useState } from "react";
 import {
   Dialog,
@@ -57,9 +58,10 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
     }
 
     if (isVoltage) {
-      if (!current) return "text-muted-foreground stroke-muted-foreground/50";
+      // Sous 8 V, ce n'est pas une batterie de kart (pile interne du boîtier) : inconnu.
+      if (!current || current < 8) return "text-muted-foreground stroke-muted-foreground/50";
       if (current < 11.5)
-        return "text-red-500 stroke-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,1)] animate-pulse";
+        return "text-red-500 stroke-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,1)]";
       if (current < 12.0)
         return "text-orange-500 stroke-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]";
       return "text-green-500 stroke-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]";
@@ -68,9 +70,10 @@ export const KartSchematic = ({ profile, recent_sessions, onUpdate }: KartSchema
     if (current === undefined || max === undefined)
       return "text-muted-foreground stroke-muted-foreground/50";
     const ratio = current / max;
-    if (ratio > 0.95)
-      return "text-red-500 stroke-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,1)] animate-pulse";
-    if (ratio > 0.75)
+    const { warnLimit, critLimit } = getAlertThresholds(profile.driving_profile);
+    if (ratio >= critLimit)
+      return "text-red-500 stroke-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,1)]";
+    if (ratio >= warnLimit)
       return "text-orange-500 stroke-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]";
     return "text-green-500 stroke-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]";
   };

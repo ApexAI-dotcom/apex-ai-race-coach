@@ -1,9 +1,10 @@
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Wrench, Gauge, Disc3, Flame, Shield, UploadCloud, Activity, CircleCheck,
-  Cpu, HeartPulse,
-} from "lucide-react";
+import { Wrench, Disc, Disc3, Flame, Activity, Cpu, HeartPulse, CircleDot } from "lucide-react";
+import { KartSchematic } from "@/components/kart/KartSchematic";
+import { KartHealthStatus } from "@/components/kart/KartHealthStatus";
+import { KartTodoCard } from "@/components/kart/KartTodoCard";
+import { WearGauge } from "@/components/kart/WearGauge";
+import { DEMO_PROFILE } from "@/lib/kartDemo";
+import { computeKartTasks, remainingLabel } from "@/lib/kartTasks";
 import { PreviewShell, PreviewFeature } from "@/components/preview/PreviewShell";
 import { GarageVisual, HealthAlertsVisual, TireStockVisual, WearVisual } from "@/components/preview/visuals/KartVisuals";
 
@@ -38,60 +39,47 @@ const FEATURES: PreviewFeature[] = [
   },
 ];
 
-/* Rendu réaliste (fausses données) de la page Mon Kart, affiché flouté en fond. */
+/*
+ * Fond flouté : la VRAIE page Mon Kart (schéma, bilan de santé, « À faire »,
+ * jauges rondes) sur un kart d'exemple, pour que l'aperçu ressemble exactement
+ * à ce que le pilote aura (et aux visuels de nos communications).
+ */
 function MonKartMock() {
-  const gauge = (label: string, value: string, pct: number, color: string) => (
-    <Card className="p-4 bg-card border-border rounded-2xl text-center">
-      <div className="relative w-16 h-16 mx-auto mb-2">
-        <div className="absolute inset-0 rounded-full border-4 border-border" />
-        <div className="absolute inset-0 rounded-full border-4 border-transparent" style={{ borderTopColor: color, transform: `rotate(${pct * 3.6}deg)` }} />
-        <div className="absolute inset-0 flex items-center justify-center text-xs font-bold">{value}</div>
-      </div>
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
-    </Card>
+  const p = DEMO_PROFILE;
+  const tasks = computeKartTasks(p, null, []);
+  const noop = () => undefined;
+  const g = (label: string, unit: "h" | "tours", cur: number, life: number, icon: JSX.Element, actionLabel: string) => (
+    <WearGauge
+      component={label}
+      label={label}
+      unit={unit}
+      icon={icon}
+      current={cur}
+      max={life}
+      hint={remainingLabel(cur, life, unit)}
+      field=""
+      onUpdate={noop}
+      onAction={noop}
+      actionLabel={actionLabel}
+      readOnly
+    />
   );
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      {/* Colonne gauche : santé + identité */}
-      <div className="lg:col-span-5 space-y-4">
-        <Card className="p-6 bg-card border-border rounded-2xl text-center">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Bilan Santé Global</p>
-          <p className="text-5xl font-bold text-emerald-500">92</p>
-          <p className="text-xs text-muted-foreground mt-1">Score d'état</p>
-        </Card>
-        <Card className="p-5 bg-card border-border rounded-2xl space-y-3">
-          <div className="flex items-center gap-2 mb-2"><Shield className="w-5 h-5 text-primary" /><span className="font-semibold">Identité du Kart</span></div>
-          {[["Châssis", "Sodi Sigma RS3"], ["Moteur", "Rotax Max DD2"], ["Freins", "Brembo MA5"], ["Pneu monté", "Train 1 · Vega XH3"]].map(([k, v]) => (
-            <div key={k} className="flex items-center justify-between py-1.5 border-b border-border/50 text-sm">
-              <span className="text-muted-foreground">{k}</span><span className="font-semibold">{v}</span>
-            </div>
-          ))}
-        </Card>
-      </div>
-
-      {/* Colonne droite : jauges + import + stock */}
-      <div className="lg:col-span-7 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {gauge("Moteur", "9h", 60, "#ef4444")}
-          {gauge("Pneus", "120", 45, "#f59e0b")}
-          {gauge("Freins", "OK", 80, "#10b981")}
+    <div className="space-y-6">
+      <KartTodoCard tasks={tasks} ignored={[]} onDone={noop} onIgnore={noop} onUnignore={noop} readOnly />
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        <div className="flex flex-col gap-4 lg:col-span-5 xl:col-span-4">
+          <div className="flex items-center justify-center rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <KartSchematic profile={p} recent_sessions={[]} />
+          </div>
+          <KartHealthStatus profile={p} />
         </div>
-        <Card className="p-5 bg-card border-border rounded-2xl">
-          <div className="flex items-center gap-2 mb-3"><UploadCloud className="w-5 h-5 text-primary" /><span className="font-semibold">Importer ma journée</span></div>
-          <div className="h-10 rounded-lg border border-dashed border-border bg-background/40" />
-        </Card>
-        <Card className="p-5 bg-card border-border rounded-2xl">
-          <div className="flex items-center gap-2 mb-3"><Disc3 className="w-5 h-5 text-primary" /><span className="font-semibold">Stock de Pneus</span></div>
-          <div className="flex items-center gap-2 p-3 rounded-xl border border-primary/40 bg-primary/5 mb-2">
-            <Badge className="bg-primary text-primary-foreground border-0 rounded-full text-[10px] gap-1"><CircleCheck className="w-3 h-3" />Monté</Badge>
-            <span className="text-sm font-semibold">Train 1</span>
-            <span className="text-xs text-muted-foreground">Vega Vert · 120/300 tours</span>
-          </div>
-          <div className="flex items-center gap-2 p-3 rounded-xl border border-border bg-background/40">
-            <span className="text-sm font-semibold">Train Pluie</span>
-            <Badge className="bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full text-[10px]">Pluie</Badge>
-          </div>
-        </Card>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-7 xl:col-span-8">
+          {g("Moteur", "h", p.engine_hours_current, p.engine_hours_life ?? 20, <Flame className="h-5 w-5 text-primary" />, "Réviser le moteur")}
+          {g("Pneus", "tours", p.tires_laps_current ?? 0, p.tires_laps_life ?? 240, <Disc className="h-5 w-5 text-primary" />, "Changer de train")}
+          {g("Freins", "tours", p.brakes_sessions_current, p.brakes_sessions_life ?? 400, <CircleDot className="h-5 w-5 text-primary" />, "Changer les plaquettes")}
+          {g("Chaîne", "h", p.chain_hours_current ?? 0, p.chain_hours_life ?? 10, <Wrench className="h-5 w-5 text-primary" />, "Graisser / Changer")}
+        </div>
       </div>
     </div>
   );
@@ -109,7 +97,7 @@ export function MonKartPreviewPage() {
       eyebrow="Le carnet d'ingénieur de ton kart"
       titleLead="Ton garage numérique,"
       titleAccent="toujours à jour"
-      subtitle="Importe ta télémétrie et laisse ApexAI suivre l'usure de chaque composant, gérer ton stock de pneus et veiller sur la santé mécanique de ton kart — automatiquement."
+      subtitle="Importe tes journées de roulage et laisse ApexAI suivre l'usure de chaque composant, gérer ton stock de pneus et te dire quoi faire avant chaque sortie, automatiquement."
       mock={<MonKartMock />}
       features={FEATURES}
       bullets={[
