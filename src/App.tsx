@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppShell } from "@/components/layout/AppShell";
 import { PendingPassRedeemer } from "@/components/paddock/PendingPassRedeemer";
 import { CookieConsent } from "@/components/legal/CookieConsent";
+import { BackgroundAnalysisNotifier } from "@/components/upload/BackgroundAnalysisNotifier";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { loaders, prefetchCoreRoutes } from "./pages/loaders";
@@ -114,6 +115,7 @@ const App = () => (
               <PageTracker />
               <PendingPassRedeemer />
               <CookieConsent />
+              <BackgroundAnalysisNotifier />
               <AdminStatsWidget />
               <AppShell>
               <Suspense fallback={null}>

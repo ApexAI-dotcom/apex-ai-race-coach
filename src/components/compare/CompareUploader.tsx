@@ -5,19 +5,11 @@ import { FileUp, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { TELEMETRY_ACCEPT, TELEMETRY_FORMAT_ERROR, isTelemetryFile, uploadAndAnalyzeCSV, type AnalysisResult, type ApiError } from "@/lib/api";
-import { getAllAnalyses, getAnalysisById, saveAnalysis, type AnalysisSummary } from "@/lib/storage";
+import { TELEMETRY_ACCEPT, TELEMETRY_FORMAT_ERROR, isTelemetryFile, type AnalysisResult, type ApiError } from "@/lib/api";
+import { getAllAnalyses, getAnalysisById, type AnalysisSummary } from "@/lib/storage";
 import { CompareResults, COLOR_A, COLOR_B } from "./CompareResults";
-import { AnalysisProgress, type AnalysisStep } from "@/components/upload/AnalysisProgress";
-import { BarChart3, Brain, GitCompareArrows, Upload as UploadIcon, Wifi } from "lucide-react";
-
-const COMPARE_STEPS: AnalysisStep[] = [
-  { icon: Wifi, message: "Connexion au serveur…", duration: 1500 },
-  { icon: UploadIcon, message: "Envoi des deux fichiers…", duration: 4000 },
-  { icon: Brain, message: "L'IA analyse les points de corde et les freinages…", duration: 15000 },
-  { icon: BarChart3, message: "Calcul des chronos tour par tour…", duration: 15000 },
-  { icon: GitCompareArrows, message: "Mise en face des deux tours, virage par virage…", duration: 20000 },
-];
+import { AnalysisProgress } from "@/components/upload/AnalysisProgress";
+import { clearCompare, startCompare, useBackgroundAnalysis, watchTask, type CompareSlotInput } from "@/lib/backgroundAnalysis";
 import { cn } from "@/lib/utils";
 
 interface Slot {
@@ -150,8 +142,21 @@ export function CompareUploader() {
   const [b, setB] = useState<Slot>({ name: "Coéquipier", file: null, sessionId: "", mine: false });
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<{ ra: AnalysisResult; rb: AnalysisResult; names: [string, string] } | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  // La comparaison tourne hors de la page : on peut partir et revenir.
+  const { compare } = useBackgroundAnalysis();
+  useEffect(() => watchTask("compare"), []);
+  const results = compare?.status === "done" && compare.results ? { ra: compare.results[0], rb: compare.results[1], names: compare.names } : null;
+  useEffect(() => {
+    if (compare?.status === "error") {
+      setError(compare.error ?? "La comparaison a échoué.");
+      clearCompare();
+    }
+  }, [compare?.status, compare?.error]);
+  useEffect(() => {
+    if (results) window.setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!results]);
 
   useEffect(() => {
     if (user?.id) getAllAnalyses(user.id).then(setSessions).catch(() => setSessions([]));
@@ -176,57 +181,37 @@ export function CompareUploader() {
     );
   }
 
-  const load = async (slot: Slot, label: string): Promise<AnalysisResult> => {
+  const prepare = async (slot: Slot, label: string, mine: boolean): Promise<CompareSlotInput> => {
     if (slot.sessionId) {
       setBusy(`Chargement de la séance de ${label}…`);
-      const r = await getAnalysisById(slot.sessionId, user?.id);
+      const r: AnalysisResult | null = await getAnalysisById(slot.sessionId, user?.id);
       if (!r) throw new Error(`Séance de ${label} introuvable.`);
-      return r;
+      return { result: r, mine: false, label };
     }
     if (!slot.file) throw new Error(`Il manque le fichier de ${label}.`);
     if (!isTelemetryFile(slot.file.name)) throw new Error(TELEMETRY_FORMAT_ERROR);
-    const file = slot.file;
-    const once = () => uploadAndAnalyzeCSV(file, { accessToken: session?.access_token ?? null, track_condition: "auto" } as any);
-    // Un nouvel essai automatique si le serveur a mis trop de temps : la
-    // seconde demande profite du travail déjà fait (cache) et aboutit.
-    let r: AnalysisResult;
-    try {
-      r = await once();
-    } catch (e) {
-      const code = (e as ApiError)?.error;
-      if (code !== "timeout" && code !== "network_error" && code !== "backend_unavailable") throw e;
-      r = await once();
-    }
-    if (slot.mine) {
-      try {
-        await saveAnalysis(r, user?.id);
-      } catch {
-        /* la comparaison reste affichée même si l'enregistrement échoue */
-      }
-    }
-    return r;
+    return { file: slot.file, mine, label };
   };
 
   const run = async (sameFile = false) => {
     setError(null);
-    setResults(null);
     try {
-      setBusy(sameFile ? "Analyse du fichier…" : "Analyse des deux séances…");
-      // Les deux analyses tournent en même temps : deux fois moins d'attente.
-      const [ra, rb] = sameFile
-        ? await load(a, a.name || myName).then((x) => [x, x] as const)
-        : await Promise.all([load(a, a.name || myName), load(b, b.name || "Coéquipier")]);
       const nameA = (a.name || myName).trim();
       let nameB = (b.name || "Coéquipier").trim();
       if (nameB.toLowerCase() === nameA.toLowerCase()) nameB = `${nameB} (2)`;
-      const names: [string, string] = sameFile ? ["Tour A", "Tour B"] : [nameA, nameB];
-      setResults({ ra, rb, names });
-      window.setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-    } catch (e) {
-      const msg = (e as ApiError)?.message ?? (e instanceof Error ? e.message : "La comparaison a échoué.");
-      setError(msg);
-    } finally {
+      // Ta séance : analyse complète, rangée dans Sessions. Celle du
+      // coéquipier : analyse allégée (tours et traces), ni quota ni Sessions,
+      // sauf si tu indiques que c'est aussi une de tes séances.
+      const sa = await prepare(a, nameA, a.mine);
+      const sb = sameFile ? null : await prepare(b, nameB, b.mine);
       setBusy(null);
+      startCompare(sa, sb, sameFile ? ["Tour A", "Tour B"] : [nameA, nameB], {
+        accessToken: session?.access_token ?? null,
+        userId: user?.id ?? null,
+      });
+    } catch (e) {
+      setBusy(null);
+      setError((e as ApiError)?.message ?? (e instanceof Error ? e.message : "La comparaison a échoué."));
     }
   };
 
@@ -235,17 +220,22 @@ export function CompareUploader() {
 
   return (
     <div className="space-y-6">
-      {busy ? (
+      {compare?.status === "running" ? (
         <div className="rounded-2xl border border-border bg-card">
           <AnalysisProgress
-            steps={COMPARE_STEPS}
-            title={busy}
-            subtitle="L'IA analyse chaque tour, chaque freinage et chaque virage des deux séances. Compte une à deux minutes."
+            progress={compare.progress}
+            startedAt={compare.startedAt}
+            title={compare.sameFile ? "Analyse du fichier…" : "Analyse des deux séances…"}
+            subtitle={
+              compare.sameFile
+                ? "L'IA découpe les tours et mesure chaque virage."
+                : `Analyse complète de la séance de ${compare.names[0]}, analyse rapide de celle de ${compare.names[1]} pour la mise en face.`
+            }
           />
         </div>
       ) : results ? (
         <div className="flex justify-center">
-          <Button variant="outline" className="h-11" onClick={() => setResults(null)}>
+          <Button variant="outline" className="h-11" onClick={() => clearCompare()}>
             Nouvelle comparaison
           </Button>
         </div>
@@ -267,7 +257,7 @@ export function CompareUploader() {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Chaque nouveau fichier compte comme une analyse. Le fichier du coéquipier n'est pas ajouté à tes sessions.
+          Seul ton fichier compte comme une analyse. Celui du coéquipier est analysé en version rapide et n'est pas ajouté à tes sessions.
         </p>
         {error && <p className="text-sm text-[hsl(var(--loss))]">{error}</p>}
       </div>

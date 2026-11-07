@@ -56,9 +56,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  uploadAndAnalyzeCSV,
-  parseLaps,
-  checkBackendConnection,
   API_BASE_URL,
   getDisplayScore,
   CSV_UPLOAD_HINT_SHORT,
@@ -67,7 +64,6 @@ import {
   isTelemetryFile,
   type AnalysisResult,
   type ApiError,
-  type LapInfo,
 } from "@/lib/api";
 import { exportAnalysisReportPDF, captureAnalysisCharts } from "@/lib/pdf/analysisReport";
 import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
@@ -78,6 +74,8 @@ import { SessionSummary } from "@/components/analysis/SessionSummary";
 import { mapApiResultToResponse } from "@/hooks/useAnalysis";
 import { CoachingAdvice } from "@/components/analysis/CoachingAdvice";
 import { toast } from "@/hooks/use-toast";
+import { AnalysisProgress } from "./AnalysisProgress";
+import { clearSingle, startSingle, useBackgroundAnalysis, watchTask } from "@/lib/backgroundAnalysis";
 import { ToastAction } from "@/components/ui/toast";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -97,13 +95,6 @@ function formatLapTime(seconds: number): string {
 }
 
 // Étapes de progression affichées pendant l'analyse
-const ANALYSIS_STEPS = [
-  { icon: Wifi, message: "Connexion au serveur…", duration: 1200 },
-  { icon: Upload, message: "Envoi du fichier…", duration: 1500 },
-  { icon: Brain, message: "L'IA analyse tes points de corde…", duration: 3000 },
-  { icon: BarChart3, message: "Calcul du score de performance…", duration: 2000 },
-  { icon: Target, message: "Génération des graphiques…", duration: 1500 },
-];
 
 // ─── Composant ────────────────────────────────────────────────────────────────
 export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
@@ -132,8 +123,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
-  const [laps, setLaps] = useState<LapInfo[] | null>(null);
-  const [lapsLoading, setLapsLoading] = useState(false);
 
   // Nouveaux champs pour la session
   const [sessionName, setSessionName] = useState<string>(() => {
@@ -145,10 +134,12 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   const [sessionType, setSessionType] = useState<string>("practice");
   const [trackTemperature, setTrackTemperature] = useState<number | "">("");
 
-  // États analyse
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  // États analyse : le calcul tourne hors de la page (tâche de fond), on
+  // peut partir et revenir ; la jauge suit la progression réelle du serveur.
+  const { single } = useBackgroundAnalysis();
+  useEffect(() => watchTask("single"), []);
+  const isAnalyzing = single?.status === "running";
   const [isComplete, setIsComplete] = useState(false);
-  const [analysisStepIndex, setAnalysisStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [showLimitReachedModal, setShowLimitReachedModal] = useState(false);
 
@@ -186,52 +177,36 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       .catch(() => {});
   }, [storageUserId]);
 
-  // ─── Détection des tours (parse-laps) à la sélection du fichier ───────────
+  // ─── Fin d'analyse (y compris si le pilote était parti entre-temps) ──────
+
   useEffect(() => {
-    if (!file) {
-      setLaps(null);
-      setLapsLoading(false);
+    if (!single || single.status === "running") return;
+    if (single.status === "error") {
+      if (single.errorCode === "limit_reached") setShowLimitReachedModal(true);
+      else setError(single.error ?? "Une erreur inattendue s'est produite. Réessaie dans quelques instants.");
+      clearSingle();
       return;
     }
-    let cancelled = false;
-    setLapsLoading(true);
-    setLaps(null);
-    parseLaps(file)
-      .then((res) => {
-        if (cancelled) return;
-        setLaps(res.laps);
-      })
-      .catch(() => {
-        if (!cancelled) setLaps(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLapsLoading(false);
+    const analysisResult = single.result;
+    if (!analysisResult) return;
+    if (tier === "rookie" && limits?.allowed_circuit && analysisResult.session_conditions?.circuit_name && analysisResult.session_conditions.circuit_name !== limits.allowed_circuit) {
+      toast({
+        title: "Circuit restreint",
+        description: `En tant que Rookie, tu ne peux analyser que le circuit ${limits.allowed_circuit}. Cette analyse sera floutée.`,
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [file]);
-
-  // ─── Progression simulée pendant l'analyse ───────────────────────────────
-
-  useEffect(() => {
-    if (!isAnalyzing) {
-      setAnalysisStepIndex(0);
-      return;
     }
-
-    let stepIdx = 0;
-    const advance = () => {
-      if (stepIdx < ANALYSIS_STEPS.length - 1) {
-        stepIdx++;
-        setAnalysisStepIndex(stepIdx);
-        setTimeout(advance, ANALYSIS_STEPS[stepIdx].duration);
-      }
-    };
-
-    const firstTimer = setTimeout(advance, ANALYSIS_STEPS[0].duration);
-    return () => clearTimeout(firstTimer);
-  }, [isAnalyzing]);
+    if (single.savedId) {
+      setSavedAnalysisId(single.savedId);
+      setSaveSuccess(`Analyse sauvegardée automatiquement.`);
+      setTimeout(() => setSaveSuccess(null), 5000);
+    }
+    getAnalysesCount(storageUserId).then(setAnalysesCount).catch(() => {});
+    setResult(analysisResult);
+    setIsComplete(true);
+    onUploadComplete?.(analysisResult);
+    clearSingle();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [single?.status]);
 
   // ─── Drag & drop ──────────────────────────────────────────────────────────
 
@@ -288,14 +263,11 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
 
   const handleReset = () => {
     setFile(null);
-    setLaps(null);
     setIsComplete(false);
-    setIsAnalyzing(false);
     setError(null);
     setResult(null);
     setSavedAnalysisId(null);
     setSaveSuccess(null);
-    setAnalysisStepIndex(0);
     getAnalysesCount(storageUserId)
       .then(setAnalysesCount)
       .catch(() => {});
@@ -391,87 +363,27 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       return;
     }
 
-    setIsAnalyzing(true);
     setError(null);
     setSaveSuccess(null);
-
-    try {
-      // Vérification connexion backend
-      const isConnected = await checkBackendConnection();
-      if (!isConnected) {
-        throw {
-          success: false,
-          error: "backend_unavailable",
-          message: `Serveur inaccessible (${API_BASE_URL}). Vérifie ta connexion ou réessaie dans quelques instants.`,
-        } as ApiError;
-      }
-
-      // Upload + analyse
-      const tempNum =
-        trackTemperature === "" || trackTemperature == null ? undefined : Number(trackTemperature);
-
-      const analysisResult = await uploadAndAnalyzeCSV(file, {
-        lapFilter: undefined, // Analysis operates on full session now
+    const tempNum = trackTemperature === "" || trackTemperature == null ? undefined : Number(trackTemperature);
+    const guest = !isAuthenticated && canUploadFree;
+    startSingle(
+      file,
+      {
         track_condition: trackCondition,
         track_temperature: tempNum ?? undefined,
         session_name: sessionName,
         accessToken: session?.access_token ?? undefined,
-        session_type: sessionType,
-      } as any);
-
-      // 2. Circuit check for Rookie
-      if (
-        tier === "rookie" &&
-        limits?.allowed_circuit &&
-        analysisResult.session_conditions?.circuit_name
-      ) {
-        if (analysisResult.session_conditions.circuit_name !== limits.allowed_circuit) {
-          // If different circuit, we still save it but it will be blurred in results
-          toast({
-            title: "Circuit restreint",
-            description: `En tant que Rookie, tu ne peux analyser que le circuit ${limits.allowed_circuit}. Cette analyse sera floutée.`,
-          });
-        }
+      },
+      {
+        userId: storageUserId,
+        // Fonctions des fournisseurs de l'app : valables même si la page a été quittée.
+        onSaved: () => {
+          if (tier === "rookie") incrementAnalysesUsed();
+          if (guest) consumeGuestSlot();
+        },
       }
-
-      // Auto-save (clé storage = user courant ou guest)
-      let analysisId: string | null = null;
-      try {
-        analysisId = await saveAnalysis(analysisResult, storageUserId);
-        setSavedAnalysisId(analysisId);
-        setSaveSuccess(`Analyse sauvegardée automatiquement.`);
-        setTimeout(() => setSaveSuccess(null), 5000);
-        const count = await getAnalysesCount(storageUserId);
-        setAnalysesCount(count);
-        // L'abonnement est mis à jour localement pour ne pas écraser avec des données potentiellement asynchrones/stales
-        if (tier === "rookie") {
-          incrementAnalysesUsed();
-        }
-      } catch (saveErr) {
-        console.warn("Auto-save failed:", saveErr);
-        // Non bloquant — le bouton "Sauvegarder" restera disponible
-      }
-
-      if (!isAuthenticated && canUploadFree) consumeGuestSlot();
-
-      setResult(analysisResult);
-      setIsAnalyzing(false);
-      setIsComplete(true);
-
-      onUploadComplete?.(analysisResult);
-    } catch (err) {
-      setIsAnalyzing(false);
-      const apiError = err as ApiError;
-      if (apiError?.error === "limit_reached") {
-        setError(null);
-        setShowLimitReachedModal(true);
-      } else {
-        setError(
-          apiError?.message ??
-            "Une erreur inattendue s'est produite. Réessaie dans quelques instants."
-        );
-      }
-    }
+    );
   };
 
   // ─── Helpers UI ──────────────────────────────────────────────────────────
@@ -492,8 +404,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     }
   };
 
-  const currentStep = ANALYSIS_STEPS[analysisStepIndex];
-  const StepIcon = currentStep?.icon ?? Loader2;
 
   // ─── Render ──────────────────────────────────────────────────────────────
 
@@ -753,61 +663,10 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
             {/* Graphiques Recharts — sans wrapper Card */}
             <AnalysisDashboardContent analysis={mapApiResultToResponse(result)} embedded />
           </motion.div>
-        ) : isAnalyzing ? (
-          /* ── État : Analyse en cours ── */
-          <motion.div
-            key="analyzing"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center py-12"
-          >
-            {/* Spinner double ring */}
-            <div className="relative w-24 h-24 mx-auto mb-8">
-              <div className="absolute inset-0 rounded-full border-4 border-muted" />
-              <motion.div
-                className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <StepIcon className="w-8 h-8 text-primary" />
-              </div>
-            </div>
-
-            <h3 className="text-xl font-display font-bold text-foreground mb-2">
-              Analyse en cours…
-            </h3>
-            <p className="text-muted-foreground mb-4">Notre IA analyse tes données de course</p>
-
-            {/* Message d'étape animé */}
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={analysisStepIndex}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.3 }}
-                className="text-sm text-primary font-medium"
-              >
-                {currentStep?.message}
-              </motion.p>
-            </AnimatePresence>
-
-            {/* Barre de progression */}
-            <div className="mt-6 max-w-xs mx-auto">
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-primary rounded-full"
-                  initial={{ width: "5%" }}
-                  animate={{ width: `${((analysisStepIndex + 1) / ANALYSIS_STEPS.length) * 100}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-2 text-right">
-                {Math.round(((analysisStepIndex + 1) / ANALYSIS_STEPS.length) * 100)}%
-              </p>
-            </div>
+        ) : isAnalyzing && single ? (
+          /* ── État : Analyse en cours (progression réelle du serveur) ── */
+          <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <AnalysisProgress progress={single.progress} startedAt={single.startedAt} />
           </motion.div>
         ) : (
           /* ── État : Upload ── */

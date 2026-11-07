@@ -416,7 +416,7 @@ function createTimeoutController(timeoutMs: number): AbortController {
 /**
  * Valide un fichier de télémétrie (CSV ou .xrk) avant upload
  */
-function validateCSVFile(file: File): { valid: boolean; error?: string } {
+export function validateCSVFile(file: File): { valid: boolean; error?: string } {
   // Vérifier extension
   if (!isTelemetryFile(file.name)) {
     return {
@@ -504,13 +504,29 @@ async function parseJSONResponse<T>(response: Response): Promise<T> {
 // API FUNCTIONS
 // ============================================================================
 
+/** Normalise un résultat brut du serveur (clés des virages et des conseils). */
+export function finalizeAnalysisResult(result: AnalysisResult): AnalysisResult {
+  if (Array.isArray(result.corner_analysis)) {
+    result.corner_analysis = (result.corner_analysis as unknown[]).map((c) => mapCornerData(c as Record<string, unknown>));
+  }
+  if (Array.isArray(result.coaching_advice)) {
+    result.coaching_advice = (result.coaching_advice as unknown[]).map((a) => mapAdviceData(a as Record<string, unknown>));
+  }
+  if (!result.success) {
+    throw {
+      success: false,
+      error: "analysis_failed",
+      message: "L'analyse a échoué. Vérifie que le fichier est valide.",
+    } as ApiError;
+  }
+  return result;
+}
+
 /**
- * Upload et analyse un fichier CSV de télémétrie
- *
- * @param file - Fichier CSV à analyser
- * @param options - Optionnel : lapFilter = liste des numéros de tours à inclure
- * @returns Résultats de l'analyse complète
- * @throws ApiError en cas d'erreur
+ * Upload et analyse un fichier de télémétrie, en tâche de fond : dépôt,
+ * numéro de tâche, progression réelle (onProgress), résultat. Si le serveur
+ * n'a pas encore les tâches de fond (déploiement en cours), repli sur
+ * l'ancienne requête unique.
  */
 export async function uploadAndAnalyzeCSV(
   file: File,
@@ -520,19 +536,31 @@ export async function uploadAndAnalyzeCSV(
     track_temperature?: number | null;
     session_name?: string;
     accessToken?: string | null;
+    mode?: "full" | "light";
+    onProgress?: (p: import("./analysisJobs").JobProgress) => void;
+    onJob?: (jobId: string) => void;
   }
 ): Promise<AnalysisResult> {
-  // Validation du fichier
-  const validation = validateCSVFile(file);
-  if (!validation.valid) {
-    throw {
-      success: false,
-      error: "validation",
-      message: validation.error || "Erreur de validation",
-    } as ApiError;
+  const { analyzeInBackground } = await import("./analysisJobs");
+  try {
+    return await analyzeInBackground(file, { ...options }, options?.onProgress, options?.onJob);
+  } catch (e) {
+    if ((e as ApiError)?.error !== "jobs_unavailable") throw e;
+    return legacyAnalyzeCSV(file, options);
   }
+}
 
-  // Créer FormData
+/** Ancienne analyse en une seule requête (repli). */
+async function legacyAnalyzeCSV(
+  file: File,
+  options?: {
+    lapFilter?: number[];
+    track_condition?: string;
+    track_temperature?: number | null;
+    session_name?: string;
+    accessToken?: string | null;
+  }
+): Promise<AnalysisResult> {
   const formData = new FormData();
   formData.append("file", file);
   if (options?.lapFilter && options.lapFilter.length > 0) {
@@ -546,26 +574,10 @@ export async function uploadAndAnalyzeCSV(
   if (options?.track_temperature != null && Number.isFinite(options.track_temperature)) {
     formData.append("track_temperature", String(options.track_temperature));
   }
-  if (options?.session_name) {
-    formData.append("session_name", options.session_name);
-  }
-
-  // Créer controller avec timeout adaptatif
-  // Une séance de 3 Mo prend souvent plus de 45 s (ligne de course, météo,
-  // coaching) : l'ancien délai coupait des analyses qui allaient aboutir.
-  let timeoutMs = 120000;
-  if (file.size > 20 * 1024 * 1024) {
-    timeoutMs = 240000;
-  } else if (file.size > 2 * 1024 * 1024) {
-    timeoutMs = 180000;
-  }
-  const controller = createTimeoutController(timeoutMs);
-
+  if (options?.session_name) formData.append("session_name", options.session_name);
+  const controller = createTimeoutController(file.size > 2 * 1024 * 1024 ? 180000 : 120000);
   const headers: Record<string, string> = {};
-  if (options?.accessToken) {
-    headers["Authorization"] = `Bearer ${options.accessToken}`;
-  }
-
+  if (options?.accessToken) headers["Authorization"] = `Bearer ${options.accessToken}`;
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/analyze`, {
       method: "POST",
@@ -573,69 +585,26 @@ export async function uploadAndAnalyzeCSV(
       signal: controller.signal,
       headers: Object.keys(headers).length ? headers : undefined,
     });
-
-    // Gérer erreurs HTTP
     if (!response.ok) {
       let errorData: ApiError;
-
       try {
         const errorJson = await parseJSONResponse<{ detail?: ApiError } & ApiError>(response);
         const d = errorJson.detail ?? errorJson;
         const isRateLimit = response.status === 429;
-        const defaultMsg = typeof d.error === "string" && !d.message ? d.error : d.message;
-
         errorData = {
           success: false,
           error: isRateLimit ? "rate_limit" : d.error || "http_error",
-          message: isRateLimit
-            ? "Limite de requêtes atteinte. Patiente un instant avant de réessayer."
-            : defaultMsg || `Erreur HTTP ${response.status}`,
+          message: isRateLimit ? "Limite de requêtes atteinte. Patiente un instant avant de réessayer." : d.message || `Erreur HTTP ${response.status}`,
           details: d.details,
         };
       } catch {
-        // Si pas de JSON, créer erreur générique
-        errorData = {
-          success: false,
-          error: "http_error",
-          message: `Erreur serveur (${response.status}): ${response.statusText}`,
-        };
+        errorData = { success: false, error: "http_error", message: `Erreur serveur (${response.status}): ${response.statusText}` };
       }
-
       throw errorData;
     }
-
-    // Parser réponse JSON
-    const result = await parseJSONResponse<AnalysisResult>(response);
-
-    // Normaliser les clés backend (corner_type, apex_distance_error, time_lost)
-    if (Array.isArray(result.corner_analysis)) {
-      result.corner_analysis = (result.corner_analysis as unknown[]).map((c) =>
-        mapCornerData(c as Record<string, unknown>)
-      );
-    }
-    if (Array.isArray(result.coaching_advice)) {
-      result.coaching_advice = (result.coaching_advice as unknown[]).map((a) =>
-        mapAdviceData(a as Record<string, unknown>)
-      );
-    }
-
-    // Vérifier que la réponse contient success: true
-    if (!result.success) {
-      throw {
-        success: false,
-        error: "analysis_failed",
-        message: "L'analyse a échoué. Vérifie que le fichier est valide.",
-      } as ApiError;
-    }
-
-    return result;
+    return finalizeAnalysisResult(await parseJSONResponse<AnalysisResult>(response));
   } catch (error) {
-    // Si c'est déjà une ApiError, la relancer
-    if (error && typeof error === "object" && "success" in error && error.success === false) {
-      throw error;
-    }
-
-    // Sinon, gérer comme erreur fetch
+    if (error && typeof error === "object" && "success" in error && error.success === false) throw error;
     throw handleFetchError(error, "l'envoi et l'analyse du fichier");
   }
 }
