@@ -118,9 +118,12 @@ export function apexTable(
   doc: jsPDF,
   y: number,
   head: string[],
-  body: (string | number)[][]
+  body: (string | number)[][],
+  extra: Record<string, unknown> = {}
 ): number {
+  const { styles: extraStyles, ...rest } = extra as { styles?: Record<string, unknown> };
   autoTable(doc, {
+    ...rest,
     startY: y,
     head: [head],
     body: body.map((r) => r.map(String)),
@@ -131,6 +134,7 @@ export function apexTable(
       textColor: PDF_COLORS.text,
       lineColor: PDF_COLORS.line,
       lineWidth: { bottom: 0.2 },
+      ...(extraStyles || {}),
     },
     headStyles: {
       fillColor: PDF_COLORS.black,
@@ -318,6 +322,12 @@ export function addApexPage(doc: jsPDF, opts: PdfHeaderOpts): number {
 
 /** Signature officielle + pagination sur toutes les pages, puis sauvegarde. */
 export function finalizeAndSave(doc: jsPDF, filename: string): void {
+  finalizeDoc(doc);
+  doc.save(filename);
+}
+
+/** Signature officielle + pagination sur toutes les pages. */
+export function finalizeDoc(doc: jsPDF): void {
   const pageCount = (doc as any).internal.getNumberOfPages();
   const pageH = doc.internal.pageSize.height;
   for (let i = 1; i <= pageCount; i++) {
@@ -341,5 +351,4 @@ export function finalizeAndSave(doc: jsPDF, filename: string): void {
       { align: "right" }
     );
   }
-  doc.save(filename);
 }

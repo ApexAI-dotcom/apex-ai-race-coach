@@ -93,7 +93,7 @@ import { TrackMap } from "@/components/analysis/TrackMap";
 import { PageMeta } from "@/components/seo/PageMeta";
 import { Helmet } from "react-helmet-async";
 import { ADMIN_EMAIL } from "@/constants";
-import { exportAnalysisReportPDF, captureAnalysisCharts } from "@/lib/pdf/analysisReport";
+import { exportAnalysisReportPDF } from "@/lib/pdf/analysisReport";
 import { toast } from "sonner";
 import { PitCard, Slant } from "@/components/home/paddock/motion";
 import { formatLap } from "@/components/home/paddock/format";
@@ -1255,8 +1255,7 @@ export default function Dashboard() {
                         });
                         try {
                           await new Promise((r) => setTimeout(r, 50));
-                          const charts = await captureAnalysisCharts();
-                          exportAnalysisReportPDF(mapApiResultToResponse(selectedAnalysis), { charts });
+                          exportAnalysisReportPDF(mapApiResultToResponse(selectedAnalysis));
                         } catch {
                           toast.error("Le rapport PDF n'a pas pu être généré.");
                         } finally {

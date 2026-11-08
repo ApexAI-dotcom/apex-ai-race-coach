@@ -66,7 +66,7 @@ import {
   type AnalysisResult,
   type ApiError,
 } from "@/lib/api";
-import { exportAnalysisReportPDF, captureAnalysisCharts } from "@/lib/pdf/analysisReport";
+import { exportAnalysisReportPDF } from "@/lib/pdf/analysisReport";
 import { saveAnalysis, getAnalysesCount } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription.tsx";
@@ -309,8 +309,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     try {
       // Laisse le toast s'afficher avant le travail synchrone lourd
       await new Promise((r) => setTimeout(r, 50));
-      const charts = await captureAnalysisCharts();
-      exportAnalysisReportPDF(result, { charts });
+      exportAnalysisReportPDF(result);
     } catch (e) {
       toast({
         title: "Erreur PDF",
