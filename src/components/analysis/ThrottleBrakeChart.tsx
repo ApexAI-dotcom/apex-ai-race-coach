@@ -157,7 +157,7 @@ export function ThrottleBrakeChart({
                   }}
                   itemStyle={{ color: "hsl(var(--foreground))" }}
                   labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-                  formatter={(value: number) => [`${value}%`, ""]}
+                  formatter={(value: number, name: string) => [`${value}%`, String(name)]}
                   labelFormatter={(label) => `Position : ${Math.round(Number(label) - lapStart)} m`}
                 />
                 <Legend />
@@ -234,7 +234,7 @@ export function ThrottleBrakeChart({
                 }}
                 itemStyle={{ color: "hsl(var(--foreground))" }}
                 labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-                formatter={(value: number) => [`${value}%`, ""]}
+                formatter={(value: number, name: string) => [`${value}%`, String(name)]}
               />
               <Legend />
               {activeLaps.map((lap, idx) => {

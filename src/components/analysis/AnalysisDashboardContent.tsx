@@ -11,6 +11,7 @@ import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { TrackMapPro } from "./TrackMapPro";
 import { FloatingMiniMap } from "./FloatingMiniMap";
+import { withPedalEstimate } from "@/lib/pedalEstimate";
 import { BrakingPanel } from "./BrakingPanel";
 import { CoachingAdvice } from "./CoachingAdvice";
 import { LapReportPanel } from "./LapReportPanel";
@@ -274,8 +275,11 @@ export function AnalysisDashboardContent({
     : "text-xl font-bold text-foreground mb-4";
   const fallbackTextClass = "text-muted-foreground text-sm";
 
+  // Anciennes analyses : accélérateur / frein recalculés avec la lecture actuelle.
+  const pedalPlot = useMemo(() => withPedalEstimate(plotData), [plotData]);
+  const pedalsEstimated = pedalPlot?.throttle_brake?.source !== "capteurs";
   const hasThrottleBrake =
-    plotData?.throttle_brake?.laps?.[0]?.throttle_pct?.some((v: number) => v > 10) ?? false;
+    pedalPlot?.throttle_brake?.laps?.[0]?.throttle_pct?.some((v: number) => v > 10) ?? false;
 
   let ctaShown = false;
   const circuitName = analysis.session_conditions?.circuit_name;
@@ -479,8 +483,13 @@ export function AnalysisDashboardContent({
                     franches entre frein et gaz. Évite de garder du frein en phase de
                     réaccélération pour ne pas étouffer le moteur.
                   </p>
+                  {pedalsEstimated && (
+                    <p className="text-[11px] text-muted-foreground/80 mb-3">
+                      Ton boîtier n'a pas de capteur de pédale : gaz et frein sont lus sur l'accélération et le régime moteur, comme dans Race Studio. 100 % = le maximum que tu obtiens à cette vitesse.
+                    </p>
+                  )}
                   <ThrottleBrakeChart
-                    data={plotData.throttle_brake}
+                    data={pedalPlot.throttle_brake}
                     selectedLaps={selectedLapNumbers}
                     circuitName={circuitName}
                     hideCta={currentHideCta}

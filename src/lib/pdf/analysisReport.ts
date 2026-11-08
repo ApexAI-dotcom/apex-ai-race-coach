@@ -13,6 +13,7 @@
  *  4. Plan de séance — les conseils détaillés et la place pour noter.
  */
 import type jsPDF from "jspdf";
+import { withPedalEstimate } from "../pedalEstimate";
 import { addApexPage, apexTable, createApexDoc, finalizeAndSave, finalizeDoc, notesArea, PDF_COLORS } from "./apexPdf";
 
 type RGB = [number, number, number];
@@ -611,11 +612,11 @@ export function buildAnalysisReport(analysis: any): { doc: jsPDF; filename: stri
       }
     }
 
-    const tb = a.plot_data?.throttle_brake?.laps;
+    const tb = withPedalEstimate(a.plot_data)?.throttle_brake?.laps;
     const thr = lapSeries(tb, bestNo, "throttle_pct");
     const brk = lapSeries(tb, bestNo, "brake_pct");
     if (thr && brk) {
-      y = heading(doc, y + 2, "Gaz et frein", `tour ${bestNo} · vert : gaz · rouge : frein`);
+      y = heading(doc, y + 2, "Gaz et frein", `tour ${bestNo} · vert : gaz · rouge : frein · lus sur l'accélération et le régime`);
       const len = Math.max(...thr.d);
       lineChart(
         doc,
