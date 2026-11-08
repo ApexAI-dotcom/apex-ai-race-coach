@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type RefObject } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import type { TrajectoryLap } from "@/types/analysis";
 import { indexAtFraction, useAnalysisCursor } from "./analysisCursor";
@@ -57,7 +58,11 @@ export function FloatingMiniMap({ lap, mapRef }: { lap?: TrajectoryLap; mapRef: 
   const dot = show && geo ? geo.pts[indexAtFraction(geo.fracs, cursor!.frac)] : null;
   const speed = show && geo && lap?.speed_kmh ? lap.speed_kmh[Math.round(cursor!.frac * (lap.speed_kmh.length - 1))] : null;
 
-  return (
+  // Rendue dans <body> : un parent animé (transform) ferait de `fixed` un
+  // positionnement relatif à lui, et la mini-carte sortirait de l'écran
+  // (c'était le cas dans Analyser sur ordinateur).
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <AnimatePresence>
       {show && geo && dot && (
         <motion.div
@@ -83,6 +88,7 @@ export function FloatingMiniMap({ lap, mapRef }: { lap?: TrajectoryLap; mapRef: 
           )}
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
