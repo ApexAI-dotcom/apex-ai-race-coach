@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { BookOpen, Package, Trash2 } from "lucide-react";
+import { BookOpen, ChevronRight, Package, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -29,8 +29,8 @@ const hm = (h: number) => {
 
 /**
  * Carnet d'entretien : UN seul endroit pour l'historique du kart, en trois
- * onglets (interventions, pièces montées, journées de roulage), avec le
- * catalogue des pièces à portée de main. Remplace quatre blocs séparés
+ * onglets (interventions, mes pièces, journées de roulage), et le catalogue
+ * des pièces en bas, présenté comme un outil et non comme un titre. Remplace quatre blocs séparés
  * (journal, pièces montées, entretien conseillé, historique des journées).
  */
 export function KartLogbook({
@@ -56,26 +56,23 @@ export function KartLogbook({
 
   return (
     <Card className="rounded-2xl border border-border bg-card shadow-sm">
-      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-2">
+      <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <BookOpen className="h-5 w-5 text-primary" />
           Carnet d'entretien
         </CardTitle>
-        <Button size="sm" variant="ghost" className="h-8 gap-1.5 text-muted-foreground hover:text-foreground" onClick={() => setCatalogOpen(true)}>
-          <Package className="h-4 w-4" /> Catalogue des pièces
-        </Button>
       </CardHeader>
       <CardContent>
         <Tabs value={tab} onValueChange={onTabChange} className="w-full">
           <TabsList className="mb-4 grid h-auto w-full grid-cols-3">
             <TabsTrigger value="interventions" className="py-2 text-xs sm:text-sm">Interventions</TabsTrigger>
-            <TabsTrigger value="parts" className="py-2 text-xs sm:text-sm">Pièces montées</TabsTrigger>
+            <TabsTrigger value="parts" className="py-2 text-xs sm:text-sm">Mes pièces</TabsTrigger>
             <TabsTrigger value="days" className="py-2 text-xs sm:text-sm">Journées</TabsTrigger>
           </TabsList>
 
           <TabsContent value="interventions" className="mt-0">{interventions}</TabsContent>
 
-          <TabsContent value="parts" className="mt-0 space-y-6">{parts}</TabsContent>
+          <TabsContent value="parts" className="mt-0">{parts}</TabsContent>
 
           <TabsContent value="days" className="mt-0">
             {days.length === 0 ? (
@@ -116,6 +113,20 @@ export function KartLogbook({
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Le catalogue : un outil, pas un titre. Sous les onglets, à part. */}
+        <button
+          type="button"
+          onClick={() => setCatalogOpen(true)}
+          className="mt-5 flex w-full items-center gap-3 rounded-xl border border-dashed border-white/15 bg-muted/20 px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-muted/40"
+        >
+          <Package className="h-5 w-5 shrink-0 text-muted-foreground" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-medium text-foreground">Ouvrir le catalogue des pièces</span>
+            <span className="block text-xs text-muted-foreground">Trouve une pièce, lis son entretien constructeur et ajoute-la à ton kart.</span>
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
       </CardContent>
 
       <Dialog open={catalogOpen} onOpenChange={setCatalogOpen}>

@@ -2,14 +2,53 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { getPart, type CatalogPart } from "@/lib/api";
-import { intervalLabel, KIND_LABELS, KIND_STYLES, lifeLabel, sortMaintenance, specRows } from "./partFormat";
+import { getPart, type CatalogPart, type PartMaintenance } from "@/lib/api";
+import { intervalLabel, lifeLabel, maintenanceSources, sortMaintenance, specRows } from "./partFormat";
 
-export function KindBadge({ kind }: { kind: string }) {
+/**
+ * Opérations d'entretien du constructeur : quoi, quand, et le document d'où
+ * ça vient (avec la page). Pas d'échéance inventée, pas de case vide.
+ */
+export function MaintenanceList({ part, items, limit }: { part: CatalogPart; items: PartMaintenance[]; limit?: number }) {
+  const sorted = sortMaintenance(items);
+  const shown = limit ? sorted.slice(0, limit) : sorted;
+  const sources = maintenanceSources(part, shown);
   return (
-    <span className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${KIND_STYLES[kind] ?? "border-border text-muted-foreground"}`}>
-      {KIND_LABELS[kind] ?? kind}
-    </span>
+    <div className="space-y-2">
+      <ul className="divide-y divide-border rounded-xl border border-border">
+        {shown.map((m, i) => (
+          <li key={i} className="grid grid-cols-1 items-start gap-x-3 px-3 py-2.5 text-sm sm:grid-cols-[1fr_auto]">
+            <span className="min-w-0">
+              <span className="block font-medium text-foreground">{m.element}</span>
+              <span className="block text-xs font-medium text-foreground/90 sm:hidden">{intervalLabel(m)}</span>
+              <span className="block text-xs text-muted-foreground">
+                {m.action}
+                {m.usage && m.usage !== "tous" ? ` · en ${m.usage}` : ""}
+              </span>
+            </span>
+            <span className="hidden max-w-[11rem] text-right text-xs font-medium tabular-nums text-foreground sm:block">{intervalLabel(m)}</span>
+          </li>
+        ))}
+      </ul>
+      {sources.length > 0 && (
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          Source :{" "}
+          {sources.map((s, i) => (
+            <span key={s.label}>
+              {i > 0 ? " ; " : ""}
+              {s.url ? (
+                <a href={s.url} target="_blank" rel="noreferrer" className="underline decoration-white/20 underline-offset-2 hover:text-foreground">
+                  {s.label}
+                </a>
+              ) : (
+                s.label
+              )}
+              {s.refs.length ? `, ${s.refs.join(", ")}` : ""}
+            </span>
+          ))}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -74,7 +113,7 @@ export function PartDetailDialog({
               <dl className="grid grid-cols-1 gap-x-4 gap-y-2 rounded-xl border border-border p-3 text-sm sm:grid-cols-2">
                 {life && (
                   <div>
-                    <dt className="text-xs text-muted-foreground">{part.category === "tire" ? "Durée de vie de départ" : "Avant révision"}</dt>
+                    <dt className="text-xs text-muted-foreground">Avant révision (manuel)</dt>
                     <dd className="font-medium tabular-nums">{life}</dd>
                   </div>
                 )}
@@ -92,24 +131,7 @@ export function PartDetailDialog({
             {part.maintenance && part.maintenance.length > 0 && (
               <section>
                 <h3 className="mb-2 text-sm font-semibold">Entretien</h3>
-                <ul className="divide-y divide-border rounded-xl border border-border">
-                  {sortMaintenance(part.maintenance).map((m, i) => (
-                    <li key={i} className="flex items-start justify-between gap-3 px-3 py-2 text-sm">
-                      <span className="min-w-0">
-                        <span className="block font-medium">{m.element}</span>
-                        <span className="block text-xs text-muted-foreground">
-                          {m.action}
-                          {m.usage && m.usage !== "tous" ? ` · ${m.usage}` : ""}
-                          {m.ref ? ` · ${m.ref}` : ""}
-                        </span>
-                      </span>
-                      <span className="flex shrink-0 flex-col items-end gap-1">
-                        <span className="tabular-nums">{intervalLabel(m)}</span>
-                        <KindBadge kind={m.kind} />
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <MaintenanceList part={part} items={part.maintenance} />
               </section>
             )}
 
@@ -118,8 +140,7 @@ export function PartDetailDialog({
                 <h3 className="mb-2 text-sm font-semibold">Sources</h3>
                 <ul className="space-y-1.5 text-xs">
                   {part.sources.map((s) => (
-                    <li key={s.key} className="flex items-start gap-2">
-                      <KindBadge kind={s.type} />
+                    <li key={s.key}>
                       {s.url ? (
                         <a href={s.url} target="_blank" rel="noreferrer" className="inline-flex items-start gap-1 text-muted-foreground hover:text-foreground">
                           {s.label}
@@ -132,7 +153,7 @@ export function PartDetailDialog({
                   ))}
                 </ul>
                 <p className="mt-3 text-[11px] text-muted-foreground/80">
-                  Valeurs relevées dans les documents cités. Une valeur qu'aucun document ne donne n'est pas estimée ; les estimations héritées sont signalées.
+                  Chaque valeur vient d'un document cité. Quand le constructeur ne donne pas d'échéance, ApexAI n'en invente pas : c'est toi qui la fixes.
                 </p>
               </section>
             )}

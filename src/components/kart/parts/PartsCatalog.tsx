@@ -3,8 +3,8 @@ import { Loader2, Search, Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { searchParts, type CatalogPart } from "@/lib/api";
-import { KindBadge, PartDetailDialog } from "./PartDetailDialog";
-import { lifeLabel, trustBadges } from "./partFormat";
+import { PartDetailDialog } from "./PartDetailDialog";
+import { lifeLabel } from "./partFormat";
 
 const MAIN = ["engine", "tire", "chassis", "brake", "carburetor", "axle", "spark_plug", "engine_part", "clutch", "lubricant", "sprocket"];
 
@@ -116,11 +116,6 @@ export function PartsCatalog({ onFit, embedded = false }: { onFit?: (part: Catal
                   </span>
                   <span className="flex shrink-0 flex-col items-end gap-1">
                     {life && <span className="text-xs tabular-nums text-foreground">{life}</span>}
-                    <span className="flex gap-1">
-                      {trustBadges(p).slice(0, 1).map((k) => (
-                        <KindBadge key={k} kind={k} />
-                      ))}
-                    </span>
                   </span>
                 </button>
               </li>

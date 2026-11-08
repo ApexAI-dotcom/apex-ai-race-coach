@@ -170,15 +170,15 @@ for eid, element, action, interval, unit, usage, s, ref in MAINTENANCE:
     add(eid, "engine", "", "", maintenance=[mnt(element, action, interval, unit, usage, s, ref)])
 
 # Durée avant révision retenue par l'app (heures moteur) et ce qu'en disent les sources.
-add("rotax-dd2", "engine", "Rotax", "125 MAX DD2", life=25, unit="hours", src=["apexai_pilotes", "kp_rotax"],
-    notes="Révision haut et bas moteur vers 25 h selon les pilotes ApexAI. Le manuel prévoit un démontage complet en centre agréé Rotax (50 h pour la famille 125 MAX evo).",
+add("rotax-dd2", "engine", "Rotax", "125 MAX DD2", src=["rotax_dd2_2024"],
+    notes="Le manuel Rotax impose un démontage et contrôle complet du moteur (piston, axe, bielle, roulements de vilebrequin) dans un centre agréé Rotax. Règle l'échéance de ta jauge moteur avec ton centre.",
     maintenance=[
         mnt("Moteur (haut et bas)", "Révision", 25, "heures", "compétition", "apexai_pilotes"),
         mnt("Haut moteur", "Révision", "15 à 20", "heures", "compétition", "kp_rotax"),
         mnt("Moteur complet", "Réfection", "40 à 50", "heures", "compétition", "kp_rotax"),
     ])
 for eid in ("rotax-max-125", "rotax-junior"):
-    add(eid, "engine", "Rotax", "", life=25, unit="hours", src=["apexai_pilotes", "kp_rotax"],
+    add(eid, "engine", "Rotax", "", life=50, unit="hours", src=["rotax_evo_2016"],
         notes="Constructeur : démontage et contrôle complet toutes les 50 h en centre agréé. En compétition, les pilotes révisent le haut moteur bien avant (15 à 25 h).",
         maintenance=[
             mnt("Haut moteur", "Révision", "15 à 20", "heures", "compétition", "kp_rotax"),
@@ -582,9 +582,65 @@ add("iame-x30-cooling", "cooling", "IAME", "Circuit de refroidissement X30", spe
 
 
 # ======================================================================= SORTIE
+# Règle ApexAI (8 nov. 2026) : dans l'app, l'entretien et les durées avant
+# révision viennent UNIQUEMENT des documents du constructeur, chacun relié à sa
+# source. Les avis de pilotes (forums, retours recueillis) et les valeurs
+# usuelles sans document servaient à comprendre le terrain : ils ne sont pas
+# servis aux pilotes.
+UNSERVED_SOURCES = ("retour pilotes", "base ApexAI")
+LIFE_UNIT_OF = {"hours": "heures", "litres": "litres de mélange", "laps": "tours"}
+UNSOURCED_NOTE = re.compile(r"pilote|catalogue d'origine|valeur usuelle|à confirmer|préparateurs", re.I)
+NO_INTERVAL_ENGINE = "Pas d'intervalle d'entretien publié par le constructeur : règle l'échéance de ta jauge moteur avec ton préparateur."
+
+
+def _num(v):
+    try:
+        return float(str(v).replace(",", "."))
+    except (TypeError, ValueError):
+        return None
+
+
+def _manufacturer_only(e: dict) -> None:
+    e["maintenance"] = [
+        {**m, "kind": "constructeur"}
+        for m in e["maintenance"]
+        if SRC[m["source"]][2] == "constructeur" and str(m["interval"] or "").strip() and m["interval"] != "tableau du manuel"
+    ]
+    for m in e["maintenance"]:
+        if m["source"] not in e["sources"]:
+            e["sources"].append(m["source"])
+    if e["category"] == "tire" and any(SRC[k][2] in UNSERVED_SOURCES for k in e["sources"]):
+        e["notes"] = None  # ressenti de grip relevé sur les forums
+    e["sources"] = [k for k in e["sources"] if SRC[k][2] not in UNSERVED_SOURCES]
+    # Durée avant révision : seulement si une opération du constructeur la donne.
+    ref = None
+    if e["default_life"] is not None:
+        same = [m for m in e["maintenance"] if _num(m["interval"]) == _num(e["default_life"])
+                and m["unit"] == LIFE_UNIT_OF.get(e["life_unit"])]
+        same.sort(key=lambda m: 0 if re.match(r"(moteur|piston)", m["element"], re.I) else 1)
+        ref = same[0] if same else None
+        if ref is None:
+            e["default_life"], e["life_unit"] = None, None
+    e["life_ref"] = (
+        {"source": ref["source"], "label": SRC[ref["source"]][0], "url": SRC[ref["source"]][1], "ref": ref["ref"]} if ref else None
+    )
+    if e["notes"]:
+        kept = [p for p in re.split(r"(?<=[.!?])\s+", e["notes"]) if p and not UNSOURCED_NOTE.search(p)]
+        note = re.sub(r"^Constructeur\s*:\s*", "", " ".join(kept)).strip()
+        if re.match(r"(Aucun|Pas d')\s*intervalle constructeur", note):
+            note = ""
+        e["notes"] = (note[:1].upper() + note[1:]) or None
+    if e["category"] == "engine" and e["default_life"] is None and not e["notes"]:
+        e["notes"] = NO_INTERVAL_ENGINE
+
+
 def finalize() -> list[dict]:
     out = []
     for e in ITEMS.values():
+        _manufacturer_only(e)
+        if e["category"] == "engine_part" and not e["maintenance"] and e["default_life"] is None:
+            print("retirée (aucune donnée constructeur) :", e["id"])
+            continue
         if not e["brand"] or not e["name"]:
             # Fiche existante en base complétée seulement : le nom vient de la base.
             e["brand"] = e["brand"] or None

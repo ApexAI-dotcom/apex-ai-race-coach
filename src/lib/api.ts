@@ -1633,6 +1633,8 @@ export interface CatalogPart {
   specs?: Record<string, any>;
   default_life?: number | null;
   life_unit?: string | null;
+  /** Document du constructeur qui donne la durée avant révision (sinon : simple valeur de départ). */
+  life_ref?: { source: string; label: string; url?: string | null; ref?: string | null } | null;
   in_db?: boolean;
   uses?: string[];
   aliases?: string[];

@@ -94,7 +94,7 @@ MAINTENANCE = [
     # Rotax DD2
     ("rotax-dd2", "Huile de boîte", "Remplacer après les 5 premières heures, puis contrôler toutes les 5 h", 5, H, "tous", "rotax_dd2_2024", "ch. 4 p. 8"),
     ("rotax-dd2", "Moteur complet (piston, axe, bielle, roulements)", "Démontage et contrôle par un centre agréé Rotax (intervalle : tableau du manuel)", "", "", "tous", "rotax_dd2_2024", "ch. 4 p. 8"),
-    ("rotax-dd2", "Filtre à air", "Nettoyer et huiler ; kit de nettoyage après chaque séance sous la pluie", "", "", "tous", "rotax_dd2_2024", "ch. 4 p. 8"),
+    ("rotax-dd2", "Filtre à air", "Nettoyer avec le kit de nettoyage, huiler, remplacer s'il est abîmé", "après chaque séance sous la pluie", "", "tous", "rotax_dd2_2024", "ch. 4 p. 8"),
     # Vortex ROK GP
     ("vortex-rok", "Piston", "Remplacer", 30, H, "tous", "vortex_rokgp", "§5.1 p. 28"),
     ("vortex-rok", "Bielle", "Remplacer (90 h au tableau, 60 h au §5.14 : retenir 60 h)", 60, H, "tous", "vortex_rokgp", "§5.1 et §5.14"),

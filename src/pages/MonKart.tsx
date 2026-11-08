@@ -11,8 +11,8 @@ import { KartMaintenanceLog } from "@/components/kart/KartMaintenanceLog";
 import { GarageHeader } from "@/components/kart/GarageHeader";
 import { KartIdentityCard } from "@/components/kart/KartIdentityCard";
 import { TireStockCard } from "@/components/kart/TireStockCard";
-import { EngineMaintenanceCard } from "@/components/kart/parts/EngineMaintenanceCard";
-import { MountedPartsCard, toMountedPart, type MountedParts } from "@/components/kart/parts/MountedPartsCard";
+import { KartPartsList } from "@/components/kart/parts/KartPartsList";
+import { toMountedPart, type MountedParts } from "@/components/kart/parts/MountedPartsCard";
 import { WearGauge } from "@/components/kart/WearGauge";
 import { KartHealthStatus } from "@/components/kart/KartHealthStatus";
 import { KartTodoCard } from "@/components/kart/KartTodoCard";
@@ -220,7 +220,8 @@ export default function MonKart() {
     const field = ({ "engine|hours": "engine_hours_life", "tires|laps": "tires_laps_life", "brakes|laps": "brakes_sessions_life", "chain|hours": "chain_hours_life" } as Record<string, string>)[
       `${component}|${part.life_unit}`
     ];
-    if (field && part.default_life) {
+    // Seule une durée donnée par le constructeur règle la jauge ; sinon le pilote garde la sienne.
+    if (field && part.default_life && part.life_ref) {
       try {
         await api.updateKartProfile(token, { [field]: part.default_life } as Partial<KartProfile>);
       } catch {
@@ -445,15 +446,13 @@ export default function MonKart() {
                 }
                 parts={
                   prof && (
-                    <>
-                      <EngineMaintenanceCard
-                        embedded
-                        engineLabel={prof.engine_model}
-                        hoursLife={prof.engine_hours_life}
-                        onApplyLife={(h) => handleUpdateCounter("engine_hours_life", h)}
-                      />
-                      <MountedPartsCard embedded parts={prof.setup_json?.mounted_parts || {}} onFit={openFit} />
-                    </>
+                    <KartPartsList
+                      engineLabel={prof.engine_model}
+                      engineHoursLife={prof.engine_hours_life}
+                      mounted={prof.setup_json?.mounted_parts || {}}
+                      onApplyEngineLife={(h) => handleUpdateCounter("engine_hours_life", h)}
+                      onFit={openFit}
+                    />
                   )
                 }
               />

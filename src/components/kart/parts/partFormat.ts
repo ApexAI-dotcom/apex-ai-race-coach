@@ -1,26 +1,5 @@
 import type { CatalogPart, PartMaintenance } from "@/lib/api";
 
-/** Nature d'une source, telle qu'on l'affiche au pilote. */
-export const KIND_LABELS: Record<string, string> = {
-  constructeur: "Constructeur",
-  "retour pilotes": "Pilotes",
-  règlement: "Règlement",
-  homologation: "Homologation",
-  "presse spécialisée": "Presse",
-  revendeur: "Revendeur",
-  "base ApexAI": "Estimation",
-};
-
-export const KIND_STYLES: Record<string, string> = {
-  constructeur: "border-primary/30 bg-primary/10 text-primary",
-  "retour pilotes": "border-white/15 bg-white/5 text-foreground",
-  règlement: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
-  homologation: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
-  "presse spécialisée": "border-border bg-muted text-muted-foreground",
-  revendeur: "border-border bg-muted text-muted-foreground",
-  "base ApexAI": "border-amber-500/30 bg-amber-500/10 text-amber-500",
-};
-
 const SPEC_LABELS: Record<string, string> = {
   displacement_cc: "Cylindrée (cm³)",
   stroke: "Cycle",
@@ -77,24 +56,32 @@ export function specRows(part: CatalogPart): [string, string][] {
 
 const UNIT_SHORT: Record<string, string> = { hours: "h", laps: "tours", sessions: "séances", litres: "L de mélange" };
 
+/** Durée avant révision, seulement quand le constructeur la donne. */
 export function lifeLabel(part: CatalogPart): string | null {
-  if (part.default_life == null) return null;
+  if (part.default_life == null || !part.life_ref) return null;
   return `${String(part.default_life).replace(".", ",")} ${UNIT_SHORT[part.life_unit || ""] ?? part.life_unit ?? ""}`.trim();
 }
 
+/** Quand faire l'opération, en clair : « Toutes les 5 h », « Avant chaque roulage ». */
 export function intervalLabel(m: PartMaintenance): string {
-  if (m.interval == null || m.interval === "") return "—";
-  const unit = m.unit === "heures" ? "h" : m.unit || "";
-  return typeof m.interval === "number" || /^[\d≈ à,.]+$/.test(String(m.interval))
-    ? `${m.interval} ${unit}`.trim()
-    : String(m.interval);
+  if (m.interval == null || m.interval === "") return "";
+  const unit = m.unit === "heures" ? "h" : m.unit === "séance" ? "séances" : m.unit || "";
+  const v = String(m.interval).replace(".", ",");
+  if (typeof m.interval === "number" || /^[\d≈ à,.]+$/.test(v)) return `Toutes les ${v} ${unit}`.trim();
+  return v.charAt(0).toUpperCase() + v.slice(1);
 }
 
-/** Badges de confiance d'une fiche : d'où viennent ses données. */
-export function trustBadges(part: CatalogPart): string[] {
-  const order = ["constructeur", "règlement", "homologation", "retour pilotes", "presse spécialisée", "revendeur", "base ApexAI"];
-  const types = part.source_types || [];
-  return order.filter((t) => types.includes(t)).slice(0, 3);
+/** Les documents cités par une liste d'opérations, avec leurs pages. */
+export function maintenanceSources(part: CatalogPart, items: PartMaintenance[]): { label: string; url?: string | null; refs: string[] }[] {
+  const out = new Map<string, { label: string; url?: string | null; refs: string[] }>();
+  for (const m of items) {
+    const s = (part.sources || []).find((x) => x.key === m.source);
+    if (!s) continue;
+    const e = out.get(s.key) ?? { label: s.label, url: s.url, refs: [] };
+    if (m.ref && !e.refs.includes(m.ref)) e.refs.push(m.ref);
+    out.set(s.key, e);
+  }
+  return [...out.values()];
 }
 
 /** Ordre de lecture : avant / après chaque roulage, puis les intervalles croissants. */

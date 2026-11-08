@@ -161,7 +161,7 @@ export function KartMaintenanceLog({
                     <input type="checkbox" className="mt-0.5" checked={resetCounter} onChange={(e) => setResetCounter(e.target.checked)} />
                     <span>
                       Remettre le compteur d'usure à zéro
-                      {part.default_life ? ` (durée de vie du catalogue : ${part.default_life} ${part.life_unit === "laps" ? "tours" : part.life_unit === "hours" ? "h" : part.life_unit ?? ""})` : ""}
+                      {part.default_life && part.life_ref ? ` (durée conseillée par le manuel : ${part.default_life} ${part.life_unit === "laps" ? "tours" : part.life_unit === "hours" ? "h" : part.life_unit ?? ""})` : ""}
                     </span>
                   </label>
                 )}
