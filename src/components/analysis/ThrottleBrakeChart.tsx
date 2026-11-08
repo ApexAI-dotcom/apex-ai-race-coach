@@ -32,6 +32,8 @@ interface ThrottleBrakeChartProps {
   circuitName?: string | null;
   hideCta?: boolean;
   cornerOverlays?: CornerOverlay[];
+  /** Phases de pilotage (sans capteur de pédale) : gaz / frein / roue libre, pas de pourcentage. */
+  phases?: boolean;
 }
 
 const LAP_COLORS = ["#f97316", "#e5e5e5", "#ef4444", "#f59e0b", "#a3a3a3", "#fdba74", "#737373"];
@@ -42,7 +44,11 @@ export function ThrottleBrakeChart({
   circuitName = null,
   hideCta = false,
   cornerOverlays = [],
+  phases = false,
 }: ThrottleBrakeChartProps) {
+  const yTick = (v: number) => (phases ? (v === 100 ? "oui" : v === 0 ? "" : "") : `${v}%`);
+  const fmtVal = (value: number, name: string) =>
+    phases ? [value >= 50 ? "oui" : "non", name] : [`${value}%`, name];
   const navigate = useNavigate();
   const { isChartVisible, getCtaDetails } = useSubscription();
   const visible = isChartVisible("throttle_brake", circuitName);
@@ -103,7 +109,7 @@ export function ThrottleBrakeChart({
     if (isSingleLap) {
       return (
         <div className="w-full" aria-label="Throttle and brake by distance">
-          <ChartZoomFrame zoom={zoom} heightClass="h-[300px] sm:h-[350px]">
+          <ChartZoomFrame zoom={zoom} heightClass={phases ? "h-[170px] sm:h-[190px]" : "h-[300px] sm:h-[350px]"}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
               data={series}
@@ -146,7 +152,8 @@ export function ThrottleBrakeChart({
                   stroke="hsl(var(--border))"
                   tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                   domain={[0, 100]}
-                  tickFormatter={(v) => `${v}%`}
+                  tickFormatter={yTick}
+                  ticks={phases ? [0, 100] : undefined}
                 />
                 <Tooltip isAnimationActive={false}
                   contentStyle={{
@@ -157,20 +164,20 @@ export function ThrottleBrakeChart({
                   }}
                   itemStyle={{ color: "hsl(var(--foreground))" }}
                   labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-                  formatter={(value: number) => [`${value}%`, ""]}
+                  formatter={(value: number, name: string) => fmtVal(value, String(name))}
                   labelFormatter={(label) => `Position : ${Math.round(Number(label) - lapStart)} m`}
                 />
                 <Legend />
                 <Area
-                  type="monotone"
+                  type={phases ? "stepAfter" : "monotone"}
                   dataKey="throttle_pct"
                   stroke="#22c55e"
                   fill="#22c55e40"
                   strokeWidth={1.5}
-                  name="Accélérateur"
+                  name={phases ? "Gaz" : "Accélérateur"}
                 />
                 <Area
-                  type="monotone"
+                  type={phases ? "stepAfter" : "monotone"}
                   dataKey="brake_pct"
                   stroke="#ef4444"
                   fill="#ef444440"
@@ -186,7 +193,7 @@ export function ThrottleBrakeChart({
 
     return (
       <div className="w-full" aria-label="Throttle and brake by distance (multi-lap)">
-        <ChartZoomFrame zoom={zoom} heightClass="h-[300px] sm:h-[350px]">
+        <ChartZoomFrame zoom={zoom} heightClass={phases ? "h-[170px] sm:h-[190px]" : "h-[300px] sm:h-[350px]"}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={series} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -223,7 +230,8 @@ export function ThrottleBrakeChart({
                 stroke="hsl(var(--border))"
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                 domain={[0, 100]}
-                tickFormatter={(v) => `${v}%`}
+                tickFormatter={yTick}
+                  ticks={phases ? [0, 100] : undefined}
               />
               <Tooltip isAnimationActive={false}
                 contentStyle={{
@@ -234,7 +242,7 @@ export function ThrottleBrakeChart({
                 }}
                 itemStyle={{ color: "hsl(var(--foreground))" }}
                 labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-                formatter={(value: number) => [`${value}%`, ""]}
+                formatter={(value: number, name: string) => fmtVal(value, String(name))}
               />
               <Legend />
               {activeLaps.map((lap, idx) => {
@@ -242,7 +250,7 @@ export function ThrottleBrakeChart({
                 return (
                   <Line
                     key={`throttle_${lap.lap_number}`}
-                    type="monotone"
+                    type={phases ? "stepAfter" : "monotone"}
                     dataKey={`throttle_lap_${lap.lap_number}`}
                     stroke={color}
                     strokeWidth={1.5}
@@ -257,7 +265,7 @@ export function ThrottleBrakeChart({
                 return (
                   <Line
                     key={`brake_${lap.lap_number}`}
-                    type="monotone"
+                    type={phases ? "stepAfter" : "monotone"}
                     dataKey={`brake_lap_${lap.lap_number}`}
                     stroke={color}
                     strokeWidth={1.5}
