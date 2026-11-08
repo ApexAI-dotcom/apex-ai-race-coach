@@ -13,7 +13,6 @@
  *  4. Plan de séance — les conseils détaillés et la place pour noter.
  */
 import type jsPDF from "jspdf";
-import { pedalPhases } from "../pedalPhases";
 import { addApexPage, apexTable, createApexDoc, finalizeAndSave, finalizeDoc, notesArea, PDF_COLORS } from "./apexPdf";
 
 type RGB = [number, number, number];
@@ -612,46 +611,25 @@ export function buildAnalysisReport(analysis: any): { doc: jsPDF; filename: stri
       }
     }
 
-    const pedals = pedalPhases(a.plot_data);
-    const tb = pedals?.data?.laps;
+    const tb = a.plot_data?.throttle_brake?.laps;
     const thr = lapSeries(tb, bestNo, "throttle_pct");
     const brk = lapSeries(tb, bestNo, "brake_pct");
     if (thr && brk) {
-      y = heading(doc, y + 2, "Gaz et frein", pedals?.phases ? `tour ${bestNo} · déduit de la vitesse (pas de capteur de pédale)` : `tour ${bestNo} · vert : gaz · rouge : frein`);
+      y = heading(doc, y + 2, "Gaz et frein", `tour ${bestNo} · vert : gaz · rouge : frein`);
       const len = Math.max(...thr.d);
-      if (pedals?.phases) {
-        // Bande de phases : vert gaz, rouge frein, gris roue libre.
-        const x0 = M + 8;
-        const bw = W - 8;
-        const by = y + 4;
-        const bh = 12;
-        const X = (d: number) => x0 + (Math.max(0, Math.min(len, d)) / len) * bw;
-        for (let i = 1; i < thr.d.length; i++) {
-          const col: RGB = brk.v[i] >= 50 ? C.red : thr.v[i] >= 50 ? C.green : C.light;
-          doc.setFillColor(...col);
-          doc.rect(X(thr.d[i - 1]), by, Math.max(0.15, X(thr.d[i]) - X(thr.d[i - 1]) + 0.05), bh, "F");
-        }
-        for (const m of markers) text(doc, m.label, X(m.d), by + bh + 4, { size: 5.8, color: C.muted, align: "center" });
-        const share = (f: (i: number) => boolean) => Math.round((thr.v.filter((_, i) => f(i)).length / thr.v.length) * 100);
-        const g = share((i) => thr.v[i] >= 50 && brk.v[i] < 50);
-        const b = share((i) => brk.v[i] >= 50);
-        text(doc, `Gaz ${g} % du tour · frein ${b} % · roue libre ${Math.max(0, 100 - g - b)} %`, x0, by + bh + 10, { size: 7.5, color: C.muted });
-        y += 32;
-      } else {
-        lineChart(
-          doc,
-          M + 8,
-          y + 2,
-          W - 8,
-          34,
-          [
-            { ...thr, color: C.green, width: 0.55 },
-            { ...brk, color: C.red, width: 0.55 },
-          ],
-          { xMax: len, yMin: 0, yMax: 100, yStep: 50, yUnit: "%", markers }
-        );
-        y += 50;
-      }
+      lineChart(
+        doc,
+        M + 8,
+        y + 2,
+        W - 8,
+        34,
+        [
+          { ...thr, color: C.green, width: 0.55 },
+          { ...brk, color: C.red, width: 0.55 },
+        ],
+        { xMax: len, yMin: 0, yMax: 100, yStep: 50, yUnit: "%", markers }
+      );
+      y += 50;
     }
 
     const braking = a.plot_data?.braking?.corners || [];

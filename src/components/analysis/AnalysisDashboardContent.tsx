@@ -11,7 +11,6 @@ import { CornerDetailsGrid } from "./CornerDetailsGrid";
 import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { TrackMapPro } from "./TrackMapPro";
 import { FloatingMiniMap } from "./FloatingMiniMap";
-import { pedalPhases } from "@/lib/pedalPhases";
 import { BrakingPanel } from "./BrakingPanel";
 import { CoachingAdvice } from "./CoachingAdvice";
 import { LapReportPanel } from "./LapReportPanel";
@@ -275,11 +274,8 @@ export function AnalysisDashboardContent({
     : "text-xl font-bold text-foreground mb-4";
   const fallbackTextClass = "text-muted-foreground text-sm";
 
-  // Sans capteur de pédale (cas des MyChron et Alfano), le serveur publie les
-  // phases de pilotage (0 / 100). Les analyses plus anciennes portaient de faux
-  // pourcentages tirés de la vitesse : on les remplace par les phases du tracé.
-  const pedalData = useMemo(() => pedalPhases(plotData), [plotData]);
-  const hasThrottleBrake = !!pedalData?.data?.laps?.[0]?.throttle_pct?.some((v: number) => v > 10);
+  const hasThrottleBrake =
+    plotData?.throttle_brake?.laps?.[0]?.throttle_pct?.some((v: number) => v > 10) ?? false;
 
   let ctaShown = false;
   const circuitName = analysis.session_conditions?.circuit_name;
@@ -476,16 +472,15 @@ export function AnalysisDashboardContent({
               const currentHideCta = isLocked ? ctaShown : false;
               if (isLocked) ctaShown = true;
               return (
-                <section className={sectionClass} data-pdf-chart="throttle_brake" data-pdf-title="Gaz et frein">
-                  <h2 className={titleClass}>Gaz et frein</h2>
+                <section className={sectionClass} data-pdf-chart="throttle_brake" data-pdf-title="Accélérateur & Frein">
+                  <h2 className={titleClass}>Accélérateur & Frein</h2>
                   <p className="text-xs text-muted-foreground mb-3">
-                    {pedalData?.phases
-                      ? "Ton boîtier ne mesure pas les pédales : ApexAI déduit de ta vitesse où tu freines, où tu es sur les gaz et où tu n'es ni sur l'un ni sur l'autre (roue libre). Cherche des passages francs du frein aux gaz, sans trou entre les deux."
-                      : "Position des pédales mesurée par tes capteurs. Cherche des passages francs du frein aux gaz : garder du frein en réaccélérant étouffe le moteur."}
+                    Usage des pédales en fonction de la distance. Recherche des transitions
+                    franches entre frein et gaz. Évite de garder du frein en phase de
+                    réaccélération pour ne pas étouffer le moteur.
                   </p>
                   <ThrottleBrakeChart
-                    phases={!!pedalData?.phases}
-                    data={pedalData!.data}
+                    data={plotData.throttle_brake}
                     selectedLaps={selectedLapNumbers}
                     circuitName={circuitName}
                     hideCta={currentHideCta}
