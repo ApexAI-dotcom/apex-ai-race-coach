@@ -150,7 +150,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       // tier fantôme qui ne suivait pas la base.
       const processedTier = data.tier || "rookie";
 
-      let allowedCircuit = data.limits?.allowed_circuit;
+      const allowedCircuit = data.limits?.allowed_circuit;
       let realAnalysesUsed = data.limits?.analyses_used || 0;
 
       if (processedTier === "rookie") {
@@ -158,10 +158,6 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const { getAllAnalyses } = await import("@/lib/storage");
           const analyses = await getAllAnalyses(user?.id);
 
-          if (!allowedCircuit) {
-            const firstWithCircuit = [...analyses].reverse().find((a: any) => a.circuit_name);
-            allowedCircuit = firstWithCircuit?.circuit_name || null;
-          }
 
           // Calculer le vrai nombre d'analyses pour ce mois pour les "rookies"
           const now = new Date();
@@ -282,14 +278,6 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const isChartVisible = useCallback(
     (chartId: string, circuitName?: string | null) => {
       if (tier === "racer" || tier === "team") return true;
-      if (
-        tier === "rookie" &&
-        circuitName &&
-        limits?.allowed_circuit &&
-        circuitName !== limits.allowed_circuit
-      ) {
-        if (chartId !== "track_map") return false;
-      }
       if (chartId === "track_map") return true;
       if (chartId === "performance_score" || chartId === "avg_speed" || chartId === "corners") {
         return limits?.visible_charts?.includes("speed_trace") ?? false;
@@ -305,17 +293,6 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         return {
           title: "Crée ton compte pour voir tes résultats complets",
           buttonText: "Créer un compte",
-        };
-      }
-      if (
-        tier === "rookie" &&
-        circuitName &&
-        limits?.allowed_circuit &&
-        circuitName !== limits.allowed_circuit
-      ) {
-        return {
-          title: `Passe à Racer pour analyser d'autres circuits (Circuit actuel: ${limits.allowed_circuit})`,
-          buttonText: "Passer à Racer",
         };
       }
       return {

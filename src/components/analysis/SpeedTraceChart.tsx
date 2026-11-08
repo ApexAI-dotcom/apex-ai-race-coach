@@ -32,7 +32,7 @@ interface SpeedTraceChartProps {
   cornerOverlays?: CornerOverlay[];
 }
 
-const LAP_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#eab308", "#ec4899", "#06b6d4"];
+const LAP_COLORS = ["#f97316", "#e5e5e5", "#ef4444", "#f59e0b", "#a3a3a3", "#fdba74", "#737373"];
 
 function buildSeries(
   laps: SpeedTraceData["laps"],

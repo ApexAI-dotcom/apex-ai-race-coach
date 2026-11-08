@@ -36,7 +36,7 @@ export function downsamplePair<T, U>(
 
 export const GRADE_COLORS: Record<string, string> = {
   A: "#22c55e",
-  B: "#3b82f6",
+  B: "#86efac",
   C: "#f97316",
   D: "#ef4444",
   F: "#ef4444",
@@ -44,7 +44,7 @@ export const GRADE_COLORS: Record<string, string> = {
 
 export const STATUS_COLORS: Record<string, string> = {
   optimal: "#22c55e",
-  good: "#3b82f6",
+  good: "#86efac",
   warning: "#f97316",
 };
 

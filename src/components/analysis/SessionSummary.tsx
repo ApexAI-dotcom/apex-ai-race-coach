@@ -9,7 +9,7 @@ const getGradeColor = (grade: string) => {
     case "A":
       return "bg-green-500/20 text-green-200 border-green-500/50";
     case "B":
-      return "bg-blue-500/20 text-blue-200 border-blue-500/50";
+      return "bg-green-300/15 text-green-200 border-green-300/40";
     case "C":
       return "bg-yellow-500/20 text-yellow-200 border-yellow-500/50";
     case "D":

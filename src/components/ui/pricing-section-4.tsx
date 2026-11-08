@@ -31,11 +31,10 @@ const plans = [
     popular: false,
     includes: [
       "3 analyses par mois",
-      "1 seul circuit (mémorisé)",
+      "Tous les circuits",
       "Tracé de piste + 1 graphique",
       "Score global /100",
       "5 conseils de coaching par séance",
-      "Comparaison de sessions",
     ],
   },
   {

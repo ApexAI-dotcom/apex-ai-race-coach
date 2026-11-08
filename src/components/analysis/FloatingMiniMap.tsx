@@ -17,7 +17,7 @@ export function FloatingMiniMap({ lap, mapRef }: { lap?: TrajectoryLap; mapRef: 
   useEffect(() => {
     const el = mapRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(([e]) => setMapVisible(e.intersectionRatio > 0.35), { threshold: [0, 0.35, 0.7] });
+    const io = new IntersectionObserver(([e]) => setMapVisible(e.intersectionRatio > 0.6), { threshold: [0, 0.3, 0.6, 0.9] });
     io.observe(el);
     return () => io.disconnect();
   }, [mapRef]);
@@ -65,9 +65,10 @@ export function FloatingMiniMap({ lap, mapRef }: { lap?: TrajectoryLap; mapRef: 
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.96 }}
           transition={{ duration: 0.18 }}
-          // Téléphone : en haut à droite (le doigt est sur la courbe, plus bas).
-          // Ordinateur : en bas à droite.
-          className="pointer-events-none fixed right-3 top-[72px] z-40 w-[132px] rounded-xl border border-white/10 bg-black/80 p-1.5 shadow-2xl backdrop-blur md:bottom-6 md:right-6 md:top-auto md:w-[180px]"
+          // En haut à droite, sous le bandeau ApexAI (encoche comprise) : le
+          // doigt ou la souris est sur la courbe, plus bas. Jamais en bas à
+          // droite sur ordinateur : un widget y masquait la mini-carte.
+          className="pointer-events-none fixed right-3 top-[calc(var(--safe-top)+84px)] z-[95] w-[132px] rounded-xl border border-white/10 bg-black/85 p-1.5 shadow-2xl backdrop-blur md:right-6 md:top-[96px] md:w-[200px]"
           aria-hidden
         >
           <svg viewBox="0 0 100 100" className="block h-auto w-full">

@@ -21,11 +21,11 @@ const PLANS = [
     annualPrice: 0,
     features: [
       { text: "3 analyses par mois", included: true },
-      { text: "1 seul circuit (mémorisé)", included: true },
+      { text: "Tous les circuits", included: true },
       { text: "Tracé + 1 graphique", included: true },
       { text: "Score global /100", included: true },
       { text: "5 conseils de coaching par séance", included: true },
-      { text: "Comparaison sessions", included: true },
+      { text: "Comparateur de sessions", included: false },
     ],
     icon: Flag,
     popular: false,

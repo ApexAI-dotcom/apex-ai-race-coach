@@ -738,6 +738,8 @@ export default function Dashboard() {
                     <span className="w-1 h-1 rounded-full bg-muted-foreground" />{" "}
                     {(featuredAnalysis.session_type || "practice") === "practice"
                       ? "ESSAIS"
+                      : featuredAnalysis.session_type === "roulage"
+                        ? "ROULAGE"
                       : (featuredAnalysis.session_type || "practice") === "qualifying"
                         ? "QUALIF"
                         : (featuredAnalysis.session_type || "practice") === "race"
@@ -992,6 +994,8 @@ export default function Dashboard() {
                       >
                         {(analysis.session_type || "practice") === "practice"
                           ? "Essais"
+                          : analysis.session_type === "roulage"
+                            ? "Roulage"
                           : (analysis.session_type || "practice") === "qualifying"
                             ? "Qualif"
                             : (analysis.session_type || "practice") === "race"
@@ -1119,6 +1123,7 @@ export default function Dashboard() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-[#0a0a0a] border-white/10">
+                            <SelectItem value="roulage">Roulage</SelectItem>
                             <SelectItem value="practice">Essais</SelectItem>
                             <SelectItem value="qualifying">Qualif</SelectItem>
                             <SelectItem value="race">Course</SelectItem>
@@ -1395,6 +1400,7 @@ export default function Dashboard() {
                     <SelectValue placeholder="Type..." />
                   </SelectTrigger>
                   <SelectContent className="bg-[#0a0a0a] border-white/10">
+                    <SelectItem value="roulage">Roulage</SelectItem>
                     <SelectItem value="practice">Essais</SelectItem>
                     <SelectItem value="qualifying">Qualifications</SelectItem>
                     <SelectItem value="race">Course</SelectItem>

@@ -31,6 +31,7 @@ import {
   Cpu,
   ShieldCheck,
   AlertTriangle,
+  Gauge,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -131,7 +132,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
   });
 
   const [trackCondition, setTrackCondition] = useState<"auto" | "dry" | "damp" | "wet" | "rain">("auto");
-  const [sessionType, setSessionType] = useState<string>("practice");
+  const [sessionType, setSessionType] = useState<string>("roulage");
   const [trackTemperature, setTrackTemperature] = useState<number | "">("");
 
   // États analyse : le calcul tourne hors de la page (tâche de fond), on
@@ -189,12 +190,6 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
     }
     const analysisResult = single.result;
     if (!analysisResult) return;
-    if (tier === "rookie" && limits?.allowed_circuit && analysisResult.session_conditions?.circuit_name && analysisResult.session_conditions.circuit_name !== limits.allowed_circuit) {
-      toast({
-        title: "Circuit restreint",
-        description: `En tant que Rookie, tu ne peux analyser que le circuit ${limits.allowed_circuit}. Cette analyse sera floutée.`,
-      });
-    }
     if (single.savedId) {
       setSavedAnalysisId(single.savedId);
       setSaveSuccess(`Analyse sauvegardée automatiquement.`);
@@ -394,7 +389,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       case "A":
         return "bg-green-500/20 text-green-200 border-green-500/50";
       case "B":
-        return "bg-blue-500/20 text-blue-200 border-blue-500/50";
+        return "bg-green-300/15 text-green-200 border-green-300/40";
       case "C":
         return "bg-yellow-500/20 text-yellow-200 border-yellow-500/50";
       case "D":
@@ -813,6 +808,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {[
+                          { value: "roulage", label: "Roulage", Icon: Gauge },
                           { value: "practice", label: "Essais", Icon: Car },
                           { value: "qualifying", label: "Qualifications", Icon: Clock },
                           { value: "race", label: "Course", Icon: Flag },

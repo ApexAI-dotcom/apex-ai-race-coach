@@ -52,6 +52,7 @@ export function sinceLabel(iso: string, now = Date.now()): string {
 }
 
 export const SESSION_TYPE: Record<string, string> = {
+  roulage: "roulage",
   practice: "essais",
   qualifying: "qualifications",
   race: "course",

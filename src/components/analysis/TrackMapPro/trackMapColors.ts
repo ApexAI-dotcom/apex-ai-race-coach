@@ -126,7 +126,7 @@ export function gradeColor(grade: string): string {
     case "A":
       return TRACK_GREEN;
     case "B":
-      return "#3b82f6";
+      return "#86efac";
     case "C":
       return TRACK_YELLOW;
     case "D":
