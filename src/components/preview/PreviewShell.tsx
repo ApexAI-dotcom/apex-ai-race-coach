@@ -50,7 +50,6 @@ export function PreviewShell({
   meta, eyebrowIcon: Eyebrow, eyebrow, titleLead, titleAccent, subtitle,
   mock, features, bullets, ctaTitle, ctaSubtitle,
 }: PreviewShellProps) {
-  const { isAuthenticated } = useAuth();
   return (
     <Layout>
       <PageMeta title={meta.title} description={meta.description} path={meta.path} />
@@ -72,81 +71,94 @@ export function PreviewShell({
           <p className="text-muted-foreground text-sm md:text-base">{subtitle}</p>
         </motion.div>
 
-        {/* Aperçu réaliste + fonctionnalités */}
-        <div className="relative rounded-3xl border border-border bg-card/40 overflow-hidden">
-          {/* Le vrai produit, flouté et non-interactif */}
-          <div className="absolute inset-0 pointer-events-none select-none" aria-hidden="true">
-            <div className="blur-[6px] opacity-40 scale-[1.02] origin-top p-4 md:p-8 h-full overflow-hidden">
-              {mock}
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/40 to-background/90" />
-          </div>
-
-          {/* Contenu net par-dessus */}
-          <div className="relative p-5 md:p-10">
-            <div className="grid md:grid-cols-2 gap-4 md:gap-5">
-              {features.map((f, i) => (
-                <FeatureCard key={f.title} feature={f} index={i} />
-              ))}
-            </div>
-            <div className="flex justify-center mt-4 mb-8 min-h-4">
-              {features.some((f) => f.visual) && <DemoTag>Aperçus illustrés avec des données d'exemple</DemoTag>}
-            </div>
-
-            {/* CTA central */}
-            <div className="max-w-lg mx-auto text-center bg-card/95 backdrop-blur-md border border-border rounded-2xl p-6 md:p-8 shadow-2xl">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 border border-primary/20 mb-4">
-                <Lock className="w-5 h-5 text-primary" />
-              </div>
-              <h2 className="text-xl md:text-2xl font-display font-bold text-foreground mb-2">{ctaTitle}</h2>
-              <p className="text-sm text-muted-foreground mb-5">
-                {isAuthenticated
-                  ? "Passe à l'offre Racer pour débloquer cette fonctionnalité et l'emporter en piste."
-                  : ctaSubtitle}
-              </p>
-
-              <ul className="text-left space-y-2 mb-6 max-w-xs mx-auto">
-                {bullets.map((b) => (
-                  <li key={b} className="flex items-start gap-2 text-sm text-foreground">
-                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                {isAuthenticated ? (
-                  <Button asChild size="lg" className="gap-2">
-                    <Link to="/pricing">
-                      <Sparkles className="w-4 h-4" />
-                      Découvrir les plans
-                    </Link>
-                  </Button>
-                ) : (
-                  <>
-                    <Button asChild size="lg" className="gap-2">
-                      <Link to="/login?mode=signup">
-                        <Sparkles className="w-4 h-4" />
-                        Créer mon compte
-                      </Link>
-                    </Button>
-                    <Button asChild size="lg" variant="outline" className="gap-2">
-                      <Link to="/login">
-                        Se connecter
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <PreviewPanel mock={mock} features={features} bullets={bullets} ctaTitle={ctaTitle} ctaSubtitle={ctaSubtitle} />
 
         {/* Passerelle vers l'autre facette du produit */}
         <PreviewCrossLink current={meta.path} />
       </div>
     </Layout>
+  );
+}
+
+/**
+ * Le bloc vitrine seul (vrai produit flouté en fond, encarts nets, appel à
+ * l'action) : réutilisable dans une page existante, ex. l'onglet « Comparer
+ * deux séances » d'Analyser pour les comptes gratuits et les visiteurs.
+ */
+export function PreviewPanel({
+  mock, features, bullets, ctaTitle, ctaSubtitle,
+}: Pick<PreviewShellProps, "mock" | "features" | "bullets" | "ctaTitle" | "ctaSubtitle">) {
+  const { isAuthenticated } = useAuth();
+  return (
+    <div className="relative rounded-3xl border border-border bg-card/40 overflow-hidden">
+      {/* Le vrai produit, flouté et non-interactif */}
+      <div className="absolute inset-0 pointer-events-none select-none" aria-hidden="true">
+        <div className="blur-[6px] opacity-40 scale-[1.02] origin-top p-4 md:p-8 h-full overflow-hidden">
+          {mock}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/40 to-background/90" />
+      </div>
+
+      {/* Contenu net par-dessus */}
+      <div className="relative p-5 md:p-10">
+        <div className="grid md:grid-cols-2 gap-4 md:gap-5">
+          {features.map((f, i) => (
+            <FeatureCard key={f.title} feature={f} index={i} />
+          ))}
+        </div>
+        <div className="flex justify-center mt-4 mb-8 min-h-4">
+          {features.some((f) => f.visual) && <DemoTag>Aperçus illustrés avec des données d'exemple</DemoTag>}
+        </div>
+
+        {/* CTA central */}
+        <div className="max-w-lg mx-auto text-center bg-card/95 backdrop-blur-md border border-border rounded-2xl p-6 md:p-8 shadow-2xl">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 border border-primary/20 mb-4">
+            <Lock className="w-5 h-5 text-primary" />
+          </div>
+          <h2 className="text-xl md:text-2xl font-display font-bold text-foreground mb-2">{ctaTitle}</h2>
+          <p className="text-sm text-muted-foreground mb-5">
+            {isAuthenticated
+              ? "Passe à l'offre Racer pour débloquer cette fonctionnalité et l'emporter en piste."
+              : ctaSubtitle}
+          </p>
+
+          <ul className="text-left space-y-2 mb-6 max-w-xs mx-auto">
+            {bullets.map((b) => (
+              <li key={b} className="flex items-start gap-2 text-sm text-foreground">
+                <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <span>{b}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            {isAuthenticated ? (
+              <Button asChild size="lg" className="gap-2">
+                <Link to="/pricing">
+                  <Sparkles className="w-4 h-4" />
+                  Découvrir les plans
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild size="lg" className="gap-2">
+                  <Link to="/login?mode=signup">
+                    <Sparkles className="w-4 h-4" />
+                    Créer mon compte
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="gap-2">
+                  <Link to="/login">
+                    Se connecter
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

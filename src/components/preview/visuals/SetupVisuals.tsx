@@ -84,10 +84,10 @@ export function PressureVisual() {
         <div className="relative h-2 rounded-full bg-white/[0.07]">
           <div
             className="lp-grow absolute inset-0 rounded-full"
-            style={{ background: "linear-gradient(90deg,#3B82F6,#F59E0B 55%,#FF4242)", ...delay(0.5) }}
+            style={{ background: "linear-gradient(90deg,#a3a3a3,#F59E0B 55%,#FF4242)", ...delay(0.5) }}
           />
           <span
-            className="lp-pop absolute left-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border-2 border-[#0b0b0d] bg-sky-400"
+            className="lp-pop absolute left-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border-2 border-[#0b0b0d] bg-neutral-300"
             style={delay(0.4)}
           />
           <span className="lp-pop absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2" style={delay(1.4)}>

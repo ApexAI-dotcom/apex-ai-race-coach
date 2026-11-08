@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { PageMeta } from "@/components/seo/PageMeta";
 import CompatibleMarquee from "@/components/landing/CompatibleMarquee";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { ComparePreview } from "@/components/compare/ComparePreview";
 import {
   FileSpreadsheet,
   Shield,
@@ -19,6 +21,7 @@ import {
   Gauge,
   Timer,
   MessageSquare,
+  Lock,
 } from "lucide-react";
 
 const supportedFormats = [
@@ -73,6 +76,10 @@ export default function Upload() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [params, setParams] = useSearchParams();
   const compare = params.get("mode") === "comparer";
+  const { tier, isLoading: tierLoading } = useSubscription();
+  // Le comparateur est réservé à Racer et Team : les autres voient la vitrine.
+  const compareLocked = !isAuthenticated || tier === "rookie" || tier === "visitor";
+  const compareReady = !authLoading && (!isAuthenticated || !tierLoading);
   return (
     <Layout>
       <Helmet>
@@ -117,13 +124,20 @@ export default function Upload() {
                   compare === o.key ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >
+                {o.key && compareReady && compareLocked && <Lock className="mr-1.5 inline h-3.5 w-3.5 -translate-y-px text-primary" aria-label="Réservé à Racer" />}
                 {o.label}
               </button>
             ))}
           </div>
         </div>
 
-        {compare ? (
+        {compare && !compareReady ? (
+          <div className="mx-auto mb-12 min-h-[40vh] max-w-6xl" />
+        ) : compare && compareLocked ? (
+          <div className="mx-auto mb-12 max-w-6xl">
+            <ComparePreview />
+          </div>
+        ) : compare ? (
           <div className="mx-auto mb-12 max-w-6xl">
             <p className="mx-auto mb-6 max-w-2xl text-center text-sm text-muted-foreground">
               Dépose ton fichier et celui d'un coéquipier sur le même circuit : tours superposés, écart mètre par mètre,
