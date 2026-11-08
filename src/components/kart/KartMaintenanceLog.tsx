@@ -133,12 +133,15 @@ export function KartMaintenanceLog({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Pièce montée (optionnel)</label>
                 {part ? (
-                  <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm">
-                    <span className="min-w-0 truncate font-medium">{partLabel(part)}</span>
-                    <button type="button" className="shrink-0 text-xs text-muted-foreground hover:text-foreground" onClick={() => setPart(null)}>
-                      Changer
-                    </button>
-                  </div>
+                  <>
+                    <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm">
+                      <span className="min-w-0 truncate font-medium">{partLabel(part)}</span>
+                      <button type="button" className="shrink-0 text-xs text-muted-foreground hover:text-foreground" onClick={() => setPart(null)}>
+                        Changer
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Cette intervention est notée ici, et la pièce rejoint « Mes pièces » avec son entretien.</p>
+                  </>
                 ) : (
                   <>
                     <Input placeholder="Chercher dans le catalogue (ex. bougie, Mojo, IAME)" value={partQ} onChange={(e) => setPartQ(e.target.value)} />

@@ -6,6 +6,43 @@ import { getPart, type CatalogPart, type PartMaintenance } from "@/lib/api";
 import { intervalLabel, lifeLabel, maintenanceSources, sortMaintenance, specRows } from "./partFormat";
 
 /**
+ * Ce que disent des pilotes sur des forums publics : à part, étiqueté, avec le
+ * lien. Ce n'est pas une donnée constructeur et ça ne règle aucune jauge.
+ */
+export function ForumTips({ part }: { part: CatalogPart }) {
+  const tips = part.forum || [];
+  if (!tips.length) return null;
+  const links = [...new Map(tips.map((t) => [t.url, t.source])).entries()];
+  return (
+    <div className="space-y-2 rounded-xl border border-dashed border-white/15 p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Avis de pilotes · forum</p>
+      <ul className="space-y-1.5">
+        {tips.map((t, i) => (
+          <li key={i} className="flex items-start justify-between gap-3 text-sm">
+            <span className="min-w-0">
+              <span className="text-foreground">{t.element}</span>
+              <span className="text-xs text-muted-foreground"> · {t.action.toLowerCase()}{t.usage && t.usage !== "tous" ? ` en ${t.usage}` : ""}</span>
+            </span>
+            <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{intervalLabel({ ...t, source: "", kind: "" })}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        Ce n'est pas une donnée du constructeur : un repère de terrain, à confirmer avec ton préparateur.{" "}
+        {links.map(([url, label], i) => (
+          <span key={url}>
+            {i > 0 ? " ; " : ""}
+            <a href={url} target="_blank" rel="noreferrer" className="underline decoration-white/20 underline-offset-2 hover:text-foreground">
+              {label}
+            </a>
+          </span>
+        ))}
+      </p>
+    </div>
+  );
+}
+
+/**
  * Opérations d'entretien du constructeur : quoi, quand, et le document d'où
  * ça vient (avec la page). Pas d'échéance inventée, pas de case vide.
  */
@@ -57,7 +94,10 @@ export function PartDetailDialog({
   partId,
   onClose,
   onFit,
+  fitLabel = "Je monte cette pièce",
 }: {
+  /** Libellé du bouton de montage (ex. « J'en monte une neuve » pour une pièce déjà montée). */
+  fitLabel?: string;
   partId: string | null;
   onClose: () => void;
   /** « Je monte cette pièce » : ouvre le journal d'entretien pré-rempli. */
@@ -135,6 +175,8 @@ export function PartDetailDialog({
               </section>
             )}
 
+            <ForumTips part={part} />
+
             {part.sources && part.sources.length > 0 && (
               <section>
                 <h3 className="mb-2 text-sm font-semibold">Sources</h3>
@@ -160,15 +202,18 @@ export function PartDetailDialog({
           </>
         )}
       {onFit && part && (
-          <Button
-            className="mt-2 h-11 w-full"
-            onClick={() => {
-              onFit(part);
-              onClose();
-            }}
-          >
-            Je monte cette pièce
-          </Button>
+          <div className="mt-2 space-y-1.5">
+            <Button
+              className="h-11 w-full"
+              onClick={() => {
+                onFit(part);
+                onClose();
+              }}
+            >
+              {fitLabel}
+            </Button>
+            <p className="text-center text-[11px] text-muted-foreground">Notée dans tes interventions, la pièce rejoint « Mes pièces ».</p>
+          </div>
         )}
       </DialogContent>
     </Dialog>

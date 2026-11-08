@@ -72,7 +72,22 @@ export function KartLogbook({
 
           <TabsContent value="interventions" className="mt-0">{interventions}</TabsContent>
 
-          <TabsContent value="parts" className="mt-0">{parts}</TabsContent>
+          <TabsContent value="parts" className="mt-0">
+            {parts}
+            {/* Le catalogue : un outil, pas un titre, rangé avec les pièces. */}
+            <button
+              type="button"
+              onClick={() => setCatalogOpen(true)}
+              className="mt-5 flex w-full items-center gap-3 rounded-xl border border-dashed border-white/15 bg-muted/20 px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-muted/40"
+            >
+              <Package className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-foreground">Ajouter une pièce depuis le catalogue</span>
+                <span className="block text-xs text-muted-foreground">Moteurs, pneus, freins, chaînes, bougies… avec leur entretien constructeur.</span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </button>
+          </TabsContent>
 
           <TabsContent value="days" className="mt-0">
             {days.length === 0 ? (
@@ -114,19 +129,6 @@ export function KartLogbook({
           </TabsContent>
         </Tabs>
 
-        {/* Le catalogue : un outil, pas un titre. Sous les onglets, à part. */}
-        <button
-          type="button"
-          onClick={() => setCatalogOpen(true)}
-          className="mt-5 flex w-full items-center gap-3 rounded-xl border border-dashed border-white/15 bg-muted/20 px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-muted/40"
-        >
-          <Package className="h-5 w-5 shrink-0 text-muted-foreground" />
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-medium text-foreground">Ouvrir le catalogue des pièces</span>
-            <span className="block text-xs text-muted-foreground">Trouve une pièce, lis son entretien constructeur et ajoute-la à ton kart.</span>
-          </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </button>
       </CardContent>
 
       <Dialog open={catalogOpen} onOpenChange={setCatalogOpen}>

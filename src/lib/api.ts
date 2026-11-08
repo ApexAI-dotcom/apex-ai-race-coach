@@ -1643,6 +1643,8 @@ export interface CatalogPart {
   has_maintenance?: boolean;
   notes?: string | null;
   maintenance?: PartMaintenance[];
+  /** Avis de pilotes sur des forums publics : à part, toujours étiquetés, jamais pour régler une jauge. */
+  forum?: { element: string; action: string; interval: number | string; unit?: string | null; usage?: string | null; source: string; url: string }[];
   sources?: PartSource[];
 }
 

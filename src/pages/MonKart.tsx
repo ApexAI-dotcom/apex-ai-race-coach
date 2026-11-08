@@ -139,7 +139,7 @@ export default function MonKart() {
     if (!token) return;
     try {
       await api.updateKartProfile(token, { [field]: value } as Partial<KartProfile>);
-      toast.success("Compteur mis à jour.");
+      toast.success(String(field).endsWith("_life") ? "Échéance mise à jour." : "Compteur mis à jour.");
       fetchProfile();
     } catch (e) {
       toast.error("Modification impossible : " + (e as Error).message);
@@ -147,18 +147,19 @@ export default function MonKart() {
   };
 
   // Jauge des pneus ajustée à la main : sur le train monté s'il existe.
-  const handleTireCounter = async (_field: string, value: number) => {
+  const handleTireCounter = async (field: string, value: number) => {
     if (!token) return;
+    const isLife = field === "tires_laps_life";
     if (mountedTire) {
       try {
-        await api.updateTireSet(token, mountedTire.id, { laps_current: Math.max(0, Math.round(value)) });
+        await api.updateTireSet(token, mountedTire.id, isLife ? { laps_life: Math.max(1, Math.round(value)) } : { laps_current: Math.max(0, Math.round(value)) });
         toast.success("Compteur du train mis à jour.");
         fetchTireSets();
       } catch (e) {
         toast.error("Modification impossible : " + (e as Error).message);
       }
     } else {
-      await handleUpdateCounter("tires_laps_current", value);
+      await handleUpdateCounter(isLife ? "tires_laps_life" : "tires_laps_current", value);
     }
   };
 
@@ -364,6 +365,7 @@ export default function MonKart() {
                 max={engineLife}
                 hint={remainingLabel(engineCur, engineLife, "h")}
                 field="engine_hours_current"
+                lifeField="engine_hours_life"
                 onUpdate={(f, v) => handleUpdateCounter(f as keyof KartProfile, v)}
                 onAction={() => setAction("engine")}
                 actionLabel="Réviser le moteur"
@@ -380,6 +382,7 @@ export default function MonKart() {
                 max={tires.life}
                 hint={remainingLabel(tires.current, tires.life, "tours")}
                 field="tires_laps_current"
+                lifeField="tires_laps_life"
                 onUpdate={handleTireCounter}
                 onAction={() => setAction("tires")}
                 actionLabel={tires.perSet ? "Changer de train" : "Remplacer le train"}
@@ -396,6 +399,7 @@ export default function MonKart() {
                 max={brakesLife}
                 hint={remainingLabel(brakesCur, brakesLife, "tours")}
                 field="brakes_sessions_current"
+                lifeField="brakes_sessions_life"
                 onUpdate={(f, v) => handleUpdateCounter(f as keyof KartProfile, v)}
                 onAction={() => setAction("brakes")}
                 actionLabel="Changer les plaquettes"
@@ -411,6 +415,7 @@ export default function MonKart() {
                 max={chainLife}
                 hint={remainingLabel(chainCur, chainLife, "h")}
                 field="chain_hours_current"
+                lifeField="chain_hours_life"
                 onUpdate={(f, v) => handleUpdateCounter(f as keyof KartProfile, v)}
                 onAction={() => setAction("chain")}
                 actionLabel="Graisser / Changer"
@@ -449,6 +454,7 @@ export default function MonKart() {
                     <KartPartsList
                       engineLabel={prof.engine_model}
                       engineHoursLife={prof.engine_hours_life}
+                      onEditEngineLife={(h) => handleUpdateCounter("engine_hours_life", h)}
                       mounted={prof.setup_json?.mounted_parts || {}}
                       onApplyEngineLife={(h) => handleUpdateCounter("engine_hours_life", h)}
                       onFit={openFit}

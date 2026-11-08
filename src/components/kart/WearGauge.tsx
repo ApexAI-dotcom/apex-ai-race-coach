@@ -1,9 +1,10 @@
-import { ReactNode, useState, useRef, useEffect } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pencil } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface WearGaugeProps {
   current?: number;
@@ -13,6 +14,10 @@ interface WearGaugeProps {
   unit: string;
   component: string;
   field: string;
+  /** Champ de l'échéance (durée avant entretien) : réglable par le pilote. */
+  lifeField?: string;
+  /** Petite aide sous l'échéance (ex. ce que dit le manuel). */
+  lifeHelp?: string | null;
   onUpdate: (field: string, value: number) => void;
   onAction: () => void;
   actionLabel: string;
@@ -34,6 +39,8 @@ export const WearGauge = ({
   icon,
   unit,
   field,
+  lifeField,
+  lifeHelp,
   onUpdate,
   onAction,
   actionLabel,
@@ -46,29 +53,26 @@ export const WearGauge = ({
   const safeCurrent = current ?? 0;
   const safeMax = max ?? 100;
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(safeCurrent.toString());
-  const inputRef = useRef<HTMLInputElement>(null);
+  const fmt = (v: number) => String(Math.round(v * 10) / 10).replace(".", ",");
+  const [curValue, setCurValue] = useState(fmt(safeCurrent));
+  const [lifeValue, setLifeValue] = useState(fmt(safeMax));
 
   const percentage = Math.min(Math.max((safeCurrent / (safeMax || 1)) * 100, 0), 100);
 
   useEffect(() => {
-    setEditValue(safeCurrent.toString());
-  }, [safeCurrent]);
-
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
+    if (!isEditing) {
+      setCurValue(fmt(safeCurrent));
+      setLifeValue(fmt(safeMax));
     }
-  }, [isEditing]);
+  }, [safeCurrent, safeMax, isEditing]);
 
+  const parse = (v: string) => parseFloat(v.replace(",", "."));
   const handleSave = () => {
     setIsEditing(false);
-    const val = parseFloat(editValue);
-    if (!isNaN(val)) {
-      onUpdate(field, val);
-    } else {
-      setEditValue(safeCurrent.toString());
-    }
+    const c = parse(curValue);
+    const l = parse(lifeValue);
+    if (!isNaN(c) && c >= 0 && Math.abs(c - safeCurrent) > 1e-6) onUpdate(field, c);
+    if (lifeField && !isNaN(l) && l > 0 && Math.abs(l - safeMax) > 1e-6) onUpdate(lifeField, l);
   };
 
   const getColor = () => {
@@ -120,26 +124,18 @@ export const WearGauge = ({
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            {isEditing ? (
-              <Input
-                ref={inputRef}
-                type="number"
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                onBlur={handleSave}
-                onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                className="w-16 h-8 text-center px-1 font-bold bg-background/50 border-white/20"
-              />
-            ) : (
-              <div className={cn("group flex items-center gap-1", !readOnly && "cursor-pointer")} onClick={() => !readOnly && setIsEditing(true)}>
-                <span className="text-2xl font-bold font-display leading-none">
-                  {safeCurrent % 1 !== 0 ? safeCurrent.toFixed(1).replace(".", ",") : safeCurrent}
-                </span>
-                {!readOnly && <Pencil className="w-3 h-3 text-muted-foreground opacity-100 can-hover:opacity-0 can-hover:group-hover:opacity-100 transition-opacity" />}
-              </div>
-            )}
+            <button
+              type="button"
+              className={cn("group flex items-center gap-1", readOnly && "cursor-default")}
+              onClick={() => !readOnly && setIsEditing(true)}
+              disabled={readOnly}
+              aria-label={`Régler la jauge ${label}`}
+            >
+              <span className="text-2xl font-bold font-display leading-none">{fmt(safeCurrent)}</span>
+              {!readOnly && <Pencil className="w-3 h-3 text-muted-foreground opacity-100 can-hover:opacity-0 can-hover:group-hover:opacity-100 transition-opacity" />}
+            </button>
             <span className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap">
-              / {safeMax} {unit}
+              / {fmt(safeMax)} {unit}
             </span>
           </div>
         </div>
@@ -162,14 +158,50 @@ export const WearGauge = ({
             variant="outline"
             onClick={() => !readOnly && setIsEditing(true)}
             disabled={readOnly}
-            title="Ajuster manuellement"
-            aria-label={`Ajuster le compteur ${label}`}
+            title="Régler le compteur et l'échéance"
+            aria-label={`Régler la jauge ${label}`}
             className="w-10 shrink-0 px-0 bg-white/5 hover:bg-white/10 border-white/10"
           >
             <Pencil className="w-4 h-4 text-muted-foreground" />
           </Button>
         </div>
       </CardContent>
+
+      <Dialog open={isEditing} onOpenChange={(o) => !o && setIsEditing(false)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Régler la jauge {label.toLowerCase()}</DialogTitle>
+            <DialogDescription>{sublabel || "Corrige le compteur ou fixe ta propre échéance."}</DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSave();
+            }}
+          >
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium">Compteur actuel ({unit})</span>
+              <Input inputMode="decimal" value={curValue} onChange={(e) => setCurValue(e.target.value)} className="h-11" />
+            </label>
+            {lifeField && (
+              <label className="block space-y-1.5">
+                <span className="text-sm font-medium">Échéance : entretien à ({unit})</span>
+                <Input inputMode="decimal" value={lifeValue} onChange={(e) => setLifeValue(e.target.value)} className="h-11" />
+                <span className="block text-xs text-muted-foreground">
+                  {lifeHelp || "Celle de ton manuel ou de ton préparateur : la jauge et les alertes suivent ce chiffre."}
+                </span>
+              </label>
+            )}
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="ghost" onClick={() => setIsEditing(false)}>
+                Annuler
+              </Button>
+              <Button type="submit">Enregistrer</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

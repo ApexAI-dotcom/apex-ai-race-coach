@@ -3,7 +3,8 @@ import { ChevronDown, History, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getPart, matchPart, type CatalogPart } from "@/lib/api";
-import { MaintenanceList, PartDetailDialog } from "./PartDetailDialog";
+import { ForumTips, MaintenanceList, PartDetailDialog } from "./PartDetailDialog";
+import { Input } from "@/components/ui/input";
 import { lifeLabel } from "./partFormat";
 import type { MountedPart, MountedParts } from "./MountedPartsCard";
 
@@ -37,12 +38,15 @@ export function KartPartsList({
   engineHoursLife,
   mounted,
   onApplyEngineLife,
+  onEditEngineLife,
   onFit,
 }: {
   engineLabel?: string | null;
   engineHoursLife?: number | null;
   mounted: MountedParts;
   onApplyEngineLife?: (hours: number) => void;
+  /** Le pilote fixe lui-même l'échéance de sa jauge moteur. */
+  onEditEngineLife?: (hours: number) => void;
   onFit?: (part: CatalogPart) => void;
 }) {
   const [engine, setEngine] = useState<CatalogPart | null>(null);
@@ -110,7 +114,8 @@ export function KartPartsList({
               row={r}
               engineHoursLife={r.key === "engine" ? engineHoursLife : undefined}
               onApplyEngineLife={r.key === "engine" ? onApplyEngineLife : undefined}
-              onFit={onFit}
+              onEditEngineLife={r.key === "engine" ? onEditEngineLife : undefined}
+              onFit={r.key === "engine" ? undefined : onFit}
             />
           ))}
         </ul>
@@ -123,11 +128,13 @@ function PartRow({
   row,
   engineHoursLife,
   onApplyEngineLife,
+  onEditEngineLife,
   onFit,
 }: {
   row: Row;
   engineHoursLife?: number | null;
   onApplyEngineLife?: (hours: number) => void;
+  onEditEngineLife?: (hours: number) => void;
   onFit?: (part: CatalogPart) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -136,6 +143,7 @@ function PartRow({
   const [detailId, setDetailId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [lifeDraft, setLifeDraft] = useState<string | null>(null);
 
   useEffect(() => setPart(row.part ?? null), [row.part]);
 
@@ -188,6 +196,37 @@ function PartRow({
                 </div>
               )}
               {part.notes && <p className="text-sm leading-relaxed text-muted-foreground">{part.notes}</p>}
+              {onEditEngineLife && engineHoursLife != null && !gap && (
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-background/40 px-3 py-2.5 text-sm">
+                  {lifeDraft == null ? (
+                    <>
+                      <span className="flex-1">
+                        Ta jauge moteur : entretien à <span className="font-semibold tabular-nums">{n1(Number(engineHoursLife))} h</span>
+                      </span>
+                      <Button size="sm" variant="outline" className="h-8" onClick={() => setLifeDraft(n1(Number(engineHoursLife)))}>
+                        Modifier l'échéance
+                      </Button>
+                    </>
+                  ) : (
+                    <form
+                      className="flex w-full items-center gap-2"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const v = parseFloat(lifeDraft.replace(",", "."));
+                        if (!isNaN(v) && v > 0) onEditEngineLife(v);
+                        setLifeDraft(null);
+                      }}
+                    >
+                      <span className="shrink-0">Entretien à</span>
+                      <Input autoFocus inputMode="decimal" value={lifeDraft} onChange={(e) => setLifeDraft(e.target.value)} className="h-9 w-20" />
+                      <span className="shrink-0">h</span>
+                      <Button type="submit" size="sm" className="ml-auto h-9">
+                        Enregistrer
+                      </Button>
+                    </form>
+                  )}
+                </div>
+              )}
               {items.length > 0 ? (
                 <>
                   <MaintenanceList part={part} items={items} limit={showAll ? undefined : 6} />
@@ -204,6 +243,7 @@ function PartRow({
                   </p>
                 )
               )}
+              <ForumTips part={part} />
               <div className="flex flex-wrap items-center gap-2">
                 <Button variant="outline" size="sm" className="h-8" onClick={() => setDetailId(part.id)}>
                   Fiche complète
@@ -235,6 +275,7 @@ function PartRow({
       <PartDetailDialog
         partId={detailId}
         onClose={() => setDetailId(null)}
+        fitLabel="J'en monte une neuve"
         onFit={
           onFit
             ? (p) => {

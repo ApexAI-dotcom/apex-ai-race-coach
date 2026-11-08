@@ -587,7 +587,7 @@ add("iame-x30-cooling", "cooling", "IAME", "Circuit de refroidissement X30", spe
 # source. Les avis de pilotes (forums, retours recueillis) et les valeurs
 # usuelles sans document servaient à comprendre le terrain : ils ne sont pas
 # servis aux pilotes.
-UNSERVED_SOURCES = ("retour pilotes", "base ApexAI")
+UNSERVED_SOURCES = ("retour pilotes", "base ApexAI")  # hors « forum » ci-dessous
 LIFE_UNIT_OF = {"hours": "heures", "litres": "litres de mélange", "laps": "tours"}
 UNSOURCED_NOTE = re.compile(r"pilote|catalogue d'origine|valeur usuelle|à confirmer|préparateurs", re.I)
 NO_INTERVAL_ENGINE = "Pas d'intervalle d'entretien publié par le constructeur : règle l'échéance de ta jauge moteur avec ton préparateur."
@@ -601,6 +601,15 @@ def _num(v):
 
 
 def _manufacturer_only(e: dict) -> None:
+    # Ce que disent les pilotes sur les forums publics (lien vérifiable) : servi
+    # à part, toujours étiqueté « forum », jamais utilisé pour régler une jauge.
+    # Les retours recueillis de vive voix (apexai_pilotes) ne sont pas servis.
+    e["forum"] = [
+        {"element": m["element"], "action": m["action"], "interval": m["interval"], "unit": m["unit"],
+         "usage": m["usage"], "source": SRC[m["source"]][0], "url": SRC[m["source"]][1]}
+        for m in e["maintenance"]
+        if SRC[m["source"]][2] == "retour pilotes" and SRC[m["source"]][1] and str(m["interval"] or "").strip()
+    ]
     e["maintenance"] = [
         {**m, "kind": "constructeur"}
         for m in e["maintenance"]
@@ -638,7 +647,7 @@ def finalize() -> list[dict]:
     out = []
     for e in ITEMS.values():
         _manufacturer_only(e)
-        if e["category"] == "engine_part" and not e["maintenance"] and e["default_life"] is None:
+        if e["category"] == "engine_part" and not e["maintenance"] and e["default_life"] is None and not e["forum"]:
             print("retirée (aucune donnée constructeur) :", e["id"])
             continue
         if not e["brand"] or not e["name"]:
