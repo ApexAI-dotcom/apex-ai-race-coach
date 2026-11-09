@@ -8,7 +8,12 @@
  *   pages il utilise). Sans accord, la mesure reste anonyme : un identifiant de
  *   navigateur propre au site, sans lien avec le compte, conservé 13 mois au plus
  *   (mesure d'audience exemptée au sens de la CNIL) ;
- * - publicité : pixels Meta et Google Ads, chargés UNIQUEMENT après accord.
+ * - publicité : pixel Meta (et signaux publicitaires Google), chargés UNIQUEMENT
+ *   après accord.
+ *
+ * Google Analytics 4 (balise VITE_GOOGLE_TAG_ID) n'est chargé qu'avec l'accord
+ * « mesure » ou « publicité » ; Consent Mode règle ensuite ce qu'il a le droit
+ * de stocker (analytics_storage = mesure, ad_* = publicité).
  *
  * Le choix vaut 6 mois ; « Tout refuser » est aussi simple que « Tout accepter ».
  * Google Consent Mode v2 est initialisé à « refusé » dans index.html, avant
@@ -49,6 +54,15 @@ export function saveConsent(measure: boolean, ads: boolean): ConsentChoice {
   }
   applyConsent(c);
   window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: c }));
+  try {
+    const pending = window.localStorage.getItem(PENDING_SIGNUP);
+    if (pending) {
+      const p = JSON.parse(pending) as { userId: string; method: string };
+      trackSignUp(p.userId, p.method);
+    }
+  } catch {
+    /* rien */
+  }
   return c;
 }
 
@@ -127,11 +141,85 @@ export function applyConsent(c: ConsentChoice | null) {
     ad_personalization: ads ? "granted" : "denied",
     analytics_storage: measure ? "granted" : "denied",
   });
+  if (measure || ads) loadGoogle();
   if (ads) {
-    loadGoogle();
+    if (metaLoaded) window.fbq?.("consent", "grant");
     loadMeta();
   } else if (metaLoaded) {
     window.fbq?.("consent", "revoke");
+  }
+}
+
+/* ───────────── Conversions ───────────── */
+
+const once = (key: string): boolean => {
+  try {
+    if (window.localStorage.getItem(key)) return false;
+    window.localStorage.setItem(key, String(Date.now()));
+  } catch {
+    /* sans stockage : on envoie quand même une fois pour cette page */
+  }
+  return true;
+};
+
+/**
+ * Inscription (« sign_up » GA4, « CompleteRegistration » Meta), une seule fois
+ * par compte et par navigateur, et seulement avec le consentement adéquat.
+ */
+const PENDING_SIGNUP = "apexai_conv_signup_pending";
+
+export function trackSignUp(userId: string, method: "email" | "google" | string) {
+  const c = readConsent();
+  if (!c) {
+    // Pas encore de choix : l'inscription sera comptée si le pilote accepte ensuite.
+    try {
+      window.localStorage.setItem(PENDING_SIGNUP, JSON.stringify({ userId, method }));
+    } catch {
+      /* rien */
+    }
+    return;
+  }
+  try {
+    window.localStorage.removeItem(PENDING_SIGNUP);
+  } catch {
+    /* rien */
+  }
+  if (!(c.measure || c.ads)) return;
+  if (!once(`apexai_conv_signup_${userId}`)) return;
+  loadGoogle();
+  window.gtag?.("event", "sign_up", { method });
+  if (c.ads) {
+    loadMeta();
+    window.fbq?.("track", "CompleteRegistration", { status: true, content_name: method }, { eventID: `signup_${userId}` });
+  }
+}
+
+/**
+ * Abonnement payé (« purchase » GA4, « Purchase » Meta), une seule fois par
+ * paiement Stripe (n° de session de paiement = n° de transaction).
+ */
+export function trackPurchase(p: { transactionId: string; tier: string; period?: string | null; value?: number | null; currency?: string | null }) {
+  const c = readConsent();
+  if (!c || !(c.measure || c.ads)) return;
+  if (!once(`apexai_conv_purchase_${p.transactionId}`)) return;
+  const currency = (p.currency || "EUR").toUpperCase();
+  const name = p.tier === "team" ? "Abonnement Team" : "Abonnement Racer";
+  const itemId = `${p.tier}_${p.period || "monthly"}`;
+  loadGoogle();
+  window.gtag?.("event", "purchase", {
+    transaction_id: p.transactionId,
+    value: p.value ?? undefined,
+    currency,
+    items: [{ item_id: itemId, item_name: name, item_category: "abonnement", price: p.value ?? undefined, quantity: 1 }],
+  });
+  if (c.ads) {
+    loadMeta();
+    window.fbq?.(
+      "track",
+      "Purchase",
+      { value: p.value ?? 0, currency, content_name: name, content_ids: [itemId], content_type: "product" },
+      { eventID: p.transactionId }
+    );
   }
 }
 

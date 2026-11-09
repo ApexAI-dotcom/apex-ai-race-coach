@@ -4,6 +4,7 @@ import { getPendingPassCode } from "@/lib/paddockPass";
 import { supabase } from "@/lib/supabase";
 import { ADMIN_EMAIL } from "@/constants";
 import { ARRIVED_FROM_AUTH_REDIRECT, notifySignIn } from "@/lib/accountEvents";
+import { trackSignUp } from "@/lib/consent";
 
 const GUEST_KEY = "apex_guest_mode";
 const GUEST_USED_KEY = "apex_guest_used";
@@ -75,6 +76,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (event === "INITIAL_SESSION" && now && ARRIVED_FROM_AUTH_REDIRECT)
       ) {
         notifySignIn(session);
+        // Inscription : compte créé il y a moins de 24 h (mot de passe confirmé
+        // par mail, ou premier passage par Google). Compté une fois par compte.
+        const u = session?.user;
+        const created = u?.created_at ? Date.parse(u.created_at) : NaN;
+        if (u && Number.isFinite(created) && Date.now() - created < 24 * 3600 * 1000) {
+          trackSignUp(u.id, (u.app_metadata?.provider as string) || "email");
+        }
       }
       if (event !== "TOKEN_REFRESHED") userIdRef.current = now;
 

@@ -83,13 +83,13 @@ export function CookieConsent() {
                   <Row title="Nécessaires" text="Connexion, préférences, sécurité. Toujours actifs." checked disabled />
                   <Row
                     title="Mesure liée à ton compte"
-                    text="Les pages que tu utilises, rattachées à ton compte. Sans accord, la mesure reste anonyme."
+                    text="Les pages que tu utilises (Google Analytics et notre propre mesure), rattachées à ton compte. Sans accord, rien n'est envoyé à Google et notre mesure reste anonyme."
                     checked={measure}
                     onChange={setMeasure}
                   />
                   <Row
                     title="Publicité"
-                    text="Pixels Meta et Google Ads : savoir si nos annonces t'ont amené ici."
+                    text="Pixel Meta et balise Google : savoir si nos annonces t'ont amené ici et si tu t'es inscrit."
                     checked={ads}
                     onChange={setAds}
                   />

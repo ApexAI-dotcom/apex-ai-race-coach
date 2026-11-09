@@ -10,6 +10,7 @@ import React, {
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL, reconcileCheckout } from "@/lib/api";
+import { trackPurchase } from "@/lib/consent";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_DURATION_MS = 60000;
@@ -232,7 +233,10 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const reconcileThenRefresh = async () => {
         if (sessionId && token) {
           try {
-            await reconcileCheckout(token, sessionId);
+            const r = await reconcileCheckout(token, sessionId);
+            if (r?.reconciled && r.transaction_id) {
+              trackPurchase({ transactionId: r.transaction_id, tier: r.tier, period: r.period, value: r.value, currency: r.currency });
+            }
           } catch (e) {
             console.warn("[Subscription] reconcile échoué, on retombe sur le polling", e);
           }
