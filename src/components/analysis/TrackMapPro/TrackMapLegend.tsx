@@ -136,7 +136,7 @@ function TrackMapLegendBody({
           <LegendItem
             swatch={<span className="block w-2.5 h-2.5 rounded-full bg-amber-500" />}
             label="Couleur = marge détectée"
-            hint="ambre : tu peux freiner plus tard · orange : temps mort · bleu : ton meilleur tour anticipait davantage · violet : freinage trop mou · rose : point instable. Le détail chiffré est sous la carte"
+            hint="ambre : tu peux freiner plus tard ou plus tôt · orange : temps mort · rouge : freinage trop mou · jaune pâle : point instable. Le détail est dans l'étiquette du virage"
           />
           <LegendItem
             swatch={<span className="text-[10px]">⚠</span>}

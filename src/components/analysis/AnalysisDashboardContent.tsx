@@ -12,12 +12,11 @@ import { TimeDeltaLapsChart } from "./TimeDeltaLapsChart";
 import { TrackMapPro } from "./TrackMapPro";
 import { FloatingMiniMap } from "./FloatingMiniMap";
 import { withPedalEstimate } from "@/lib/pedalEstimate";
-import { BrakingPanel } from "./BrakingPanel";
 import { CoachingAdvice } from "./CoachingAdvice";
 import { LapReportPanel } from "./LapReportPanel";
 import { enrichCornersWithCornerAnalysis } from "./utils";
 import { buildCornerOverlays } from "./cornerOverlays";
-import type { AnalysisResponse as AnalysisResult, TrackMapProfile } from "@/types/analysis";
+import type { AnalysisResponse as AnalysisResult } from "@/types/analysis";
 
 interface AnalysisDashboardContentProps {
   analysis: AnalysisResult;
@@ -109,51 +108,6 @@ export function AnalysisDashboardContent({
   // Cliquer un conseil emmène le pilote sur la carte, au virage concerné.
   // Le `token` force la carte à réagir même si on reclique le même virage.
   const [focusCorner, setFocusCorner] = useState<{ id: number; token: number } | null>(null);
-  // Vue active de la carte : le détail des freinages ne s'affiche que dessus.
-  const [mapProfile, setMapProfile] = useState<TrackMapProfile>("speed");
-
-  // Perte de temps MESURÉE par virage — la même que la carte, les conseils et
-  // le PDF. Le panneau de freinage la reprend telle quelle plutôt que de
-  // calculer son propre chiffre, qui pouvait annoncer 0,77 s là où le reste du
-  // rapport affichait 0,00 s.
-  const cornerLosses = useMemo(() => {
-    const m: Record<number, number> = {};
-    for (const c of analysis.corner_analysis ?? []) {
-      if (c?.corner_id != null) m[Number(c.corner_id)] = Number(c.time_lost ?? 0);
-    }
-    return m;
-  }, [analysis.corner_analysis]);
-
-  // Un virage peut avoir un freinage impeccable ET perdre du temps : la perte
-  // vient alors de la vitesse de passage ou du placement du point de corde. Sans le dire,
-  // « Freinage à ton meilleur » posé à côté de « +0,27 s » se lit comme une
-  // contradiction. On nomme donc la cause dominante, mesurée.
-  const cornerHints = useMemo(() => {
-    const m: Record<number, string> = {};
-    for (const c of analysis.corner_analysis ?? []) {
-      if (c?.corner_id == null) continue;
-      const loss = Number(c.time_lost ?? 0);
-      if (loss <= 0.02) continue;
-      const apexErr = Number(c.apex_distance_error ?? 0);
-      const real = Number(c.apex_speed_real ?? 0);
-      const target = Number(c.apex_speed_optimal ?? 0);
-      const speedGap = target > 0 && real > 0 ? target - real : 0;
-      if (speedGap >= Math.max(1.5, 0.025 * real)) {
-        m[Number(c.corner_id)] =
-          `Le temps ne se perd pas au freinage ici, mais à la vitesse de passage : ` +
-          `${real.toFixed(0)} km/h contre ${target.toFixed(0)} km/h sur ton meilleur passage.`;
-      } else if (apexErr >= 1.0) {
-        m[Number(c.corner_id)] =
-          `Le temps ne se perd pas au freinage ici, mais au placement : ` +
-          `ton point de corde est décalé de ${apexErr.toFixed(1)} m.`;
-      } else {
-        m[Number(c.corner_id)] =
-          `Le freinage est à ton meilleur niveau : le temps se perd sur la sortie ` +
-          `et la relance, pas à l'entrée.`;
-      }
-    }
-    return m;
-  }, [analysis.corner_analysis]);
   const handleFocusCorner = useCallback((cornerId: number) => {
     setFocusCorner({ id: cornerId, token: Date.now() });
   }, []);
@@ -368,22 +322,7 @@ export function AnalysisDashboardContent({
                 trackEdges={plotData.track_edges ?? analysis.racing_line?.track_edges ?? null}
                 racingLineMeta={plotData.racing_line_meta ?? analysis.racing_line ?? null}
                 idealLap={analysis.ideal_lap ?? null}
-                onProfileSelect={setMapProfile}
               />
-              {/* Le détail chiffré prolonge la carte, mais UNIQUEMENT sur la
-                  vue Freinage : ce panneau est long et encombrait les vues
-                  Vitesse, Mini-secteurs et Comparaison. Il reste inconditionnel
-                  dans le PDF, où la place ne manque pas. */}
-              {mapProfile === "braking" && (
-                <div className="mt-4">
-                  <BrakingPanel
-                    braking={plotData.braking ?? null}
-                    cornerLosses={cornerLosses}
-                    cornerHints={cornerHints}
-                    onFocusCorner={handleFocusCorner}
-                  />
-                </div>
-              )}
             </section>
           )}
 

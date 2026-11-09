@@ -290,7 +290,7 @@ export function TrackMap({
           <polyline
             points={refPolyline}
             fill="none"
-            stroke="#38bdf8"
+            stroke="#e5e5e5"
             strokeWidth="2"
             strokeDasharray="6 6"
             strokeLinecap="round"

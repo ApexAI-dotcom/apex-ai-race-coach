@@ -96,15 +96,16 @@ export function brakingPhase(throttlePct: number, brakePct: number): BrakingPhas
 
 // ── Freinage : une couleur par verdict mesuré ──
 // Le code couleur répond à une seule question : « y a-t-il quelque chose à
-// aller chercher ici ? ». Le détail chiffré est dans l'étiquette et dans le
-// panneau Freinages ; la carte doit rester lisible d'un coup d'œil.
+// aller chercher ici ? ». Le détail chiffré est dans l'étiquette ; la carte
+// doit rester lisible d'un coup d'œil. Charte : vert = rien à gagner,
+// ambre / orange / rouge = marge, jamais de bleu ni de violet.
 export const BRAKING_VERDICT_COLORS: Record<string, string> = {
   optimal: "#22c55e",       // rien à gagner : tu es déjà à ton meilleur
   brake_later: "#f59e0b",   // marge de retard identifiée
-  brake_earlier: "#38bdf8", // ton meilleur passage anticipait davantage
+  brake_earlier: "#fbbf24", // ton meilleur passage anticipait davantage
   coasting: "#fb923c",      // temps mort entre frein et gaz
-  soft: "#a78bfa",          // intensité en dessous de ta capacité
-  inconsistent: "#f472b6",  // point de déclenchement instable
+  soft: "#ef4444",          // intensité en dessous de ta capacité
+  inconsistent: "#fcd34d",  // point de déclenchement instable
 };
 
 // Ces libellés ne jugent QUE le freinage. Un virage peut afficher « Freinage à
