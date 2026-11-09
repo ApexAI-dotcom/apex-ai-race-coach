@@ -79,7 +79,7 @@ export function DayImportCard({
     if (!list) return;
     const all = Array.from(list);
     const ok = all.filter((f) => isTelemetryFile(f.name));
-    setErrors(all.length > ok.length ? [`${all.length - ok.length} fichier(s) ignoré(s) : formats acceptés .xrk, .xrz, export Race Studio, Alfano.`] : []);
+    setErrors(all.length > ok.length ? [`${all.length - ok.length} fichier(s) ignoré(s) : formats acceptés .xrk, .xrz, export Race Studio, Alfano (.zip ou Excel ADA).`] : []);
     setFiles(ok);
     setSummary(null);
   };

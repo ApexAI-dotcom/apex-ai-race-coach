@@ -11,9 +11,15 @@ export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const CSV_UPLOAD_HINT_SHORT = `Fichier de session AiM, le .xrk de Race Studio (max ${MAX_FILE_SIZE_MB} Mo). Compatible avec les boîtiers AiM / MyChron ; les exports de données d'autres appareils sont aussi acceptés. Si le fichier est trop lourd, réduis les canaux ou applique une décimation (ex. 1:10) dans Race Studio.`;
 
 /** Formats de télémétrie acceptés : CSV (export Race Studio) et fichiers AiM natifs. */
-export const TELEMETRY_ACCEPT = ".csv,.xrk,.xrz";
-export const TELEMETRY_FORMAT_ERROR = "Format non reconnu — envoie le fichier de session de ton boîtier (le .xrk d'AiM Race Studio).";
-export const isTelemetryFile = (name: string): boolean => /\.(csv|xrk|xrz)$/i.test(name);
+export const TELEMETRY_ACCEPT = ".csv,.xrk,.xrz,.zip";
+export const TELEMETRY_FORMAT_ERROR =
+  "Format non reconnu — envoie le fichier de session de ton boîtier : le .xrk d'AiM Race Studio, ou l'export Alfano (le .zip ou le fichier Excel d'ADA).";
+export const isTelemetryFile = (name: string): boolean => /\.(csv|xrk|xrz|zip)$/i.test(name);
+/** Message précis quand le fichier refusé est un fichier annexe de Race Studio (.drk, .rrk). */
+export const telemetryFormatError = (name?: string | null): string =>
+  name && /\.(drk|rrk)$/i.test(name)
+    ? "Ce fichier est une annexe de Race Studio, sans la séance complète. Envoie le .xrk (ou le .xrz) du même nom, rangé à côté."
+    : TELEMETRY_FORMAT_ERROR;
 
 // ============================================================================
 // TYPES
@@ -1568,6 +1574,8 @@ export interface CatalogCircuit {
   department_code?: string | null;
   department?: string | null;
   region?: string | null;
+  /** Code pays ISO (FR, GE, FI, CA…). */
+  country?: string | null;
   lat?: number | null;
   lon?: number | null;
   indoor?: boolean | null;
@@ -1584,7 +1592,10 @@ export interface CatalogCircuit {
   osm_url?: string | null;
   ffsa?: string[];
   has_trace?: boolean;
-  /** [[lat, lon], …] — © contributeurs OpenStreetMap */
+  /** Origine du tracé (OpenStreetMap ou GPS d'une séance ApexAI). */
+  attribution?: string | null;
+  source?: string | null;
+  /** [[lat, lon], …] */
   centerline?: [number, number][];
   distance_m?: number;
   confident?: boolean;

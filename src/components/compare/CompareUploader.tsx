@@ -5,7 +5,7 @@ import { FileUp, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { TELEMETRY_ACCEPT, TELEMETRY_FORMAT_ERROR, isTelemetryFile, type AnalysisResult, type ApiError } from "@/lib/api";
+import { TELEMETRY_ACCEPT, telemetryFormatError, isTelemetryFile, type AnalysisResult, type ApiError } from "@/lib/api";
 import { getAllAnalyses, getAnalysisById, type AnalysisSummary } from "@/lib/storage";
 import { CompareResults, COLOR_A, COLOR_B } from "./CompareResults";
 import { AnalysisProgress } from "@/components/upload/AnalysisProgress";
@@ -92,7 +92,7 @@ function SlotCard({
           <>
             <FileUp className="mb-1 h-5 w-5 text-muted-foreground" />
             <span className="text-foreground">Dépose le fichier de session</span>
-            <span className="text-xs text-muted-foreground">.xrk, .xrz ou .csv de ton boîtier d'acquisition</span>
+            <span className="text-xs text-muted-foreground">.xrk, .xrz, .csv ou .zip Alfano de ton boîtier</span>
           </>
         )}
       </div>
@@ -189,7 +189,7 @@ export function CompareUploader() {
       return { result: r, mine: false, label };
     }
     if (!slot.file) throw new Error(`Il manque le fichier de ${label}.`);
-    if (!isTelemetryFile(slot.file.name)) throw new Error(TELEMETRY_FORMAT_ERROR);
+    if (!isTelemetryFile(slot.file.name)) throw new Error(telemetryFormatError(slot.file.name));
     return { file: slot.file, mine, label };
   };
 

@@ -61,7 +61,7 @@ import {
   getDisplayScore,
   CSV_UPLOAD_HINT_SHORT,
   TELEMETRY_ACCEPT,
-  TELEMETRY_FORMAT_ERROR,
+  telemetryFormatError,
   isTelemetryFile,
   type AnalysisResult,
   type ApiError,
@@ -223,7 +223,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       setFile(droppedFile);
       setError(null);
     } else if (droppedFile) {
-      setError(TELEMETRY_FORMAT_ERROR);
+      setError(telemetryFormatError(droppedFile.name));
     }
   }, []);
 
@@ -233,7 +233,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
       setFile(selectedFile);
       setError(null);
     } else if (selectedFile) {
-      setError(TELEMETRY_FORMAT_ERROR);
+      setError(telemetryFormatError(selectedFile.name));
     }
     // Reset l'input pour permettre de re-sélectionner le même fichier
     e.target.value = "";
@@ -720,7 +720,7 @@ export const CSVUploader = ({ onUploadComplete }: CSVUploaderProps) => {
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">ou clique pour sélectionner</p>
                   <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground mb-3">
-                    {["AiM MyChron (.xrk, .xrz)", "Export Race Studio", "Alfano"].map((label) => (
+                    {["AiM MyChron (.xrk, .xrz)", "Export Race Studio", "Alfano (.zip ou Excel ADA)"].map((label) => (
                       <span key={label} className="px-2 py-1 rounded bg-secondary">
                         {label}
                       </span>

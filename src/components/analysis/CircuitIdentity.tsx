@@ -1,9 +1,11 @@
 import type { CatalogCircuit } from "@/lib/api";
 
+const COUNTRIES: Record<string, string> = { GE: "Géorgie", FI: "Finlande", CA: "Canada", BE: "Belgique", ES: "Espagne", IT: "Italie", CH: "Suisse" };
+
 const SURFACES: Record<string, string> = { asphalt: "enrobé", paved: "revêtu", concrete: "béton" };
 
 /**
- * Le circuit reconnu dans la base des circuits de France, à partir des
+ * Le circuit reconnu dans la base des circuits, à partir des
  * points GPS de la séance : nom officiel, commune, longueur et répartition
  * des virages mesurées sur le tracé.
  */
@@ -21,7 +23,9 @@ export function CircuitIdentity({ circuit }: { circuit?: CatalogCircuit | null }
   }
   if (circuit.rotation) parts.push(`sens ${circuit.rotation}`);
   if (circuit.surface) parts.push(SURFACES[circuit.surface] ?? circuit.surface);
-  const place = [circuit.city, circuit.department ? `${circuit.department}` : null].filter(Boolean).join(", ");
+  const country = circuit.country && circuit.country !== "FR" ? COUNTRIES[circuit.country] ?? circuit.country : null;
+  const place = [circuit.city, circuit.department ? `${circuit.department}` : null, country].filter(Boolean).join(", ");
+  const attribution = circuit.attribution ?? (circuit.has_trace ? "Tracé de référence © contributeurs OpenStreetMap" : null);
 
   return (
     <section className="mb-6 rounded-xl border border-border bg-card px-4 py-3 text-sm">
@@ -31,7 +35,7 @@ export function CircuitIdentity({ circuit }: { circuit?: CatalogCircuit | null }
         {place && <span className="text-muted-foreground">, {place}</span>}
       </p>
       {parts.length > 0 && <p className="mt-0.5 text-muted-foreground">{parts.join(", ")}</p>}
-      {circuit.has_trace && <p className="mt-1 text-[11px] text-muted-foreground/80">Tracé de référence © contributeurs OpenStreetMap</p>}
+      {attribution && <p className="mt-1 text-[11px] text-muted-foreground/80">{attribution}</p>}
     </section>
   );
 }

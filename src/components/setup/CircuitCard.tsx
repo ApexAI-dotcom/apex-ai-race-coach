@@ -12,7 +12,7 @@ import { catalogToSignature } from './CatalogCircuitSearch';
 import { CircuitSearchField } from './CircuitSearchField';
 import type { CatalogCircuit } from '@/lib/api';
 import { SetupState } from '@/pages/SetupPage';
-import { api, uploadAndAnalyzeCSV, normalizeCircuit, isTelemetryFile, TELEMETRY_ACCEPT } from '@/lib/api';
+import { api, uploadAndAnalyzeCSV, normalizeCircuit, isTelemetryFile, telemetryFormatError, TELEMETRY_ACCEPT } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -239,7 +239,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
     if (!isTelemetryFile(selectedFile.name)) {
       toast({
         title: "Format invalide",
-        description: "Envoie le fichier de session de ton boîtier (le .xrk d'AiM Race Studio).",
+        description: telemetryFormatError(selectedFile.name),
         variant: "destructive"
       });
       return;
@@ -527,7 +527,7 @@ export function CircuitCard({ state, onChange }: CircuitCardProps) {
                 />
                 <Upload className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 <span className="text-xs font-bold text-foreground">Importer et analyser une session</span>
-                <span className="text-[11px] text-muted-foreground">AiM MyChron (.xrk, .xrz) ou Alfano</span>
+                <span className="text-[11px] text-muted-foreground">AiM MyChron (.xrk, .xrz) ou Alfano (.zip)</span>
               </div>
             </div>
           </div>
