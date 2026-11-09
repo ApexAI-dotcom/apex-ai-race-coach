@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { AlertCircle, CheckCircle2, Loader2, MailCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { trackSignUp } from "@/lib/consent";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,8 +65,12 @@ export default function AuthConfirm() {
         setState("error");
         return;
       }
-      const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+      const { data: verified, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
       if (!error) {
+        // Inscription confirmée par le lien du mail : c'est LA conversion
+        // « inscription », même si le lien s'ouvre dans un navigateur où un
+        // autre compte était connecté.
+        if (type === "signup" && verified?.user) trackSignUp(verified.user.id, "email");
         setState("done");
         setTimeout(() => navigate(next, { replace: true }), 1200);
         return;

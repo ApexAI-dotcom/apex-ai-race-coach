@@ -6,9 +6,12 @@ import { OPEN_CONSENT_EVENT, applyConsent, readConsent, saveConsent } from "@/li
 
 /**
  * Bandeau de consentement : en bas d'écran, sans bloquer la page.
- * « Tout refuser » et « Tout accepter » ont le même poids visuel (CNIL) ;
- * « Personnaliser » ouvre le détail par famille. Rouvrable depuis le pied de
- * page (« Gérer les cookies »).
+ * Formulé pour donner envie d'accepter (pourquoi ça aide, rien de revendu),
+ * avec « Accepter et continuer » en action principale. Le refus reste aussi
+ * simple qu'accepter, en un clic et lisible (« Continuer sans accepter », en
+ * haut à droite, pratique admise par la CNIL) : un refus caché exposerait à
+ * une sanction et fausserait le consentement. « Personnaliser » ouvre le
+ * détail par famille. Rouvrable depuis le pied de page (« Gérer les cookies »).
  */
 export function CookieConsent() {
   const [open, setOpen] = useState(false);
@@ -66,13 +69,23 @@ export function CookieConsent() {
             {/* Filet signature, comme les cartes de l'app */}
             <div className="absolute inset-x-0 top-0 h-[2px] bg-signature" aria-hidden />
             <div className="p-4 sm:p-5">
-              <h2 id="cookie-title" className="font-display text-base font-semibold text-foreground">
-                Cookies, en clair
-              </h2>
+              <div className="flex items-start justify-between gap-3">
+                <h2 id="cookie-title" className="font-display text-base font-semibold text-foreground">
+                  Aide-nous à rendre ton coach meilleur
+                </h2>
+                {!details && (
+                  <button
+                    type="button"
+                    onClick={() => decide(false, false)}
+                    className="shrink-0 pt-0.5 text-xs font-medium text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
+                  >
+                    Continuer sans accepter
+                  </button>
+                )}
+              </div>
               <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                L'essentiel fonctionne sans rien accepter. Avec ton accord, on rattache ta navigation à ton compte pour
-                améliorer l'app, et on mesure nos publicités (Meta, Google). Ton choix vaut 6 mois, modifiable à tout
-                moment en bas de page.{" "}
+                ApexAI est construit par des pilotes, pour des pilotes. Savoir quelles pages t'aident vraiment nous permet
+                d'améliorer l'app, et de trouver d'autres pilotes comme toi. Rien n'est revendu, ton choix vaut 6 mois.{" "}
                 <Link to="/legal#cookies" className="text-foreground underline underline-offset-2 hover:text-primary">
                   En savoir plus
                 </Link>
@@ -114,22 +127,32 @@ export function CookieConsent() {
                     Personnaliser
                   </button>
                 )}
-                <div className="grid grid-cols-2 gap-2 sm:flex">
-                  <button
-                    type="button"
-                    onClick={() => decide(false, false)}
-                    className="h-11 rounded-lg border border-white/15 bg-white/[0.03] px-5 text-sm font-semibold text-foreground transition-colors hover:bg-white/10"
-                  >
-                    Tout refuser
-                  </button>
+                {details ? (
+                  <div className="grid grid-cols-2 gap-2 sm:flex">
+                    <button
+                      type="button"
+                      onClick={() => decide(false, false)}
+                      className="h-11 rounded-lg border border-white/15 bg-white/[0.03] px-5 text-sm font-semibold text-foreground transition-colors hover:bg-white/10"
+                    >
+                      Tout refuser
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => decide(true, true)}
+                      className="h-11 rounded-lg bg-signature px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                    >
+                      Tout accepter
+                    </button>
+                  </div>
+                ) : (
                   <button
                     type="button"
                     onClick={() => decide(true, true)}
-                    className="h-11 rounded-lg bg-signature px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                    className="h-11 w-full rounded-lg bg-signature px-6 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition-opacity hover:opacity-90 sm:w-auto"
                   >
-                    Tout accepter
+                    Accepter et continuer
                   </button>
-                </div>
+                )}
               </div>
             </div>
           </div>

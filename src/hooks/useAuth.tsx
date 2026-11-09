@@ -71,6 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // simplement restaurée ou rafraîchie ne compte pas.
       const prev = userIdRef.current;
       const now = session?.user?.id ?? null;
+      if (event === "SIGNED_IN" && now && prev !== null && prev !== now) {
+        // Autre compte ouvert dans ce navigateur (ex. lien de confirmation
+        // ouvert là où un compte était déjà connecté) : inscription possible.
+        const u = session?.user;
+        const created = u?.created_at ? Date.parse(u.created_at) : NaN;
+        if (u && Number.isFinite(created) && Date.now() - created < 24 * 3600 * 1000) {
+          trackSignUp(u.id, (u.app_metadata?.provider as string) || "email");
+        }
+      }
       if (
         (event === "SIGNED_IN" && now && prev === null) ||
         (event === "INITIAL_SESSION" && now && ARRIVED_FROM_AUTH_REDIRECT)
