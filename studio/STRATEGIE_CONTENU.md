@@ -89,7 +89,7 @@ On écrit, on monte et on teste l'accroche avant tout le reste. Une vidéo sans 
 ## Publication (canaux techniques)
 - **Instagram** : publication automatique par Windsor.ai (`instagram` → create_video_post / create_carousel_post).
   - Les médias sont commités dans `media/<date>/` de la branche `content-studio` (dépôt public, fichiers < 20 Mo).
-  - Ils sont servis par `https://cdn.jsdelivr.net/gh/ApexAI-dotcom/apex-ai-race-coach@content-studio/media/<date>/<fichier>`.
+  - Ils sont servis par `https://cdn.jsdelivr.net/gh/ApexAI-dotcom/apex-ai-race-coach@<sha du commit>/media/<date>/<fichier>` (sha exact, pas le nom de branche, à cause du cache).
   - Windsor publie immédiatement : c'est la tâche de 18 h 41 qui publie le reel du jour, et celle de 11 h 41 qui publie le carrousel.
 - **TikTok** : pas d'API de publication gratuite. Tant que Postiz n'est pas actif (abonnement), la vidéo et la légende sont prêtes dans Notion et Yanis la poste depuis son téléphone (30 s).
   - Une notification lui est envoyée à l'heure prévue.
@@ -101,8 +101,8 @@ On écrit, on monte et on teste l'accroche avant tout le reste. Une vidéo sans 
   - avec de petites hésitations naturelles (eleven_v4, balises de jeu légères).
   - Jamais publicitaire, jamais « voix IA ».
 - **Choix de la voix** : par Yanis, l'identifiant est noté ici.
-  - **voice_id retenu : _à choisir_.**
-  - Tant qu'il n'est pas choisi : pas de voix off, texte à l'écran + musique.
+  - **voice_id retenu : `Ayvd8fDj52DfUWXZeAFe` (Nathan Doré, eleven_v4), choisi par Yanis le 17/11.** La page réglages Notion fait foi s'il change.
+  - Si la génération échoue (2 essais par run) : le reel sort sans voix, texte à l'écran + sons.
 - **Texte** :
   - tutoiement, phrases courtes, vocabulaire de pilote (dixièmes, inscription, point de corde, réaccélération, tour lancé, train de pneus) ;
   - jamais « apex » (sauf la marque), jamais « CSV » (« fichier de session »), jamais « relais » (« prochaine séance ») ;
@@ -151,9 +151,12 @@ On écrit, on monte et on teste l'accroche avant tout le reste. Une vidéo sans 
 - T-Reel : l'accroche du 1er temps s'affiche dès l'image 0 (plus de révélation mot à mot au départ) et les temps texte / chiffre sont descendus vers le centre de la zone sûre (ils laissaient 60 % de l'écran vide).
 - Carrousel, slide `compare` : deux chiffres signés à 3 décimales (« +0,52 » / « −0,01 ») débordent et se touchent. Au-delà de 3 caractères, passer en slide `number`.
 - Musique ElevenLabs : ne pas l'utiliser tant que l'offre ElevenLabs du compte n'est pas confirmée comme couvrant l'usage commercial (l'espace semble en offre gratuite le 16/11). Un fond de 20 s a été généré pour le reel du 17/11, sans voix (vérifié), mais il n'est pas monté.
+- Une fiche n'est « Produit » que si le média est commité dans `media/<date>/`, que l'URL jsDelivr répond 200 et que « Lien du média » est rempli (le 16/11, les deux fiches du 17/11 étaient « Produit » sans lien : la publication aurait échoué).
+- Carrousel : publication à 11 h 45 (tâche de 11 h 41), pas 12 h 30.
 - Sujets déjà traités au lancement (ne pas refaire avant longtemps) : virage 10 (0,27 s), virage 6 / freiner plus tôt (mythe ou data), Tour Parfait IA 1,23 s, score 71/100, carnet, Mon Kart.
 
 ## Journal
 - 16/11/2026 : création. Gabarit T-Reel, base Notion « Calendrier contenu », tâche quotidienne.
 - 16/11/2026 (1er passage, lundi) : aucun contenu publié ces 7 derniers jours (dernier TikTok le 31/10 : 292 vues, 5 % de visionnage complet ; Instagram : rien depuis plus de 30 jours, 1 004 abonnés). Pas de bilan possible : rotation, durées et horaires inchangés. Produits pour le 17/11 : carrousel « Ta courbe delta, enfin lisible » (12 h 30) et reel « Deux virages font tout l'écart » (18 h 45), série « Lire sa télémétrie ». Correctifs du gabarit T-Reel (accroche visible à l'image 0, centrage vertical) et du rendu (yuv420p).
 - 16/11/2026 (2e passage, lancement manuel) : réglages et fiches inchangés. Le reel du 17/11 a été revérifié (accroche lisible à l'image 0, 19,6 s, 1080×1920, yuv420p, son présent) : il reste tel quel. La musique générée n'est pas montée, à cause du doute sur la licence.
+- 16/11/2026 (3e passage, nuit) : toujours aucun contenu publié sur 7 jours (Instagram 1 004 abonnés, TikTok 0 à 2 vues/jour) : rien à classer. Erreur détectée et corrigée : les médias du 17/11 n'avaient jamais été commités et les fiches n'avaient pas de « Lien du média ». Re-rendu, contrôlé, commité dans `media/2026-11-17/`, liens jsDelivr (sha) posés. Carrousel déplacé de 12 h 30 à 11 h 45. Voix choisie par Yanis (Nathan Doré) : génération tentée 2 fois, refusée (« free generations busy », offre gratuite) → reel du 17/11 sans voix. Une clé Postiz est apparue dans les réglages : pas encore utilisée, en attente de la validation de Yanis sur son usage (TikTok).
