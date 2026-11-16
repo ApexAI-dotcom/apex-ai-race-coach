@@ -1,0 +1,11 @@
+{
+  "label": "Session de démo · Adria Karting Raceway",
+  "beats": [
+    { "dur": 2.6, "kind": "hook", "title": "Tu ne perds pas ton temps *partout.*", "sfx": "electric-sweep" },
+    { "dur": 3.2, "kind": "hero", "number": "+0,51", "unit": "s", "tone": "red", "title": "entre deux tours de la *même séance.*", "sfx": "impact-shimmer" },
+    { "dur": 3.8, "kind": "visual", "visual": "delta", "title": "*0,52 s* dans les virages 1 et 2.", "sub": "Sur les 10 autres virages, les deux tours sont à égalité.", "sfx": "marker" },
+    { "dur": 3.2, "kind": "hero", "number": "9", "unit": "km/h", "tone": "red", "title": "de moins au virage 1.", "sub": "Tour 4 : 115 km/h. Tour 9 : 106 km/h.", "sfx": "pings" },
+    { "dur": 3.4, "kind": "text", "title": "Cherche la pente *la plus raide.*", "sub": "Sur ta courbe delta, c'est ce virage-là que tu travailles à ta prochaine séance." },
+    { "dur": 3.4, "kind": "cta" }
+  ]
+}

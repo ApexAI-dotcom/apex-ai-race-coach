@@ -1,0 +1,58 @@
+{
+  "label": "Lire sa télémétrie",
+  "rail": true,
+  "slides": [
+    {
+      "kind": "cover",
+      "title": "Ta courbe *delta*,\nenfin lisible.",
+      "visual": "delta",
+      "visualWidth": 936,
+      "demo": true
+    },
+    {
+      "kind": "statement",
+      "label": "Ce qu'elle montre",
+      "title": "Deux tours,\n*mètre par mètre*.",
+      "body": "La courbe suit l'écart de temps cumulé entre ton meilleur tour et un autre tour, du départ à l'arrivée."
+    },
+    {
+      "kind": "statement",
+      "label": "Comment la lire",
+      "title": "Elle monte :\n[rouge]tu perds du temps[/rouge].",
+      "body": "Plus la pente est raide, plus tu perds vite. Elle descend : tu reprends du temps. Elle reste plate : tes deux tours sont égaux."
+    },
+    {
+      "kind": "number",
+      "label": "Sur une vraie séance",
+      "number": "+0,52",
+      "unit": "s",
+      "tone": "loss",
+      "title": "perdues dans\nles virages *1 et 2*.",
+      "body": "Sur les 10 autres virages, les deux tours sont à égalité (0,01 s d'écart). Tour 9 contre tour 4 : 0,51 s à l'arrivée.",
+      "demo": true
+    },
+    {
+      "kind": "statement",
+      "label": "Le piège",
+      "title": "Ne change pas\n*ce qui marche déjà*.",
+      "body": "Là où la courbe est plate, tu roules déjà comme sur ton meilleur tour. Garde ton énergie pour la zone qui coûte."
+    },
+    {
+      "kind": "list",
+      "label": "À enregistrer",
+      "title": "Ta méthode\nen *3 étapes*.",
+      "bullets": [
+        "Compare ton meilleur tour à un tour moyen.",
+        "Repère la pente la plus raide.",
+        "Travaille ce seul virage à ta prochaine séance."
+      ]
+    },
+    {
+      "kind": "cta",
+      "title": "Enregistre pour ta\n*prochaine séance*.",
+      "button": "Enregistrer",
+      "buttonIcon": "bookmark",
+      "sub": "Analyse ta session sur apexai.racing · lien en bio"
+    }
+  ]
+}

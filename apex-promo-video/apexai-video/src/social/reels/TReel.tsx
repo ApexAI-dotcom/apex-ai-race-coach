@@ -55,7 +55,7 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
   const head = label || b.label;
   const titleSize = b.kind === "hook" ? 112 : 84;
   const Title = b.title ? (
-    <KLine T={T} text={b.title} start={t0 + 0.05} size={titleSize} align="left" out={b.kind === "cta" ? undefined : out} sweep={b.kind === "hook"} />
+    <KLine T={T} text={b.title} start={t0 + 0.05} size={titleSize} align="left" out={b.kind === "cta" ? undefined : out} sweep={b.kind === "hook"} noIn={b.kind === "hook" && t0 === 0} />
   ) : null;
   const Sub = b.sub ? (
     <div style={{ marginTop: 28, fontFamily: FONT.body, fontWeight: 500, fontSize: 44, lineHeight: 1.25, color: alpha(C.text, 0.82), ...reveal(T, t0 + 0.35, { dur: 0.5, blur: 10, y: 12 }, out) }}>{fr(b.sub)}</div>
@@ -91,7 +91,7 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
     );
   }
   return (
-    <div style={{ position: "absolute", left: zone.x0, width: W, top: b.kind === "visual" ? zone.y0 : zone.y0 + 180 }}>
+    <div style={{ position: "absolute", left: zone.x0, width: W, top: b.kind === "visual" ? zone.y0 + 60 : zone.y0 + 360 }}>
       {Head}
       {b.kind === "hero" && b.number ? (
         <div style={{ marginBottom: 24 }}>
