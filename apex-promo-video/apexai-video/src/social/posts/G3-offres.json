@@ -1,0 +1,63 @@
+{
+  "label": "Offres",
+  "rail": true,
+  "panorama": 3,
+  "slides": [
+    {
+      "kind": "cover",
+      "title": "Ton karting.\n*Une seule app.*",
+      "sub": "Inscription gratuite."
+    },
+    {
+      "kind": "plan",
+      "label": "Plan gratuit",
+      "plan": "Rookie",
+      "title": "L'essentiel, gratuit.",
+      "price": "0 €",
+      "bullets": [
+        "3 analyses par mois",
+        "1 seul circuit (mémorisé)",
+        "Tracé de piste + 1 graphique",
+        "Score global /100",
+        "2 conseils de coaching IA",
+        "Comparaison de sessions"
+      ],
+      "note": "Avec un compte gratuit. Sans compte : 1 analyse offerte pour essayer."
+    },
+    {
+      "kind": "plan",
+      "label": "Le plus complet",
+      "plan": "*Racer*",
+      "title": "Pour suivre et gérer ta compétitivité.",
+      "price": "9,90 €",
+      "period": "/mois",
+      "priceNote": "ou 99 €/an (−17 %)",
+      "bullets": [
+        "Analyses de tours illimitées",
+        "Tous les circuits détectés",
+        "Tous les graphiques IA avancés",
+        "Score de performance par virage",
+        "4 conseils personnalisés par tour",
+        "Cockpit virtuel « Mon Kart »",
+        "Recommandations de réglages IA",
+        "Suivi d'entretien mécanique"
+      ]
+    },
+    {
+      "kind": "list",
+      "label": "Choisir",
+      "title": "Quel plan\n*pour toi* ?",
+      "bullets": [
+        "Tu découvres : [blanc]Rookie[/blanc], gratuit.",
+        "Tu roules de temps en temps : [blanc]Rookie[/blanc] suffit.",
+        "Tu roules souvent et tu fais des courses : *Racer*, tout ton karting au même endroit."
+      ]
+    },
+    {
+      "kind": "cta",
+      "title": "Crée ton compte\n*gratuit*.",
+      "button": "Créer mon compte",
+      "sub": "Lien en bio · apexai.racing"
+    }
+  ]
+}

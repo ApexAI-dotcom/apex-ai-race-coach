@@ -1,0 +1,72 @@
+{
+  "label": "Mythe ou data ?",
+  "rail": true,
+  "slides": [
+    {
+      "kind": "cover",
+      "title": "Freiner plus tard\n= plus rapide ?",
+      "sub": "*Pas toujours.* La preuve au virage 6.",
+      "visual": "trace-v6",
+      "visualWidth": 936,
+      "visualHeight": 640,
+      "demo": true
+    },
+    {
+      "kind": "statement",
+      "label": "Le mythe",
+      "title": "« Plus tu freines tard, plus tu *gagnes du temps*. »",
+      "body": "C'est une idée reçue tenace. Regardons ce que dit la data, sur une vraie session."
+    },
+    {
+      "kind": "compare",
+      "label": "La data · virage 6",
+      "title": "Le meilleur passage freinait *26 m plus tôt*.",
+      "compare": [
+        {
+          "label": "Ce tour",
+          "value": "17",
+          "unit": " m",
+          "tone": "loss"
+        },
+        {
+          "label": "Meilleur passage",
+          "value": "43",
+          "unit": " m",
+          "tone": "gain"
+        }
+      ],
+      "body": "Distance entre le début du freinage et l'apex, mesurée sur les tours de la session.",
+      "demo": true
+    },
+    {
+      "kind": "statement",
+      "label": "Et pourtant",
+      "title": "Plus tôt,\net pourtant *plus rapide*.",
+      "body": "Sur cette portion, le passage qui freinait à 43 m est le plus rapide de la session. Gain mesuré : [vert]0,16 s[/vert] par tour.",
+      "visual": "braking",
+      "visualWidth": 936,
+      "demo": true
+    },
+    {
+      "kind": "statement",
+      "label": "Pourquoi",
+      "title": "Freiner tôt,\nc'est *rendre les freins* à temps.",
+      "body": "Tu relâches les freins avant l'inscription : le kart tourne mieux, tu ressors mieux placé. Et c'est la sortie qui paie sur la ligne droite suivante."
+    },
+    {
+      "kind": "statement",
+      "label": "Ce que ta data peut te dire",
+      "title": "Ton meilleur repère,\n*virage par virage*.",
+      "body": "ApexAI compare tes passages et te montre où freinait le plus rapide d'entre eux.",
+      "visual": "coaching-2",
+      "visualWidth": 936,
+      "demo": true
+    },
+    {
+      "kind": "cta",
+      "title": "Enregistre ce post\npour ta *prochaine session*.",
+      "button": "Enregistrer",
+      "buttonIcon": "bookmark"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "label": "Virage décrypté #1",
+  "rail": true,
+  "slides": [
+    {
+      "kind": "cover",
+      "title": "Virage 10 :\n*2,9 km/h* à reprendre.",
+      "visual": "trace-v10",
+      "visualWidth": 936,
+      "visualHeight": 640,
+      "demo": true
+    },
+    {
+      "kind": "compare",
+      "label": "Le constat",
+      "title": "La vitesse est là.\n*Tu l'as déjà faite.*",
+      "compare": [
+        {
+          "label": "Ce tour",
+          "value": "55",
+          "unit": " km/h",
+          "tone": "loss"
+        },
+        {
+          "label": "Meilleur passage",
+          "value": "58",
+          "unit": " km/h",
+          "tone": "gain"
+        }
+      ],
+      "body": "Vitesse au point de corde du virage 10 (valeurs arrondies), mesurée sur les tours de la session.",
+      "demo": true
+    },
+    {
+      "kind": "statement",
+      "label": "Le geste",
+      "title": "Relâche les freins\n*plus progressivement*\nà l'inscription.",
+      "body": "C'est le freinage dégressif (trail braking) : tu gardes un filet de frein en entrant dans le virage, puis tu le rends en douceur."
+    },
+    {
+      "kind": "statement",
+      "label": "Pourquoi ça marche",
+      "title": "L'avant reste chargé,\n*le kart tourne*.",
+      "body": "Le poids reste sur les roues avant : le kart s'inscrit sans que tu perdes de vitesse au point de corde."
+    },
+    {
+      "kind": "number",
+      "label": "Le gain",
+      "number": "0,27",
+      "unit": "s",
+      "tone": "gain",
+      "title": "par tour, rien qu'au virage 10.",
+      "body": "Meilleur passage ici : tour 6. Le plus coûteux : tour 7 ([rouge]0,29 s[/rouge] d'écart).",
+      "visual": "coaching-1",
+      "visualWidth": 936,
+      "demo": true
+    },
+    {
+      "kind": "cta",
+      "title": "Et toi,\nton *virage 10* ?",
+      "button": "Créer mon compte",
+      "sub": "Inscription gratuite · lien en bio"
+    }
+  ]
+}

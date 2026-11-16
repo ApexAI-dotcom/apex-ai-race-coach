@@ -1,0 +1,65 @@
+{
+  "label": "Le score décrypté",
+  "rail": true,
+  "slides": [
+    {
+      "kind": "cover",
+      "red": true,
+      "number": "71",
+      "unit": "/100",
+      "title": "Ton pilotage,\nnoté sur *100*.",
+      "sub": "Les 4 critères du score, expliqués.",
+      "demo": true
+    },
+    {
+      "kind": "number",
+      "label": "Critère 1 · Précision Apex",
+      "number": "20",
+      "unit": "/30",
+      "progress": 0.667,
+      "title": "La constance de ta *trajectoire*.",
+      "body": "À chaque virage, l'IA mesure l'écart entre tes points de corde d'un tour à l'autre. Note maximale sous 1,5 m d'écart.",
+      "tip": "Choisis un repère visuel pour ton point de corde et vise-le à chaque tour.",
+      "demo": true
+    },
+    {
+      "kind": "number",
+      "label": "Critère 2 · Régularité",
+      "number": "16",
+      "unit": "/25",
+      "progress": 0.64,
+      "title": "La fluidité de *ton pilotage*.",
+      "body": "L'IA compte tes corrections de volant brusques et mesure la variation de ta courbe dans les virages.",
+      "tip": "Un seul mouvement de volant par virage : moins tu corriges, plus le kart reste stable.",
+      "demo": true
+    },
+    {
+      "kind": "number",
+      "label": "Critère 3 · Vitesse Apex",
+      "number": "20",
+      "unit": "/25",
+      "progress": 0.8,
+      "title": "La vitesse que tu portes *au point de corde*.",
+      "body": "Comparée au potentiel de chaque virage. Les virages rapides comptent davantage.",
+      "tip": "Relâche les freins progressivement à l'inscription pour garder de la vitesse au point de corde.",
+      "demo": true
+    },
+    {
+      "kind": "number",
+      "label": "Critère 4 · Temps Secteurs",
+      "number": "15",
+      "unit": "/20",
+      "progress": 0.75,
+      "title": "Le potentiel *de tes secteurs*.",
+      "body": "Estimé à partir de l'efficacité de tes passages en courbe dans chaque secteur.",
+      "tip": "Commence par le secteur où l'écart est le plus grand : c'est là que le temps se cache.",
+      "demo": true
+    },
+    {
+      "kind": "cta",
+      "title": "Obtiens\n*ton score*.",
+      "button": "Créer mon compte",
+      "sub": "Inscription gratuite · lien en bio"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "label": "Au-delà de l'analyse",
+  "rail": true,
+  "slides": [
+    {
+      "kind": "cover",
+      "title": "Ton kart.\nTes réglages.\n*Ta saison.*",
+      "visual": "trio",
+      "visualWidth": 936,
+      "demo": true,
+      "demoLabel": "Données de démonstration",
+      "titleSize": 104,
+      "visualHeight": 600
+    },
+    {
+      "kind": "statement",
+      "label": "Mon Kart",
+      "title": "L'état de ton kart,\n*d'un coup d'œil*.",
+      "body": "Moteur, pneus, freins, chaîne : chaque élément a son état, avec une alerte quand une limite approche.",
+      "visual": "kart",
+      "visualWidth": 936,
+      "demo": true,
+      "demoLabel": "Données de démonstration"
+    },
+    {
+      "kind": "statement",
+      "label": "Compteurs d'usure",
+      "title": "Heures moteur,\ntours de pneus, *freins*.",
+      "body": "Importe les fichiers de ta journée de roulage : ApexAI les intègre à l'historique de ton kart.",
+      "visual": "gauges",
+      "visualWidth": 820,
+      "demo": true,
+      "demoLabel": "Données de démonstration"
+    },
+    {
+      "kind": "statement",
+      "label": "Carnet d'Ingénieur Digital",
+      "title": "Tes réglages,\n*circuit par circuit*.",
+      "body": "Pneumatiques, châssis et géométrie, moteur et carburation : tout est noté, avec des recommandations.",
+      "visual": "setup",
+      "visualWidth": 900,
+      "demo": true,
+      "demoLabel": "Données de démonstration"
+    },
+    {
+      "kind": "statement",
+      "label": "Calendrier",
+      "title": "Ta saison\n*au même endroit*.",
+      "body": "Courses, entraînements, coaching et échéances d'inscription.",
+      "visual": "calendar",
+      "visualWidth": 860,
+      "demo": true,
+      "demoLabel": "Événements de démonstration"
+    },
+    {
+      "kind": "cta",
+      "title": "Au même\n*endroit*.",
+      "body": "Mon Kart, les recommandations de réglages et le suivi d'entretien sont inclus dans Racer.",
+      "button": "Passer Racer · 9,90 €/mois",
+      "sub": "ou 99 €/an · lien en bio"
+    }
+  ]
+}

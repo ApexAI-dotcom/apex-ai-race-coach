@@ -1,0 +1,742 @@
+/**
+ * TrackMapPro — SVG canvas with profile-aware rendering
+ * Renders the main track visualization: colored segments, corners, direction arrows
+ */
+import React, { useCallback, useMemo, type MouseEvent } from "react";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import type { TrackMapProfile } from "@/types/analysis";
+import type { ProjectedCorner } from "./useTrackMapGeometry";
+import type { LapProjection, ColoredSegment } from "./useTrackMapStyle";
+import type { BrakingZoneView } from "./useTrackMapData";
+import { SVG_W, SVG_H } from "./useTrackMapGeometry";
+import { APEX_ORANGE, APEX_RED, MODEL_GOLD, TRACK_BG_DARK, REF_WHITE } from "./trackMapColors";
+
+interface TrackMapCanvasProps {
+  primary: LapProjection | null;
+  reference: LapProjection | null;
+  syntheticProjection?: LapProjection | null;
+  showSynthetic?: boolean;
+  corners: ProjectedCorner[];
+  profile: TrackMapProfile;
+  hoveredIndex: number | null;
+  hoveredCornerId: number | null;
+  onPointHover: (index: number | null, clientX: number, clientY: number) => void;
+  onCornerClick: (cornerId: number) => void;
+  onCornerHover: (cornerId: number | null) => void;
+  isFullscreen?: boolean;
+  /** Ruban de piste (largeur réglementaire) — repère d'échelle pour le pilote. */
+  trackRibbonPath?: string | null;
+  trackWidthM?: number;
+  /** Mini-secteurs : temps perdu mesuré le long du tour. */
+  sectorSegments?: SectorSegment[];
+  /** Zones de freinage du tour affiché (bande + repère + temps mort). */
+  brakingZones?: BrakingZoneView[];
+}
+
+/** Un mini-secteur projeté, coloré par le temps réellement perdu. */
+export interface SectorSegment {
+  path: string;
+  loss: number;
+  color: string;
+  midX: number;
+  midY: number;
+  /** Étiquette « V9 +0.27s » — vide si ce secteur ne porte pas l'étiquette. */
+  label: string;
+  /** Total perdu sur le virage entier (chiffre repris dans les conseils). */
+  cornerTotal: number;
+}
+
+// Direction arrow every N segments
+const ARROW_INTERVAL = 25;
+
+function renderSegments(segments: ColoredSegment[], strokeWidth: number, opacity: number = 1) {
+  // Batch segments by color for fewer DOM elements
+  const groups: Record<string, string[]> = {};
+  for (const seg of segments) {
+    if (!groups[seg.color]) groups[seg.color] = [];
+    groups[seg.color].push(
+      `M${seg.x1.toFixed(1)},${seg.y1.toFixed(1)}L${seg.x2.toFixed(1)},${seg.y2.toFixed(1)}`
+    );
+  }
+
+  return Object.entries(groups).map(([color, paths]) => (
+    <path
+      key={color}
+      d={paths.join("")}
+      fill="none"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      opacity={opacity}
+    />
+  ));
+}
+
+// Restore Apex ADN glow effects
+/**
+ * Sur écran tactile, un filtre de flou SVG est recalculé à chaque image du
+ * pincement ou du glissement de la carte : c'était la principale source de
+ * saccades au doigt. Le halo y est reproduit par deux traits larges et très
+ * transparents superposés — même rendu à l'œil, sans aucun filtre.
+ */
+const SOFT_GLOW =
+  typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+
+function renderGlow(polyline: string, color: string) {
+  if (SOFT_GLOW) {
+    return (
+      <g opacity={0.12}>
+        <polyline
+          points={polyline}
+          fill="none"
+          stroke={color}
+          strokeWidth={28}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.45}
+        />
+        <polyline
+          points={polyline}
+          fill="none"
+          stroke={color}
+          strokeWidth={14}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.7}
+        />
+      </g>
+    );
+  }
+  return (
+    <polyline
+      points={polyline}
+      fill="none"
+      stroke={color}
+      strokeWidth={28}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      opacity={0.12}
+      style={{ filter: "blur(10px)" }}
+    />
+  );
+}
+
+function renderDirectionArrows(segments: ColoredSegment[]) {
+  if (segments.length < ARROW_INTERVAL * 2) return null;
+  const arrows: JSX.Element[] = [];
+
+  for (let i = ARROW_INTERVAL; i < segments.length - 5; i += ARROW_INTERVAL) {
+    const seg = segments[i];
+    const dx = seg.x2 - seg.x1;
+    const dy = seg.y2 - seg.y1;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 0.5) continue;
+
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    const cx = (seg.x1 + seg.x2) / 2;
+    const cy = (seg.y1 + seg.y2) / 2;
+
+    arrows.push(
+      <polygon
+        key={`arrow-${i}`}
+        points="0,-3 6,0 0,3"
+        fill="rgba(255,255,255,0.25)"
+        transform={`translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${angle.toFixed(1)})`}
+      />
+    );
+  }
+
+  return <g className="pointer-events-none">{arrows}</g>;
+}
+
+function renderCorners(
+  corners: ProjectedCorner[],
+  hoveredCornerId: number | null,
+  onCornerClick: (id: number) => void,
+  onCornerHover: (id: number | null) => void
+) {
+  return corners.map((c) => {
+    const isHovered = hoveredCornerId === c.id;
+    const r = isHovered ? 15 : 13;
+    return (
+      <g
+        key={c.id}
+        className="cursor-pointer"
+        onClick={() => onCornerClick(c.id)}
+        onMouseEnter={() => onCornerHover(c.id)}
+        onMouseLeave={() => onCornerHover(null)}
+      >
+        {/* Glow ring */}
+        <circle
+          cx={c.x}
+          cy={c.y}
+          r={r + 3}
+          fill="none"
+          stroke={isHovered ? APEX_ORANGE : "rgba(249,115,22,0.3)"}
+          strokeWidth={isHovered ? 2 : 1}
+          opacity={isHovered ? 0.8 : 0.4}
+        />
+        {/* Background circle */}
+        <circle cx={c.x} cy={c.y} r={r} fill="#000000" />
+        {/* Gradient border */}
+        <circle
+          cx={c.x}
+          cy={c.y}
+          r={r}
+          fill="none"
+          stroke={`url(#corner-gradient)`}
+          strokeWidth={isHovered ? 2.5 : 2}
+        />
+        {/* Apex star text */}
+        <text
+          x={c.x}
+          y={c.y + 3.5}
+          textAnchor="middle"
+          fill="#ffffff"
+          fontSize={isHovered ? "9" : "8"}
+          fontWeight="800"
+          fontFamily="'Space Grotesk', sans-serif"
+          className="select-none pointer-events-none"
+        >
+          {c.label.replace("V", "")}
+        </text>
+        {/* Apex tip mark */}
+        <polygon
+          points={`${c.x},${c.y - r - 4} ${c.x - 3},${c.y - r - 7} ${c.x + 3},${c.y - r - 7}`}
+          fill="#ffffff"
+        />
+      </g>
+    );
+  });
+}
+
+function TrackMapCanvasComponent({
+  primary,
+  reference,
+  syntheticProjection,
+  showSynthetic,
+  corners,
+  profile,
+  hoveredIndex,
+  hoveredCornerId,
+  onPointHover,
+  onCornerClick,
+  onCornerHover,
+  isFullscreen,
+  trackRibbonPath,
+  trackWidthM,
+  sectorSegments,
+  brakingZones,
+}: TrackMapCanvasProps) {
+  // Invisible hit area for hover detection
+  const handleMouseMove = useCallback(
+    (e: MouseEvent<SVGSVGElement>) => {
+      if (!primary) return;
+      const svg = e.currentTarget;
+      const rect = svg.getBoundingClientRect();
+      const scaleX = SVG_W / rect.width;
+      const scaleY = SVG_H / rect.height;
+      const svgX = (e.clientX - rect.left) * scaleX;
+      const svgY = (e.clientY - rect.top) * scaleY;
+
+      // Find nearest point
+      const pts = primary.points;
+      let bestDist = Infinity;
+      let bestIdx = -1;
+      // Sample every 2nd point for performance
+      for (let i = 0; i < pts.length; i += 2) {
+        const dx = pts[i].x - svgX;
+        const dy = pts[i].y - svgY;
+        const d = dx * dx + dy * dy;
+        if (d < bestDist) {
+          bestDist = d;
+          bestIdx = i;
+        }
+      }
+
+      if (bestDist < 900) {
+        // ~30px radius
+        onPointHover(bestIdx, e.clientX, e.clientY);
+      } else {
+        onPointHover(null, 0, 0);
+      }
+    },
+    [primary, onPointHover]
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    onPointHover(null, 0, 0);
+  }, [onPointHover]);
+
+  // Memoize static layers to prevent heavy recalculations during hover
+  const referenceLayer = useMemo(() => {
+    if (!reference || profile !== "compare") return null;
+    return (
+      <g className="reference-layer pointer-events-none">
+        {renderGlow(reference.polyline, reference.isSynthetic ? MODEL_GOLD : REF_WHITE)}
+        <polyline
+          points={reference.polyline}
+          fill="none"
+          stroke={reference.isSynthetic ? MODEL_GOLD : REF_WHITE}
+          strokeWidth={reference.isSynthetic ? 3 : 2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={reference.isSynthetic ? 0.85 : 0.45}
+          strokeDasharray={reference.isSynthetic ? "none" : "8 4"}
+        />
+      </g>
+    );
+  }, [reference, profile]);
+
+  const primaryLayer = useMemo(() => {
+    if (!primary) return null;
+
+    // Batch braking segments into a single optimized path to reduce DOM elements from hundreds to 1
+    const brakingSegments = primary.segments.filter((s) => s.phase === "braking");
+    const brakingSegmentsPath = brakingSegments
+      .map((seg) => `M${seg.x1.toFixed(1)},${seg.y1.toFixed(1)}L${seg.x2.toFixed(1)},${seg.y2.toFixed(1)}`)
+      .join("");
+
+    return (
+      <g className="primary-layer pointer-events-none">
+        {/* Apex Glow layer */}
+        {renderGlow(primary.polyline, APEX_ORANGE)}
+
+        {/* Colored segments (speed or braking profile) */}
+        {profile !== "compare" ? (
+          renderSegments(primary.segments, 3)
+        ) : (
+          <polyline
+            points={primary.polyline}
+            fill="none"
+            stroke={APEX_ORANGE}
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+
+        {/* Synthetic Perfect Lap overlay - Bright Cyan, unmissable */}
+        {showSynthetic && syntheticProjection && (
+          <g className="ai-lap-group">
+            {/* Soft glow behind */}
+            <polyline
+              points={syntheticProjection.polyline}
+              fill="none"
+              stroke={MODEL_GOLD}
+              strokeWidth={12}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={SOFT_GLOW ? 0.12 : 0.2}
+              style={SOFT_GLOW ? undefined : { filter: "blur(6px)" }}
+            />
+            {/* Core dashed line */}
+            <polyline
+              points={syntheticProjection.polyline}
+              fill="none"
+              stroke={MODEL_GOLD}
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray="14 7"
+              opacity={1}
+            />
+          </g>
+        )}
+
+        {/* Braking profile overlay in Complete mode - optimized as single path */}
+        {profile === "complete" && brakingSegments.length > 0 && (
+          <path
+            d={brakingSegmentsPath}
+            stroke="#ef4444"
+            strokeWidth={6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            opacity={0.25}
+          />
+        )}
+
+        {/* Les anciens points de freinage (pastilles rouges/dorées sans
+            étiquette ni légende) ont été retirés : ils doublonnaient avec les
+            repères de freinage mesurés côté backend, qui indiquent en plus le
+            virage concerné et la distance jusqu'à l'apex. Deux systèmes de
+            marqueurs superposés rendaient la carte illisible. */}
+
+        {/* Direction arrows */}
+        {renderDirectionArrows(primary.segments)}
+      </g>
+    );
+  }, [primary, profile, showSynthetic, syntheticProjection]);
+
+  const cornersLayer = useMemo(() => {
+    return renderCorners(corners, hoveredCornerId, onCornerClick, onCornerHover);
+  }, [corners, hoveredCornerId, onCornerClick, onCornerHover]);
+
+  /** Ruban de piste : donne l'échelle réelle (largeur réglementaire karting). */
+  const trackRibbonLayer = useMemo(() => {
+    if (!trackRibbonPath) return null;
+    return (
+      <g className="track-ribbon pointer-events-none">
+        <path d={trackRibbonPath} fill="rgba(255,255,255,0.055)" stroke="none" />
+        <path
+          d={trackRibbonPath}
+          fill="none"
+          stroke="rgba(255,255,255,0.20)"
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+        />
+      </g>
+    );
+  }, [trackRibbonPath]);
+
+  /**
+   * Zones de freinage — la vue « Freinage ».
+   *
+   * Trois éléments qui racontent la même chose, du plus visible au plus précis :
+   *  1. la BANDE rouge, épaissie selon l'intensité réellement mesurée ;
+   *  2. la bande AMBRE en pointillés juste après : le temps mort, ni frein ni gaz ;
+   *  3. le REPÈRE perpendiculaire à la piste, comme un panneau de freinage, posé
+   *     sur le premier point de la bande — c'est le même point, pas une position
+   *     recalculée.
+   */
+  const brakingRefLayer = useMemo(() => {
+    if (!brakingZones?.length || profile !== "braking") return null;
+    return (
+      <g className="braking-zones pointer-events-none">
+        {/* 1. Les bandes, tracées d'abord pour rester sous les repères */}
+        {brakingZones.map((z, i) =>
+          z.path ? (
+            <g key={`bzone-${i}`}>
+              <path
+                d={z.path}
+                fill="none"
+                stroke={APEX_RED}
+                strokeWidth={5 + Math.min(7, z.peakG * 7)}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.16}
+              />
+              <path
+                d={z.path}
+                fill="none"
+                stroke={APEX_RED}
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.85}
+              />
+            </g>
+          ) : null
+        )}
+
+        {/* 2. Le temps mort : visible, mais jamais confondu avec du freinage */}
+        {brakingZones.map((z, i) =>
+          z.coastPath && z.coasting >= 0.12 ? (
+            <path
+              key={`bcoast-${i}`}
+              d={z.coastPath}
+              fill="none"
+              stroke="#fb923c"
+              strokeWidth={3}
+              strokeDasharray="3 4"
+              strokeLinecap="round"
+              opacity={0.9}
+            />
+          ) : null
+        )}
+
+        {/* 3. Les repères */}
+        {brakingZones.map((z, i) => {
+          const w = z.doubleBrake ? 92 : 78;
+          // L'étiquette se rabat du côté où il reste de la place. Posée
+          // systématiquement en haut à droite, elle sortait du cadre sur les
+          // virages proches d'un bord — le repère du dernier virage se
+          // retrouvait tronqué, donc illisible.
+          //
+          // On teste ensuite les quatre placements possibles et on retient
+          // celui qui ne recouvre aucune pastille de virage : l'étiquette du
+          // V12 se posait pile sur le numéro du V11, rendant les deux illisibles.
+          const candidates: Array<[number, number]> = [
+            [10, -10], [-(w + 10), -10], [10, 20], [-(w + 10), 20],
+          ];
+          const fits = ([ox, oy]: [number, number]) => {
+            const x0 = z.x + ox;
+            const y0 = z.y + oy - 9;
+            if (x0 < 2 || x0 + w > SVG_W - 2 || y0 < 2 || y0 + 18 > SVG_H - 2) return false;
+            return !corners.some(
+              (c) => c.x > x0 - 9 && c.x < x0 + w + 9 && c.y > y0 - 9 && c.y < y0 + 27
+            );
+          };
+          const [dx, dy] = candidates.find(fits) ?? candidates[0];
+          return (
+            <g key={`bmark-${i}`} transform={`translate(${z.x.toFixed(1)},${z.y.toFixed(1)})`}>
+              {/* Barre en travers de la piste : un repère de freinage, pas un point */}
+              <g transform={`rotate(${z.angle.toFixed(1)})`}>
+                <line
+                  x1={0}
+                  y1={-9}
+                  x2={0}
+                  y2={9}
+                  stroke={z.color}
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                />
+              </g>
+              <circle r={3.5} fill={TRACK_BG_DARK} stroke={z.color} strokeWidth={2} />
+              <g transform={`translate(${dx},${dy})`}>
+                <rect
+                  x={0}
+                  y={-9}
+                  width={w}
+                  height={18}
+                  rx={9}
+                  fill="rgba(0,0,0,0.82)"
+                  stroke={z.color}
+                  strokeWidth={1}
+                />
+                <text
+                  x={w / 2}
+                  y={4}
+                  textAnchor="middle"
+                  fill="#fff"
+                  fontSize="9"
+                  fontWeight="700"
+                  fontFamily="'Space Grotesk', sans-serif"
+                >
+                  {`V${z.cornerId} · ${Math.round(z.distance)}m · ${z.peakG.toFixed(2)}g${
+                    z.doubleBrake ? " ⚠" : ""
+                  }`}
+                </text>
+              </g>
+            </g>
+          );
+        })}
+      </g>
+    );
+  }, [brakingZones, profile, corners]);
+
+  /** Mini-secteurs colorés par temps perdu (profil « Mini-secteurs »). */
+  const sectorsLayer = useMemo(() => {
+    if (profile !== "sectors" || !sectorSegments?.length) return null;
+    // Une étiquette par virage, affichant le TOTAL perdu sur ce virage —
+    // exactement le chiffre repris dans les conseils de coaching. On garde les
+    // 5 virages les plus coûteux pour ne pas saturer la carte.
+    const labelled = sectorSegments
+      .filter((s) => s.label && s.cornerTotal > 0.01)
+      .sort((a, b) => b.cornerTotal - a.cornerTotal)
+      .slice(0, 5);
+    return (
+      <g className="sectors-layer pointer-events-none">
+        {sectorSegments.map((s, i) => (
+          <path
+            key={`sec-${i}`}
+            d={s.path}
+            fill="none"
+            stroke={s.color}
+            strokeWidth={7}
+            strokeLinecap="butt"
+            opacity={0.95}
+          />
+        ))}
+        {labelled.map((s, i) => (
+          <g key={`secl-${i}`} transform={`translate(${s.midX.toFixed(1)},${s.midY.toFixed(1)})`}>
+            <rect
+              x={-34}
+              y={-9}
+              width={68}
+              height={18}
+              rx={9}
+              fill="rgba(0,0,0,0.82)"
+              stroke={s.color}
+              strokeWidth={1.5}
+            />
+            <text
+              x={0}
+              y={4}
+              textAnchor="middle"
+              fill="#fff"
+              fontSize="10"
+              fontWeight="700"
+              fontFamily="'Space Grotesk', sans-serif"
+            >
+              {s.label}
+            </text>
+          </g>
+        ))}
+      </g>
+    );
+  }, [profile, sectorSegments]);
+
+  const startFinishMarkers = useMemo(() => {
+    if (!primary || primary.points.length <= 2) return null;
+    return (
+      <g className="pointer-events-none">
+        <circle
+          cx={primary.points[0].x}
+          cy={primary.points[0].y}
+          r={5}
+          fill="#22c55e"
+          stroke={TRACK_BG_DARK}
+          strokeWidth={2}
+        />
+        <circle
+          cx={primary.points[primary.points.length - 1].x}
+          cy={primary.points[primary.points.length - 1].y}
+          r={5}
+          fill="#ef4444"
+          stroke={TRACK_BG_DARK}
+          strokeWidth={2}
+        />
+      </g>
+    );
+  }, [primary]);
+
+  return (
+    <TransformWrapper
+      initialScale={1}
+      minScale={0.5}
+      maxScale={6}
+      centerOnInit={true}
+      wheel={{ step: 0.1, activationKeys: ["Control"] }}
+      doubleClick={{ mode: "zoomIn" }}
+      zoomAnimation={{ animationType: "easeOut" }}
+      // Inertie au glissement : la carte continue sur son élan puis
+      // s'arrête en douceur, comme une carte Plans sur iPhone.
+      panning={{ velocityDisabled: false }}
+      velocityAnimation={{ animationTime: 450, animationType: "easeOut" }}
+      onZoom={() => onPointHover(null, 0, 0)}
+      onPanning={() => onPointHover(null, 0, 0)}
+    >
+      {({ zoomIn, zoomOut, resetTransform }) => (
+        <div
+          className={`relative w-full ${isFullscreen ? "flex-1 h-full" : "h-full max-h-[600px]"}`}
+        >
+          {/* Zoom Controls */}
+          <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-secondary/80 p-1.5 rounded-md border border-white/10 backdrop-blur-sm shadow-xl">
+            <button
+              onClick={() => zoomIn()}
+              className="p-1.5 hover:bg-white/10 rounded transition-colors text-white"
+              aria-label="Zoom In"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+            <button
+              onClick={() => zoomOut()}
+              className="p-1.5 hover:bg-white/10 rounded transition-colors text-white"
+              aria-label="Zoom Out"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+            <button
+              onClick={() => resetTransform()}
+              className="p-1.5 hover:bg-white/10 rounded transition-colors text-white"
+              aria-label="Reset Zoom"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+          </div>
+
+          <TransformComponent
+            wrapperClass={`w-full overflow-hidden ${isFullscreen ? "h-full flex-1" : "h-auto max-h-[600px]"} flex justify-center items-center min-h-[300px]`}
+            contentClass="w-full h-full flex justify-center items-center"
+            wrapperStyle={{ width: "100%", height: isFullscreen ? "100%" : "auto" }}
+            contentStyle={{ width: "100%", height: "100%" }}
+          >
+            <svg
+              viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+              className={`w-full overflow-visible ${isFullscreen ? "max-h-full" : "max-h-[600px]"}`}
+              style={{ aspectRatio: `${SVG_W} / ${SVG_H}`, minHeight: "300px" }}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+            >
+              <defs>
+                {/* E-Sport corner gradient border */}
+                <linearGradient id="corner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={APEX_ORANGE} />
+                  <stop offset="100%" stopColor={APEX_RED} />
+                </linearGradient>
+              </defs>
+
+              {/* Background purely transparent so the CSS container gradient shines through */}
+
+              {/* Ruban de piste (échelle réelle) — sous toutes les trajectoires */}
+              {trackRibbonLayer}
+
+              {/* Mini-secteurs (profil dédié) */}
+              {sectorsLayer}
+
+              {/* Reference/comparison lap */}
+              {referenceLayer}
+
+              {/* Primary lap — on ne le masque que si les mini-secteurs sont
+                  réellement disponibles, sinon la carte serait vide. */}
+              {profile === "sectors" && sectorSegments?.length ? null : primaryLayer}
+
+              {/* Hovered point indicator */}
+              {primary && hoveredIndex !== null && hoveredIndex < primary.points.length && (
+                <circle
+                  cx={primary.points[hoveredIndex].x}
+                  cy={primary.points[hoveredIndex].y}
+                  r={6}
+                  fill={APEX_ORANGE}
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                  className="pointer-events-none"
+                >
+                  <animate
+                    attributeName="r"
+                    values="5;7;5"
+                    dur="1.5s"
+                    repeatCount="indefinite"
+                  />
+                </circle>
+              )}
+
+              {/* Repères de freinage réels */}
+              {brakingRefLayer}
+
+              {/* Corner markers */}
+              {cornersLayer}
+
+              {/* Start / Finish markers */}
+              {startFinishMarkers}
+            </svg>
+          </TransformComponent>
+        </div>
+      )}
+    </TransformWrapper>
+  );
+}
+
+export const TrackMapCanvas = React.memo(TrackMapCanvasComponent);
+

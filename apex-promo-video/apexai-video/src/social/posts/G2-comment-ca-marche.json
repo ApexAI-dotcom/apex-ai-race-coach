@@ -1,0 +1,65 @@
+{
+  "label": "Mode d'emploi",
+  "rail": true,
+  "panorama": 2,
+  "slides": [
+    {
+      "kind": "cover",
+      "title": "Du CSV\nau *conseil*.",
+      "sub": "En 3 étapes."
+    },
+    {
+      "kind": "step",
+      "number": "01",
+      "title": "Exporte ton *CSV*.",
+      "body": "Dans Race Studio, exporte ta session au format CSV. Compatible MyChron 5 et MyChron 6.",
+      "visual": "file",
+      "visualWidth": 520,
+      "note": "Fichier trop lourd ? Réduis les canaux exportés ou applique une décimation 1:10."
+    },
+    {
+      "kind": "step",
+      "number": "02",
+      "title": "Importe-le sur *apexai.racing*.",
+      "body": "Glisse ton fichier, choisis les conditions de piste et lance l'analyse.",
+      "visual": "upload",
+      "visualWidth": 700
+    },
+    {
+      "kind": "step",
+      "number": "03",
+      "title": "Lis ton *analyse*.",
+      "body": "Un score de pilotage sur 100, ton Tour Parfait IA et des conseils classés par temps perdu.",
+      "visual": "score",
+      "visualWidth": 820,
+      "demo": true
+    },
+    {
+      "kind": "statement",
+      "label": "Exemple",
+      "title": "Des conseils,\npas des *courbes*.",
+      "body": "Chaque conseil dit où, combien et quoi changer. Ici : virage 10, [vert]0,27 s[/vert] par tour à reprendre.",
+      "visual": "coaching-1",
+      "visualWidth": 880,
+      "demo": true
+    },
+    {
+      "kind": "list",
+      "label": "Compatibilité",
+      "title": "Ça marche *avec quoi* ?",
+      "bullets": [
+        "Les exports CSV du MyChron 5",
+        "Les exports CSV du MyChron 6",
+        "Via Race Studio, en un fichier par session"
+      ],
+      "body": "Ton boîtier n'est pas dans la liste ? Dis-le-nous en commentaire.",
+      "note": "MyChron et Race Studio sont des marques d'AiM. ApexAI n'est pas affilié à AiM."
+    },
+    {
+      "kind": "cta",
+      "title": "Inscris-toi\net *essaie*.",
+      "button": "Créer mon compte",
+      "sub": "Inscription gratuite · lien en bio"
+    }
+  ]
+}

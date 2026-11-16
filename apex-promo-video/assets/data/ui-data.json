@@ -1,0 +1,201 @@
+{
+  "_readme": "Contenu exact des écrans ApexAI à recréer (relevé sur l'app de production le 05/10/2026). Les textes d'interface restent tels quels (y compris le vouvoiement de certains écrans) : c'est ce que le prospect verra. Les éléments marqués demo:true sont des contenus de démonstration ajoutés pour la vidéo. La clé forbidden liste ce qui ne doit JAMAIS apparaître.",
+  "navbar": {
+    "items": ["Accueil", "Tableau de bord", "Analyser", "Mon Kart", "Réglages", "Calendrier"],
+    "activePill": "Analyser",
+    "user": { "avatarInitial": "Y", "showFullName": false },
+    "_note": "Pas de badges Admin/Team, pas de nom complet, pas d'email."
+  },
+  "upload": {
+    "titleParts": [{ "text": "Analysez votre ", "style": "white" }, { "text": "session", "style": "gradientPrimary" }],
+    "subtitle": "Importez votre fichier CSV depuis votre data logger et obtenez une analyse complète en quelques secondes.",
+    "dropTitle": "Glissez votre fichier CSV ici",
+    "dropSubtitle": "ou cliquez pour sélectionner",
+    "formats": ["MyChron 5", "MyChron 6", "AiM", "RaceBox"],
+    "file": { "name": "session_adria.csv", "size": "26727.1 KB" },
+    "sessionInfo": {
+      "title": "Informations de Session",
+      "subtitle": "Configurez l'analyse avant le lancement",
+      "nameLabel": "Nom de la session (Optionnel)",
+      "nameValue": "Session du 05/10/2026",
+      "conditionsLabel": "Conditions de piste",
+      "conditions": ["Sec", "Humide", "Mouillée", "Pluie"],
+      "conditionSelected": "Sec",
+      "typeLabel": "Type de session",
+      "types": ["Essais", "Qualifications", "Course"],
+      "typeSelected": "Essais",
+      "selectedChipColor": "#FF6B35"
+    },
+    "cta": "Analyser le fichier"
+  },
+  "analyzing": {
+    "title": "Analyse en cours…",
+    "subtitle": "Notre IA analyse vos données de course",
+    "steps": [
+      "Connexion au serveur…",
+      "Téléchargement du fichier CSV…",
+      "L'IA analyse vos apices…",
+      "Calcul du score de performance…",
+      "Génération des graphiques…"
+    ],
+    "icon": "lucide Brain dans un anneau de progression #FF4242",
+    "doneTitle": "Analyse terminée !",
+    "doneSubtitle": "Votre session a été analysée avec succès.",
+    "doneChip": "Conditions : Sec",
+    "acquisition": "Acquisition détectée · AiM (export MoTeC CSV)"
+  },
+  "score": {
+    "title": "Score de Performance",
+    "grade": "B",
+    "value": 71,
+    "max": 100,
+    "valueColor": "#F5456F",
+    "caption": "Note de pilotage sur cette session",
+    "breakdown": [
+      { "label": "Précision Apex", "value": 20, "max": 30 },
+      { "label": "Régularité", "value": 16, "max": 25 },
+      { "label": "Vitesse Apex", "value": 20, "max": 25 },
+      { "label": "Temps Secteurs", "value": 15, "max": 20 }
+    ],
+    "stats": [
+      { "icon": "Clock", "label": "Tour le plus rapide", "value": "49.680s", "sub": "Tour 4", "valueColor": "#22C55E" },
+      { "icon": "Zap", "label": "Vitesse maximale", "value": "118.7 km/h", "sub": "Tour 7" },
+      { "icon": "Target", "label": "Cohérence", "value": "1.15 s", "sub": "Écart moyen" },
+      { "icon": "TrendingUp", "label": "Amélioration", "value": "3.33 s", "sub": "Pire au meilleur" }
+    ]
+  },
+  "perfectLap": {
+    "sectionTitle": "Carte du Circuit",
+    "label": "TOUR PARFAIT IA",
+    "best": { "label": "Meilleur tour", "value": "49.68s", "sub": "(tour 4)" },
+    "ideal": { "label": "Tour idéal", "value": "48.45s" },
+    "toGain": { "label": "À aller chercher", "value": "−1.23s", "valueColor": "#22C55E" },
+    "explanation": "En enchaînant tes meilleurs mini-secteurs (mesuré sur tes tours 1, 2, 3, 4, 5, 6, 7, 8, 9). Tu l'as déjà fait — mais pas dans le même tour. La trajectoire jaune reste dans les limites de piste et ne raccourcit aucun virage.",
+    "tabs": ["Vitesse", "Freinage", "Mini-secteurs", "Comparaison"],
+    "activeTab": "Vitesse",
+    "aiToggle": "MASQUER TOUR IA",
+    "mapHint": "Où tu es rapide, où tu es lent : la piste colorée par ta vitesse, avec tes points de freinage."
+  },
+  "coaching": {
+    "title": "Conseils de Coaching",
+    "subtitle": "Classés par temps réellement perdu, mesuré sur tes chronos — référence : ton meilleur tour (tour 4). Les numéros de virage sont ceux de la carte du circuit.",
+    "cards": [
+      {
+        "priority": "Priorité 1",
+        "category": "Speed",
+        "corner": "Virage 10",
+        "lostLabel": "Temps perdu ici : ",
+        "lost": "0.27s",
+        "lostSuffix": " / tour",
+        "title": "Virage 10 à droite — 2.9 km/h à reprendre à l'apex",
+        "body": "Tu passes à 55 km/h alors que ton meilleur passage sur ce virage est à 58 km/h : la vitesse est atteignable, tu l'as déjà faite. Relâche les freins plus progressivement à l'inscription (trail braking) : l'avant reste chargé et le kart tourne sans que tu perdes de vitesse. Gain mesuré : 0.27s par tour. Ton meilleur passage ici : tour 6 ; le plus coûteux : tour 7 (0.29s d'écart).",
+        "highlight": "Relâche les freins plus progressivement à l'inscription",
+        "difficulty": "moyen"
+      },
+      {
+        "priority": "Priorité 2",
+        "category": "Braking",
+        "corner": "Virage 6",
+        "lostLabel": "Temps perdu ici : ",
+        "lost": "0.16s",
+        "lostSuffix": " / tour",
+        "title": "Virage 6 à droite — Ton meilleur passage freinait 26 m plus tôt",
+        "body": "Tu déclenches à 17 m de l'apex, mais ton passage le plus rapide ici freinait à 43 m (référence : ton tour 5) — plus tôt, et pourtant plus rapide sur la portion. Anticiper te laisse le temps de rendre les freins avant l'inscription : tu ressors mieux placé, et c'est la sortie qui paie sur la ligne droite suivante. Essaie de reproduire ce repère. Gain mesuré : 0.16s par tour. Ton meilleur passage ici : tour 4 ; le plus coûteux : tour 1 (0.82s d'écart).",
+        "difficulty": "moyen"
+      }
+    ]
+  },
+  "charts": {
+    "deltaTime": {
+      "title": "Delta Temps",
+      "description": "Écart de temps cumulé entre vos tours et le meilleur tour. Si la courbe monte, vous perdez du temps. Concentrez votre travail sur les zones où la pente est la plus forte pour gagner des secondes.",
+      "yLabel": "Delta (s)",
+      "yTicks": ["-0.3s", "0.0s", "0.3s", "0.5s", "0.8s"],
+      "xTicks": ["0m", "350m", "700m", "1225m"],
+      "legend": [{ "label": "T4 (Meilleur)", "color": "#22C55E" }, { "label": "T9", "color": "#3B82F6" }],
+      "cornerBands": "bandes verticales V1…V12 en rgba(249,115,22,0.18), étiquettes orange #F97316",
+      "data": "adria-lap.json → points[i][4] − points[i][3]"
+    },
+    "speedTrace": {
+      "title": "Trace de Vitesse",
+      "description": "Vitesse en km/h en fonction de la distance. Repérez les zones où vous freinez trop tôt ou réaccélérez trop tard.",
+      "yTicks": ["0", "30", "60", "90", "120"],
+      "legend": [{ "label": "Tour 4 (Best)", "color": "#F97316" }, { "label": "Tour 9", "color": "#3B82F6" }],
+      "data": "adria-lap.json → points[i][2] (T4) et points[i][5] (T9)"
+    },
+    "radar": {
+      "title": "Radar de Performance",
+      "axes": ["Précision Apex", "Régularité", "Vitesse Apex", "Secteurs"],
+      "values": [0.667, 0.64, 0.8, 0.75],
+      "fill": "rgba(249,115,22,0.55)",
+      "stroke": "#F97316"
+    }
+  },
+  "monKart": {
+    "health": {
+      "title": "Bilan Santé Global",
+      "value": 98,
+      "valueColor": "#22C55E",
+      "caption": "SCORE D'ÉTAT",
+      "topBorder": "#22C55E",
+      "tiles": [
+        { "icon": "Flame", "iconColor": "#FF4242", "value": "100%", "label": "MOTEUR" },
+        { "icon": "CircleDot", "iconColor": "#A855F7", "value": "93%", "label": "PNEUS" },
+        { "icon": "LoaderCircle", "iconColor": "#F97316", "value": "99%", "label": "FREINS" },
+        { "icon": "Wrench", "iconColor": "#3B82F6", "value": "99%", "label": "CHAÎNE" }
+      ]
+    },
+    "gauges": [
+      { "label": "Moteur", "value": "0", "unit": "/ 15 h", "action": "Réviser le moteur" },
+      { "label": "Pneus", "value": "9", "unit": "/ 120 tours", "action": "Remplacer le train" },
+      { "label": "Freins", "value": "9", "unit": "/ 800 tours", "action": "Changer plaquettes" },
+      { "label": "Chaîne", "value": "0.2", "unit": "/ 20 h", "action": "Graisser / Changer" }
+    ],
+    "schematic": "vue de dessus d'un kart en traits gris clairs sur grille sombre, nœuds circulaires verts lumineux (4 roues, moteur, chaîne, freins, batterie, direction « AV ») — voir ref/screens/ui-mon-kart.png et ref/code/KartSchematic.tsx"
+  },
+  "setup": {
+    "pageTitle": "Carnet d'Ingénieur Digital",
+    "card": "Pneumatiques",
+    "fields": [
+      { "group": "Pressions à Froid", "label": "Avant (bar)", "value": "1", "reco": "Recommandation : 1" },
+      { "group": "Pressions à Froid", "label": "Arrière (bar)", "value": "1", "reco": "Recommandation : 1" },
+      { "group": "Pressions à Chaud (Cible)", "label": "Avant (bar)", "value": "1,2", "reco": "Recommandation : 1,2" },
+      { "group": "Pressions à Chaud (Cible)", "label": "Arrière (bar)", "value": "1,2", "reco": "Recommandation : 1,2" }
+    ],
+    "recoChipStyle": "pastille contour rgba(255,66,66,0.5), texte #FF4242, icône lucide Brain"
+  },
+  "calendar": {
+    "title": "Calendrier",
+    "subtitle": "Ta saison au même endroit : courses, entraînements, coaching et échéances d'inscription.",
+    "views": ["Mois", "Liste"],
+    "month": "Octobre 2026",
+    "weekdays": ["L", "M", "M", "J", "V", "S", "D"],
+    "firstDayOffset": 3,
+    "today": 5,
+    "addButton": "+ Ajouter",
+    "events": [
+      { "day": 10, "label": "Entraînement", "color": "#3B82F6", "demo": true },
+      { "day": 17, "label": "Coaching", "color": "#A855F7", "demo": true },
+      { "day": 25, "label": "Course", "color": "#FF4242", "demo": true }
+    ]
+  },
+  "endCard": {
+    "badge": "Propulsé par l'IA",
+    "baseline": "Ton ingénieur de course IA",
+    "button": "Analyser ma session",
+    "subline": "1re analyse offerte · sans compte",
+    "url": "apexai.racing"
+  },
+  "forbidden": [
+    "Statistiques de la landing : 12,847 tours analysés, +1.2s gain moyen, 99% fiabilité, 94% précision, 127 pilotes",
+    "Témoignages (Pierre G., Sébastien K., Marie D., Lucas M., Thomas B.…) et section « Ce qu'en disent les pilotes »",
+    "Carte « Fiabilité 99% » et « Analyse en 3 secondes » de la page d'import",
+    "Compteur « 52 analyses sauvegardées total », Score moyen 73/100, Meilleur score 86/100 (données du compte)",
+    "Badges Admin / Team, nom « yanis moreau », toute adresse email, écran de connexion Google",
+    "Nom du pilote présent dans le CSV de démo",
+    "Carte « Identité du Kart » (marques de châssis, moteur, freins, pneus) et toute autre marque tierce hors formats compatibles (MyChron, AiM, RaceBox)",
+    "Carte « Bilan Poids » (175 kg NON-CONFORME)",
+    "Feuille de route / fonctionnalités « Bientôt »",
+    "Prix et offres d'abonnement"
+  ]
+}

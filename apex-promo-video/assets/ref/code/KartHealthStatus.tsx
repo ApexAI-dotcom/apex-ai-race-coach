@@ -1,0 +1,105 @@
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { KartProfile } from "@/lib/api";
+import { Flame, Disc, Loader2, HeartPulse, Wrench } from "lucide-react";
+
+export function KartHealthStatus({ profile }: { profile: KartProfile }) {
+  // Simple health score calculation based on current wear vs life
+  const maxEngine = profile.engine_hours_life || 15;
+  const currentEngine = profile.engine_hours_current || 0;
+  const engineHealth = Math.max(0, 100 - (currentEngine / maxEngine) * 100);
+
+  const maxTires = profile.tires_laps_life || 200;
+  const currentTires = profile.tires_laps_current || 0;
+  const tiresHealth = Math.max(0, 100 - (currentTires / maxTires) * 100);
+
+  const maxBrakes = profile.brakes_sessions_life || 800; // now represents tours
+  const currentBrakes = profile.brakes_sessions_current || 0;
+  const brakesHealth = Math.max(0, 100 - (currentBrakes / maxBrakes) * 100);
+
+  const maxChain = profile.chain_hours_life || 20;
+  const currentChain = profile.chain_hours_current || 0;
+  const chainHealth = Math.max(0, 100 - (currentChain / maxChain) * 100);
+
+  const globalHealth = Math.round((engineHealth + tiresHealth + brakesHealth + chainHealth) / 4);
+
+  let healthColor = "text-green-500";
+  let healthBg = "bg-green-500";
+  if (globalHealth < 50) {
+    healthColor = "text-red-500";
+    healthBg = "bg-red-500";
+  } else if (globalHealth < 80) {
+    healthColor = "text-orange-500";
+    healthBg = "bg-orange-500";
+  }
+
+  const ignoredAlerts = profile.setup_json?.ignored_alerts || [];
+  const engineIgnored = ignoredAlerts.includes("engine_wear");
+  const tiresIgnored = ignoredAlerts.includes("tires_wear");
+  const brakesIgnored = ignoredAlerts.includes("brakes_wear");
+  const chainIgnored = ignoredAlerts.includes("chain_wear");
+
+  return (
+    <Card className="bg-card border-border shadow-sm overflow-hidden relative">
+      <div className="absolute top-0 left-0 w-full h-1 bg-muted">
+        <div
+          className={`h-full ${healthBg} transition-all duration-1000`}
+          style={{ width: `${globalHealth}%` }}
+        ></div>
+      </div>
+      <CardHeader className="py-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <HeartPulse className={`w-5 h-5 ${healthColor} animate-pulse`} />
+          Bilan Santé Global
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col items-center justify-center mb-6">
+          <span className={`text-5xl font-black ${healthColor} tracking-tighter`}>
+            {globalHealth}
+          </span>
+          <span className="text-muted-foreground text-sm font-medium mt-1 uppercase tracking-widest">
+            Score d'État
+          </span>
+        </div>
+
+        {/* Deux colonnes sur téléphone : à quatre, chaque case tombait sous
+            80 px de large avec un libellé en 9 px — illisible en piste. */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
+            <Flame className="w-4 h-4 text-red-500 mb-1" />
+            <span className="text-xs sm:text-[11px] font-semibold">{Math.round(engineHealth)}%</span>
+            <span className="text-[10px] sm:text-[9px] text-muted-foreground uppercase mt-0.5">Moteur</span>
+            {engineIgnored && (
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+            )}
+          </div>
+          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
+            <Disc className="w-4 h-4 text-purple-500 mb-1" />
+            <span className="text-xs sm:text-[11px] font-semibold">{Math.round(tiresHealth)}%</span>
+            <span className="text-[10px] sm:text-[9px] text-muted-foreground uppercase mt-0.5">Pneus</span>
+            {tiresIgnored && (
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+            )}
+          </div>
+          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
+            <Loader2 className="w-4 h-4 text-orange-500 mb-1" />
+            <span className="text-xs sm:text-[11px] font-semibold">{Math.round(brakesHealth)}%</span>
+            <span className="text-[10px] sm:text-[9px] text-muted-foreground uppercase mt-0.5">Freins</span>
+            {brakesIgnored && (
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+            )}
+          </div>
+          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 border border-border relative">
+            <Wrench className="w-4 h-4 text-blue-500 mb-1" />
+            <span className="text-xs sm:text-[11px] font-semibold">{Math.round(chainHealth)}%</span>
+            <span className="text-[10px] sm:text-[9px] text-muted-foreground uppercase mt-0.5">Chaîne</span>
+            {chainIgnored && (
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" title="Alerte Ignorée" />
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

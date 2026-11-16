@@ -1,0 +1,44 @@
+{
+  "label": "Dans l'app",
+  "rail": true,
+  "slides": [
+    {
+      "kind": "cover",
+      "title": "Mon Kart :\nton kart, *sous contrôle*.",
+      "visual": "kart",
+      "visualWidth": 900,
+      "demo": true,
+      "demoLabel": "Données de démonstration"
+    },
+    {
+      "kind": "statement",
+      "label": "Usure",
+      "title": "Chaque élément\n*a son compteur*.",
+      "body": "Heures moteur, tours de pneus et de freins, heures de chaîne, avec une alerte quand une limite approche.",
+      "visual": "gauges",
+      "visualWidth": 820,
+      "demo": true,
+      "demoLabel": "Données de démonstration"
+    },
+    {
+      "kind": "statement",
+      "label": "Journée de roulage",
+      "title": "Importe ta journée,\n*elle est intégrée*.",
+      "body": "Dépose les fichiers CSV de tes sessions : ApexAI les ajoute à l'historique de ton kart.",
+      "visual": "file",
+      "visualWidth": 560
+    },
+    {
+      "kind": "statement",
+      "label": "Alertes",
+      "title": "Ta dernière session,\n*sous surveillance*.",
+      "body": "Tension de batterie, température d'échappement : ApexAI te prévient quand une valeur sort des limites."
+    },
+    {
+      "kind": "cta",
+      "title": "Mon Kart est inclus\ndans *Racer*.",
+      "button": "Passer Racer",
+      "sub": "9,90 €/mois · ou 99 €/an · lien en bio"
+    }
+  ]
+}

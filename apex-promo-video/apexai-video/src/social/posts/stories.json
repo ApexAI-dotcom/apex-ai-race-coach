@@ -1,0 +1,129 @@
+{
+  "S2-Sondage-data": {
+    "label": "Sondage",
+    "title": "Tu regardes\nta data après\n*chaque session* ?",
+    "sticker": "sondage",
+    "guide": false,
+    "visual": "trace",
+    "visualWidth": 620
+  },
+  "S4-Sondage-point-faible": {
+    "label": "Sondage",
+    "title": "Ton plus gros\n*point faible* ?",
+    "body": "Freinage, vitesse en courbe ou régularité : réponds, on décrypte ça dans les prochains posts.",
+    "sticker": "sondage",
+    "guide": false
+  },
+  "S5-Essai-gratuit": {
+    "label": "Inscription",
+    "title": "Ton karting.\n*Une seule app.*",
+    "sticker": "lien",
+    "guide": false,
+    "body": "Entretien de ton kart, réglages, calendrier et analyse de tes sessions.\n\nInscris-toi, c'est gratuit."
+  },
+  "S6-Compatibilite": {
+    "label": "Compatibilité",
+    "title": "Compatible\n*MyChron 5 et 6*.",
+    "body": "Un export CSV depuis Race Studio suffit.",
+    "sticker": "question",
+    "guide": false,
+    "note": "MyChron et Race Studio sont des marques d'AiM. ApexAI n'est pas affilié à AiM."
+  },
+  "AL-Tuto-1": {
+    "label": "Tuto · 1/3",
+    "step": "01",
+    "title": "Exporte\nton *CSV*.",
+    "body": "Dans Race Studio, ouvre ta session et exporte-la au format CSV.",
+    "visual": "file",
+    "visualWidth": 640,
+    "sticker": "none",
+    "guide": false,
+    "note": "Fichier trop lourd (plus de 50 Mo) ? Réduis les canaux exportés ou applique une décimation 1:10."
+  },
+  "AL-Tuto-2": {
+    "label": "Tuto · 2/3",
+    "step": "02",
+    "title": "Importe-le sur\n*apexai.racing*.",
+    "body": "Crée ton compte gratuit, ouvre « Analyser » et importe ton fichier.",
+    "visual": "upload",
+    "visualWidth": 860,
+    "sticker": "none",
+    "guide": false
+  },
+  "AL-Tuto-3": {
+    "label": "Tuto · 3/3",
+    "step": "03",
+    "title": "Lis ton\n*analyse*.",
+    "body": "Commence par le score sur 100, puis le Tour Parfait IA. Finis par les conseils : ils sont classés par temps perdu.",
+    "visual": "score",
+    "visualWidth": 880,
+    "sticker": "none",
+    "guide": false,
+    "demo": true
+  },
+  "AL-FAQ-1": {
+    "label": "FAQ",
+    "title": "Quels\n*boîtiers* ?",
+    "body": "MyChron 5 et MyChron 6, via un export CSV depuis Race Studio.\n\nTon boîtier n'est pas dans la liste ? Écris-nous en message.",
+    "sticker": "none",
+    "guide": false,
+    "note": "MyChron et Race Studio sont des marques d'AiM. ApexAI n'est pas affilié à AiM."
+  },
+  "AL-FAQ-2": {
+    "label": "FAQ",
+    "title": "C'est\n*combien* ?",
+    "body": "Rookie : 0 €, 3 analyses par mois.\n\nRacer : [blanc]9,90 €/mois[/blanc] ou 99 €/an : analyses illimitées, Mon Kart, entretien et réglages.\n\nSans compte : 1 analyse pour tester.",
+    "sticker": "none",
+    "guide": false
+  },
+  "AL-FAQ-3": {
+    "label": "FAQ",
+    "title": "Et mes\n*données* ?",
+    "body": "Tes données personnelles ne sont ni vendues ni louées.\n\nTu peux demander leur accès, leur rectification, leur portabilité ou leur suppression, sur simple demande par e-mail.",
+    "sticker": "none",
+    "guide": false,
+    "note": "Détails : apexai.racing/legal/confidentialite"
+  },
+  "AL-FAQ-4": {
+    "label": "FAQ",
+    "title": "Il faut être\n*ingénieur* ?",
+    "body": "Non. Les conseils sont écrits en clair, virage par virage, avec le temps à gagner.",
+    "visual": "coaching-1",
+    "visualWidth": 900,
+    "sticker": "none",
+    "guide": false,
+    "demo": true
+  },
+  "AL-Ouverture-Demo": {
+    "label": "À la une",
+    "title": "*Démo*\nApexAI en action.",
+    "visual": "trace-gold",
+    "visualWidth": 760,
+    "sticker": "none",
+    "guide": false
+  },
+  "AL-Ouverture-Conseils": {
+    "label": "À la une",
+    "title": "*Conseils*\nApprends à lire\nta data.",
+    "visual": "coaching-1",
+    "visualWidth": 900,
+    "sticker": "none",
+    "guide": false,
+    "demo": true
+  },
+  "AL-Ouverture-Offres": {
+    "label": "À la une",
+    "title": "*Offres*\nCommence\ngratuitement.",
+    "body": "Inscription gratuite avec Rookie. Racer à 9,90 €/mois pour tout ton karting.",
+    "sticker": "none",
+    "guide": false
+  },
+  "AL-Ouverture-Histoire": {
+    "label": "À la une",
+    "title": "*Histoire*\nPourquoi ApexAI.",
+    "body": "Fini le carnet papier : tout ton karting au même endroit.",
+    "red": true,
+    "sticker": "none",
+    "guide": false
+  }
+}
