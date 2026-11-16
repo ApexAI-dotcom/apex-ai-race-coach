@@ -16,6 +16,8 @@ import G3 from "./posts/G3-offres.json";
 import G5 from "./posts/G5-score.json";
 import G6 from "./posts/G6-mythe-ou-data.json";
 import G8 from "./posts/G8-carnet.json";
+import { TReel, tReelMeta, tReelSchema } from "./reels/TReel";
+import TREEL_DEMO from "./posts/T-Reel-demo.json";
 import W2A from "./posts/S2-virage-decrypte-1.json";
 import W2C from "./posts/S2-dans-l-app-mon-kart.json";
 import STORIES from "./posts/stories.json";
@@ -98,6 +100,7 @@ export const SocialRoot: React.FC = () => (
       <Composition id="Logo-Sting-1x1" component={() => <LogoSting width={1080} height={1080} />} width={1080} height={1080} fps={60} durationInFrames={150} />
       <Composition id="Pub-G1-recut" component={PubG1} width={1080} height={1920} fps={60} durationInFrames={Math.round(PUB_DURATION * 60)} />
       {/* Variantes TikTok : seule l'étiquette « Session de démo » remonte au-dessus de la légende TikTok */}
+      <Composition id="T-Reel" component={TReel} schema={tReelSchema} defaultProps={TREEL_DEMO as never} calculateMetadata={tReelMeta} width={1080} height={1920} fps={30} durationInFrames={300} />
       <Composition id="G7-Delta-TikTok" component={G7Delta} defaultProps={{ badgeY: 1400 }} width={1080} height={1920} fps={60} durationInFrames={G7_DURATION * 60} />
       <Composition id="DNMP-TikTok" component={DataNeMentPas} defaultProps={{ badgeY: 1400 }} width={1080} height={1920} fps={60} durationInFrames={DNMP_DURATION * 60} />
       <Composition id="Pub-G4" component={G4TourParfait} schema={g4Schema} defaultProps={{ safe: "ad" as const }} width={1080} height={1920} fps={60} durationInFrames={G4_DURATION * 60} />

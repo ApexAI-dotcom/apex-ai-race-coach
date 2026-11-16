@@ -1,0 +1,10 @@
+{
+  "label": "Virage décrypté",
+  "beats": [
+    { "dur": 2.6, "kind": "hook", "title": "Ton meilleur tour cache *encore du temps.*", "sfx": "electric-sweep" },
+    { "dur": 3.2, "kind": "hero", "number": "0,27", "unit": "s", "tone": "green", "title": "par tour, au *virage 10.*", "sfx": "impact-shimmer" },
+    { "dur": 3.6, "kind": "visual", "visual": "trace-v10", "title": "Le freinage, pas la ligne droite.", "sub": "Ton meilleur passage relâchait les freins plus doucement à l'inscription." },
+    { "dur": 3.0, "kind": "text", "title": "Les dixièmes sont *avant le point de corde.*" },
+    { "dur": 3.4, "kind": "cta" }
+  ]
+}
