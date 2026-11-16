@@ -86,6 +86,12 @@ On écrit, on monte et on teste l'accroche avant tout le reste. Une vidéo sans 
 | Avant-dernière | Le résumé à enregistrer |
 | Dernière | « Enregistre pour ta prochaine séance » + apexai.racing |
 
+## Règle absolue : jamais de reel sans voix (décision de Yanis, 17/11)
+- Un reel ne part JAMAIS sans la voix ApexAI.
+- Si ElevenLabs répond « busy » (offre gratuite saturée), ce n'est pas un échec définitif : réessaie jusqu'à 6 fois, espacées de 3 à 5 minutes (`sleep` entre les tentatives), en variant la prise (1 seule génération à la fois). Le téléchargement de la full_res_url fonctionne depuis le cloud (vérifié le 17/11).
+- Dans la fiche Notion, écris « Voix : OK » ou « Voix : manquante » en tête de la page.
+- Si la voix manque encore à la fin du run du soir, la tâche de 11 h 41 et celle de 18 h 41 retentent la voix et refont le rendu avant publication. Sans voix à 18 h 41 : on ne publie pas, Statut Bloqué, notification à Yanis.
+
 ## Publication (canaux techniques)
 - **Instagram** : publication automatique par Windsor.ai (`instagram` → create_video_post / create_carousel_post).
   - Les médias sont commités dans `media/<date>/` de la branche `content-studio` (dépôt public, fichiers < 20 Mo).
