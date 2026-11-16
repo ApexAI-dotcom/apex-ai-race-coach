@@ -101,7 +101,7 @@ On écrit, on monte et on teste l'accroche avant tout le reste. Une vidéo sans 
   - avec de petites hésitations naturelles (eleven_v4, balises de jeu légères).
   - Jamais publicitaire, jamais « voix IA ».
 - **Choix de la voix** : par Yanis, l'identifiant est noté ici.
-  - **voice_id retenu : `Ayvd8fDj52DfUWXZeAFe` (Nathan Doré, eleven_v4), choisi par Yanis le 17/11.** La page réglages Notion fait foi s'il change.
+  - **voice_id retenu : `V8kvppYJoYqSL61Tr8Dn` (Sid, grave et dynamique, eleven_v4), choisi par Yanis le 17/11 à 0 h 45 (remplace Nathan Doré).** Sid est très entendue sur TikTok, donc on se l'approprie : écriture de pilote, une même musique d'action tendue (un seul thème ApexAI décliné), et le son signature (`sonic-logo`) toujours sur la carte de fin. La page réglages Notion fait foi s'il change.
   - Si la génération échoue (2 essais par run) : le reel sort sans voix, texte à l'écran + sons.
 - **Texte** :
   - tutoiement, phrases courtes, vocabulaire de pilote (dixièmes, inscription, point de corde, réaccélération, tour lancé, train de pneus) ;
