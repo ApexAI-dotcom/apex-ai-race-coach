@@ -34,7 +34,7 @@ Ils veulent aller plus vite, comprendre leurs données, et voir des virages qu'i
 | Format | Plateformes | Quand |
 |---|---|---|
 | 1 reel par jour | Instagram + TikTok | 18 h 45 (sortie des cours et du travail) |
-| 3 carrousels par semaine | Instagram | Mardi, jeudi et samedi à 12 h 30 |
+| 3 carrousels par semaine | Instagram | Mardi, jeudi et samedi vers 11 h 45 |
 | TikTok en plus | TikTok | Dès que les premières vidéos dépassent la moyenne : 2e vidéo à 12 h 30 (variante d'accroche ou recoupe d'un reel) |
 | Stories | Instagram | Quand il y a de la matière (paddock, sondage, coulisses), pas forcées |
 
@@ -54,6 +54,30 @@ Production :
 - sons espacés (règle de la charte : ≥ 0,9 s entre deux sons) ;
 - zone sûre reel x 80–940, y 260–1480.
 
+## Le grab : les 2 premières secondes décident de tout
+On écrit, on monte et on teste l'accroche avant tout le reste. Une vidéo sans grab ne sort pas.
+
+**Les trois couches, à l'image 0 (rien ne commence en fondu) :**
+- **Image** : du mouvement tout de suite (trace qui se dessine, chiffre qui se décode, zoom sur un virage, rush embarqué).
+- **Texte** : 3 à 7 mots, très grand.
+- **Voix** : la première phrase est l'accroche elle-même, sans « salut » ni présentation.
+
+**Les modèles d'accroche (on varie, et on mesure lequel retient le mieux) :**
+- **Chiffre choc vrai** : « 0,27 s par tour. Au même virage. »
+- **Erreur commune** : « Tu freines trop tard au virage 1, et ça te coûte. »
+- **Question qui pique** : « Pourquoi ton meilleur tour n'est pas ton tour idéal ? »
+- **Contre-intuitif** : « Freiner plus tard ne te rend pas plus rapide. »
+- **Défi** : « Trouve où ce pilote perd du temps. Réponse dans 10 s. »
+- **Identification** : « Si tu roules en Rotax, regarde ça avant ta prochaine séance. »
+
+**Retenir jusqu'au bout :**
+- Une boucle ouverte annoncée tôt (« le 3e point est celui que personne ne fait »).
+- Une relance visuelle toutes les 2 à 3 s (changement de plan, chiffre, zoom).
+- Des sous-titres mot à mot.
+- Pas de logo au début. La carte de fin est courte, ou bien on boucle sur l'image du début.
+
+**Mesure :** la rétention à 3 s et le taux de visionnage complet de chaque reel sont notés. Les modèles d'accroche qui retiennent le mieux deviennent la règle.
+
 ## Formule d'un carrousel (5 à 8 slides, 4:5)
 | Slide | Contenu |
 |---|---|
@@ -61,6 +85,14 @@ Production :
 | 2 à 6 | Une idée par slide, un visuel héros par slide |
 | Avant-dernière | Le résumé à enregistrer |
 | Dernière | « Enregistre pour ta prochaine séance » + apexai.racing |
+
+## Publication (canaux techniques)
+- **Instagram** : publication automatique par Windsor.ai (`instagram` → create_video_post / create_carousel_post).
+  - Les médias sont commités dans `media/<date>/` de la branche `content-studio` (dépôt public, fichiers < 20 Mo).
+  - Ils sont servis par `https://cdn.jsdelivr.net/gh/ApexAI-dotcom/apex-ai-race-coach@content-studio/media/<date>/<fichier>`.
+  - Windsor publie immédiatement : c'est la tâche de 18 h 41 qui publie le reel du jour, et celle de 11 h 41 qui publie le carrousel.
+- **TikTok** : pas d'API de publication gratuite. Tant que Postiz n'est pas actif (abonnement), la vidéo et la légende sont prêtes dans Notion et Yanis la poste depuis son téléphone (30 s).
+  - Une notification lui est envoyée à l'heure prévue.
 
 ## Voix ApexAI
 - **Voix off** : une voix française unique, signature de la marque. Elle est :
