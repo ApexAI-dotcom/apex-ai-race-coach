@@ -118,8 +118,10 @@ Production :
 - Rendu reel : toujours `--image-format=png --color-space=bt709 --pixel-format=yuv420p`, sinon Remotion sort du yuvj420p (constaté le 16/11).
 - T-Reel : l'accroche du 1er temps s'affiche dès l'image 0 (plus de révélation mot à mot au départ) et les temps texte / chiffre sont descendus vers le centre de la zone sûre (ils laissaient 60 % de l'écran vide).
 - Carrousel, slide `compare` : deux chiffres signés à 3 décimales (« +0,52 » / « −0,01 ») débordent et se touchent. Au-delà de 3 caractères, passer en slide `number`.
+- Musique ElevenLabs : ne pas l'utiliser tant que l'offre ElevenLabs du compte n'est pas confirmée comme couvrant l'usage commercial (l'espace semble en offre gratuite le 16/11). Un fond de 20 s a été généré pour le reel du 17/11, sans voix (vérifié), mais il n'est pas monté.
 - Sujets déjà traités au lancement (ne pas refaire avant longtemps) : virage 10 (0,27 s), virage 6 / freiner plus tôt (mythe ou data), Tour Parfait IA 1,23 s, score 71/100, carnet, Mon Kart.
 
 ## Journal
 - 16/11/2026 : création. Gabarit T-Reel, base Notion « Calendrier contenu », tâche quotidienne.
 - 16/11/2026 (1er passage, lundi) : aucun contenu publié ces 7 derniers jours (dernier TikTok le 31/10 : 292 vues, 5 % de visionnage complet ; Instagram : rien depuis plus de 30 jours, 1 004 abonnés). Pas de bilan possible : rotation, durées et horaires inchangés. Produits pour le 17/11 : carrousel « Ta courbe delta, enfin lisible » (12 h 30) et reel « Deux virages font tout l'écart » (18 h 45), série « Lire sa télémétrie ». Correctifs du gabarit T-Reel (accroche visible à l'image 0, centrage vertical) et du rendu (yuv420p).
+- 16/11/2026 (2e passage, lancement manuel) : réglages et fiches inchangés. Le reel du 17/11 a été revérifié (accroche lisible à l'image 0, 19,6 s, 1080×1920, yuv420p, son présent) : il reste tel quel. La musique générée n'est pas montée, à cause du doute sur la licence.
