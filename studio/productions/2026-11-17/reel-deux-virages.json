@@ -1,11 +1,26 @@
 {
   "label": "Session de démo · Adria Karting Raceway",
+  "voice": "voice/2026-11-17-reel-deux-virages.mp3",
+  "voiceVolume": 1,
   "beats": [
     { "dur": 2.6, "kind": "hook", "title": "Tu ne perds pas ton temps *partout.*", "sfx": "electric-sweep" },
-    { "dur": 3.2, "kind": "hero", "number": "+0,51", "unit": "s", "tone": "red", "title": "entre deux tours de la *même séance.*", "sfx": "impact-shimmer" },
-    { "dur": 3.8, "kind": "visual", "visual": "delta", "title": "*0,52 s* dans les virages 1 et 2.", "sub": "Sur les 10 autres virages, les deux tours sont à égalité.", "sfx": "marker" },
-    { "dur": 3.2, "kind": "hero", "number": "9", "unit": "km/h", "tone": "red", "title": "de moins au virage 1.", "sub": "Tour 4 : 115 km/h. Tour 9 : 106 km/h.", "sfx": "pings" },
-    { "dur": 3.4, "kind": "text", "title": "Cherche la pente *la plus raide.*", "sub": "Sur ta courbe delta, c'est ce virage-là que tu travailles à ta prochaine séance." },
-    { "dur": 3.4, "kind": "cta" }
+    { "dur": 3.4, "kind": "hero", "number": "+0,51", "unit": "s", "tone": "red", "title": "entre deux tours de la *même séance.*", "sfx": "impact-shimmer" },
+    { "dur": 3.5, "kind": "visual", "visual": "delta", "title": "*0,52 s* dans les virages 1 et 2.", "sub": "Sur les 10 autres virages, les deux tours sont à égalité.", "sfx": "marker" },
+    { "dur": 2.6, "kind": "hero", "number": "9", "unit": "km/h", "tone": "red", "title": "de moins au virage 1.", "sub": "Tour 4 : 115 km/h. Tour 9 : 106 km/h.", "sfx": "pings" },
+    { "dur": 2.0, "kind": "text", "title": "Sur les 10 autres : *égalité.*" },
+    { "dur": 2.8, "kind": "text", "title": "À ta prochaine séance, ouvre ta *courbe delta.*" },
+    { "dur": 3.8, "kind": "text", "title": "Cherche la pente *la plus raide.*", "sub": "Et travaille ce virage-là." },
+    { "dur": 3.4, "kind": "cta", "sfx": "sonic-logo" }
+  ],
+  "captions": [
+    { "t0": 0.0, "t1": 1.4, "text": "Tu ne perds pas ton temps partout." },
+    { "t0": 2.55, "t1": 4.3, "text": "Entre deux tours de la même séance :" },
+    { "t0": 4.4, "t1": 5.8, "text": "51 centièmes." },
+    { "t0": 6.0, "t1": 9.0, "text": "Et presque tout se joue dans les deux premiers virages." },
+    { "t0": 9.5, "t1": 12.0, "text": "Au virage 1, 9 km/h de moins." },
+    { "t0": 12.1, "t1": 14.0, "text": "Sur les 10 autres ? Égalité." },
+    { "t0": 14.2, "t1": 15.95, "text": "Alors, à ta prochaine séance :" },
+    { "t0": 16.05, "t1": 19.1, "text": "ouvre ta courbe delta, cherche la pente la plus raide…" },
+    { "t0": 19.2, "t1": 20.6, "text": "et travaille ce virage-là." }
   ]
 }
