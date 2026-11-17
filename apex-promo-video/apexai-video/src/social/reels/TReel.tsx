@@ -8,6 +8,7 @@ import { Footer } from "../kit/elements";
 import { Visual, VISUAL_IDS } from "../visuals";
 import { DecodeNumber, EndCard, KLine, useTime, ZONE } from "./common";
 import { E, prog, reveal } from "../../lib/anim";
+import { CornerSplit } from "./CornerSplit";
 
 /**
  * T-Reel — gabarit de reel piloté par les données (production quotidienne).
@@ -17,7 +18,7 @@ import { E, prog, reveal } from "../../lib/anim";
  */
 const beat = z.object({
   dur: z.number().min(0.6).max(12),
-  kind: z.enum(["hook", "text", "hero", "visual", "clip", "image", "cta"]),
+  kind: z.enum(["hook", "text", "hero", "visual", "clip", "image", "cta", "split"]),
   title: z.string().optional(),
   sub: z.string().optional(),
   number: z.string().optional(),
@@ -27,6 +28,11 @@ const beat = z.object({
   src: z.string().optional(), // chemin dans public/ (rush, capture) ou URL
   label: z.string().optional(),
   sfx: z.string().optional(), // nom d'un son de public/sfx (sans .mp3)
+  corner: z.number().optional(), // virage pour visual "trace-zoom"
+  range: z.tuple([z.number(), z.number()]).optional(), // split : indices de points
+  splitAt: z.number().optional(),
+  cues: z.array(z.number()).optional(), // split : apparition des zones (s depuis le début du temps)
+  labels: z.tuple([z.string(), z.string(), z.string(), z.string()]).optional(),
 });
 
 export const tReelSchema = z.object({
@@ -90,6 +96,31 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
       </AbsoluteFill>
     );
   }
+  if (b.kind === "split" && b.range && b.splitAt !== undefined) {
+    return (
+      <div style={{ position: "absolute", left: zone.x0, width: W, top: zone.y0 + 40 }}>
+        {Head}
+        {Title}
+        <div style={{ marginTop: 40, ...reveal(T, t0, { dur: 0.35, blur: 10 }, out) }}>
+          <CornerSplit T={T} t0={t0 + 0.15} width={W} range={b.range} splitAt={b.splitAt} cues={b.cues ?? [1.5, 4]} labels={b.labels ?? ["Freinage", "", "Sortie", ""]} />
+        </div>
+      </div>
+    );
+  }
+  if (b.kind === "hook" && b.visual) {
+    // accroche avec mouvement dès l'image 0 : visuel déjà là, léger zoom continu
+    const z = 1 + 0.08 * prog(T, t0, t1, E.inOut);
+    const inV = t0 === 0 ? { opacity: 1 - prog(T, out, t1) } : reveal(T, t0, { dur: 0.3, blur: 10 }, out);
+    return (
+      <div style={{ position: "absolute", left: zone.x0, width: W, top: zone.y0 + 20 }}>
+        {Title}
+        {Sub}
+        <div style={{ marginTop: 40, display: "flex", justifyContent: "center", transform: `scale(${z})`, ...inV }}>
+          <Visual id={b.visual} width={W} corner={b.corner} />
+        </div>
+      </div>
+    );
+  }
   return (
     <div style={{ position: "absolute", left: zone.x0, width: W, top: b.kind === "visual" ? zone.y0 + 60 : zone.y0 + 360 }}>
       {Head}
@@ -102,7 +133,7 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
       {Sub}
       {b.kind === "visual" && b.visual ? (
         <div style={{ marginTop: 56, display: "flex", justifyContent: "center", ...reveal(T, t0 + 0.25, { dur: 0.7, blur: 18, y: 40 }, out) }}>
-          <Visual id={b.visual} width={W} />
+          <Visual id={b.visual} width={W} corner={b.corner} />
         </div>
       ) : null}
     </div>
