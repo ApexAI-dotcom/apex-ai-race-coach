@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Zap, LogOut, User, Shield, Smartphone } from "lucide-react";
+import { Zap, LogOut, User, Shield, Smartphone, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useTeam } from "@/hooks/useTeam";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { ADMIN_EMAIL } from "@/constants";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,8 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, signOut, loading } = useAuth();
   const { tier } = useSubscription();
+  // « Mon équipe » n'apparaît que pour un membre, interrupteur Team allumé.
+  const team = useTeam();
   const scrolled = useScroll(10);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -274,6 +277,14 @@ export const Navbar = () => {
                         Mon Profil
                       </Link>
                     </DropdownMenuItem>
+                    {team.enabled && team.memberships.length > 0 && (
+                      <DropdownMenuItem asChild className="focus:bg-muted focus:text-foreground cursor-pointer">
+                        <Link to="/equipe" className="w-full flex items-center gap-2">
+                          <Users className="w-4 h-4 text-primary" />
+                          Mon équipe
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     {isAuthenticated && tier !== "rookie" && (
                       <DropdownMenuItem asChild className="focus:bg-muted focus:text-foreground cursor-pointer">
                         <Link to="/pricing" className="w-full flex items-center gap-2">
@@ -396,6 +407,16 @@ export const Navbar = () => {
                             </Button>
                           </Link>
                         </SheetClose>
+                        {team.enabled && team.memberships.length > 0 && (
+                          <SheetClose asChild>
+                            <Link to="/equipe" className="w-full">
+                              <Button variant="outline" className="w-full justify-start gap-2 bg-muted/50 border-border hover:bg-muted">
+                                <Users className="w-4 h-4 text-primary" />
+                                Mon équipe
+                              </Button>
+                            </Link>
+                          </SheetClose>
+                        )}
                         {tier !== "rookie" && (
                           <SheetClose asChild>
                             <Link to="/pricing" className="w-full">

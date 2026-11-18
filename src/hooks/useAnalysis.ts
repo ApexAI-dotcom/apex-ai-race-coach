@@ -54,7 +54,7 @@ export function mapApiResultToResponse(r: AnalysisResult): AnalysisResponse {
   };
 }
 
-export function useAnalysis(analysisId: string | null, userId: string | undefined) {
+export function useAnalysis(analysisId: string | null, userId: string | undefined, asCoach = false) {
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [loading, setLoading] = useState(!!analysisId);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +68,7 @@ export function useAnalysis(analysisId: string | null, userId: string | undefine
     setLoading(true);
     setError(null);
     try {
-      const raw = await getAnalysisById(analysisId, userId);
+      const raw = await getAnalysisById(analysisId, userId, { asCoach });
       if (raw) setAnalysis(mapApiResultToResponse(raw));
       else setAnalysis(null);
     } catch {
@@ -77,7 +77,7 @@ export function useAnalysis(analysisId: string | null, userId: string | undefine
     } finally {
       setLoading(false);
     }
-  }, [analysisId, userId]);
+  }, [analysisId, userId, asCoach]);
 
   useEffect(() => {
     fetchAnalysis();
