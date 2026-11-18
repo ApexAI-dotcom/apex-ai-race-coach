@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import {
   ShieldCheck, Users, Ticket, UserCog, Loader2, Plus,
-  Copy, Power, Inbox, QrCode,
+  Copy, Power, Inbox, QrCode, Trophy,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { FeedbackAdminPanel } from "@/components/feedback/FeedbackAdminPanel";
 import { LaunchPanel } from "@/components/admin/LaunchPanel";
+import { TeamAdminPanel } from "@/components/admin/TeamAdminPanel";
 
 export default function Admin() {
   const { session, loading: authLoading } = useAuth();
@@ -83,11 +84,12 @@ export default function Admin() {
           </Badge>
         </div>
 
-        <Tabs defaultValue={can("stats") ? "launch" : "feedback"}>
+        <Tabs defaultValue={new URLSearchParams(window.location.search).get("tab") === "team" && can("team") ? "team" : can("stats") ? "launch" : "feedback"}>
           <TabsList className="flex-wrap h-auto">
             {can("stats") && <TabsTrigger value="launch" className="gap-2"><Users className="w-4 h-4" />Pilotage</TabsTrigger>}
             {can("feedback") && <TabsTrigger value="feedback" className="gap-2"><Inbox className="w-4 h-4" />Retours pilotes</TabsTrigger>}
             {can("promo") && <TabsTrigger value="promo" className="gap-2"><Ticket className="w-4 h-4" />Paddock Pass</TabsTrigger>}
+            {can("team") && <TabsTrigger value="team" className="gap-2"><Trophy className="w-4 h-4" />Team</TabsTrigger>}
             {can("roles") && <TabsTrigger value="roles" className="gap-2"><UserCog className="w-4 h-4" />Collaborateurs</TabsTrigger>}
           </TabsList>
 
@@ -106,6 +108,12 @@ export default function Admin() {
           {can("promo") && (
             <TabsContent value="promo" className="mt-6">
               <PaddockPassPanel token={token!} />
+            </TabsContent>
+          )}
+
+          {can("team") && (
+            <TabsContent value="team" className="mt-6">
+              {token && <TeamAdminPanel token={token} />}
             </TabsContent>
           )}
 
