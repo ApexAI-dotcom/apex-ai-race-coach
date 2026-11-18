@@ -9,6 +9,7 @@ import { Check, X, Zap, Trophy, CreditCard, Lock, Loader2, Flag, Car, Ticket } f
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import PricingSection4 from "@/components/ui/pricing-section-4";
+import { TeamContactDialog } from "@/components/team/TeamContactDialog";
 
 type BillingPeriod = "monthly" | "annual";
 type PriceKey = "racer_monthly" | "racer_annual" | "team_monthly" | "team_annual";
@@ -130,9 +131,12 @@ export default function PricingPage() {
     }
   }, [canceled, setSearchParams]);
 
+  const [contactOpen, setContactOpen] = useState(false);
+
   const handleSubscribe = async (planId: string) => {
     if (planId === "team") {
-      setError("L'offre Team arrive bientôt.");
+      // Team = écoles, clubs et coachs, sur devis : demande de contact.
+      setContactOpen(true);
       return;
     }
 
@@ -171,7 +175,7 @@ export default function PricingPage() {
       )}
       <PageMeta
         title="Tarifs ApexAI | Rookie, Racer, Team"
-        description="Choisis ton plan : Rookie gratuit, Racer illimité, Team avec comparaison. Paiement sécurisé Stripe."
+        description="Choisis ton plan : Rookie gratuit, Racer illimité, Team sur devis pour les écoles, clubs et coachs. Paiement sécurisé Stripe."
         path="/pricing"
       />
       <div className="min-h-screen bg-[#0a0a0b] text-slate-100 pt-0 relative overflow-hidden">
@@ -230,6 +234,8 @@ export default function PricingPage() {
             </Button>
           </div>
         </div>
+
+        <TeamContactDialog open={contactOpen} onOpenChange={setContactOpen} />
 
         {/* Paiement sécurisé (centered) */}
         <div className="container mx-auto px-4 pb-16">

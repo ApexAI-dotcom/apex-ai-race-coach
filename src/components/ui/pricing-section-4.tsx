@@ -61,19 +61,19 @@ const plans = [
   {
     id: "team",
     name: "Team",
-    description: "Conçu pour les écuries, équipes et coachs de karting.",
-    price: 24.9,
-    yearlyPrice: 249,
-    buttonText: "Bientôt disponible",
+    description: "Pour les écoles, clubs et coachs de karting.",
+    price: 0,
+    yearlyPrice: 0,
+    buttonText: "Contactez-nous",
     icon: Trophy,
     popular: false,
-    comingSoon: true,
+    quote: true,
     includes: [
-      "Tout le plan Racer",
-      "5 pilotes inclus",
-      "Dashboard Équipe",
-      "Comparaison entre pilotes",
-      "Objectifs personnalisés",
+      "Tout Racer pour chaque pilote de ta structure",
+      "Espace coach : vue équipe et progression",
+      "Classement de tes pilotes par circuit",
+      "Les séances de tes pilotes, avec leur accord",
+      "Essai offert pour ta structure",
     ],
   },
 ];
@@ -244,8 +244,11 @@ export default function PricingSection4({
           const priceId = isRookie ? null : isYearly ? `${plan.id}_annual` : `${plan.id}_monthly`;
           const isLoadingThisPrice = loadingPriceId !== null && loadingPriceId === priceId;
 
+          const isQuote = "quote" in plan && plan.quote === true;
           let buttonLabel = plan.buttonText;
-          if (plan.comingSoon) {
+          if (isQuote) {
+            buttonLabel = "Contactez-nous";
+          } else if ("comingSoon" in plan && plan.comingSoon) {
             buttonLabel = "Bientôt disponible";
           } else if (isLoadingThisPrice) {
             buttonLabel = "Redirection...";
@@ -262,7 +265,8 @@ export default function PricingSection4({
           }
 
           const buttonDisabled =
-            plan.comingSoon ||
+            isQuote ? false :
+            ("comingSoon" in plan && plan.comingSoon === true) ||
             (isRookie && isAuthenticated) ||
             isCurrent ||
             isLower ||
@@ -312,6 +316,9 @@ export default function PricingSection4({
                   </div>
 
                   <div className="flex items-baseline mb-4">
+                    {isQuote ? (
+                      <span className="text-3xl font-display font-bold text-white">Sur devis</span>
+                    ) : (
                     <span className="text-4xl font-display font-bold text-white">
                       <NumberFlow
                         value={isYearly ? plan.yearlyPrice : plan.price}
@@ -319,9 +326,12 @@ export default function PricingSection4({
                       />
                       €
                     </span>
+                    )}
+                    {!isQuote && (
                     <span className="text-muted-foreground text-sm ml-1.5 font-light">
                       {isRookie ? "" : isYearly ? "/an" : "/mois"}
                     </span>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed font-light min-h-[40px]">
                     {plan.description}
@@ -335,7 +345,9 @@ export default function PricingSection4({
                       disabled={buttonDisabled}
                       className={cn(
                         "w-full mb-8 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]",
-                        plan.comingSoon
+                        isQuote
+                          ? "bg-secondary text-foreground border border-primary/30 hover:border-primary/60"
+                          : "comingSoon" in plan && plan.comingSoon
                           ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5"
                           : isCurrent || isLower || (isRookie && isAuthenticated)
                             ? "bg-secondary text-muted-foreground/60 cursor-not-allowed border border-white/5"

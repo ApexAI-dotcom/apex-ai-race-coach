@@ -10,6 +10,7 @@ import { SubscriptionProvider, useSubscription } from "@/hooks/useSubscription.t
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppShell } from "@/components/layout/AppShell";
 import { PendingPassRedeemer } from "@/components/paddock/PendingPassRedeemer";
+import { PendingJoinRedirect } from "@/components/team/PendingJoinRedirect";
 import { CookieConsent } from "@/components/legal/CookieConsent";
 import { BackgroundAnalysisNotifier } from "@/components/upload/BackgroundAnalysisNotifier";
 import Index from "./pages/Index";
@@ -25,6 +26,9 @@ import { useAuth } from "@/hooks/useAuth";
 const Dashboard = lazy(loaders.dashboard);
 const Admin = lazy(loaders.admin);
 const RedeemPage = lazy(loaders.redeem);
+const JoinPage = lazy(loaders.join);
+const TeamPage = lazy(loaders.team);
+const TeamPilotPage = lazy(loaders.teamPilot);
 const Upload = lazy(loaders.upload);
 const PricingPage = lazy(loaders.pricing);
 const Profile = lazy(loaders.profile);
@@ -114,6 +118,7 @@ const App = () => (
             <SubscriptionProvider>
               <PageTracker />
               <PendingPassRedeemer />
+              <PendingJoinRedirect />
               <CookieConsent />
               <BackgroundAnalysisNotifier />
               <AdminStatsWidget />
@@ -146,6 +151,23 @@ const App = () => (
                   }
                 />
                 <Route path="/redeem" element={<RedeemPage />} />
+                <Route path="/rejoindre/:code" element={<JoinPage />} />
+                <Route
+                  path="/equipe"
+                  element={
+                    <ProtectedRoute>
+                      <TeamPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/equipe/:structureId/pilote/:pilotId"
+                  element={
+                    <ProtectedRoute>
+                      <TeamPilotPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/upload" element={<Upload />} />
                 <Route
                   path="/profile"
