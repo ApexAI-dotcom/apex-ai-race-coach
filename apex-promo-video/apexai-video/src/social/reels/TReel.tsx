@@ -163,7 +163,8 @@ export const TReel: React.FC<TReelProps> = ({ beats, voice, voiceVolume = 1, mus
       {voice ? <Audio src={src(voice)} volume={voiceVolume} /> : null}
       {music ? <Audio src={src(music)} volume={musicVolume} /> : null}
       {cap ? (
-        <div style={{ position: "absolute", left: 80, right: 140, top: 1560, display: "flex", justifyContent: "center" }}>
+        // zone sûre TikTok/Instagram : rien dans les 420 px du bas ni les 130 px de droite (retour Yanis du 17/11)
+        <div style={{ position: "absolute", left: 80, right: 150, bottom: 440, display: "flex", justifyContent: "center", alignItems: "flex-end" }}>
           <span style={{ background: alpha("#0A0A0A", 0.72), borderRadius: 14, padding: "12px 22px", fontFamily: FONT.display, fontWeight: 700, fontSize: 46, lineHeight: 1.15, color: C.text, textAlign: "center" }}>{fr(cap.text)}</span>
         </div>
       ) : null}

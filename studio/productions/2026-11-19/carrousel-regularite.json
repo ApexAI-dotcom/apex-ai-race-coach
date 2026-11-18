@@ -1,0 +1,60 @@
+{
+ "label": "",
+ "rail": true,
+ "slides": [
+  {
+   "kind": "cover",
+   "title": "Le chiffre que\n*personne ne regarde.*",
+   "visual": "stats",
+   "visualWidth": 936,
+   "titleSize": 124
+  },
+  {
+   "kind": "statement",
+   "label": "Au paddock",
+   "title": "Tout le monde parle\nde son *meilleur tour.*",
+   "body": "49,68 s au tour 4, sur cette séance. C'est le chiffre qu'on montre. Il dit ce que tu as su faire une fois."
+  },
+  {
+   "kind": "number",
+   "label": "Le chiffre oublié",
+   "number": "1,15",
+   "unit": "s",
+   "tone": "loss",
+   "title": "d'écart moyen\nentre tes tours.",
+   "body": "C'est ta régularité. Sur la même séance, l'app la calcule juste à côté de ton meilleur tour."
+  },
+  {
+   "kind": "number",
+   "label": "Et ce n'est pas tout",
+   "number": "3,33",
+   "unit": "s",
+   "tone": "loss",
+   "title": "entre ton pire\net ton meilleur tour.",
+   "body": "Même kart, même piste, même séance. Ce temps, tu l'as déjà trouvé une fois."
+  },
+  {
+   "kind": "statement",
+   "label": "Pourquoi ça compte",
+   "title": "Le meilleur tour fait\nla qualif. *La course,\nc'est tous les autres.*",
+   "body": "En course, ton temps total est la somme de tous tes tours. Chaque tour lent se paie."
+  },
+  {
+   "kind": "list",
+   "label": "À ta prochaine séance",
+   "title": "Réduis l'écart\n*avant le chrono.*",
+   "bullets": [
+    "Note ton meilleur tour ET ton écart moyen.",
+    "Vise 5 tours de suite proches du meilleur.",
+    "Regarde où tes tours lents perdent du temps."
+   ]
+  },
+  {
+   "kind": "cta",
+   "title": "Enregistre pour ta\n*prochaine séance*.",
+   "button": "Enregistrer",
+   "buttonIcon": "bookmark",
+   "sub": "Analyse ta session sur apexai.racing · lien en bio"
+  }
+ ]
+}

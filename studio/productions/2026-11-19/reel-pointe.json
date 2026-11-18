@@ -1,0 +1,184 @@
+{
+ "label": "",
+ "voice": "voice/2026-11-19-reel-pointe.mp3",
+ "voiceVolume": 1,
+ "music": "music/apexai-theme-2026-11-19.mp3",
+ "musicVolume": 0.1,
+ "beats": [
+  {
+   "dur": 3.0,
+   "kind": "hook",
+   "title": "Ton meilleur tour n'a *pas ta pointe.*",
+   "visual": "speed"
+  },
+  {
+   "dur": 3.75,
+   "kind": "visual",
+   "visual": "stats",
+   "title": "Meilleur tour : *tour 4.*"
+  },
+  {
+   "dur": 4.55,
+   "kind": "hero",
+   "number": "118,7",
+   "unit": "km/h",
+   "tone": "gold",
+   "title": "Vitesse max : *tour 7.*",
+   "sub": "Pas sur le meilleur tour.",
+   "sfx": "pings"
+  },
+  {
+   "dur": 4.0,
+   "kind": "hero",
+   "number": "0,1",
+   "unit": "km/h",
+   "tone": "white",
+   "title": "d'écart de pointe.",
+   "sub": "Tour 4 : 117,5 km/h. Tour 9 : 117,4 km/h."
+  },
+  {
+   "dur": 3.45,
+   "kind": "hero",
+   "number": "+0,51",
+   "unit": "s",
+   "tone": "red",
+   "title": "d'écart au chrono.",
+   "sub": "Même pointe. Pas le même tour.",
+   "sfx": "soft-impact"
+  },
+  {
+   "dur": 2.85,
+   "kind": "text",
+   "title": "Tout le monde regarde *sa pointe.*",
+   "sub": "C'est le chiffre qu'on voit sur le MyChron."
+  },
+  {
+   "dur": 2.8,
+   "kind": "visual",
+   "visual": "speed",
+   "title": "Le temps se perd *dans les virages.*"
+  },
+  {
+   "dur": 3.5,
+   "kind": "text",
+   "title": "À ta prochaine séance, ne juge pas un tour *à sa pointe.*"
+  },
+  {
+   "dur": 3.4,
+   "kind": "text",
+   "title": "Compare-le *virage par virage.*"
+  },
+  {
+   "dur": 2.6,
+   "kind": "cta",
+   "sfx": "sonic-logo"
+  }
+ ],
+ "captions": [
+  {
+   "t0": 0.0,
+   "t1": 1.18,
+   "text": "Ton meilleur tour"
+  },
+  {
+   "t0": 1.18,
+   "t1": 2.6,
+   "text": "n'a pas ta meilleure pointe."
+  },
+  {
+   "t0": 3.06,
+   "t1": 4.1,
+   "text": "Sur cette séance,"
+  },
+  {
+   "t0": 4.4,
+   "t1": 5.4,
+   "text": "le tour le plus rapide,"
+  },
+  {
+   "t0": 5.48,
+   "t1": 6.5,
+   "text": "c'est le tour 4."
+  },
+  {
+   "t0": 6.82,
+   "t1": 7.6,
+   "text": "La vitesse max ?"
+  },
+  {
+   "t0": 7.88,
+   "t1": 9.9,
+   "text": "118,7 km/h…"
+  },
+  {
+   "t0": 10.18,
+   "t1": 11.0,
+   "text": "au tour 7."
+  },
+  {
+   "t0": 11.4,
+   "t1": 12.2,
+   "text": "Et le tour 9 ?"
+  },
+  {
+   "t0": 12.48,
+   "t1": 13.9,
+   "text": "Même pointe que le tour 4,"
+  },
+  {
+   "t0": 14.0,
+   "t1": 15.1,
+   "text": "à un dixième près."
+  },
+  {
+   "t0": 15.4,
+   "t1": 16.3,
+   "text": "Pourtant…"
+  },
+  {
+   "t0": 16.6,
+   "t1": 18.6,
+   "text": "une demi-seconde d'écart au chrono."
+  },
+  {
+   "t0": 18.9,
+   "t1": 19.6,
+   "text": "La pointe,"
+  },
+  {
+   "t0": 19.68,
+   "t1": 21.4,
+   "text": "tout le monde la regarde sur le MyChron."
+  },
+  {
+   "t0": 21.76,
+   "t1": 22.8,
+   "text": "Mais le temps, lui,"
+  },
+  {
+   "t0": 22.92,
+   "t1": 24.2,
+   "text": "se perd dans les virages."
+  },
+  {
+   "t0": 24.52,
+   "t1": 26.1,
+   "text": "Alors, à ta prochaine séance :"
+  },
+  {
+   "t0": 26.34,
+   "t1": 28.0,
+   "text": "ne juge pas un tour à sa pointe."
+  },
+  {
+   "t0": 28.0,
+   "t1": 29.8,
+   "text": "Compare-le à ton meilleur tour,"
+  },
+  {
+   "t0": 30.0,
+   "t1": 31.3,
+   "text": "virage par virage."
+  }
+ ]
+}
