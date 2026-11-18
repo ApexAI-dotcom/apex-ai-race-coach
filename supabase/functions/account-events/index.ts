@@ -19,6 +19,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { renderEmail } from "../_shared/emails.ts";
 import { sendWithResend } from "../_shared/resend.ts";
+import { signUnsubscribe, unsubscribeUrl } from "../_shared/unsubscribe.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -108,8 +109,20 @@ Deno.serve(async (req) => {
       .select("user_id");
     if (claimed && claimed.length > 0) {
       try {
-        const mail = renderEmail("welcome", { name: firstName(user.user_metadata) });
-        await sendWithResend({ to: user.email, ...mail, tag: "welcome", idempotencyKey: `welcome-${user.id}` });
+        // Bienvenue = premier mail de la suite d'activation : désinscription
+        // possible dès qu'EMAIL_UNSUB_SECRET est configuré.
+        const unsubSecret = Deno.env.get("EMAIL_UNSUB_SECRET") ?? "";
+        const unsub = unsubSecret
+          ? unsubscribeUrl(`${SUPABASE_URL}/functions/v1`, await signUnsubscribe(user.id, unsubSecret))
+          : undefined;
+        const mail = renderEmail("welcome", { name: firstName(user.user_metadata), unsubscribeUrl: unsub });
+        await sendWithResend({
+          to: user.email,
+          ...mail,
+          tag: "welcome",
+          idempotencyKey: `welcome-${user.id}`,
+          ...(unsub ? { headers: { "List-Unsubscribe": `<${unsub}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {}),
+        });
         result.welcome = "sent";
       } catch (e) {
         // On libère la ligne pour réessayer à la prochaine connexion.

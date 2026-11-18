@@ -16,6 +16,8 @@ export interface OutgoingMail {
   /** Catégorie visible dans Resend (signup, recovery, welcome…). */
   tag: string;
   idempotencyKey?: string;
+  /** En-têtes du mail (List-Unsubscribe pour les mails d'accompagnement). */
+  headers?: Record<string, string>;
 }
 
 export async function sendWithResend(mail: OutgoingMail): Promise<string> {
@@ -35,6 +37,7 @@ export async function sendWithResend(mail: OutgoingMail): Promise<string> {
       html: mail.html,
       text: mail.text,
       tags: [{ name: "category", value: mail.tag.replace(/[^A-Za-z0-9_-]/g, "_") }],
+      ...(mail.headers ? { headers: mail.headers } : {}),
     }),
   });
   const body = await res.text();
