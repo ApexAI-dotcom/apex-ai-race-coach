@@ -1,4 +1,4 @@
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnalysis, mapApiResultToResponse } from "@/hooks/useAnalysis";
 import { Layout } from "@/components/layout/Layout";
@@ -13,6 +13,11 @@ export default function AnalysisResultPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  // Espace Team : le coach ouvre la séance d'un de ses pilotes, en lecture.
+  const [search] = useSearchParams();
+  const asCoach = search.get("coach") === "1";
+  const coachStructure = search.get("s");
+  const backTo = asCoach && coachStructure ? `/equipe?s=${coachStructure}` : "/dashboard";
 
   const stateAnalysisRaw = location.state?.analysis;
   const stateAnalysis = stateAnalysisRaw
@@ -22,7 +27,7 @@ export default function AnalysisResultPage() {
     analysis: fetchedAnalysis,
     loading,
     error,
-  } = useAnalysis(stateAnalysis ? null : (analysisId ?? null), user?.id);
+  } = useAnalysis(stateAnalysis ? null : (analysisId ?? null), user?.id, asCoach);
 
   const analysis = stateAnalysis ?? fetchedAnalysis;
 
@@ -42,9 +47,9 @@ export default function AnalysisResultPage() {
       <Layout>
         <div className="min-h-screen bg-[#0d1117] flex flex-col items-center justify-center text-[#e6edf3] p-4">
           <p className="text-[#8b949e] mb-4">{error ?? "Analyse introuvable."}</p>
-          <Button variant="outline" onClick={() => navigate("/dashboard")}>
+          <Button variant="outline" onClick={() => navigate(backTo)}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Retour aux sessions
+            {asCoach ? "Retour à mon équipe" : "Retour aux sessions"}
           </Button>
         </div>
       </Layout>
@@ -66,11 +71,16 @@ export default function AnalysisResultPage() {
             variant="ghost"
             size="sm"
             className="mb-4 text-[#8b949e] hover:text-[#e6edf3]"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate(backTo)}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Sessions
+            {asCoach ? "Mon équipe" : "Sessions"}
           </Button>
+          {asCoach && (
+            <p className="mb-4 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+              Séance d'un pilote de ton équipe, en lecture seule.
+            </p>
+          )}
 
           <AnalysisDashboardContent analysis={data} />
         </div>

@@ -489,7 +489,8 @@ async function fetchAllAnalyses(userId?: string | null): Promise<AnalysisSummary
  */
 export async function getAnalysisById(
   id: string,
-  userId?: string | null
+  userId?: string | null,
+  opts?: { asCoach?: boolean }
 ): Promise<AnalysisResult | null> {
   if (!id || !id.trim()) return null;
 
@@ -497,19 +498,19 @@ export async function getAnalysisById(
 
   // ─── Supabase path ───
   if (supaUserId) {
-    const { data, error } = await supabase
-      .from("analyses")
-      .select("*")
-      .eq("id", id)
-      .eq("user_id", supaUserId)
-      .single();
+    // Espace Team : un coach ouvre la séance d'un de ses pilotes. Pas de
+    // filtre sur le propriétaire ici, c'est la RLS qui décide (pilote actif
+    // de sa structure, séance depuis son arrivée ou partagée).
+    let q = supabase.from("analyses").select("*").eq("id", id);
+    if (!opts?.asCoach) q = q.eq("user_id", supaUserId);
+    const { data, error } = await q.single();
 
     if (error || !data) {
       console.warn("[Supabase] getAnalysisById failed:", error?.message);
       return null;
     }
 
-    return rowToAnalysisResult(data, supaUserId);
+    return rowToAnalysisResult(data, opts?.asCoach ? data.user_id : supaUserId);
   }
 
   // ─── Guest fallback ───

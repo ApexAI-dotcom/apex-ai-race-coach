@@ -37,6 +37,12 @@ function GoogleIcon() {
 
 type View = "sign_in" | "forgot_password";
 
+/** `?redirect=/chemin` : retour après connexion, seulement vers une page du site. */
+function safeRedirect(search: string): string | null {
+  const r = new URLSearchParams(search).get("redirect");
+  return r && r.startsWith("/") && !r.startsWith("//") ? r : null;
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,8 +74,7 @@ export default function Login() {
     if (wantsReset) setView("forgot_password");
 
     if (!authLoading && user && !wantsReset) {
-      const from = (location.state as { from?: Location })?.from?.pathname || "/dashboard";
-      navigate(from, { replace: true });
+      navigate(safeRedirect(location.search) || (location.state as { from?: Location })?.from?.pathname || "/dashboard", { replace: true });
     }
   }, [user, authLoading, navigate, location]);
 
@@ -113,7 +118,7 @@ export default function Login() {
       return;
     }
 
-    const from = (location.state as { from?: Location })?.from?.pathname || "/dashboard";
+    const from = safeRedirect(location.search) || (location.state as { from?: Location })?.from?.pathname || "/dashboard";
     navigate(from, { replace: true });
   };
 
