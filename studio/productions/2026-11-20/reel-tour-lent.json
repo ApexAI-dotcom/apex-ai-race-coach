@@ -1,0 +1,217 @@
+{
+ "label": "",
+ "voice": "voice/2026-11-20-reel-tour-lent.mp3",
+ "voiceVolume": 1,
+ "music": "music/apexai-theme-2026-11-20.mp3",
+ "musicVolume": 0.1,
+ "beats": [
+  {
+   "dur": 3.0,
+   "kind": "hook",
+   "title": "Ton tour lent bat *ton meilleur tour.*",
+   "visual": "trace-zoom",
+   "corner": 3
+  },
+  {
+   "dur": 3.85,
+   "kind": "hero",
+   "number": "+0,51",
+   "unit": "s",
+   "tone": "red",
+   "title": "Tour 9, au chrono.",
+   "sub": "Une demi-seconde derrière le tour 4.",
+   "sfx": "soft-impact"
+  },
+  {
+   "dur": 2.7,
+   "kind": "visual",
+   "visual": "trace-zoom",
+   "corner": 3,
+   "title": "Mais au *virage 3…*",
+   "sfx": "marker"
+  },
+  {
+   "dur": 2.35,
+   "kind": "hero",
+   "number": "−0,04",
+   "unit": "s",
+   "tone": "green",
+   "title": "pour le tour 9.",
+   "sub": "Il bat le meilleur tour ici.",
+   "sfx": "pings"
+  },
+  {
+   "dur": 1.95,
+   "kind": "text",
+   "title": "Il garde plus de vitesse *au point de corde.*"
+  },
+  {
+   "dur": 3.0,
+   "kind": "hero",
+   "number": "77,9",
+   "unit": "km/h",
+   "tone": "green",
+   "title": "au point de corde, tour 9.",
+   "sub": "Contre 75,6 km/h au tour 4.",
+   "sfx": "soft-impact"
+  },
+  {
+   "dur": 1.91,
+   "kind": "visual",
+   "visual": "trace-zoom",
+   "corner": 12,
+   "title": "Et au *virage 12 ?*",
+   "sfx": "marker"
+  },
+  {
+   "dur": 1.69,
+   "kind": "hero",
+   "number": "−0,04",
+   "unit": "s",
+   "tone": "green",
+   "title": "Encore pour le tour 9."
+  },
+  {
+   "dur": 2.77,
+   "kind": "text",
+   "title": "Ton meilleur tour n'est pas *meilleur partout.*"
+  },
+  {
+   "dur": 3.28,
+   "kind": "text",
+   "title": "À ta prochaine séance, ne jette pas *tes tours lents.*"
+  },
+  {
+   "dur": 3.1,
+   "kind": "text",
+   "title": "Cherche le virage où ils passent plus vite. *Refais-le.*"
+  },
+  {
+   "dur": 2.6,
+   "kind": "cta",
+   "sfx": "sonic-logo"
+  }
+ ],
+ "captions": [
+  {
+   "t0": 0,
+   "t1": 0.95,
+   "text": "Ton tour lent…"
+  },
+  {
+   "t0": 1.28,
+   "t1": 2.55,
+   "text": "bat ton meilleur tour."
+  },
+  {
+   "t0": 3.03,
+   "t1": 4.16,
+   "text": "Le tour 9 ?"
+  },
+  {
+   "t0": 4.16,
+   "t1": 4.85,
+   "text": "Une demi-seconde"
+  },
+  {
+   "t0": 4.88,
+   "t1": 5.88,
+   "text": "derrière le tour 4,"
+  },
+  {
+   "t0": 5.88,
+   "t1": 6.84,
+   "text": "au chrono."
+  },
+  {
+   "t0": 6.84,
+   "t1": 8.05,
+   "text": "Mais au virage 3…"
+  },
+  {
+   "t0": 8.05,
+   "t1": 9.56,
+   "text": "c'est lui qui passe plus vite."
+  },
+  {
+   "t0": 9.56,
+   "t1": 10.96,
+   "text": "4 centièmes de mieux."
+  },
+  {
+   "t0": 10.96,
+   "t1": 11.9,
+   "text": "Pourquoi ?"
+  },
+  {
+   "t0": 11.9,
+   "t1": 12.92,
+   "text": "Il garde plus de vitesse"
+  },
+  {
+   "t0": 12.92,
+   "t1": 13.92,
+   "text": "au point de corde :"
+  },
+  {
+   "t0": 13.92,
+   "t1": 15.48,
+   "text": "78 km/h,"
+  },
+  {
+   "t0": 15.48,
+   "t1": 16.84,
+   "text": "contre 76."
+  },
+  {
+   "t0": 16.84,
+   "t1": 17.97,
+   "text": "Et au virage 12 ?"
+  },
+  {
+   "t0": 17.97,
+   "t1": 18.76,
+   "text": "Pareil."
+  },
+  {
+   "t0": 18.76,
+   "t1": 20.48,
+   "text": "Encore 4 centièmes."
+  },
+  {
+   "t0": 20.48,
+   "t1": 21.56,
+   "text": "Ton meilleur tour…"
+  },
+  {
+   "t0": 21.56,
+   "t1": 23.24,
+   "text": "n'est pas meilleur partout."
+  },
+  {
+   "t0": 23.24,
+   "t1": 24.88,
+   "text": "Alors, à ta prochaine séance,"
+  },
+  {
+   "t0": 24.88,
+   "t1": 25.52,
+   "text": "ne jette pas"
+  },
+  {
+   "t0": 25.52,
+   "t1": 26.52,
+   "text": "tes tours lents."
+  },
+  {
+   "t0": 26.52,
+   "t1": 28.56,
+   "text": "Cherche le virage où ils passent plus vite…"
+  },
+  {
+   "t0": 28.56,
+   "t1": 29.59,
+   "text": "et refais-le."
+  }
+ ]
+}
