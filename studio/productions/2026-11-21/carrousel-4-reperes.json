@@ -1,0 +1,70 @@
+{
+ "label": "",
+ "rail": true,
+ "slides": [
+  {
+   "kind": "cover",
+   "title": "4 repères sur\nta courbe.\n*Le 3e change tout.*",
+   "visual": "speed",
+   "visualWidth": 936,
+   "titleSize": 96
+  },
+  {
+   "kind": "step",
+   "label": "Repère 1",
+   "number": "01",
+   "title": "Le point\nde *freinage.*",
+   "body": "Là où ta courbe plonge. D'un tour à l'autre, il doit tomber au même endroit. S'il bouge, ton chrono bouge avec.",
+   "visual": "trace-zoom",
+   "visualWidth": 820,
+   "corner": 2
+  },
+  {
+   "kind": "step",
+   "label": "Repère 2",
+   "number": "02",
+   "title": "La vitesse\n*mini.*",
+   "body": "Le creux de la courbe, au point de corde. Plus il est haut, plus tu portes de vitesse dans le virage.",
+   "visual": "trace-zoom",
+   "corner": 8,
+   "visualWidth": 820
+  },
+  {
+   "kind": "step",
+   "label": "Repère 3",
+   "number": "03",
+   "title": "Le creux dans\nun virage *rapide.*",
+   "body": "Au virage 1, un lever de pied coûte 10 km/h au tour 9. Et 0,24 s de perdues sur les 140 m qui suivent.",
+   "visual": "trace-zoom",
+   "corner": 1,
+   "visualWidth": 820
+  },
+  {
+   "kind": "step",
+   "label": "Repère 4",
+   "number": "04",
+   "title": "La pente\nde *réaccélération.*",
+   "body": "Plus elle monte tôt après le point de corde, plus tu gardes d'avance jusqu'au freinage suivant.",
+   "visual": "speed",
+   "visualWidth": 860
+  },
+  {
+   "kind": "list",
+   "label": "À ta prochaine séance",
+   "title": "Tes 4 regards\n*après chaque séance.*",
+   "bullets": [
+    "Freinage : toujours au même endroit ?",
+    "Vitesse mini : elle monte ou elle baisse ?",
+    "Virages rapides : un creux qui n'a rien à faire là ?",
+    "Réaccélération : la pente démarre-t-elle tôt ?"
+   ]
+  },
+  {
+   "kind": "cta",
+   "title": "Enregistre pour ta\n*prochaine séance*.",
+   "button": "Enregistrer",
+   "buttonIcon": "bookmark",
+   "sub": "Analyse ta session sur apexai.racing · lien en bio"
+  }
+ ]
+}
