@@ -6,7 +6,7 @@
  "musicVolume": 0.1,
  "beats": [
   {
-   "dur": 4.1,
+   "dur": 4.5,
    "kind": "hook",
    "title": "Tu perds plus à *115 km/h qu'à 58.*",
    "visual": "trace-zoom",
@@ -31,7 +31,7 @@
    "sfx": "marker"
   },
   {
-   "dur": 1.6,
+   "dur": 1.55,
    "kind": "hero",
    "number": "−10",
    "unit": "km/h",
@@ -40,17 +40,17 @@
    "sub": "Au plus lent du virage."
   },
   {
-   "dur": 3.8,
+   "dur": 4.1,
    "kind": "hero",
    "number": "+0,24",
    "unit": "s",
    "tone": "red",
    "title": "perdues, juste là.",
-   "sub": "Sur les 140 m qui suivent.",
+   "sub": "Sur les 125 m qui suivent.",
    "sfx": "soft-impact"
   },
   {
-   "dur": 2.7,
+   "dur": 2.75,
    "kind": "visual",
    "visual": "trace-zoom",
    "corner": 8,
@@ -68,17 +68,17 @@
    "sfx": "pings"
   },
   {
-   "dur": 4.65,
+   "dur": 4.75,
    "kind": "text",
    "title": "À haute vitesse, chaque km/h perdu *se paie sur toute la ligne droite.*"
   },
   {
-   "dur": 5.0,
+   "dur": 5.15,
    "kind": "text",
    "title": "À ta prochaine séance : ta vitesse mini *dans ton virage le plus rapide.*"
   },
   {
-   "dur": 3.5,
+   "dur": 3.3,
    "kind": "text",
    "title": "Elle baisse d'un tour à l'autre ? *C'est là que tu lèves.*"
   },
@@ -91,137 +91,137 @@
  "captions": [
   {
    "t0": 0.0,
-   "t1": 1.0,
+   "t1": 1.04,
    "text": "Tu perds plus de temps"
   },
   {
-   "t0": 1.0,
-   "t1": 2.72,
+   "t0": 1.04,
+   "t1": 2.8,
    "text": "à 115 km/h…"
   },
   {
-   "t0": 2.72,
-   "t1": 4.16,
+   "t0": 2.8,
+   "t1": 4.52,
    "text": "qu'à 58."
   },
   {
-   "t0": 4.16,
-   "t1": 5.28,
+   "t0": 4.52,
+   "t1": 5.68,
    "text": "Virage 1."
   },
   {
-   "t0": 5.28,
-   "t1": 6.32,
+   "t0": 5.68,
+   "t1": 6.64,
    "text": "Ton meilleur tour le passe"
   },
   {
-   "t0": 6.32,
-   "t1": 7.32,
+   "t0": 6.64,
+   "t1": 7.64,
    "text": "à 115,"
   },
   {
-   "t0": 7.32,
-   "t1": 8.36,
+   "t0": 7.64,
+   "t1": 8.76,
    "text": "presque à fond."
   },
   {
-   "t0": 8.36,
-   "t1": 9.48,
+   "t0": 8.76,
+   "t1": 9.88,
    "text": "Au tour 9…"
   },
   {
-   "t0": 9.48,
-   "t1": 11.2,
+   "t0": 9.88,
+   "t1": 11.56,
    "text": "un petit lever de pied."
   },
   {
-   "t0": 11.2,
-   "t1": 12.72,
+   "t0": 11.56,
+   "t1": 13.08,
    "text": "10 km/h de moins."
   },
   {
-   "t0": 12.72,
-   "t1": 13.6,
+   "t0": 13.08,
+   "t1": 14.1,
    "text": "Résultat :"
   },
   {
-   "t0": 13.6,
-   "t1": 15.12,
+   "t0": 14.1,
+   "t1": 15.52,
    "text": "24 centièmes de perdus,"
   },
   {
-   "t0": 15.12,
-   "t1": 16.56,
-   "text": "sur 140 mètres."
+   "t0": 15.52,
+   "t1": 17.18,
+   "text": "sur 125 mètres."
   },
   {
-   "t0": 16.56,
-   "t1": 17.6,
+   "t0": 17.18,
+   "t1": 18.2,
    "text": "Et au virage le plus lent"
   },
   {
-   "t0": 17.6,
-   "t1": 19.28,
+   "t0": 18.2,
+   "t1": 19.92,
    "text": "du circuit, le 8 ?"
   },
   {
-   "t0": 19.28,
-   "t1": 20.16,
+   "t0": 19.92,
+   "t1": 20.76,
    "text": "Rien."
   },
   {
-   "t0": 20.16,
-   "t1": 21.84,
+   "t0": 20.76,
+   "t1": 22.52,
    "text": "Zéro centième d'écart."
   },
   {
-   "t0": 21.84,
-   "t1": 22.8,
+   "t0": 22.52,
+   "t1": 23.48,
    "text": "À haute vitesse,"
   },
   {
-   "t0": 22.8,
-   "t1": 24.0,
+   "t0": 23.48,
+   "t1": 24.72,
    "text": "chaque km/h perdu"
   },
   {
-   "t0": 24.0,
-   "t1": 24.96,
+   "t0": 24.72,
+   "t1": 25.68,
    "text": "se paie sur toute"
   },
   {
-   "t0": 24.96,
-   "t1": 26.48,
+   "t0": 25.68,
+   "t1": 27.28,
    "text": "la ligne droite qui suit."
   },
   {
-   "t0": 26.48,
-   "t1": 28.48,
+   "t0": 27.28,
+   "t1": 29.36,
    "text": "Alors, à ta prochaine séance…"
   },
   {
-   "t0": 28.48,
-   "t1": 29.73,
+   "t0": 29.36,
+   "t1": 30.52,
    "text": "regarde ta vitesse mini"
   },
   {
-   "t0": 29.73,
-   "t1": 31.52,
+   "t0": 30.52,
+   "t1": 32.44,
    "text": "dans ton virage le plus rapide."
   },
   {
-   "t0": 31.52,
-   "t1": 32.12,
+   "t0": 32.44,
+   "t1": 33.0,
    "text": "Si elle baisse"
   },
   {
-   "t0": 32.12,
-   "t1": 33.32,
+   "t0": 33.0,
+   "t1": 34.12,
    "text": "d'un tour à l'autre…"
   },
   {
-   "t0": 33.32,
-   "t1": 35.03,
+   "t0": 34.12,
+   "t1": 35.75,
    "text": "c'est là que tu lèves le pied."
   }
  ]
