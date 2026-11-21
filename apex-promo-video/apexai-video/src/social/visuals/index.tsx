@@ -4,7 +4,7 @@ import { C, FONT, INK, alpha } from "../kit/tokens";
 import { fr } from "../kit/text";
 import { FloatingCard, SectorBar } from "../kit/elements";
 import { TrackMap } from "../../components/TrackMap";
-import { CORNERS, LOSS } from "../../lib/track";
+import { CORNERS, LOSS, PTS, speedToColor } from "../../lib/track";
 import { PerfectLapBanner, ScoreCard, StatCards } from "../../ui/AppUI";
 import { CalendarCard, CoachingCard, DeltaChart, KartHealthCard, KartSchematic, RadarChart, SetupTiresCard, SpeedTraceChart } from "../../ui/InsightsUI";
 import { AnalyzeButton, AnalyzingCard, DropZone, FileVignette, UploadHeader } from "../../ui/UploadUI";
@@ -23,6 +23,8 @@ export const VISUAL_IDS = [
   "file",
   "delta",
   "speed",
+  "speed-dip",
+  "speed-exit",
   "radar",
   "kart",
   "gauges",
@@ -52,6 +54,65 @@ const TraceZoom: React.FC<{ width: number; height: number; n: number; zoom: numb
   return (
     <div style={{ position: "relative", width, height, overflow: "hidden", borderRadius: 28, WebkitMaskImage: "radial-gradient(ellipse at center, black 45%, transparent 72%)", maskImage: "radial-gradient(ellipse at center, black 45%, transparent 72%)" }}>
       <div style={{ position: "absolute", left, top }}>{children(size)}</div>
+    </div>
+  );
+};
+
+
+/**
+ * Extrait de courbe de vitesse (sans légende de tours) : le creux au virage 1 (deux passages superposés,
+ * écart des vitesses mini annoté) ou la pente de réaccélération après le virage 5 (un seul passage).
+ * Source : adria-lap.json (points[i][2] = vitesse du meilleur tour, [5] = tour comparé).
+ */
+const SpeedCrop: React.FC<{ width: number; mode: "dip" | "exit" }> = ({ width, mode }) => {
+  const [a, b] = mode === "dip" ? [2, 66] : [178, 228];
+  const h = width * 0.66;
+  const padL = 70, padR = 28, padT = 40, padB = 36;
+  const w = width - padL - padR, ih = h - padT - padB;
+  const idx = Array.from({ length: b - a + 1 }, (_, k) => a + k);
+  const vals = idx.flatMap((i) => (mode === "dip" ? [PTS[i][2], PTS[i][5]] : [PTS[i][2]]));
+  const vmin = Math.floor((Math.min(...vals) - 4) / 10) * 10;
+  const vmax = Math.ceil((Math.max(...vals) + 4) / 10) * 10;
+  const X = (i: number) => padL + ((i - a) / (b - a)) * w;
+  const Y = (v: number) => padT + ih * (1 - (v - vmin) / (vmax - vmin));
+  const path = (col: 2 | 5) => `M${idx.map((i) => `${X(i).toFixed(1)},${Y(PTS[i][col]).toFixed(1)}`).join(" L")}`;
+  const grid: number[] = [];
+  for (let v = vmin; v <= vmax; v += 10) grid.push(v);
+  // Creux (vitesse mini) des deux passages entre les indices 11 et 56 (segment de perte du virage 1).
+  const argmin = (col: 2 | 5) => idx.filter((i) => i >= 11 && i <= 56).reduce((m, i) => (PTS[i][col] < PTS[m][col] ? i : m), 11);
+  const i4 = argmin(2), i9 = argmin(5);
+  const v4 = PTS[i4][2], v9 = PTS[i9][5];
+  const ax = X(i9);
+  return (
+    <div style={{ width, height: h, borderRadius: 28, background: alpha(C.card, 0.94), border: `1px solid ${C.border}`, boxShadow: `0 40px 80px -30px ${alpha(C.bgDeep, 0.85)}` }}>
+      <svg width={width} height={h} style={{ overflow: "visible" }}>
+        {grid.map((v) => (
+          <g key={v}>
+            <line x1={padL} x2={padL + w} y1={Y(v)} y2={Y(v)} stroke={alpha(C.text, 0.08)} strokeDasharray="4 8" strokeWidth={2} />
+            <text x={padL - 14} y={Y(v) + 7} textAnchor="end" fill={INK.muted} fontFamily={FONT.body} fontSize={22}>{v}</text>
+          </g>
+        ))}
+        <text x={padL} y={26} fill={INK.muted} fontFamily={FONT.body} fontSize={22} fontWeight={600}>km/h</text>
+        {mode === "dip" ? (
+          <>
+            <path d={path(5)} fill="none" stroke={C.blue} strokeWidth={6} strokeLinecap="round" strokeLinejoin="round" opacity={0.95} />
+            <path d={path(2)} fill="none" stroke={C.orangeChart} strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" />
+            <line x1={X(i4)} x2={ax + 40} y1={Y(v4)} y2={Y(v4)} stroke={alpha(C.text, 0.55)} strokeWidth={2} strokeDasharray="6 6" />
+            <line x1={ax} x2={ax} y1={Y(v4) + 4} y2={Y(v9) - 6} stroke={C.primary} strokeWidth={5} />
+            <circle cx={ax} cy={Y(v9)} r={10} fill={C.primary} />
+            <text x={ax} y={Y(v9) + 66} textAnchor="middle" fill={C.primary} fontFamily={FONT.display} fontWeight={700} fontSize={46}>−10 km/h</text>
+          </>
+        ) : (
+          <>
+            {idx.slice(0, -1).map((i, k) => (
+              <line key={i} x1={X(i)} y1={Y(PTS[i][2])} x2={X(idx[k + 1])} y2={Y(PTS[idx[k + 1]][2])} stroke={speedToColor(PTS[i][2])} strokeWidth={8} strokeLinecap="round" />
+            ))}
+            <line x1={X(190)} y1={Y(PTS[190][2])} x2={X(218)} y2={Y(PTS[218][2])} stroke={alpha(C.text, 0.6)} strokeWidth={3} strokeDasharray="8 8" />
+            <circle cx={X(190)} cy={Y(PTS[190][2])} r={10} fill={C.text} />
+            <text x={X(203)} y={Y(82)} textAnchor="end" fill={C.text} fontFamily={FONT.display} fontWeight={700} fontSize={34}>la pente</text>
+          </>
+        )}
+      </svg>
     </div>
   );
 };
@@ -247,6 +308,10 @@ export const Visual: React.FC<{ id: VisualId; width: number; height?: number; ti
       return wrap(<DeltaChart k={width / 520} width={width} draw={1} />, C.blue);
     case "speed":
       return wrap(<SpeedTraceChart k={width / 520} width={width} draw={1} />, C.orangeChart);
+    case "speed-dip":
+      return wrap(<SpeedCrop width={width} mode="dip" />, C.primary);
+    case "speed-exit":
+      return wrap(<SpeedCrop width={width} mode="exit" />, C.orangeChart);
     case "radar":
       return wrap(<RadarChart k={width / 380} width={width} grow={1} />, C.orangeChart);
     case "kart": {
