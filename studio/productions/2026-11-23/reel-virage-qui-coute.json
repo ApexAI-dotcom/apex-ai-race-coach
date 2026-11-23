@@ -1,0 +1,194 @@
+{
+ "label": "",
+ "voice": "voice/2026-11-23-reel-virage-qui-coute.mp3",
+ "voiceVolume": 1,
+ "music": "music/apexai-theme-2026-11-23.mp3",
+ "musicVolume": 0.1,
+ "beats": [
+  {
+   "dur": 3.3,
+   "kind": "hook",
+   "title": "*0,87 s.* Dans un seul virage.",
+   "visual": "trace-zoom",
+   "corner": 7
+  },
+  {
+   "dur": 4.6,
+   "kind": "visual",
+   "visual": "trace-zoom",
+   "corner": 7,
+   "title": "Début de séance.",
+   "sub": "Virage 7 : 0,87 s face au meilleur passage.",
+   "sfx": "marker"
+  },
+  {
+   "dur": 3.9,
+   "kind": "hero",
+   "number": "0,49",
+   "unit": "s",
+   "tone": "red",
+   "title": "au 3e tour, virage 7.",
+   "sub": "Il coûte encore.",
+   "sfx": "soft-impact"
+  },
+  {
+   "dur": 3.85,
+   "kind": "hero",
+   "number": "0,02",
+   "unit": "s",
+   "tone": "green",
+   "title": "au 3e tour, virage 3.",
+   "sub": "Après 0,59 s aux deux premiers tours.",
+   "sfx": "pings"
+  },
+  {
+   "dur": 3.95,
+   "kind": "text",
+   "title": "Certains virages *se règlent tout seuls.* D'autres *traînent.*"
+  },
+  {
+   "dur": 6.0,
+   "kind": "text",
+   "title": "Compare tes 3 premiers tours *virage par virage.* Celui qui coûte encore au 3e, *c'est ta priorité.*"
+  },
+  {
+   "dur": 7.4,
+   "kind": "cta",
+   "title": "*Enregistre* pour ta prochaine séance. Envoie à ton pote.",
+   "sub": "Le virage qui coûte, épisode 1",
+   "sfx": "sonic-logo"
+  }
+ ],
+ "captions": [
+  {
+   "t0": 0.0,
+   "t1": 1.72,
+   "text": "87 centièmes."
+  },
+  {
+   "t0": 1.72,
+   "t1": 3.28,
+   "text": "Dans un seul virage."
+  },
+  {
+   "t0": 3.36,
+   "t1": 4.36,
+   "text": "Début de séance,"
+  },
+  {
+   "t0": 4.36,
+   "t1": 5.12,
+   "text": "un pilote les perd"
+  },
+  {
+   "t0": 5.12,
+   "t1": 6.16,
+   "text": "au virage 7,"
+  },
+  {
+   "t0": 6.16,
+   "t1": 6.88,
+   "text": "face à son meilleur"
+  },
+  {
+   "t0": 6.88,
+   "t1": 7.88,
+   "text": "passage."
+  },
+  {
+   "t0": 7.88,
+   "t1": 8.84,
+   "text": "Au 3e tour,"
+  },
+  {
+   "t0": 8.84,
+   "t1": 9.6,
+   "text": "il en laisse encore"
+  },
+  {
+   "t0": 9.6,
+   "t1": 10.84,
+   "text": "49."
+  },
+  {
+   "t0": 10.84,
+   "t1": 11.96,
+   "text": "Le virage 3 ?"
+  },
+  {
+   "t0": 11.96,
+   "t1": 13.12,
+   "text": "59 centièmes aux 2"
+  },
+  {
+   "t0": 13.12,
+   "t1": 14.12,
+   "text": "premiers tours,"
+  },
+  {
+   "t0": 14.12,
+   "t1": 15.68,
+   "text": "2 au 3e."
+  },
+  {
+   "t0": 15.68,
+   "t1": 16.84,
+   "text": "Certains virages se règlent"
+  },
+  {
+   "t0": 16.84,
+   "t1": 17.72,
+   "text": "tout seuls."
+  },
+  {
+   "t0": 17.72,
+   "t1": 19.08,
+   "text": "D'autres traînent."
+  },
+  {
+   "t0": 19.08,
+   "t1": 20.53,
+   "text": "La règle à garder :"
+  },
+  {
+   "t0": 20.53,
+   "t1": 21.52,
+   "text": "compare tes 3 premiers"
+  },
+  {
+   "t0": 21.52,
+   "t1": 23.6,
+   "text": "tours, virage par virage."
+  },
+  {
+   "t0": 23.6,
+   "t1": 24.4,
+   "text": "Celui qui coûte encore"
+  },
+  {
+   "t0": 24.4,
+   "t1": 25.25,
+   "text": "au 3e,"
+  },
+  {
+   "t0": 25.25,
+   "t1": 26.64,
+   "text": "c'est ta priorité."
+  },
+  {
+   "t0": 26.64,
+   "t1": 27.84,
+   "text": "Enregistre-la pour ta prochaine"
+  },
+  {
+   "t0": 27.84,
+   "t1": 29.2,
+   "text": "séance, ou envoie-la à"
+  },
+  {
+   "t0": 29.2,
+   "t1": 30.12,
+   "text": "ton pote."
+  }
+ ]
+}
