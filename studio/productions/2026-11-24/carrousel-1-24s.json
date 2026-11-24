@@ -1,0 +1,77 @@
+{
+ "label": "",
+ "rail": true,
+ "slides": [
+  {
+   "kind": "cover",
+   "title": "*1,24 s* par tour,\ncachées dans\n*4 virages.*",
+   "sub": "Swipe pour trouver les tiens.",
+   "visual": "trace",
+   "visualWidth": 600,
+   "titleSize": 96
+  },
+  {
+   "kind": "statement",
+   "title": "12 virages.\n*4 d'entre eux*\nte coûtent le plus.",
+   "body": "Classés du moins au plus coûteux, face à ton tour idéal.",
+   "visual": "trace",
+   "visualWidth": 620
+  },
+  {
+   "kind": "number",
+   "label": "N°4",
+   "number": "0,22",
+   "unit": "s",
+   "tone": "loss",
+   "title": "Virage 2.",
+   "body": "Perdues par tour face à ton tour idéal.",
+   "visual": "trace-zoom",
+   "corner": 2,
+   "visualWidth": 800
+  },
+  {
+   "kind": "number",
+   "label": "N°3",
+   "number": "0,28",
+   "unit": "s",
+   "tone": "loss",
+   "title": "Virage 10.",
+   "body": "Perdues par tour face à ton tour idéal.",
+   "visual": "trace-zoom",
+   "corner": 10,
+   "visualWidth": 800
+  },
+  {
+   "kind": "number",
+   "label": "N°2",
+   "number": "0,35",
+   "unit": "s",
+   "tone": "loss",
+   "title": "Virage 5.",
+   "body": "Perdues par tour face à ton tour idéal.",
+   "visual": "trace-zoom",
+   "corner": 5,
+   "visualWidth": 800
+  },
+  {
+   "kind": "number",
+   "label": "N°1",
+   "number": "0,40",
+   "unit": "s",
+   "tone": "loss",
+   "title": "Virage 7. *Le premier de ta liste.*",
+   "body": "Perdues par tour face à ton tour idéal.",
+   "visual": "trace-zoom",
+   "corner": 7,
+   "visualWidth": 800
+  },
+  {
+   "kind": "cta",
+   "title": "À *garder.*",
+   "body": "Travaille d'abord le virage du haut de ta liste. Un seul par séance.",
+   "button": "Enregistrer",
+   "buttonIcon": "bookmark",
+   "sub": "Envoie-le à ton pote de piste."
+  }
+ ]
+}

@@ -1,0 +1,127 @@
+{
+ "label": "",
+ "voice": "voice/2026-11-24-reel-pov-freinage.mp3",
+ "voiceVolume": 1,
+ "music": "music/apexai-theme-2026-11-24.mp3",
+ "musicVolume": 0.1,
+ "beats": [
+  {
+   "dur": 2.4,
+   "kind": "hook",
+   "title": "POV : tu freines toujours *au même panneau.*",
+   "visual": "trace-zoom",
+   "corner": 2
+  },
+  {
+   "dur": 1.8,
+   "kind": "visual",
+   "visual": "trace-zoom",
+   "corner": 2,
+   "title": "Ta trace dit *autre chose.*",
+   "sfx": "marker"
+  },
+  {
+   "dur": 3.7,
+   "kind": "hero",
+   "number": "9",
+   "unit": "tours",
+   "tone": "red",
+   "title": "Tes points de freinage *s'étalent.*",
+   "sfx": "soft-impact"
+  },
+  {
+   "dur": 4.0,
+   "kind": "text",
+   "title": "Sur un autre virage, *tu freines au même endroit.* Donc *tu sais le faire.*"
+  },
+  {
+   "dur": 4.3,
+   "kind": "text",
+   "title": "Un repère fixe *par virage.* Puis *vérifie-le* sur ta trace."
+  },
+  {
+   "dur": 4.2,
+   "kind": "cta",
+   "title": "*Identifie* le pote qui freine toujours au même endroit.",
+   "sub": "POV paddock, épisode 1",
+   "sfx": "sonic-logo"
+  }
+ ],
+ "captions": [
+  {
+   "t0": 0.0,
+   "t1": 0.72,
+   "text": "Moi ?"
+  },
+  {
+   "t0": 0.72,
+   "t1": 1.48,
+   "text": "Je freine toujours"
+  },
+  {
+   "t0": 1.48,
+   "t1": 2.28,
+   "text": "au même panneau."
+  },
+  {
+   "t0": 2.59,
+   "t1": 3.96,
+   "text": "Ma trace dit autre chose."
+  },
+  {
+   "t0": 4.24,
+   "t1": 5.36,
+   "text": "Neuf tours."
+  },
+  {
+   "t0": 5.36,
+   "t1": 6.56,
+   "text": "Les points de freinage s'étalent"
+  },
+  {
+   "t0": 6.56,
+   "t1": 7.72,
+   "text": "sur toute la zone."
+  },
+  {
+   "t0": 8.03,
+   "t1": 9.12,
+   "text": "Sur un autre virage,"
+  },
+  {
+   "t0": 9.12,
+   "t1": 10.64,
+   "text": "tu freines au même endroit."
+  },
+  {
+   "t0": 10.64,
+   "t1": 11.64,
+   "text": "Donc tu sais le faire."
+  },
+  {
+   "t0": 11.95,
+   "t1": 12.84,
+   "text": "Choisis un repère"
+  },
+  {
+   "t0": 12.84,
+   "t1": 14.08,
+   "text": "fixe par virage."
+  },
+  {
+   "t0": 14.08,
+   "t1": 16.08,
+   "text": "Puis vérifie-le sur ta trace."
+  },
+  {
+   "t0": 16.29,
+   "t1": 17.64,
+   "text": "Identifie le pote qui freine"
+  },
+  {
+   "t0": 17.64,
+   "t1": 19.16,
+   "text": "toujours au même endroit."
+  }
+ ]
+}
