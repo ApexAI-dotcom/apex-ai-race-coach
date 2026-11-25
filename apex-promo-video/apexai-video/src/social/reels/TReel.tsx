@@ -40,6 +40,7 @@ const beat = z.object({
   values: z.array(z.number()).optional(), // passes : temps perdu par passage (s)
   title2: z.string().optional(), // passes : titre de remplacement
   title2At: z.number().optional(),
+  button: z.string().optional(), // cta : texte du bouton, "" pour le retirer
 });
 
 export const tReelSchema = z.object({
@@ -81,7 +82,7 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
   ) : null;
 
   if (b.kind === "cta") {
-    return <EndCard T={T} start={t0} headline={b.title ?? "Va chercher *tes dixièmes.*"} zone={zone} sub={b.sub ?? "Inscription gratuite"} button="Créer mon compte" />;
+    return <EndCard T={T} start={t0} headline={b.title ?? "Va chercher *tes dixièmes.*"} zone={zone} sub={b.sub ?? "Inscription gratuite"} button={b.button ?? "Créer mon compte"} />;
   }
   if (b.kind === "clip" || b.kind === "image") {
     const k = prog(T, t0, t1, E.ios);

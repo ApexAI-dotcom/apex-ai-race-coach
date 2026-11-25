@@ -186,7 +186,7 @@ export const EndCard: React.FC<{ T: number; start: number; headline: string; zon
       <div style={{ position: "absolute", left: zone.x0, width: zone.x1 - zone.x0, top: top + 160, textAlign: "center", fontFamily: FONT.display, fontWeight: 600, fontSize: 58, letterSpacing: "-0.02em", color: C.text, ...reveal(T, start + 0.25, { dur: 0.5, blur: 12, y: 16 }) }}>
         <Rich text={headline} />
       </div>
-      <div style={{ position: "absolute", left: btnX, top: btnY, width: BTN_W, height: BTN_H, ...reveal(T, start + 0.4, { dur: 0.5, blur: 14, y: 20, scale: 1.04 }) }}>
+      {button ? <div style={{ position: "absolute", left: btnX, top: btnY, width: BTN_W, height: BTN_H, ...reveal(T, start + 0.4, { dur: 0.5, blur: 14, y: 20, scale: 1.04 }) }}>
         <div
           style={{
             width: "100%",
@@ -210,14 +210,14 @@ export const EndCard: React.FC<{ T: number; start: number; headline: string; zon
             <ChevronRight size={34} color={C.text} strokeWidth={2.6} />
           </span>
         </div>
-      </div>
-      <div style={{ position: "absolute", left: zone.x0, width: zone.x1 - zone.x0, top: btnY + 150, textAlign: "center", fontFamily: FONT.body, fontWeight: 500, fontSize: 36, color: INK.soft, ...reveal(T, start + 0.55, { dur: 0.5, blur: 10, y: 12 }) }}>
+      </div> : null}
+      <div style={{ position: "absolute", left: zone.x0, width: zone.x1 - zone.x0, top: btnY + (button ? 150 : 30), textAlign: "center", fontFamily: FONT.body, fontWeight: 500, fontSize: 36, color: INK.soft, ...reveal(T, start + 0.55, { dur: 0.5, blur: 10, y: 12 }) }}>
         {fr(sub)}
       </div>
-      <div style={{ position: "absolute", left: zone.x0, width: zone.x1 - zone.x0, top: btnY + 240, textAlign: "center", fontFamily: FONT.body, fontWeight: 600, fontSize: 40, letterSpacing: "0.02em", color: C.text, ...reveal(T, start + 0.65, { dur: 0.5, blur: 10, y: 12 }) }}>
+      <div style={{ position: "absolute", left: zone.x0, width: zone.x1 - zone.x0, top: btnY + (button ? 240 : 120), textAlign: "center", fontFamily: FONT.body, fontWeight: 600, fontSize: 40, letterSpacing: "0.02em", color: C.text, ...reveal(T, start + 0.65, { dur: 0.5, blur: 10, y: 12 }) }}>
         apexai.racing
       </div>
-      {cursor ? (
+      {cursor && button ? (
         <>
           <Ripple T={T} start={clickT} x={btnX + BTN_W * 0.66} y={btnY + BTN_H * 0.62} size={130} />
           {T >= start + 0.55 ? <Cursor x={kx} y={ky} press={press} scale={1.9} opacity={prog(T, start + 0.55, start + 0.67, E.outExpo)} /> : null}

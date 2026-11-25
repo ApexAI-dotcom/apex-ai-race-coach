@@ -2,11 +2,10 @@ import React from "react";
 import { C, FONT, GRAD, INK, alpha } from "../kit/tokens";
 import { fr } from "../kit/text";
 import { E, prog, reveal } from "../../lib/anim";
-import { DecodeNumber } from "./common";
 
 /**
  * Temps perdu à chaque passage dans un même virage (ordre de la séance, sans numéro de tour).
- * cues (s depuis le début du temps) : [la grosse barre monte, le chiffre se décode].
+ * cues (s depuis le début du temps) : [la grosse barre monte, le chiffre apparaît].
  */
 export const CornerPasses: React.FC<{ T: number; t0: number; width: number; values: number[]; cues: number[] }> = ({ T, t0, width, values, cues }) => {
   const H = 440;
@@ -42,7 +41,14 @@ export const CornerPasses: React.FC<{ T: number; t0: number; width: number; valu
           );
         })}
         <div style={{ position: "absolute", left: Math.min(width - 330, big * (bw + gap) + bw / 2 - 165), width: 330, bottom: H + 28, display: "flex", justifyContent: "center" }}>
-          {T >= numAt ? <DecodeNumber T={T} text="0,26" start={numAt} size={130} color={C.primary} seed="v10" unit="s" /> : null}
+          {T >= numAt ? (
+            // chiffre affiché d'un bloc : aucun défilement de fausses valeurs
+            <div style={reveal(T, numAt, { dur: 0.25, blur: 6, y: 14 })}>
+            <span style={{ display: "inline-flex", alignItems: "baseline", fontFamily: FONT.display, fontWeight: 700, fontSize: 130, letterSpacing: "-0.045em", lineHeight: 0.9, color: C.primary, filter: `drop-shadow(0 0 8px ${alpha(C.primary, 0.5)})` }}>
+              0,26<span style={{ fontSize: 88, marginLeft: 14 }}>s</span>
+            </span>
+            </div>
+          ) : null}
         </div>
       </div>
       <div style={{ height: 3, background: alpha(C.text, 0.22), marginTop: 12 }} />
