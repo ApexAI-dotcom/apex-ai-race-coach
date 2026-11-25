@@ -1,0 +1,206 @@
+{
+ "label": "",
+ "voice": "voice/2026-11-25-reel-une-seule-fois.mp3",
+ "voiceVolume": 1,
+ "music": "music/apexai-theme-2026-11-25.mp3",
+ "musicVolume": 0.1,
+ "beats": [
+  {
+   "dur": 3.1,
+   "kind": "hook",
+   "center": true,
+   "title": "Raté une fois. *Inquiétant ?*",
+   "visual": "trace-zoom",
+   "corner": 10
+  },
+  {
+   "dur": 1.6,
+   "kind": "visual",
+   "visual": "trace-zoom",
+   "corner": 10,
+   "title": "Regarde le *virage 10.*"
+  },
+  {
+   "dur": 7.9,
+   "kind": "passes",
+   "values": [
+    0.114,
+    0.066,
+    0.056,
+    0.007,
+    0.015,
+    0.0,
+    0.258,
+    0.042,
+    0.031,
+    0.007
+   ],
+   "title": "Presque tous : *trois fois rien.*",
+   "title2": "Une erreur *isolée.*",
+   "title2At": 5.5,
+   "cues": [
+    2.75,
+    4.65
+   ],
+   "sfx": "soft-impact",
+   "sfxAt": 4.65
+  },
+  {
+   "dur": 4.5,
+   "kind": "visual",
+   "visual": "trace-zoom",
+   "corner": 7,
+   "label": "Rappel · épisode 1",
+   "title": "Virage 7 : *l'inverse.*",
+   "sub": "Il coûtait à chaque tour.",
+   "subAt": 2.8
+  },
+  {
+   "dur": 3.2,
+   "kind": "text",
+   "center": true,
+   "title": "*Isolée* ou *répétée ?*",
+   "sub": "C'est la seule question.",
+   "subAt": 1.95
+  },
+  {
+   "dur": 4.3,
+   "kind": "rule",
+   "label": "La règle à garder",
+   "cues": [
+    2.05
+   ],
+   "sfx": "pings",
+   "sfxAt": 2.05
+  },
+  {
+   "dur": 6.6,
+   "kind": "cta",
+   "title": "*Enregistre* la règle. Envoie-la à un pilote.",
+   "sub": "Épisode 3 la semaine prochaine",
+   "sfx": "sonic-logo"
+  }
+ ],
+ "captions": [
+  {
+   "t0": 0.0,
+   "t1": 0.88,
+   "text": "Tu rates un virage"
+  },
+  {
+   "t0": 0.88,
+   "t1": 1.56,
+   "text": "une fois."
+  },
+  {
+   "t0": 1.68,
+   "t1": 2.95,
+   "text": "Faut-il s'en inquiéter ?"
+  },
+  {
+   "t0": 3.24,
+   "t1": 4.6,
+   "text": "Regarde ce virage 10."
+  },
+  {
+   "t0": 4.8,
+   "t1": 6.08,
+   "text": "Presque tous les passages"
+  },
+  {
+   "t0": 6.08,
+   "t1": 7.44,
+   "text": "perdent trois fois rien."
+  },
+  {
+   "t0": 7.44,
+   "t1": 8.48,
+   "text": "Un seul en perd"
+  },
+  {
+   "t0": 8.48,
+   "t1": 10.24,
+   "text": "0,26 seconde."
+  },
+  {
+   "t0": 10.24,
+   "t1": 11.32,
+   "text": "Une erreur isolée,"
+  },
+  {
+   "t0": 11.32,
+   "t1": 12.64,
+   "text": "ça arrive à tout le monde."
+  },
+  {
+   "t0": 12.72,
+   "t1": 13.63,
+   "text": "Le virage 7,"
+  },
+  {
+   "t0": 13.63,
+   "t1": 14.56,
+   "text": "dans l'épisode 1,"
+  },
+  {
+   "t0": 14.56,
+   "t1": 15.44,
+   "text": "c'était l'inverse."
+  },
+  {
+   "t0": 15.44,
+   "t1": 16.92,
+   "text": "Il coûtait à chaque tour."
+  },
+  {
+   "t0": 17.2,
+   "t1": 19.0,
+   "text": "Isolée, ou répétée ?"
+  },
+  {
+   "t0": 19.08,
+   "t1": 20.2,
+   "text": "C'est la seule question."
+  },
+  {
+   "t0": 20.4,
+   "t1": 21.52,
+   "text": "Une erreur isolée,"
+  },
+  {
+   "t0": 21.52,
+   "t1": 22.32,
+   "text": "oublie-la."
+  },
+  {
+   "t0": 22.37,
+   "t1": 23.68,
+   "text": "Une erreur qui revient,"
+  },
+  {
+   "t0": 23.68,
+   "t1": 24.44,
+   "text": "travaille-la."
+  },
+  {
+   "t0": 24.72,
+   "t1": 26.12,
+   "text": "Enregistre cette règle,"
+  },
+  {
+   "t0": 26.12,
+   "t1": 27.24,
+   "text": "ou envoie-la à un pilote"
+  },
+  {
+   "t0": 27.24,
+   "t1": 28.28,
+   "text": "de ton circuit."
+  },
+  {
+   "t0": 28.32,
+   "t1": 30.44,
+   "text": "Épisode 3 la semaine prochaine."
+  }
+ ]
+}

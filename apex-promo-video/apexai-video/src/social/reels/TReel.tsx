@@ -9,6 +9,7 @@ import { Visual, VISUAL_IDS } from "../visuals";
 import { DecodeNumber, EndCard, KLine, useTime, ZONE } from "./common";
 import { E, prog, reveal } from "../../lib/anim";
 import { CornerSplit } from "./CornerSplit";
+import { CornerPasses, RuleCards } from "./CornerPasses";
 
 /**
  * T-Reel — gabarit de reel piloté par les données (production quotidienne).
@@ -18,7 +19,7 @@ import { CornerSplit } from "./CornerSplit";
  */
 const beat = z.object({
   dur: z.number().min(0.6).max(12),
-  kind: z.enum(["hook", "text", "hero", "visual", "clip", "image", "cta", "split"]),
+  kind: z.enum(["hook", "text", "hero", "visual", "clip", "image", "cta", "split", "passes", "rule"]),
   title: z.string().optional(),
   sub: z.string().optional(),
   number: z.string().optional(),
@@ -33,6 +34,12 @@ const beat = z.object({
   splitAt: z.number().optional(),
   cues: z.array(z.number()).optional(), // split : apparition des zones (s depuis le début du temps)
   labels: z.tuple([z.string(), z.string(), z.string(), z.string()]).optional(),
+  center: z.boolean().optional(), // titre et sous-titre centrés (accroche, texte)
+  subAt: z.number().optional(), // apparition de la sous-ligne (s depuis le début du temps)
+  sfxAt: z.number().optional(), // décalage du son (s depuis le début du temps)
+  values: z.array(z.number()).optional(), // passes : temps perdu par passage (s)
+  title2: z.string().optional(), // passes : titre de remplacement
+  title2At: z.number().optional(),
 });
 
 export const tReelSchema = z.object({
@@ -61,10 +68,10 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
   const head = label || b.label;
   const titleSize = b.kind === "hook" ? 112 : 84;
   const Title = b.title ? (
-    <KLine T={T} text={b.title} start={t0 + 0.05} size={titleSize} align="left" out={b.kind === "cta" ? undefined : out} sweep={b.kind === "hook"} noIn={b.kind === "hook" && t0 === 0} />
+    <KLine T={T} text={b.title} start={t0 + 0.05} size={titleSize} align={b.center ? "center" : "left"} out={b.kind === "cta" ? undefined : out} sweep={b.kind === "hook"} noIn={b.kind === "hook" && t0 === 0} />
   ) : null;
   const Sub = b.sub ? (
-    <div style={{ marginTop: 28, fontFamily: FONT.body, fontWeight: 500, fontSize: 44, lineHeight: 1.25, color: alpha(C.text, 0.82), ...reveal(T, t0 + 0.35, { dur: 0.5, blur: 10, y: 12 }, out) }}>{fr(b.sub)}</div>
+    <div style={{ marginTop: 28, fontFamily: FONT.body, fontWeight: 500, fontSize: 44, lineHeight: 1.25, color: alpha(C.text, 0.82), textAlign: b.center ? "center" : "left", ...reveal(T, t0 + (b.subAt ?? 0.35), { dur: 0.5, blur: 10, y: 12 }, out) }}>{fr(b.sub)}</div>
   ) : null;
   const Head = head ? (
     <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 36, fontFamily: FONT.body, fontWeight: 600, fontSize: 26, letterSpacing: "0.2em", textTransform: "uppercase", color: "#999", ...reveal(T, t0, { dur: 0.4 }, out) }}>
@@ -96,6 +103,28 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
       </AbsoluteFill>
     );
   }
+  if (b.kind === "passes" && b.values) {
+    const swap = t0 + (b.title2At ?? b.dur);
+    return (
+      <div style={{ position: "absolute", left: zone.x0, width: W, top: zone.y0 + 40 }}>
+        <div style={{ height: 190 }}>
+          {b.title && T < swap ? <KLine T={T} text={b.title} start={t0 + 0.05} size={titleSize} align="left" out={swap - 0.25} /> : null}
+          {b.title2 && T >= swap ? <KLine T={T} text={b.title2} start={swap} size={titleSize} align="left" out={out} /> : null}
+        </div>
+        <div style={{ marginTop: 70, ...reveal(T, t0, { dur: 0.35, blur: 10 }, out) }}>
+          <CornerPasses T={T} t0={t0} width={W} values={b.values} cues={b.cues ?? []} />
+        </div>
+      </div>
+    );
+  }
+  if (b.kind === "rule") {
+    return (
+      <div style={{ position: "absolute", left: zone.x0, width: W, top: zone.y0 + 100 }}>
+        {Head}
+        <RuleCards T={T} t0={t0} width={W} out={out} second={b.cues?.[0] ?? 2} />
+      </div>
+    );
+  }
   if (b.kind === "split" && b.range && b.splitAt !== undefined) {
     return (
       <div style={{ position: "absolute", left: zone.x0, width: W, top: zone.y0 + 40 }}>
@@ -112,7 +141,7 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
     const z = 1 + 0.08 * prog(T, t0, t1, E.inOut);
     const inV = t0 === 0 ? { opacity: 1 - prog(T, out, t1) } : reveal(T, t0, { dur: 0.3, blur: 10 }, out);
     return (
-      <div style={{ position: "absolute", left: zone.x0, width: W, top: zone.y0 + 20 }}>
+      <div style={{ position: "absolute", left: zone.x0, width: W, top: zone.y0 + (b.center ? 110 : 20) }}>
         {Title}
         {Sub}
         <div style={{ marginTop: 40, display: "flex", justifyContent: "center", transform: `scale(${z})`, ...inV }}>
@@ -157,7 +186,7 @@ export const TReel: React.FC<TReelProps> = ({ beats, voice, voiceVolume = 1, mus
       {cur ? <Beat key={cur.t0} b={cur.b} t0={cur.t0} t1={cur.t1} T={T} label={cur === spans[0] ? undefined : label} safe={safe} /> : null}
       {spans.map((s) =>
         s.b.sfx ? (
-          <AudioAt key={`sfx${s.t0}`} from={Math.round(s.t0 * fps)} srcPath={`sfx/${s.b.sfx}.mp3`} volume={0.35} />
+          <AudioAt key={`sfx${s.t0}`} from={Math.round((s.t0 + (s.b.sfxAt ?? 0)) * fps)} srcPath={`sfx/${s.b.sfx}.mp3`} volume={0.35} />
         ) : null,
       )}
       {voice ? <Audio src={src(voice)} volume={voiceVolume} /> : null}
