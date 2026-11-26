@@ -18,7 +18,7 @@
    "compare": [
     {
      "label": "Virage 2",
-     "value": "≈10",
+     "value": "≈7",
      "unit": "m",
      "tone": "loss",
      "corner": 2
@@ -41,11 +41,12 @@
   },
   {
    "kind": "number",
-   "label": "Les données · meilleur tour",
+   "label": "Les données · un des 3 meilleurs tours",
    "number": "0,52",
    "unit": "s",
    "tone": "gradient",
-   "title": "Virage 12.",
+   "title": "Virage 12, à 0,1 s du meilleur tour.",
+   "titleSize": 54,
    "body": "Une demi-seconde entre la fin du freinage et le moment où le kart réaccélère.",
    "visual": "trace-spot",
    "corner": 12,
@@ -67,7 +68,7 @@
    "tone": "loss",
    "title": "Virage 10.",
    "titleSize": 72,
-   "body": "Perdues sur un passage, face au meilleur. Les 9 autres perdent 0,11 s au maximum.",
+   "body": "Temps perdu sur un passage, face au meilleur. Les 9 autres perdent 0,11 s au maximum.",
    "visual": "trace-spot",
    "corner": 10,
    "visualWidth": 720,
