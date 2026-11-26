@@ -10,6 +10,7 @@ import { DecodeNumber, EndCard, KLine, useTime, ZONE } from "./common";
 import { E, prog, reveal } from "../../lib/anim";
 import { CornerSplit } from "./CornerSplit";
 import { CornerPasses, RuleCards } from "./CornerPasses";
+import { NotesPriority } from "./NotesPriority";
 
 /**
  * T-Reel — gabarit de reel piloté par les données (production quotidienne).
@@ -19,7 +20,8 @@ import { CornerPasses, RuleCards } from "./CornerPasses";
  */
 const beat = z.object({
   dur: z.number().min(0.6).max(12),
-  kind: z.enum(["hook", "text", "hero", "visual", "clip", "image", "cta", "split", "passes", "rule"]),
+  kind: z.enum(["hook", "text", "hero", "visual", "clip", "image", "cta", "split", "passes", "rule", "notes"]),
+  view: z.enum(["hero", "all", "b", "rank", "absent", "subtitle", "rule", "end"]).optional(), // notes : écran affiché
   title: z.string().optional(),
   sub: z.string().optional(),
   number: z.string().optional(),
@@ -81,6 +83,9 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
     </div>
   ) : null;
 
+  if (b.kind === "notes" && b.view) {
+    return <NotesPriority T={T} t0={t0} t1={t1} view={b.view} />;
+  }
   if (b.kind === "cta") {
     return <EndCard T={T} start={t0} headline={b.title ?? "Va chercher *tes dixièmes.*"} zone={zone} sub={b.sub ?? "Inscription gratuite"} button={b.button ?? "Créer mon compte"} />;
   }

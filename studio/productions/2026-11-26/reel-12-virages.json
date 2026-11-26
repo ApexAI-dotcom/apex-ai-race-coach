@@ -1,0 +1,128 @@
+{
+ "label": "",
+ "voice": "voice/2026-11-26-reel-12-virages.mp3",
+ "voiceVolume": 1,
+ "music": "music/apexai-theme-2026-11-26.mp3",
+ "musicVolume": 0.1,
+ "beats": [
+  {
+   "dur": 3.0,
+   "kind": "notes",
+   "view": "hero"
+  },
+  {
+   "dur": 2.75,
+   "kind": "notes",
+   "view": "all"
+  },
+  {
+   "dur": 1.75,
+   "kind": "notes",
+   "view": "b"
+  },
+  {
+   "dur": 2.45,
+   "kind": "notes",
+   "view": "rank"
+  },
+  {
+   "dur": 2.95,
+   "kind": "notes",
+   "view": "absent"
+  },
+  {
+   "dur": 3.1,
+   "kind": "notes",
+   "view": "subtitle"
+  },
+  {
+   "dur": 3.0,
+   "kind": "notes",
+   "view": "rule",
+   "sfx": "pings",
+   "sfxAt": 0.0
+  },
+  {
+   "dur": 5.0,
+   "kind": "notes",
+   "view": "end"
+  }
+ ],
+ "captions": [
+  {
+   "t0": 0.0,
+   "t1": 1.72,
+   "text": "Ce virage est noté A."
+  },
+  {
+   "t0": 1.72,
+   "t1": 2.92,
+   "text": "Travaille-le en premier."
+  },
+  {
+   "t0": 3.2,
+   "t1": 4.2,
+   "text": "Sur cette session,"
+  },
+  {
+   "t0": 4.2,
+   "t1": 5.84,
+   "text": "douze virages sont notés."
+  },
+  {
+   "t0": 5.84,
+   "t1": 7.4,
+   "text": "Tu irais sans doute chercher un B."
+  },
+  {
+   "t0": 7.68,
+   "t1": 8.72,
+   "text": "L'app met le virage"
+  },
+  {
+   "t0": 8.72,
+   "t1": 10.04,
+   "text": "sept en priorité."
+  },
+  {
+   "t0": 10.04,
+   "t1": 11.04,
+   "text": "Et le moins bien noté"
+  },
+  {
+   "t0": 11.04,
+   "t1": 12.92,
+   "text": "n'est même pas dans ses priorités."
+  },
+  {
+   "t0": 12.92,
+   "t1": 14.52,
+   "text": "Elle classe par temps perdu,"
+  },
+  {
+   "t0": 14.52,
+   "t1": 16.04,
+   "text": "mesuré sur tes chronos."
+  },
+  {
+   "t0": 16.04,
+   "t1": 17.2,
+   "text": "Avant de choisir,"
+  },
+  {
+   "t0": 17.2,
+   "t1": 19.04,
+   "text": "regarde ce que le virage te coûte."
+  },
+  {
+   "t0": 19.04,
+   "t1": 20.84,
+   "text": "Inscris-toi et viens essayer."
+  },
+  {
+   "t0": 20.84,
+   "t1": 21.88,
+   "text": "Lien en bio."
+  }
+ ]
+}
