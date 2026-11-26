@@ -1,0 +1,92 @@
+{
+ "label": "Mythe ou data",
+ "rail": true,
+ "slides": [
+  {
+   "kind": "cover",
+   "title": "« Je freine\ntoujours au\nmême endroit. »\n*Sûr ?*",
+   "titleSize": 104,
+   "sub": "On a regardé 10 tours. →",
+   "visual": "trace",
+   "visualWidth": 470
+  },
+  {
+   "kind": "compare",
+   "label": "Les données · 10 tours",
+   "title": "Le point de freinage\nbouge d'un tour à l'autre.",
+   "titleSize": 68,
+   "compare": [
+    {
+     "label": "Virage 2",
+     "value": "≈10",
+     "unit": "m",
+     "tone": "loss",
+     "corner": 2
+    },
+    {
+     "label": "Virage 8",
+     "value": "≈1",
+     "unit": "m",
+     "tone": "gain",
+     "corner": 8
+    }
+   ],
+   "body": "Mêmes tours, deux virages."
+  },
+  {
+   "kind": "statement",
+   "label": "Phrase n°2",
+   "title": "« Je passe\ndirect du\nfrein au *gaz.* »",
+   "titleSize": 128
+  },
+  {
+   "kind": "number",
+   "label": "Les données · meilleur tour",
+   "number": "0,52",
+   "unit": "s",
+   "tone": "gradient",
+   "title": "Virage 12.",
+   "body": "Une demi-seconde entre la fin du freinage et le moment où le kart réaccélère.",
+   "visual": "trace-spot",
+   "corner": 12,
+   "visualWidth": 720,
+   "visualHeight": 390,
+   "note": "Estimé d’après la vitesse GPS, sans capteur de pédale."
+  },
+  {
+   "kind": "statement",
+   "label": "Phrase n°3",
+   "title": "« J'ai *raté*\nce virage,\nje dois\nle bosser. »",
+   "titleSize": 128
+  },
+  {
+   "kind": "number",
+   "label": "Les données · 10 tours",
+   "number": "0,26",
+   "unit": "s",
+   "tone": "loss",
+   "title": "Virage 10.",
+   "titleSize": 72,
+   "body": "Perdues sur un passage, face au meilleur. Les 9 autres perdent 0,11 s au maximum.",
+   "visual": "trace-spot",
+   "corner": 10,
+   "visualWidth": 720,
+   "visualHeight": 420
+  },
+  {
+   "kind": "statement",
+   "label": "À retenir",
+   "title": "Un raté isolé\n*peut attendre.*",
+   "titleSize": 112,
+   "body": "Commence par le virage qui te coûte du temps sur la plupart de tes tours."
+  },
+  {
+   "kind": "cta",
+   "title": "Un pote dit\nencore une de\nces *phrases ?*",
+   "titleSize": 104,
+   "body": "Envoie-lui. Et enregistre pour ta prochaine séance.",
+   "button": "Enregistrer",
+   "buttonIcon": "bookmark"
+  }
+ ]
+}

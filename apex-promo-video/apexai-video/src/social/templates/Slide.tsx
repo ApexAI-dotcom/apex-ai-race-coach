@@ -110,6 +110,7 @@ export const SlideView: React.FC<{ s: SlideProps; index: number; total: number; 
               <div style={{ flex: 1 }} />
             </>
           ) : null}
+          {s.note ? <div style={{ fontFamily: FONT.body, fontWeight: 500, fontSize: 28, color: INK.muted, lineHeight: 1.4, marginBottom: 14 }}>{fr(s.note)}</div> : null}
         </div>
       );
       break;
@@ -120,13 +121,17 @@ export const SlideView: React.FC<{ s: SlideProps; index: number; total: number; 
       content = (
         <div style={{ position: "absolute", left: M, right: M, top: 150, bottom: H - bottom, display: "flex", flexDirection: "column", justifyContent: visual ? "flex-start" : "center" }}>
           {s.title ? <Title text={s.title} size={size} tone={textTone} style={{ marginTop: visual ? 30 : 0 }} /> : null}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 80 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: items.some((it) => it.corner) ? 56 : 80 }}>
             {items.map((it, i) => (
               <React.Fragment key={i}>
-                {i > 0 ? <ArrowRight size={64} color={INK.muted} strokeWidth={2} /> : null}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                {i > 0 ? (
+                  // deux virages côte à côte : un filet les sépare ; sinon flèche « avant → après »
+                  it.corner ? <div style={{ width: 2, alignSelf: "stretch", background: alpha(C.text, 0.14) }} /> : <ArrowRight size={64} color={INK.muted} strokeWidth={2} />
+                ) : null}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: it.corner ? "center" : "flex-start" }}>
                   <div style={{ fontFamily: FONT.body, fontWeight: 600, fontSize: 24, letterSpacing: "0.16em", textTransform: "uppercase", color: INK.muted, marginBottom: 16 }}>{fr(it.label)}</div>
                   <HeroNumber value={fr(it.value)} unit={it.unit} size={180} tone={it.tone ?? "neutral"} />
+                  {it.corner ? <Visual id="trace-spot" width={430} height={420} corner={it.corner} style={{ marginTop: 28 }} /> : null}
                 </div>
               </React.Fragment>
             ))}

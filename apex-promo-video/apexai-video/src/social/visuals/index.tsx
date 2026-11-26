@@ -37,6 +37,7 @@ export const VISUAL_IDS = [
   "trace-v6",
   "trace-loss",
   "trace-zoom",
+  "trace-spot",
   "braking",
   "sectors",
   "trio",
@@ -360,6 +361,15 @@ export const Visual: React.FC<{ id: VisualId; width: number; height?: number; ti
         </div>
       );
     }
+    case "trace-spot":
+      // Zoom sur un virage, sans ligne idéale ni étiquette : seul le tracé mesuré est montré.
+      return (
+        <div style={style}>
+          <TraceZoom width={width} height={height ?? width * 0.8} n={corner} zoom={2.6}>
+            {(size) => <TrackMap id={`vs-${corner}`} size={size} speedLine={1} markers={ALL} highlight={{ n: corner, glow: 1 }} pulses={{ n: corner, p: [0.35, 0.7] }} grid={0.7} />}
+          </TraceZoom>
+        </div>
+      );
     case "trace-v10":
     case "trace-v6":
     case "trace-zoom": {

@@ -42,7 +42,7 @@ export const slideSchema = z.object({
   /** Fond rouge plein (déclaration). */
   red: z.boolean().optional(),
   compare: z
-    .array(z.object({ value: z.string(), unit: z.string().optional(), label: z.string(), tone: tone.optional() }))
+    .array(z.object({ value: z.string(), unit: z.string().optional(), label: z.string(), tone: tone.optional(), corner: z.number().optional() }))
     .optional(),
 });
 
