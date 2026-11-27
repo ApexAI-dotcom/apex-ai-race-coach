@@ -18,6 +18,7 @@ import G6 from "./posts/G6-mythe-ou-data.json";
 import G8 from "./posts/G8-carnet.json";
 import { TReel, tReelMeta, tReelSchema } from "./reels/TReel";
 import TREEL_DEMO from "./posts/T-Reel-demo.json";
+import { Virage6Cover } from "./reels/Virage6G";
 import W2A from "./posts/S2-virage-decrypte-1.json";
 import W2C from "./posts/S2-dans-l-app-mon-kart.json";
 import STORIES from "./posts/stories.json";
@@ -204,6 +205,7 @@ export const SocialRoot: React.FC = () => (
         height={1350}
       />
     </Folder>
+    <Still id="V6-Couverture" component={Virage6Cover} width={1080} height={1920} />
     <Folder name="Charte">
       <Composition id="Charte" component={Charte} width={1920} height={1080} fps={1} durationInFrames={CHARTE_PAGES.length} />
     </Folder>

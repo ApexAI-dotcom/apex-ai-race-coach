@@ -1,0 +1,113 @@
+{
+ "label": "",
+ "voice": "voice/2026-11-27-reel-virage6-g.mp3",
+ "voiceVolume": 1,
+ "music": "music/apexai-theme-2026-11-27.mp3",
+ "musicVolume": 0.1,
+ "beats": [
+  {
+   "dur": 2.4,
+   "kind": "virage6",
+   "g": "hook"
+  },
+  {
+   "dur": 3.6,
+   "kind": "virage6",
+   "g": "turn"
+  },
+  {
+   "dur": 4.95,
+   "kind": "virage6",
+   "g": "helmet"
+  },
+  {
+   "dur": 1.45,
+   "kind": "virage6",
+   "g": "neck"
+  },
+  {
+   "dur": 2.3,
+   "kind": "virage6",
+   "g": "bars"
+  },
+  {
+   "dur": 2.6,
+   "kind": "virage6",
+   "g": "slow"
+  },
+  {
+   "dur": 3.45,
+   "kind": "virage6",
+   "g": "rule",
+   "sfx": "pings",
+   "sfxAt": 0.0
+  },
+  {
+   "dur": 3.75,
+   "kind": "virage6",
+   "g": "end"
+  }
+ ],
+ "captions": [
+  {
+   "t0": 0.0,
+   "t1": 1.88,
+   "text": "Ton cou brûle après la séance ?"
+  },
+  {
+   "t0": 2.72,
+   "t1": 3.64,
+   "text": "Au virage 6,"
+  },
+  {
+   "t0": 3.64,
+   "t1": 6.04,
+   "text": "le kart dépasse 2 g sur le côté."
+  },
+  {
+   "t0": 6.04,
+   "t1": 7.76,
+   "text": "À ce niveau, ta tête et ton casque"
+  },
+  {
+   "t0": 7.76,
+   "t1": 8.88,
+   "text": "tirent vers l'extérieur"
+  },
+  {
+   "t0": 8.88,
+   "t1": 10.63,
+   "text": "avec plus du double de leur poids."
+  },
+  {
+   "t0": 11.0,
+   "t1": 12.44,
+   "text": "Et ton cou retient."
+  },
+  {
+   "t0": 12.44,
+   "t1": 14.72,
+   "text": "Sur 10 tours, ça arrive 7 fois."
+  },
+  {
+   "t0": 14.72,
+   "t1": 16.93,
+   "text": "Les 3 autres sont les plus lents à cet endroit."
+  },
+  {
+   "t0": 17.36,
+   "t1": 19.28,
+   "text": "Ton g baisse au même virage ?"
+  },
+  {
+   "t0": 19.28,
+   "t1": 20.8,
+   "text": "Regarde ta vitesse en courbe."
+  },
+  {
+   "t0": 20.8,
+   "t1": 22.92,
+   "text": "Envoie ça à ton pote qui se plaint de son cou."
+  }
+ ]
+}

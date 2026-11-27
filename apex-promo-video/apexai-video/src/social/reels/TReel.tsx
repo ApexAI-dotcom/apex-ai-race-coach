@@ -11,6 +11,7 @@ import { E, prog, reveal } from "../../lib/anim";
 import { CornerSplit } from "./CornerSplit";
 import { CornerPasses, RuleCards } from "./CornerPasses";
 import { NotesPriority } from "./NotesPriority";
+import { Virage6G } from "./Virage6G";
 
 /**
  * T-Reel — gabarit de reel piloté par les données (production quotidienne).
@@ -20,8 +21,9 @@ import { NotesPriority } from "./NotesPriority";
  */
 const beat = z.object({
   dur: z.number().min(0.6).max(12),
-  kind: z.enum(["hook", "text", "hero", "visual", "clip", "image", "cta", "split", "passes", "rule", "notes"]),
+  kind: z.enum(["hook", "text", "hero", "visual", "clip", "image", "cta", "split", "passes", "rule", "notes", "virage6"]),
   view: z.enum(["hero", "all", "b", "rank", "absent", "subtitle", "rule", "end"]).optional(), // notes : écran affiché
+  g: z.enum(["hook", "turn", "helmet", "neck", "bars", "slow", "rule", "end"]).optional(), // virage6 : écran affiché
   title: z.string().optional(),
   sub: z.string().optional(),
   number: z.string().optional(),
@@ -83,6 +85,9 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
     </div>
   ) : null;
 
+  if (b.kind === "virage6" && b.g) {
+    return <Virage6G T={T} t0={t0} t1={t1} view={b.g} />;
+  }
   if (b.kind === "notes" && b.view) {
     return <NotesPriority T={T} t0={t0} t1={t1} view={b.view} />;
   }
