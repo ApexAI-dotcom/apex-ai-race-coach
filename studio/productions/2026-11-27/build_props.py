@@ -16,7 +16,7 @@ for a, b in zip(caps, caps[1:]):
         a["t1"] = b["t0"]
 B = [("hook", 2.4), ("turn", 3.6), ("helmet", 4.95), ("neck", 1.45), ("bars", 2.3), ("slow", 2.6), ("rule", 3.45), ("end", 3.75)]
 beats = [{"dur": d, "kind": "virage6", "g": g} for g, d in B]
-beats[6].update({"sfx": "pings", "sfxAt": 0.0})  # le « ting » positif sur la règle, seul bruitage
+beats[6].update({"sfx": "pings", "sfxAt": -0.5})  # le « ting » positif (16,8 s), dans la pause avant la règle : il ne couvre pas la voix ; seul bruitage
 print(round(sum(b["dur"] for b in beats), 2))
 p = {"label": "", "voice": "voice/2026-11-27-reel-virage6-g.mp3", "voiceVolume": 1,
      "music": "music/apexai-theme-2026-11-27.mp3", "musicVolume": 0.1, "beats": beats, "captions": caps}

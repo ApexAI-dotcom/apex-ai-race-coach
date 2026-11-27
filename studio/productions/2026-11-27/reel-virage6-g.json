@@ -40,7 +40,7 @@
    "kind": "virage6",
    "g": "rule",
    "sfx": "pings",
-   "sfxAt": 0.0
+   "sfxAt": -0.5
   },
   {
    "dur": 3.75,

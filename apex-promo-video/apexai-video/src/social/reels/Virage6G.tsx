@@ -244,7 +244,7 @@ export const Virage6G: React.FC<{ T: number; t0: number; t1: number; view: V6Vie
     return (
       <>
         <div style={{ ...box(Z.y0 + 10), height: 220 }}>
-          <KLine T={T} key={view} text={slow ? "*3 tours* les plus lents ici" : "Au virage 6, tour par tour"} start={t0} size={92} />
+          <KLine T={T} key={view} text={slow ? "*3 tours* les plus lents ici" : "Au virage 6, tour par tour"} start={t0} size={92} />
         </div>
         <div style={box(530)}>
           <Bars T={T} t0={t0} litAt={13.75} slow={slow} />
