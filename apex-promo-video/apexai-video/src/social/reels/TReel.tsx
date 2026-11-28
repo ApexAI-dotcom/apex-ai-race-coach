@@ -12,6 +12,7 @@ import { CornerSplit } from "./CornerSplit";
 import { CornerPasses, RuleCards } from "./CornerPasses";
 import { NotesPriority } from "./NotesPriority";
 import { Virage6G } from "./Virage6G";
+import { Morceaux49 } from "./Morceaux49";
 
 /**
  * T-Reel — gabarit de reel piloté par les données (production quotidienne).
@@ -21,7 +22,8 @@ import { Virage6G } from "./Virage6G";
  */
 const beat = z.object({
   dur: z.number().min(0.6).max(12),
-  kind: z.enum(["hook", "text", "hero", "visual", "clip", "image", "cta", "split", "passes", "rule", "notes", "virage6"]),
+  kind: z.enum(["hook", "text", "hero", "visual", "clip", "image", "cta", "split", "passes", "rule", "notes", "virage6", "morceaux"]),
+  m: z.enum(["hook", "others", "cut", "zoom", "yours", "end"]).optional(), // morceaux : écran affiché
   view: z.enum(["hero", "all", "b", "rank", "absent", "subtitle", "rule", "end"]).optional(), // notes : écran affiché
   g: z.enum(["hook", "turn", "helmet", "neck", "bars", "slow", "rule", "end"]).optional(), // virage6 : écran affiché
   title: z.string().optional(),
@@ -85,6 +87,9 @@ const Beat: React.FC<{ b: z.infer<typeof beat>; t0: number; t1: number; T: numbe
     </div>
   ) : null;
 
+  if (b.kind === "morceaux" && b.m) {
+    return <Morceaux49 T={T} t0={t0} t1={t1} view={b.m} cue={b.cues?.[0]} />;
+  }
   if (b.kind === "virage6" && b.g) {
     return <Virage6G T={T} t0={t0} t1={t1} view={b.g} />;
   }
